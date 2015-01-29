@@ -10,16 +10,21 @@
   <head>
     <title></title>
 
-    <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/jquery/dist/jquery.js  "></script>
+    <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/jquery/dist/jquery.js"></script>
     <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/angular/angular.js"></script>
     <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/threejs/build/three.js"></script>
     <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/text-encoding/lib/encoding-indexes.js"></script>
     <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/text-encoding/lib/encoding.js"></script>
 
     <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/config.js"></script>
+    <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/fileReadHelper.js"></script>
     <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/dbcLoader.js"></script>
 
-    <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/dbc/map.js"></script>
+    <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/chunkedLoader.js"></script>
+    <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/map/wdtLoader.js"></script>
+
+
+    <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/dbc/mapDBC.js"></script>
 
     <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/app.js"></script>
   </head>

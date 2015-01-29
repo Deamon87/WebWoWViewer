@@ -8,10 +8,12 @@
 /* App Module */
 (function (window, $, undefined) {
 
-    var main = angular.module('main.app', ['main.services.config', 'main.services.dbcLoader', 'main.services.dbc.map']);
+    var main = angular.module('main.app', ['main.services.config', 'main.services.dbc.map', 'main.services.wdtLoader']);
 
-    main.run(['mapDBC', function(mapDBC){
+    main.run(['mapDBC', 'wdtLoader',  function( mapDBC, wdtLoader ){
         mapDBC();
+
+        wdtLoader("World/Maps/Expansion01/Expansion01.wdt")
     }]);
 
 })(window, jQuery);
