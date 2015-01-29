@@ -6,7 +6,7 @@
     var chunkedLoader = angular.module('main.services.chunkedLoader', ['main.services.fileReadHelper']);
 
 
-    chunkedLoader.factory('chunkedLoader', ['configService', "fileReadHelper", '$http', "$q", function(configService, fileReadHelper, $http, $q) {
+    chunkedLoader.factory('chunkedLoader', ['configService', "fileReadHelper", '$http', "$q", '$log', function(configService, fileReadHelper, $http, $q, $log) {
 
         return function (filePath) {
             var deferred = $q.defer();
@@ -17,23 +17,23 @@
 
                 var chunkedFileObj = {
                     loadChunkAtOffset : function (offset){
-                        var offs = offset;
+                        var offsetObj = { offs : offset };
 
                         /* Read chunk header */
                         var chunkIdent = "";
                         var chunkSize = 0;
 
                         // 8 is length of chunk header
-                        if (offset + 8 < fileReader.getLength()) {
-                            chunkIdent = fileReader.reverseStr(fileReader.readString(offs, 4)); offs += 4;
-                            chunkSize = fileReader.readInt32(offs); offs += 4;
+                        if (offsetObj.offs + 8 < fileReader.getLength()) {
+                            chunkIdent = fileReader.reverseStr(fileReader.readString(offsetObj, 4));
+                            chunkSize = fileReader.readInt32(offsetObj);
                         }
 
                         /* If chunk is empty - skip it. Otherwise - load the chunkData */
                         var chunkReader = null;
 
                         if (chunkSize > 0) {
-                            chunkReader = fileReadHelper(a, offs, chunkSize);
+                            chunkReader = fileReadHelper(a, offsetObj.offs, chunkSize);
                         }
 
                         var chunkPiece = {

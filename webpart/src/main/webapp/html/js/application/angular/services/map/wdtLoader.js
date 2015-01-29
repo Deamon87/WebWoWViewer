@@ -29,7 +29,6 @@
                             var chunkOffs = 0;
                             var tileTable = {};
 
-
                             for (var i =0; i < 64; i++) {
                                 var tile = {};
 
@@ -45,10 +44,24 @@
                             break;
 
                         case "MWMO":
-                            wdtObj.wmoName = wdtObj.readString(0);
+                            wdtObj.wmoName = chunk.readString(0);
                             break;
 
                         case "MODF":
+                            /* Placement information for WMO maps*/
+                            var offset = { offs : 0 };
+                            var modfChunk = {};
+                            modfChunk.nameId = chunk.readInt32(offset);
+                            modfChunk.uniqueId = chunk.readInt32(offset);
+
+                            modfChunk.pos        = chunk.readVector3f();
+                            modfChunk.rotation   = chunk.readVector3f();
+                            modfChunk.unkVector1 = chunk.readVector3f();
+                            modfChunk.unkVector2 = chunk.readVector3f();
+
+                            modfChunk.doodadSet = chunk.readUint16();
+                            modfChunk.nameSet   = chunk.readUint16();
+                            modfChunk.flags     = chunk.readInt32();
 
                             break;
 

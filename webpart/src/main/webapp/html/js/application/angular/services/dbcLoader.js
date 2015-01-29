@@ -18,21 +18,21 @@
 
             $http.get(fullPath, {responseType: "arraybuffer"}).success(function(a) {
                 var fileReader = fileReadHelper(a);
-                var offset = 0;
+                var offset = {offs : 0};
 
 
-                var dbcIdent = fileReader.readString(offset, 4); offset += 4;
+                var dbcIdent = fileReader.readString(offset, 4);
 
-                var rowCount = fileReader.readInt32(offset); offset += 4;
-                var colCount = fileReader.readInt32(offset); offset += 4;
-                var rowSize  = fileReader.readInt32(offset); offset += 4;
+                var rowCount = fileReader.readInt32(offset);
+                var colCount = fileReader.readInt32(offset);
+                var rowSize  = fileReader.readInt32(offset);
                 var textSize = fileReader.readInt32(offset);
 
                 var textSectionStart = dbcHeaderLen + rowCount* (colCount*4);
 
                 function calcOffset(row, col){
                     var offs =  dbcHeaderLen + row * (colCount * 4) + col * 4;
-                    return offs;
+                    return {offs : offs};
                 }
                 function getTextOffset(row, col) {
                     var offs = calcOffset(row, col);
