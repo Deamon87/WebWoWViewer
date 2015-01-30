@@ -12,7 +12,7 @@
         return function(wdtFilePath) {
             var deferred = $q.defer();
 
-            var promise = chunkedLoader(wdtFilePath)
+            var promise = chunkedLoader(wdtFilePath);
             promise.then(function(chunkedFile){
 
                 /* First chunk in file has to be MVER */
@@ -38,6 +38,8 @@
                                 }
                                 tileTable[i] = tile;
                             }
+
+                            wdtObj.tileTable = tile;
                             break;
                         case "MPHD":
                             wdtObj.isWMOMap = chunk.readUint8(0) & 1 > 0;
@@ -54,15 +56,16 @@
                             modfChunk.nameId = chunk.readInt32(offset);
                             modfChunk.uniqueId = chunk.readInt32(offset);
 
-                            modfChunk.pos        = chunk.readVector3f();
-                            modfChunk.rotation   = chunk.readVector3f();
-                            modfChunk.unkVector1 = chunk.readVector3f();
-                            modfChunk.unkVector2 = chunk.readVector3f();
+                            modfChunk.pos        = chunk.readVector3f(offset);
+                            modfChunk.rotation   = chunk.readVector3f(offset);
+                            modfChunk.unkVector1 = chunk.readVector3f(offset);
+                            modfChunk.unkVector2 = chunk.readVector3f(offset);
 
-                            modfChunk.doodadSet = chunk.readUint16();
-                            modfChunk.nameSet   = chunk.readUint16();
-                            modfChunk.flags     = chunk.readInt32();
+                            modfChunk.doodadSet = chunk.readUint16(offset);
+                            modfChunk.nameSet   = chunk.readUint16(offset);
+                            modfChunk.flags     = chunk.readInt32(offset);
 
+                            wdtObj.modfChunk = modfChunk;
                             break;
 
                         default:
@@ -71,7 +74,7 @@
                     chunk = chunkedFile.loadChunkAtOffset(chunk.nextChunkOffset);
                 }
 
-                deferred.resolve();
+                deferred.resolve(wdtObj);
             }, function error(){
                 deferred.reject();
             });

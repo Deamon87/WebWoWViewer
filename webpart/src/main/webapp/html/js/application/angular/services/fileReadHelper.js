@@ -20,9 +20,6 @@
 
 
         return function (arrayBuffer, start, end){
-
-            $log.info("Start = "+start+", end="+end );
-
             var dataView = new DataView(arrayBuffer, start, end);
             var uint8Array = new Uint8Array(arrayBuffer, start, end);
 
@@ -71,7 +68,32 @@
 
                     return vector3f;
                 },
+                readQuaternion : function (offsetObj) {
+                    var quaternion = {};
 
+                    /* Imagine part of quaternion */
+                    quaternion.imag = this.readVector3f(offsetObj);
+                    /* Real part of quaternion */
+                    quaternion.real = this.readFloat32(offsetObj);
+
+                    return quaternion;
+                },
+                readUint8Array : function (offsetObj, length) {
+                    var vector = [];
+                    for (var i = 0; i < length; i ++) {
+                        vector[i] = this.readUint8(offsetObj);
+                    }
+
+                    return vector;
+                },
+                readInt32Array : function (offsetObj, length) {
+                    var vector = [];
+                    for (var i = 0; i < length; i ++) {
+                        vector[i] = this.readInt32(offsetObj);
+                    }
+
+                    return vector;
+                },
                 readString : function (offsetObj, maxlen) {
                     /**
                      * @param array Array where to search
