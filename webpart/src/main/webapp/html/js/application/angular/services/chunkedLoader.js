@@ -16,6 +16,37 @@
                 var fileReader = fileReadHelper(a);
 
                 var chunkedFileObj = {
+
+                    processFile: function(resultObj, sectionReaders){
+                        var chunk = this.loadChunkAtOffset(0);
+
+                        while (chunk.chunkIdent != "") {
+                            var sectionHandlerProc = sectionReaders.getHandler(chunk.chunkIdent);
+                            if (sectionHandlerProc){
+                                if (typeof sectionHandlerProc === 'function') {
+                                    sectionHandlerProc(resultObj, chunk);
+                                } else {
+                                    var offset = sectionHandlerProc[chunk.chunkIdent](resultObj, chunk);
+
+                                    /* Iteration through subchunks */
+                                    var subChunk = this.loadChunkAtOffset(chunk.chunkOffset + offset.offs);
+                                    while (subChunk.chunkIdent != "") {
+                                        var subchunkHandler = sectionHandlerProc.subChunks[subChunk.chunkIdent];
+                                        if (subchunkHandler){
+                                            subchunkHandler(resultObj, subChunk);
+                                        } else {
+                                            $log.info("Unknown SubChunk. Ident = " + subChunk.chunkIdent+", file = "+fullPath);
+                                        }
+
+                                        subChunk = this.loadChunkAtOffset(subChunk.nextChunkOffset);
+                                    }
+                                }
+                            } else {
+                                $log.info("Unknown Chunk. Ident = " + chunk.chunkIdent+", file = "+fullPath);
+                            }
+                            chunk = this.loadChunkAtOffset(chunk.nextChunkOffset);
+                        }
+                    },
                     loadChunkAtOffset : function (offset){
                         var offsetObj = { offs : offset };
 
@@ -40,6 +71,7 @@
                             chunkIdent : chunkIdent,
                             chunkLen   : chunkSize,
 
+                            chunkOffset: offset,
                             nextChunkOffset : offset + 8 + chunkSize //8 is length of chunk header
                         };
                         chunkPiece.__proto__ = chunkReader;

@@ -14,7 +14,7 @@
             'main.services.wdtLoader',
             'main.services.wmoLoader']);
 
-    main.run(['mapDBC', 'wdtLoader', 'wmoLoader',  function( mapDBC, wdtLoader, wmoLoader ){
+    main.run(['mapDBC', 'wdtLoader', 'wmoLoader', 'wmoGroupLoader',  function( mapDBC, wdtLoader, wmoLoader, wmoGroupLoader ){
         mapDBC();
 
         wdtLoader("World/Maps/Expansion01/Expansion01.wdt");
@@ -23,6 +23,11 @@
         wmoLoader("World/wmo/Dungeon/Azjol_Lowercity/Azjol_Lowercity.wmo");
         wmoLoader("World/wmo/Dungeon/Thor_Modan/Thor_Modan.wmo");
         wmoLoader("World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo");
+
+        wmoGroupLoader("World/wmo/Northrend/Dalaran/ND_Dalaran_004.wmo");
+        wmoGroupLoader("World/wmo/Northrend/Dalaran/ND_Dalaran_070.wmo");
+        wmoGroupLoader("World/wmo/Northrend/Dalaran/ND_Dalaran_073.wmo");
+        wmoGroupLoader("World/wmo/Northrend/Dalaran/ND_Dalaran_074.wmo");
 
     }]);
 

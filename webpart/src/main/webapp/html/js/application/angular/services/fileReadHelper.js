@@ -68,6 +68,14 @@
 
                     return vector3f;
                 },
+                readVector2f : function (offsetObj) {
+                    var vector2f = {};
+
+                    vector2f.x = this.readFloat32(offsetObj);
+                    vector2f.y = this.readFloat32(offsetObj);
+
+                    return vector2f;
+                },
                 readQuaternion : function (offsetObj) {
                     var quaternion = {};
 
@@ -82,6 +90,14 @@
                     var vector = [];
                     for (var i = 0; i < length; i ++) {
                         vector[i] = this.readUint8(offsetObj);
+                    }
+
+                    return vector;
+                },
+                readUint16Array : function (offsetObj, length) {
+                    var vector = [];
+                    for (var i = 0; i < length; i ++) {
+                        vector[i] = this.readUint16(offsetObj);
                     }
 
                     return vector;
@@ -115,6 +131,16 @@
                     var strEnd = findInArray(uint8Array, 0, strStart, strStart+maxlen);
 
                     var tempStr = textDecoder.decode(uint8Array.subarray(strStart, strEnd));
+                    offsetObj.offs = strEnd;
+
+                    return tempStr;
+                },
+                /* Read non-zero terminated string */
+                readNZTString : function (offsetObj, maxlen) {
+                    var strStart  = offsetObj.offs;
+                    var strEnd = strStart+maxlen;
+
+                    var tempStr = textDecoder.decode(uint8Array.subarray(strStart, strEnd-1));
                     offsetObj.offs = strEnd;
 
                     return tempStr;
