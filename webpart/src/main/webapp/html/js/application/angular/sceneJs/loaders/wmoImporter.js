@@ -61,28 +61,42 @@
 
                     wmoGroupLoader(params.src, true).then(function success(wmoGroupFile) {
 
-                         var material = self.addNode({
+                        var material = self.addNode({
                             type: "material",
                             color: { r: 0.2, g: 0.2, b: 0.6 }
-                         });
+                        });
 
-                         var translate = material.addNode({
+                        var translate = material.addNode({
                             type: "translate",
                             x: 0
-                         });
+                        });
 
-                         // Torus primitive, implemented by plugin at
-                         // http://scenejs.org/api/latest/plugins/node/geometry/torus.js
-                         var geometry = translate.addNode({
-                             type: "geometry",
+                        // Torus primitive, implemented by plugin at
+                        // http://scenejs.org/api/latest/plugins/node/geometry/torus.js
+                        var geometry = translate.addNode({
+                            type: "geometry",
 
-                             primitive: "triangles",
+                            primitive: "triangles",
 
-                             positions: wmoGroupFile.verticles,
-                             normals :  wmoGroupFile.normals,
-                             uv :       wmoGroupFile.textCoords,
-                             indices :  wmoGroupFile.indicies
-                         });
+                            positions: wmoGroupFile.verticles,
+                            normals :  wmoGroupFile.normals,
+                            uv :       wmoGroupFile.textCoords
+                        });
+                        for (var i = 0; i < wmoGroupFile.renderBatches.length; i++) {
+                            var startInd = wmoGroupFile.renderBatches[i].startIndex;
+                            var endInd= startInd + wmoGroupFile.renderBatches[i].count;
+
+                            var partIndicies = [];
+                            for (var j = startInd; j < endInd; j++) {
+                                partIndicies.push(wmoGroupFile.indicies[j]);
+                            }
+
+                            var batchGeometry = geometry.addNode({
+                                type: "geometry",
+
+                                indices: partIndicies
+                            });
+                        }
 
                         self._taskId = self.taskFinished(self._taskId);
                     }, function error() {
