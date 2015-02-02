@@ -2,14 +2,14 @@
  * Created by Deamon on 29/01/2015.
  */
 (function (window, $, undefined) {
-    var wmoLoader = angular.module('main.services.wmoLoader', ['main.services.chunkedLoader']);
+    var wmoLoader = angular.module('main.services.map.wmoLoader', ['main.services.chunkedLoader']);
 
     /*
     * Loader for group wmo files
     * These files contain geometry
     * */
     wmoLoader.factory('wmoGroupLoader', ["chunkedLoader", "$q", '$log', function (chunkedLoader, $q, $log) {
-        return function(wmoFilePath) {
+        return function(wmoFilePath, loadPlainVertexes) {
             var deferred = $q.defer();
 
             var wmogroup_ver17 = {
@@ -52,21 +52,34 @@
                         },
                         "MOVI": function (groupWMOObject, chunk) {
                             // Indices.
-                            var indiciesLen = chunk.chunkLen / 2;
-                            groupWMOObject.indicies = chunk.readUint16Array({offs:0}, indiciesLen);
+                            var indicesLen = chunk.chunkLen / 2;
+                            groupWMOObject.indicies = chunk.readUint16Array({offs:0}, indicesLen);
 
                         },
                         "MOVT": function (groupWMOObject, chunk) {
-                            var verticlesLen = chunk.chunkLen/ 12;
-                            groupWMOObject.verticles = chunk.readVector3f({offs:0}, verticlesLen);
+                            if (loadPlainVertexes) {
+                                groupWMOObject.verticles = chunk.readFloat32Array({offs: 0}, chunk.chunkLen/4)
+                            } else {
+                                var verticesLen = chunk.chunkLen/ 12;
+                                groupWMOObject.verticles = chunk.readVector3f({offs: 0}, verticesLen);
+                            }
                         },
                         "MONR": function (groupWMOObject, chunk) {
                             var normalsLen = chunk.chunkLen/ 12;
-                            groupWMOObject.normals = chunk.readVector3f({offs:0}, normalsLen);
+                            if (loadPlainVertexes) {
+                                groupWMOObject.normals = chunk.readFloat32Array({offs: 0}, chunk.chunkLen/4);
+                            } else {
+                                groupWMOObject.normals = chunk.readVector3f({offs: 0}, normalsLen);
+                            }
                         },
                         "MOTV": function (groupWMOObject, chunk) {
                             var textureCoordsLen = chunk.chunkLen / 8;
-                            groupWMOObject.textCoords = chunk.readVector2f({offs:0},  textureCoordsLen)
+
+                            if (loadPlainVertexes) {
+                                groupWMOObject.textCoords = chunk.readFloat32Array({offs: 0}, chunk.chunkLen/4);
+                            } else {
+                                groupWMOObject.textCoords = chunk.readVector2f({offs:0}, textureCoordsLen)
+                            }
                         },
                         "MOCV": function (groupWMOObject, chunk) {
                             var offset = {offs : 0};
@@ -149,7 +162,7 @@
     * Do not contain any geometry, except bounding boxes;
     */
     wmoLoader.factory('wmoLoader', ["chunkedLoader", "$q", '$log', function (chunkedLoader, $q, $log) {
-        return function(wmoFilePath){
+        return function(wmoFilePath, loadPlainVertexes){
             var deferred = $q.defer();
 
             var wmo_ver17 = {

@@ -11,10 +11,16 @@
     var main = angular.module('main.app',
         ['main.services.config',
             'main.services.dbc.map',
-            'main.services.wdtLoader',
-            'main.services.wmoLoader']);
+            'main.services.map.wdtLoader',
+            'main.services.map.wmoLoader',
+            'main.services.wowSceneJsService',
 
-    main.run(['mapDBC', 'wdtLoader', 'wmoLoader', 'wmoGroupLoader',  function( mapDBC, wdtLoader, wmoLoader, wmoGroupLoader ){
+            'main.angular.sceneJs.loader.wmoImporter',
+
+            'main.directives.sceneJsElem'
+        ]);
+
+    main.run(['mapDBC', 'wdtLoader', 'wmoLoader', 'wmoGroupLoader', 'registerWMOImporter', function( mapDBC, wdtLoader, wmoLoader, wmoGroupLoader, registerWMOImporter ){
         mapDBC();
 
         wdtLoader("World/Maps/Expansion01/Expansion01.wdt");
@@ -28,6 +34,7 @@
         wmoGroupLoader("World/wmo/Northrend/Dalaran/ND_Dalaran_070.wmo");
         wmoGroupLoader("World/wmo/Northrend/Dalaran/ND_Dalaran_073.wmo");
         wmoGroupLoader("World/wmo/Northrend/Dalaran/ND_Dalaran_074.wmo");
+
 
     }]);
 

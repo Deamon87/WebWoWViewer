@@ -9,6 +9,7 @@
     worldMap.factory('worldMap', [function() {
         var currentMap = undefined;
 
+
         return {
             setMap : function (mapId){
 

@@ -6,7 +6,7 @@
  */
 (function (window, $, undefined) {
 
-    var wdtLoader = angular.module('main.services.wdtLoader', ['main.services.chunkedLoader']);
+    var wdtLoader = angular.module('main.services.map.wdtLoader', ['main.services.chunkedLoader']);
 
     wdtLoader.factory('wdtLoader', ['chunkedLoader', "$q", "$log", function (chunkedLoader, $q, $log) {
         return function(wdtFilePath) {

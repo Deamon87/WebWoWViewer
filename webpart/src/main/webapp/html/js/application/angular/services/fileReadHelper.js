@@ -110,6 +110,14 @@
 
                     return vector;
                 },
+                readFloat32Array : function (offsetObj, length) {
+                    var vector = [];
+                    for (var i = 0; i < length; i ++) {
+                        vector[i] = this.readFloat32(offsetObj);
+                    }
+
+                    return vector;
+                },
                 readString : function (offsetObj, maxlen) {
                     /**
                      * @param array Array where to search

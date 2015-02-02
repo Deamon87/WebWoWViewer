@@ -82,7 +82,7 @@
 
                 deferred.resolve(chunkedFileObj);
             }).error(function() {
-
+                deferred.reject();
             });
 
             return deferred.promise;
