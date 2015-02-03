@@ -71,8 +71,6 @@
                             x: 0
                         });
 
-                        // Torus primitive, implemented by plugin at
-                        // http://scenejs.org/api/latest/plugins/node/geometry/torus.js
                         var geometry = translate.addNode({
                             type: "geometry",
 
@@ -80,7 +78,8 @@
 
                             positions: wmoGroupFile.verticles,
                             normals :  wmoGroupFile.normals,
-                            uv :       wmoGroupFile.textCoords
+                            uv      :  wmoGroupFile.textCoords,
+                            colors  :  wmoGroupFile.colorVerticles
                         });
                         for (var i = 0; i < wmoGroupFile.renderBatches.length; i++) {
                             var startInd = wmoGroupFile.renderBatches[i].startIndex;

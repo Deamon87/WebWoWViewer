@@ -87,11 +87,16 @@
                             var colorArray = [];
                             for (var i = 0; i < cvLen; i++) {
                                 var color = {};
-                                color.a = chunk.readUint8(offset);
-                                color.r = chunk.readUint8(offset);
-                                color.g = chunk.readUint8(offset);
-                                color.b = chunk.readUint8(offset);
-                                colorArray.push(color);
+                                var b = chunk.readUint8(offset) / 255;
+                                var g = chunk.readUint8(offset) / 255;
+                                var r = chunk.readUint8(offset) / 255;
+                                var a = chunk.readUint8(offset) / 255;
+
+                                //colorArray.push(color);
+                                colorArray.push(r);
+                                colorArray.push(g);
+                                colorArray.push(b);
+                                colorArray.push(a);
                             }
                             groupWMOObject.colorVerticles = colorArray;
                         },

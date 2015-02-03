@@ -1,9 +1,6 @@
 /**
  * Created by Deamon on 28/01/2015.
  */
-/**
- * Created by Deamon on 27/01/2015.
- */
 (function (window, $, undefined) {
 
     var wdtLoader = angular.module('main.services.map.wdtLoader', ['main.services.chunkedLoader']);
