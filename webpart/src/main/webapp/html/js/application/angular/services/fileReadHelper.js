@@ -148,7 +148,7 @@
                     var strStart  = offsetObj.offs;
                     var strEnd = strStart+maxlen;
 
-                    var tempStr = textDecoder.decode(uint8Array.subarray(strStart, strEnd-1));
+                    var tempStr = textDecoder.decode(uint8Array.subarray(strStart, strEnd));
                     offsetObj.offs = strEnd;
 
                     return tempStr;
