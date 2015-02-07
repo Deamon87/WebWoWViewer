@@ -14,6 +14,7 @@
             'main.services.map.wdtLoader',
             'main.services.map.wmoLoader',
             'main.services.map.mdxLoader',
+            'main.services.map.skinLoader',
 
             'main.services.wowSceneJsService',
 
@@ -22,8 +23,8 @@
             'main.directives.sceneJsElem'
         ]);
 
-    main.run(['mapDBC', 'wdtLoader', 'wmoLoader', 'wmoGroupLoader', 'mdxLoader', 'registerWMOImporter',
-        function( mapDBC, wdtLoader, wmoLoader, wmoGroupLoader, mdxLoader, registerWMOImporter ){
+    main.run(['mapDBC', 'wdtLoader', 'wmoLoader', 'wmoGroupLoader', 'mdxLoader', 'skinLoader', 'registerWMOImporter', '$log',
+        function( mapDBC, wdtLoader, wmoLoader, wmoGroupLoader, mdxLoader, skinLoader, registerWMOImporter, $log ){
         mapDBC();
 
             /*
@@ -34,7 +35,22 @@
         wmoLoader("World/wmo/Dungeon/Thor_Modan/Thor_Modan.wmo");
         wmoLoader("World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo");
               */
-        mdxLoader("World/Expansion02/Doodads/BoreanTundra/SnowPiles/Borean_Snowpile_01.M2");
+        mdxLoader("World/Expansion02/Doodads/BoreanTundra/SnowPiles/Borean_Snowpile_01.M2").then(
+            function(result){
+                $log.info(result);
+            },
+            function error(){
+
+            }
+        );
+        skinLoader("World/Expansion02/Doodads/BoreanTundra/SnowPiles/Borean_Snowpile_0100.skin").then(
+            function(result){
+                $log.info(result);
+            },
+            function error(){
+
+            }
+        );
 
         wmoGroupLoader("World/wmo/Northrend/Dalaran/ND_Dalaran_004.wmo");
         wmoGroupLoader("World/wmo/Northrend/Dalaran/ND_Dalaran_070.wmo");

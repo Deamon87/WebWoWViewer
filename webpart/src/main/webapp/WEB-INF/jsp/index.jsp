@@ -27,6 +27,7 @@
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/map/wdtLoader.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/map/wmoLoader.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/map/mdxLoader.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/map/skinLoader.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/dbc/mapDBC.js"></script>
 
         <!-- SceneJS custom loaders -->
