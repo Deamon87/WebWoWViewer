@@ -13,6 +13,7 @@
             'main.services.dbc.map',
             'main.services.map.wdtLoader',
             'main.services.map.wmoLoader',
+            'main.services.map.blpLoader',
             'main.services.map.mdxLoader',
             'main.services.map.skinLoader',
 
@@ -23,8 +24,8 @@
             'main.directives.sceneJsElem'
         ]);
 
-    main.run(['mapDBC', 'wdtLoader', 'wmoLoader', 'wmoGroupLoader', 'mdxLoader', 'skinLoader', 'registerWMOImporter', '$log',
-        function( mapDBC, wdtLoader, wmoLoader, wmoGroupLoader, mdxLoader, skinLoader, registerWMOImporter, $log ){
+    main.run(['mapDBC', 'wdtLoader', 'wmoLoader', 'wmoGroupLoader', 'mdxLoader', 'skinLoader', 'blpLoader', 'registerWMOImporter', '$log',
+        function( mapDBC, wdtLoader, wmoLoader, wmoGroupLoader, mdxLoader, skinLoader, blpLoader, registerWMOImporter, $log ){
         mapDBC();
 
             /*
@@ -35,10 +36,20 @@
         wmoLoader("World/wmo/Dungeon/Thor_Modan/Thor_Modan.wmo");
         wmoLoader("World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo");
               */
+        var mdxSuccess = function(result){
+            $log.info("mdx loaded", result);
+
+            /* Load textures for this m2 object */
+            for (var i = 0; i < result.textureDefinition.length; i++) {
+                blpLoader(result.textureDefinition[i].textureName).then(
+                    function success(result) {
+                        $log.info("blp loaded", result);
+                    }
+                );
+            }
+        };
         mdxLoader("World/Expansion02/Doodads/BoreanTundra/SnowPiles/Borean_Snowpile_01.M2").then(
-            function(result){
-                $log.info(result);
-            },
+            mdxSuccess,
             function error(){
 
             }
@@ -46,6 +57,7 @@
         skinLoader("World/Expansion02/Doodads/BoreanTundra/SnowPiles/Borean_Snowpile_0100.skin").then(
             function(result){
                 $log.info(result);
+
             },
             function error(){
 

@@ -24,17 +24,26 @@
 
                         var type = sectionDef.type;
                         switch (type) {
+                            case "int8":
+                                result = fileObject.readInt8(offset);
+                                break;
                             case "int16":
                                 result = fileObject.readInt16(offset);
                                 break;
                             case "int32" :
                                 result = fileObject.readInt32(offset);
                                 break;
+                            case "uint8":
+                                result = fileObject.readUint8(offset);
+                                break;
                             case "uint16":
                                 result = fileObject.readUint16(offset);
                                 break;
                             case "uint32":
                                 result = fileObject.readUint32(offset);
+                                break;
+                            case "int32Array" :
+                                result = fileObject.readInt32Array(offset, len);
                                 break;
                             case "uint8Array" :
                                 result = fileObject.readUint8Array(offset, len);
@@ -79,7 +88,7 @@
                         }
 
                         return result;
-                    }
+                    };
 
                     this.parseSectionDefinition = function(parentObject, sectionDefinition, fileObject, offset){
                         var offs;

@@ -1,12 +1,12 @@
 /**
  * Created by Deamon on 07/02/2015.
  */
-(function (window, $, undefined) {
+    (function (window, $, undefined) {
 
-    var skinLoader = angular.module('main.services.map.skinLoader', ['main.services.linedFileLoader']);
+        var skinLoader = angular.module('main.services.map.skinLoader', ['main.services.linedFileLoader']);
 
-    skinLoader.factory('skinLoader', ['linedFileLoader', '$log', '$q', function (linedFileLoader, $log, $q) {
-        var skinDefinition = {
+        skinLoader.factory('skinLoader', ['linedFileLoader', '$log', '$q', function (linedFileLoader, $log, $q) {
+            var skinDefinition = {
             name: "header",
             type: "layout",
             layout: [
@@ -65,7 +65,7 @@
                         {name : "renderOrder",         type: "int16"},
                         {name : "submeshIndex",        type: "uint16"},
                         {name : "unk1",                type: "uint16"},
-                        {name : "colorIndex",          type: "uint16"},
+                        {name : "colorIndex",          type: "int16"},
                         {name : "renderFlagIndex",     type: "uint16"},
                         {name : "textureUnitNum",      type: "uint16"},
                         {name : "unk2",                type: "uint16"},

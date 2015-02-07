@@ -169,11 +169,8 @@
                 }
 
                 /* Parse the header */
-                var resultMDXObject = {
-                    header : {}
-                };
-
-                resultMDXObject.header = fileObject.parseSectionDefinition(resultMDXObject, mdxDescription, fileObject, offset);
+                var resultMDXObject = {};
+                resultMDXObject = fileObject.parseSectionDefinition(resultMDXObject, mdxDescription, fileObject, offset);
 
                 deferred.resolve(resultMDXObject);
             },
