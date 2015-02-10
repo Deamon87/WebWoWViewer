@@ -101,10 +101,14 @@
                         m_y = event.pageY;
                     }
                 }
+                function mouseout(event) {
+                    mleft_pressed = 0;
+                }
 
                 canvas.addEventListener( 'mousemove', mouseMove , false );
                 canvas.addEventListener( 'mousedown', mouseDown , false );
                 canvas.addEventListener( 'mouseup',   mouseUp , false );
+                canvas.addEventListener( 'mouseout',  mouseout , false );
 
                 var lastDownTarget;
                 document.addEventListener('mousedown', function(event) {
