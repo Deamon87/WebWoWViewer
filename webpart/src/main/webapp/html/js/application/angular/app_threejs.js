@@ -11,21 +11,18 @@
     var main = angular.module('main.app',
         ['main.services.config',
             'main.services.dbc.map',
+            'main.services.map.adtLoader',
             'main.services.map.wdtLoader',
             'main.services.map.wmoLoader',
             'main.services.map.blpLoader',
             'main.services.map.mdxLoader',
             'main.services.map.skinLoader',
+            'main.directives.threeJsElem'
 
-            'main.services.wowSceneJsService',
-
-            'main.angular.sceneJs.loader.wmoImporter',
-
-            'main.directives.sceneJsElem'
         ]);
 
-    main.run(['mapDBC', 'wdtLoader', 'wmoLoader', 'wmoGroupLoader', 'mdxLoader', 'skinLoader', 'blpLoader', 'registerWMOImporter', '$log',
-        function( mapDBC, wdtLoader, wmoLoader, wmoGroupLoader, mdxLoader, skinLoader, blpLoader, registerWMOImporter, $log ){
+    main.run(['mapDBC', 'wdtLoader', 'wmoLoader', 'wmoGroupLoader', 'mdxLoader', 'skinLoader', 'blpLoader', '$log',
+        function( mapDBC, wdtLoader, wmoLoader, wmoGroupLoader, mdxLoader, skinLoader, blpLoader, $log ){
         mapDBC();
 
             /*

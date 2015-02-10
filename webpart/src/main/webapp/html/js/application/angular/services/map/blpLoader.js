@@ -65,9 +65,9 @@
                                     break;
                                 case 8:
                                     if (resultBLPObject.alphaEncoding == 1) {
-                                        resultBLPObject.textureFormat = "DXT3_EXT";
+                                        resultBLPObject.textureFormat = "S3TC_DXT3";
                                     } else {
-                                        resultBLPObject.textureFormat = "DXT5_EXT";
+                                        resultBLPObject.textureFormat = "S3TC_DXT5";
                                     }
                                     break;
                                 default :

@@ -7,7 +7,8 @@
     sceneJsElem.directive('sceneJsElem', ['$log', '$timeout', '$interval', 'wowSceneJsService', function ($log, $timeout, $interval, wowSceneJsService) {
         return {
             restrict: 'E',
-            template: '<canvas id = "{{elemId}}" width="1280" height="720"></canvas>',
+            template: '<canvas id = "{{elemId}}" width="1280" height="720"></canvas>' +
+            '<div>av = {{lookAtUpdated.av}}, ah = {{lookAtUpdated.ah}}, camera = {{lookAtUpdated.camera[0]}} </div>',
 
             link: function postLink(scope, element, attrs) {
                 var camera, scene, renderer;
@@ -24,10 +25,15 @@
                 scope.elemId = elemId;
                 $timeout(function(){
                     scene = wowSceneJsService(elemId);
+                    scene.getNode("firstPersonCamera", function(firstPersonCamera){
+
+                        firstPersonCamera.on("lookAtUpdated", function(lookAtUpdated){
+                            scope.lookAtUpdated = lookAtUpdated;
+                        });
+
+                    });
 
                     scene.getNode("content", function(content){
-
-
                         content.addNode({
                             type: "import/wmo",
                             //src : "World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo"

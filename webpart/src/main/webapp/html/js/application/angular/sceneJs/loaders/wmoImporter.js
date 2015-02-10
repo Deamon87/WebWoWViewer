@@ -43,7 +43,7 @@
                     }, function error() {
                         /* */
 
-                        self.log("error", "Failed to load file: " + err);
+                        self.log("error", "Failed to load file: " + params.src);
                         self._taskId = self.taskFailed(self._taskId);
                     });
                 }
@@ -104,6 +104,5 @@
                     });
                 }
             });
-
-    }]);
+     }]);
 })(window, jQuery);

@@ -3,10 +3,10 @@
  */
 (function (window, $, undefined) {
 
-    var fileReadHelper = angular.module('main.services.wowSceneJsService', ['main.services.config']);
+    var fileReadHelper = angular.module('main.services.wowSceneJsService', ['main.services.config', 'main.angular.sceneJs.firstPersonCamera']);
 
 
-    fileReadHelper.factory('wowSceneJsService', ['$log', function ($log) {
+    fileReadHelper.factory('wowSceneJsService', ['$log', 'registerFirstPersonCamera', function ($log, registerFirstPersonCamera) {
         // Define scene
 
         return function(canvasId) {
@@ -16,17 +16,16 @@
 
             var scene = SceneJS.createScene({
 
-                canvasId : canvasId,
-
+                canvasId: canvasId,
                 nodes: [
                     {
-                        type: "cameras/orbit",
-                        yaw: 30,
-                        pitch: -30,
-                        zoom: 25,
-                        zoomSensitivity: 1.0,
-
+                        type: "camera/firstperson",
+                        id : "firstPersonCamera",
                         nodes: [
+                            {
+                                id: "content"
+                            }
+/*
                             {
                                 type: "rotate",
                                 id: "myRotate",
@@ -37,7 +36,7 @@
                                         type: "rotate",
                                         x: 0, y: 0, z: -1, // Axis of rotation
                                         angle: 90.0,
-                                        nodes : [
+                                        nodes: [
                                             {
                                                 id: "content"
                                             }
@@ -45,6 +44,7 @@
                                     }
                                 ]
                             }
+*/
                         ]
                     }
                 ]
