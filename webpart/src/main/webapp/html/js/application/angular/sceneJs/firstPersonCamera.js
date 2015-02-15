@@ -90,7 +90,7 @@
                 }
                 function mouseMove(event){
                     if (mleft_pressed === 1) {
-                        ah = ah + (event.pageX - m_x) / 4.0;
+                            ah = ah + (event.pageX - m_x) / 4.0;
                         av = av + (event.pageY - m_y) / 4.0;
                         if (av < -89) {
                             av = -89
@@ -178,17 +178,15 @@
                     ];
                 }
 
+                var lastMoveDir = [1,0,0];
                 theScene.on("tick", function(tickObj) {
                     var dir = [1,0,0];
                     var moveSpeed = 0.5;
 
                     var dTime = tickObj.time - tickObj.prevTime;
 
-                    dir = VectorRotateAroundY(dir,degToRad(av));
-                    dir = VectorRotateAroundZ(dir,degToRad(ah));
-
                     if (MDHorizontal !== 0) {
-                        var right = VectorRotateAroundZ(dir, degToRad(90));
+                        var right = VectorRotateAroundZ(lastMoveDir, degToRad(90));
                         right[2] = 0;
 
                         right = normalizeVector(right);
@@ -198,13 +196,17 @@
                     }
 
                     if (MDDepth !== 0) {
-                        var movDir = dir;
+                        var movDir = lastMoveDir;
                         movDir = scaleVector(movDir, dTime * moveSpeed * MDDepth);
                         camera = addVector(camera, movDir);
                     }
                     if (MDVertical !== 0) {
                         camera[2] = camera[2] + dTime * moveSpeed * MDVertical;
                     }
+
+                    dir = VectorRotateAroundY(dir,degToRad(av));
+                    dir = VectorRotateAroundZ(dir,degToRad(ah));
+                    lastMoveDir = dir;
 
                     var lookat = addVector(camera, dir);
                     theScene.getNode("cameraLookAt", function(cameraLookAt){

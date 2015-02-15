@@ -10,7 +10,6 @@
      * */
     wmoLoader.factory('registerWMOImporter', ["wmoLoader", 'wmoGroupLoader', '$log', function (wmoLoader, wmoGroupLoader, $log) {
         SceneJS.Types.addType("import/wmo", {
-
                 construct: function (params) {
                     if (!params.src) {
                         this.log("error", "Attribute expected: src");
@@ -20,12 +19,12 @@
                     this._taskId = this.taskStarted("Loading .wmo");
                     var self = this;
 
-                    wmoLoader(params.src).then(function success(wmoFile) {
+                    wmoLoader(params.src).then(function success(wmoObj) {
                         /* Node creation */
 
                         /* Create group wmos */
                         var template = params.src.substr(0, params.src.lastIndexOf("."));
-                        for (var i = 0; i < wmoFile.nGroups; i++) {
+                        for (var i = 0; i < wmoObj.nGroups; i++) {
                             /* Fill the string with zeros, so it would have length of 3 */
                             var num = (i).toString();
                             for (;num.length != 3; ){
@@ -34,6 +33,7 @@
 
                             self.addNode({
                                 type: "import/groupWmo",
+                                wmoObj : wmoObj,
                                 src: template + "_" + num + ".wmo"
                             })
                         }
@@ -59,6 +59,8 @@
                     this._taskId = this.taskStarted("Loading group .wmo");
                     var self = this;
 
+                    var wmoObject = params.wmoObj;
+
                     wmoGroupLoader(params.src, true).then(function success(wmoGroupFile) {
 
                         var material = self.addNode({
@@ -82,18 +84,47 @@
                             colors  :  wmoGroupFile.colorVerticles
                         });
                         for (var i = 0; i < wmoGroupFile.renderBatches.length; i++) {
-                            var startInd = wmoGroupFile.renderBatches[i].startIndex;
-                            var endInd= startInd + wmoGroupFile.renderBatches[i].count;
+
+                            var batch = wmoGroupFile.renderBatches[i];
+                            var startInd = batch.startIndex;
+                            var endInd= startInd + batch.count;
 
                             var partIndicies = [];
                             for (var j = startInd; j < endInd; j++) {
                                 partIndicies.push(wmoGroupFile.indicies[j]);
                             }
 
-                            var batchGeometry = geometry.addNode({
-                                type: "geometry",
 
-                                indices: partIndicies
+                            var material = geometry.addNode({
+                                type : "import/blp",
+                                src : wmoObject.momt[batch.tex].textureName1,
+                                nodes: [{
+                                    type: "shader",
+                                    shaders: [
+                                        {
+                                            stage: "fragment",
+                                            code: [
+                                                //"attribute vec3 SCENEJS_aVertex;",
+                                                //"attribute vec2 SCENEJS_aUVCoord;",
+                                                //"varying vec4 SCENEJS_vColor;",
+                                                "vec3 baseColorBlend(vec3 color, float blendFactor, sampler2D sampler, vec2 texCoords){",
+                                                "   return color*texture2D(sampler, vec2(texCoords.x, 1.0 - texCoords.y)).rgb;",
+                                                "}"
+
+                                            ],
+                                            hooks: {
+                                                baseColorBlendFunc : "baseColorBlend"
+                                            }
+                                        }
+                                    ],
+                                    params : {
+
+                                    },
+                                    nodes: [{
+                                        type: "geometry",
+                                        indices: partIndicies
+                                    }]
+                                }]
                             });
                         }
 
@@ -106,3 +137,42 @@
             });
      }]);
 })(window, jQuery);
+/*
+ if (library.getNode(textureName) == null){
+ library.addNode({
+ type : "import/blp",
+ src: textureName,
+ id : textureName
+ });
+ }
+
+ var material = geometry.addNode({
+ type: "texture",
+ codeId : wmoObject.momt[batch.tex].textureName1,
+ nodes : [{
+ type: "shader",
+ shaders: [
+ {
+ stage: "fragment",
+ code: [
+ //"attribute vec3 SCENEJS_aVertex;",
+ //"attribute vec2 SCENEJS_aUVCoord;",
+ //"varying vec4 SCENEJS_vColor;",
+ "vec3 baseColorBlend(vec3 color, float blendFactor, sampler2D sampler, vec2 texCoords){",
+ "   return color*texture2D(sampler, vec2(texCoords.x, 1.0 - texCoords.y)).rgb;",
+ "}"
+
+ ],
+ hooks: {
+ baseColorBlendFunc: "baseColorBlend"
+ }
+ }
+ ],
+ params: {},
+ nodes: [{
+ type: "geometry",
+ indices: partIndicies
+ }]
+ }]
+ })
+ */

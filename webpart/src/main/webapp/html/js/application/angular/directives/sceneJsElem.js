@@ -8,7 +8,9 @@
         return {
             restrict: 'E',
             template: '<canvas id = "{{elemId}}" width="1280" height="720"></canvas>' +
-            '<div>av = {{lookAtUpdated.av}}, ah = {{lookAtUpdated.ah}}, camera = {{lookAtUpdated.camera[0]}} </div>',
+            '<div>av = {{lookAtUpdated.av}}, ah = {{lookAtUpdated.ah}}</div>' +
+            '<p>camera = {{lookAtUpdated.camera[0]}}, {{lookAtUpdated.camera[1]}}, {{lookAtUpdated.camera[2]}}</p>' +
+            '<p>lookAt = {{lookAtUpdated.lookAt[0]}}, {{lookAtUpdated.lookAt[1]}}, {{lookAtUpdated.lookAt[2]}}</p>',
 
             link: function postLink(scope, element, attrs) {
                 var camera, scene, renderer;
@@ -38,8 +40,8 @@
                             type: "import/wmo",
                             //src : "World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo"
                             //src : "World/wmo/Northrend/Dalaran/ND_Dalaran.wmo"
-                            //src : "World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo"
-                            src : "World/wmo/Dungeon/LD_DragonIsles/DragonIsles_D.wmo"
+                            src : "World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo"
+                            //src : "World/wmo/Dungeon/LD_DragonIsles/DragonIsles_D.wmo"
                             //src : "World/wmo/Azeroth/Buildings/Stormwind/Stormwind.wmo"
                         });
 
@@ -61,12 +63,8 @@
                                 scope.numTasks = status.numTasks;
                             }
                         }, 100);
-
                     });
-
                 }, 0);
-
-
             }
         }
     }]);

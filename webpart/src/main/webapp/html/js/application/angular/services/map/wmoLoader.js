@@ -2,13 +2,13 @@
  * Created by Deamon on 29/01/2015.
  */
 (function (window, $, undefined) {
-    var wmoLoader = angular.module('main.services.map.wmoLoader', ['main.services.chunkedLoader']);
+    var wmoLoader = angular.module('main.services.map.wmoLoader', ['main.services.chunkedLoader', 'main.services.fileReadHelper']);
 
     /*
     * Loader for group wmo files
     * These files contain geometry
     * */
-    wmoLoader.factory('wmoGroupLoader', ["chunkedLoader", "$q", '$log', function (chunkedLoader, $q, $log) {
+    wmoLoader.factory('wmoGroupLoader', ["chunkedLoader", "fileReadHelper", "$q", '$log', function (chunkedLoader, fileReadHelper,  $q, $log) {
         return function(wmoFilePath, loadPlainVertexes) {
             var deferred = $q.defer();
 
@@ -114,7 +114,7 @@
                                 renderBatch.minIndex   = chunk.readInt16(offset);
                                 renderBatch.maxIndex   = chunk.readInt16(offset);
                                 renderBatch.flags      = chunk.readInt8(offset);
-                                renderBatch.tex        = chunk.readInt8(offset);
+                                renderBatch.tex        = chunk.readUint8(offset);
 
                                 renderBatches.push(renderBatch);
                             }
@@ -164,9 +164,9 @@
 
     /*
     * Loader for root wmo file
-    * Do not contain any geometry, except bounding boxes;
+    * Does not contain any geometry, except bounding boxes;
     */
-    wmoLoader.factory('wmoLoader', ["chunkedLoader", "$q", '$log', function (chunkedLoader, $q, $log) {
+    wmoLoader.factory('wmoLoader', ["chunkedLoader", "fileReadHelper", "$q", '$log', function (chunkedLoader, fileReadHelper, $q, $log) {
         return function(wmoFilePath, loadPlainVertexes){
             var deferred = $q.defer();
 
@@ -191,6 +191,7 @@
                 "MOMT": function (wmoObj, chunk) {
                     var offset = {offs: 0};
                     var textures = [];
+                    var textureNames = wmoObj.motx;
                     for (var i = 0; i < wmoObj.nTextures; i++) {
                         var textureData = {};
 
@@ -207,10 +208,13 @@
                         textureData.unk = chunk.readInt32(offset);
                         textureData.dx = chunk.readInt32Array(offset, 5);
 
+                        textureData.textureName1 = fileReadHelper(textureNames.buffer).readString({offs : textureData.namestart1}, textureNames.length);
+                        textureData.textureName2 = fileReadHelper(textureNames.buffer).readString({offs : textureData.namestart2}, textureNames.length);
+
                         textures.push(textureData);
                     }
 
-                    return textures;
+                    wmoObj.momt = textures;
                 },
                 "MOTX": function (wmoObj, chunk) {
                     var offset = {offs: 0};

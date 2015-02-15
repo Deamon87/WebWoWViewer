@@ -15,9 +15,14 @@
             });
 
             var scene = SceneJS.createScene({
-
                 canvasId: canvasId,
                 nodes: [
+                    {
+                        type: "library",
+                        id: "library",
+                        nodes: []
+                    },
+
                     {
                         type: "camera/firstperson",
                         id : "firstPersonCamera",
@@ -25,26 +30,6 @@
                             {
                                 id: "content"
                             }
-/*
-                            {
-                                type: "rotate",
-                                id: "myRotate",
-                                x: -1, y: 0, z: 0, // Axis of rotation
-                                angle: 90.0,
-                                nodes: [
-                                    {
-                                        type: "rotate",
-                                        x: 0, y: 0, z: -1, // Axis of rotation
-                                        angle: 90.0,
-                                        nodes: [
-                                            {
-                                                id: "content"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-*/
                         ]
                     }
                 ]

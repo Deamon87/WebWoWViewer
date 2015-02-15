@@ -87,7 +87,7 @@
                     return quaternion;
                 },
                 readUint8Array : function (offsetObj, length) {
-                    var vector = [];
+                    var vector = new Uint8Array(length);
                     for (var i = 0; i < length; i ++) {
                         vector[i] = this.readUint8(offsetObj);
                     }

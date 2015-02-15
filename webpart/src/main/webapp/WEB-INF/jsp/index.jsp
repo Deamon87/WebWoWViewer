@@ -37,10 +37,9 @@
 
         <!-- SceneJS custom loaders -->
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/sceneJs/loaders/wmoImporter.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/sceneJs/loaders/blpImporter.js"></script>
 
         <!-- First person camera -->
-        <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/threejs/build/three.min.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/threejs/FlyControls.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/sceneJs/firstPersonCamera.js"></script>
 
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/services/wowSceneJsService.js"></script>

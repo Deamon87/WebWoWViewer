@@ -12,7 +12,7 @@
             layout : [
                 {name : "type",         type: "int32"},
                 {name : "encoding",     type: "uint8"},
-                {name : "alphaDepth",   type : "uint8"},
+                {name : "alphaDepth",   type: "uint8"},
                 {name : "alphaEncoding",type: "uint8"},
                 {name : "hasMips",      type: "uint8"},
                 {name : "width",        type: "int32"},
