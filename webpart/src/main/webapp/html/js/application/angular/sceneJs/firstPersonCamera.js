@@ -90,7 +90,7 @@
                 }
                 function mouseMove(event){
                     if (mleft_pressed === 1) {
-                            ah = ah + (event.pageX - m_x) / 4.0;
+                        ah = ah + (event.pageX - m_x) / 4.0;
                         av = av + (event.pageY - m_y) / 4.0;
                         if (av < -89) {
                             av = -89
@@ -178,15 +178,21 @@
                     ];
                 }
 
-                var lastMoveDir = [1,0,0];
                 theScene.on("tick", function(tickObj) {
                     var dir = [1,0,0];
                     var moveSpeed = 0.5;
 
                     var dTime = tickObj.time - tickObj.prevTime;
 
+                    /* Calc look at position */
+                    dir = VectorRotateAroundY(dir,degToRad(av));
+                    dir = VectorRotateAroundZ(dir,degToRad(ah));
+
+                    var lookat = addVector(camera, dir);
+
+                    /* Calc camera position */
                     if (MDHorizontal !== 0) {
-                        var right = VectorRotateAroundZ(lastMoveDir, degToRad(90));
+                        var right = VectorRotateAroundZ(dir, degToRad(90));
                         right[2] = 0;
 
                         right = normalizeVector(right);
@@ -196,7 +202,7 @@
                     }
 
                     if (MDDepth !== 0) {
-                        var movDir = lastMoveDir;
+                        var movDir = dir;
                         movDir = scaleVector(movDir, dTime * moveSpeed * MDDepth);
                         camera = addVector(camera, movDir);
                     }
@@ -204,11 +210,7 @@
                         camera[2] = camera[2] + dTime * moveSpeed * MDVertical;
                     }
 
-                    dir = VectorRotateAroundY(dir,degToRad(av));
-                    dir = VectorRotateAroundZ(dir,degToRad(ah));
-                    lastMoveDir = dir;
 
-                    var lookat = addVector(camera, dir);
                     theScene.getNode("cameraLookAt", function(cameraLookAt){
                         cameraLookAt.setLook({x: lookat[0], y: lookat[1], z: lookat[2] });
                         cameraLookAt.setEye({x: camera[0], y: camera[1], z: camera[2] });
