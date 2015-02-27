@@ -17,9 +17,9 @@
             gl.bindTexture(gl.TEXTURE_2D, texture);
 
             var ext = (
-            gl.getExtension("WEBGL_compressed_texture_s3tc") ||
-            gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc") ||
-            gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc")
+                gl.getExtension("WEBGL_compressed_texture_s3tc") ||
+                gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc") ||
+                gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc")
             );
 
             switch (textureFormat){
@@ -52,7 +52,6 @@
 
             gl.bindTexture(gl.TEXTURE_2D, null);
         };
-
         this.destroy = function() {
             var gl = this.gl;
             if (this.texture) {
@@ -63,45 +62,12 @@
         }
     }
 
+    var textureWoWCache = angular.module('js.wow.render.texture.textureCache', ['main.services.map.blpLoader', 'js.wow.render.texture']);
+    textureWoWCache.factory("textureWoWCache", ['blpLoader', 'texture', 'cacheTemplate', '$q', function(blpLoader, texture, cacheTemplate, $q){
 
-    var textureWoWCache = angular.module('js.wow.render.textureWoWCache', ['main.services.map.blpLoader', 'js.wow.render.texture']);
-    textureWoWCache.factory("textureWoWCache", ['blpLoader', 'texture', '$q', function(blpLoader, texture, $q){
+        var textureWoWCache = cacheTemplate();
 
         return function (glContext) {
-            /*
-            * Cache implementation
-            */
-
-            var cache = {};
-            function get(fileName){
-                var obj = cache[filename];
-                if (obj && obj.count) {
-
-               }
-            }
-            function put(fileName, texture){
-                var obj = {
-                    obj: texture,
-                    counter : 1
-                };
-
-                cache[fileName] = texture;
-            }
-            function remove(fileName){
-                var obj = cache[fileName];
-                if (!obj) {
-                    /* TODO: Log the message? */
-                    return;
-                }
-
-                /* Destroy texture if usage counter is 0 or less */
-                obj.counter -= 1;
-                if (obj.counter <= 0) {
-                    cache[fileName] = null;
-                    obj.texture.destroy();
-                }
-            }
-
             /*
             * Workflow for loading the texture
             */
@@ -121,9 +87,6 @@
                     /* This code requires gl context */
                     var textureObj = new Texture(glContext);
                     textureObj.loadFromMipmaps(blpFile.mipmaps, blpFile.textureFormat);
-
-                    /* Add texture to cache */
-                    put(filename, textureObj);
 
                     deferred.resolve(textureObj);
                 }, function error() {
