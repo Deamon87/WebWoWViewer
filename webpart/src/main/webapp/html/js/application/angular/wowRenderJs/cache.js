@@ -88,7 +88,6 @@
 
                 return container.obj;
             }
-
             this.remove = function (fileName) {
                 var container = cache[fileName];
                 if (!container) {

@@ -63,42 +63,38 @@
     }
 
     var textureWoWCache = angular.module('js.wow.render.texture.textureCache', ['main.services.map.blpLoader', 'js.wow.render.texture']);
-    textureWoWCache.factory("textureWoWCache", ['blpLoader', 'texture', 'cacheTemplate', '$q', function(blpLoader, texture, cacheTemplate, $q){
+    textureWoWCache.factory("textureWoWCache", ['blpLoader', 'cacheTemplate', '$q', function(blpLoader, cacheTemplate, $q){
 
-        var textureWoWCache = cacheTemplate();
+        function TextureWoWCache() {
+            var self = this;
 
-        return function (glContext) {
-            /*
-            * Workflow for loading the texture
-            */
+            /* Init cache */
+            var cache = cacheTemplate(function loadBlpFile(fileName){
+                /* Must return promise */
+                return blpLoader(fileName);
 
-            this.loadTexture = function(filename) {
-                //Check if it's not promise
-                if (cache[filename]) {
+            }, function process(blpFile) {
+                var textureObj = new Texture(self.gl);
+                textureObj.loadFromMipmaps(blpFile.mipmaps, blpFile.textureFormat);
 
+                return textureObj
+            });
 
-
-                    return;
-                }
-                var deferred = $q.defer();
-
-
-                blpLoader(filename).then(function success(blpFile) {
-                    /* This code requires gl context */
-                    var textureObj = new Texture(glContext);
-                    textureObj.loadFromMipmaps(blpFile.mipmaps, blpFile.textureFormat);
-
-                    deferred.resolve(textureObj);
-                }, function error() {
-                    deferred.reject(textureObj);
-                });
-
-                return deferred.promise;
+            /* Exposed interface */
+            self.initGlContext = function (glContext) {
+                this.gl = glContext;
             };
-            this.unLoadTexture = function(filename) {
-                removeTexture(filename);
+
+            self.loadTexture = function (fileName){
+                return cache.get(fileName);
+            };
+
+            self.unLoadTexture = function (fileName) {
+                cache.remove(fileName)
             }
         }
+
+        return TextureWoWCache;
     }]);
 
 })(window, jQuery);

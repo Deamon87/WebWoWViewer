@@ -167,7 +167,7 @@
     * Does not contain any geometry, except bounding boxes;
     */
     wmoLoader.factory('wmoLoader', ["chunkedLoader", "fileReadHelper", "$q", '$log', function (chunkedLoader, fileReadHelper, $q, $log) {
-        return function(wmoFilePath, loadPlainVertexes){
+        return function(wmoFilePath){
             var deferred = $q.defer();
 
             var wmo_ver17 = {
