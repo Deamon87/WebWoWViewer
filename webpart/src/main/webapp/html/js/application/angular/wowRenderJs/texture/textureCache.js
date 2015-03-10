@@ -62,7 +62,7 @@
         }
     }
 
-    var textureWoWCache = angular.module('js.wow.render.texture.textureCache', ['main.services.map.blpLoader', 'js.wow.render.texture']);
+    var textureWoWCache = angular.module('js.wow.render.texture.textureCache', ['main.services.map.blpLoader', 'js.wow.render.cacheTemplate']);
     textureWoWCache.factory("textureWoWCache", ['blpLoader', 'cacheTemplate', '$q', function(blpLoader, cacheTemplate, $q){
 
         function TextureWoWCache() {

@@ -57,10 +57,10 @@
 
             function launchLoadingIn1ms(fileName){
                 $timeout(function() {
-                    load(fileName).then(function success(object) {
-                        var finalObject = process(object);
-                        put(fileName, finalObject);
+                    load(fileName).then(function success(loadedObj) {
+                        var finalObject = process(loadedObj);
 
+                        put(fileName, finalObject);
                         resolve(fileName);
                     }, function error(object) {
                         reject(fileName);

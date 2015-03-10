@@ -48,7 +48,6 @@
                             var mopy = {};
 
                             var n = chunk.length / 2;
-                            return;
                         },
                         "MOVI": function (groupWMOObject, chunk) {
                             // Indices.
