@@ -46,6 +46,7 @@
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/wowRenderJs/geometry/skinGeomCache.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/wowRenderJs/geometry/wmoGeomCache.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/wowRenderJs/geometry/wmoMainCache.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/wowRenderJs/objects/wmoObjectFactory.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/wowRenderJs/texture/textureCache.js"></script>
 
         <!-- WoW js directives -->

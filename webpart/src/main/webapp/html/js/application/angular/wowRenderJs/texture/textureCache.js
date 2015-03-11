@@ -14,7 +14,7 @@
             var gl = this.gl;
 
             this.texture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.bindTexture(gl.TEXTURE_2D, this.texture);
 
             var ext = (
                 gl.getExtension("WEBGL_compressed_texture_s3tc") ||
@@ -38,7 +38,7 @@
             /* ToDo : check if compressed format is supported on this gpu */
 
             if (textureFormat != "BGRA") {
-                for(var k = 0; k < image.length; k++) {
+                for(var k = 0; k < mipmaps.length; k++) {
                     gl.compressedTexImage2D(gl.TEXTURE_2D, k, textureFormat, mipmaps[k].width, mipmaps[k].height, 0, mipmaps[k].texture);
                 }
             } else {

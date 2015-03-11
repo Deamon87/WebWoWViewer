@@ -19,6 +19,28 @@
             this.wmoGroupFile = wmoGroupObject;
         };
 
+
+        this.provideTextureCache = function(textureCache){
+            this.textureCache = textureCache;
+        };
+
+        this.textureArray = [];
+        this.loadTextures = function(momt){
+            this.textureArray.length = this.wmoGroupFile.renderBatches.length;
+
+            for (var i = 0; i < this.wmoGroupFile.renderBatches.length ; i++){
+                var textIndex = this.wmoGroupFile.renderBatches[i].tex;
+                this.loadTexture(i, momt[textIndex].textureName1);
+            }
+        };
+        this.loadTexture = function(index, filename){
+            var self = this;
+            this.textureCache.loadTexture(filename).then(function success(textObject){
+                self.textureArray[index] = textObject;
+            }, function error(){
+            });
+        };
+
         this.createVBO = function(){
             var gl = this.gl;
             var wmoGroupObject = this.wmoGroupFile;
@@ -44,9 +66,11 @@
             gl.bufferData( gl.ARRAY_BUFFER, new Int16Array(wmoGroupObject.indicies), gl.STATIC_DRAW );
         };
 
-        /*this.createBatches = function(){
-            this.batches = [];
-        };*/
+        this.draw = function(){
+
+        };
+
+
 
         this.destroy = function() {
             var gl = this.gl;

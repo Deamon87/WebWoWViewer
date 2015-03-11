@@ -6,8 +6,8 @@
 
 
 (function (window, $, undefined) {
-    var scene = angular.module('js.wow.render.scene', ['js.wow.render.geometry.wmoGeomCache', 'js.wow.render.geometry.wmoMainCache']);
-    scene.factory("scene", ['$q', '$timeout', 'wmoMainCache', 'wmoGeomCache', function ($q, $timeout, wmoMainCache, wmoGeomCache) {
+    var scene = angular.module('js.wow.render.scene', ['js.wow.render.geometry.wmoGeomCache', 'js.wow.render.geometry.wmoMainCache', 'js.wow.render.wmoObjectFactory', 'js.wow.render.texture.textureCache']);
+    scene.factory("scene", ['$q', '$timeout', 'wmoObjectFactory', 'wmoMainCache', 'wmoGeomCache', 'textureWoWCache', function ($q, $timeout, wmoObjectFactory, wmoMainCache, wmoGeomCache, textureWoWCache) {
 
         return function(canvas){
             var self = this;
@@ -35,7 +35,8 @@
             self.wmoMainCache = new wmoMainCache();
             self.wmoMainCache.initGlContext(self.gl);
 
-
+            self.textureCache = new textureWoWCache();
+            self.textureCache.initGlContext(self.gl);
 
             self.draw = function (deltaTime){
                 var gl = self.gl;
@@ -59,25 +60,9 @@
             };
 
             self.loadWMOMap = function(filename){
-               var wmoPromise = self.wmoMainCache.loadWmoMain(filename);
-                wmoPromise.then(function success(wmoObj){
-                    console.log(wmoObj);
-
-                    var template = filename.substr(0, filename.lastIndexOf("."));
-                    for (var i = 0; i < wmoObj.nGroups; i++) {
-                        /* Fill the string with zeros, so it would have length of 3 */
-                        var num = (i).toString();
-                        for (;num.length != 3; ){
-                            num = '0' + num;
-                        }
-
-
-                        self.wmoGeomCache.loadWmoGeom(template + "_" + num + ".wmo");
-                    }
-
-                }, function error(){
-
-                });
+                var wmoObject = new wmoObjectFactory();
+                wmoObject.setCaches(self.wmoMainCache, self.wmoGeomCache, self.textureCache);
+                wmoObject.load(filename);
             }
 
 

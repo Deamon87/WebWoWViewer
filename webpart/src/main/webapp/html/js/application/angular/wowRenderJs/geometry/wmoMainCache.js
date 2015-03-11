@@ -3,27 +3,6 @@
 'use strict';
 (function (window, $, undefined) {
 
-    function WmoMain(glContext) {
-        this.gl = glContext;
-
-        this.assign = function(wmoObject){
-            this.wmoObject = wmoObject;
-        };
-
-        /*this.createBatches = function(){
-         this.batches = [];
-         };*/
-
-        this.destroy = function() {
-            var gl = this.gl;
-            if (this.texture) {
-                gl.deleteTexture(this.texture);
-            }
-
-            this.texture = null;
-        }
-    }
-
     var wmoGeomCache = angular.module('js.wow.render.geometry.wmoMainCache', ['main.services.map.wmoLoader', 'js.wow.render.cacheTemplate']);
     wmoGeomCache.factory("wmoMainCache", ['wmoLoader', 'cacheTemplate', '$q', function(wmoLoader, cacheTemplate, $q){
 
@@ -33,8 +12,8 @@
             var cache = cacheTemplate(function loadGroupWmo(fileName){
                 /* Must return promise */
                 return wmoLoader(fileName);
-            }, function process(wmoMainFile) {
-                return wmoMainFile;
+            }, function (a){
+                return a;
             });
 
             self.initGlContext = function (glContext) {
@@ -45,7 +24,7 @@
                 return cache.get(fileName);
             };
 
-            self.unLoadWmoGeom = function (fileName) {
+            self.unLoadWmoMain = function (fileName) {
                 cache.remove(fileName)
             }
         }
