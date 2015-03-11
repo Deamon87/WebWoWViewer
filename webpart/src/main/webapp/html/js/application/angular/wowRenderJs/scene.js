@@ -12,9 +12,14 @@
         return function(canvas){
             var self = this;
 
+            function throwOnGLError(err, funcName, args) {
+                throw WebGLDebugUtils.glEnumToString(err) + " was caused by call to: " + funcName;
+            }
+
             self.initGlContext = function (canvas){
                 try {
                     var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                    gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError);
                 }
                 catch(e) {}
 

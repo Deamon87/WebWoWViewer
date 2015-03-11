@@ -72,7 +72,7 @@
                 /* Draw */
                 for (var i = 0; i < self.wmoGroupArray.length; i++){
                     if (self.wmoGroupArray[i]){
-                        self.wmoGroupArray.draw();
+                        self.wmoGroupArray[i].draw();
                     }
                 }
 

@@ -26,6 +26,7 @@
 
         this.textureArray = [];
         this.loadTextures = function(momt){
+            this.momt = momt;
             this.textureArray.length = this.wmoGroupFile.renderBatches.length;
 
             for (var i = 0; i < this.wmoGroupFile.renderBatches.length ; i++){
