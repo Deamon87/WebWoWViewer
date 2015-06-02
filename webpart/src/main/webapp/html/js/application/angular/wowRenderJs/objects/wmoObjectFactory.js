@@ -55,7 +55,7 @@
                             num = '0' + num;
                         }
 
-                        self.loadGeom(num, template + "_" + num + ".wmo");
+                        self.loadGeom(i, template + "_" + num + ".wmo");
 
                     }
 

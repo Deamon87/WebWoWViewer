@@ -8,7 +8,7 @@
     threeJsElem.directive('wowJsRender', ['$log', '$timeout', '$interval', 'scene', function ($log, $timeout, $interval, scene) {
         return {
             restrict: 'E',
-            template: '<div class="threeJsDiv"><canvas></canvas></div>',
+            template: '<div class="threeJsDiv"><canvas style="width: 1024px; height: 768px"></canvas></div>',
             link: function postLink(scope, element, attrs) {
                 var canvas = element.find('canvas').get(0);
 
@@ -18,8 +18,8 @@
                     sceneObj.draw();
                 }, 1);
 
-                //sceneObj.loadWMOMap('World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo');
-                sceneObj.loadWMOMap("World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo");
+                sceneObj.loadWMOMap('World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo');
+                //sceneObj.loadWMOMap("World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo");
             }
         }
     }]);

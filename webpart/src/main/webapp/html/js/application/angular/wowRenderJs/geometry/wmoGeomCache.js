@@ -9,10 +9,7 @@
         this.gl = glContext;
 
 
-        this.verticlesVBO = null;
-        this.normalsVBO = null;
-        this.textCoordsVBO = null;
-        this.colorsVBO = null;
+        this.combinedVBO = null;
         this.indexVBO = null;
 
         this.assign = function(wmoGroupObject){
@@ -46,29 +43,122 @@
             var gl = this.gl;
             var wmoGroupObject = this.wmoGroupFile;
 
-            this.colorsVBO = gl.createBuffer();
-            gl.bindBuffer( gl.ARRAY_BUFFER, this.colorsVBO);
-            gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(wmoGroupObject.colorVerticles), gl.STATIC_DRAW );
+            var appendBuffer = function(buffer1, buffer2, buffer3, buffer4) {
+                var combinedBufferLen = buffer1.length + buffer2.length + buffer3.length ;
+                if (buffer4) {
+                    combinedBufferLen += buffer4.length;
+                }
 
-            this.normalsVBO = gl.createBuffer();
-            gl.bindBuffer( gl.ARRAY_BUFFER, this.normalsVBO );
-            gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(wmoGroupObject.normals), gl.STATIC_DRAW );
+                var tmp = new Float32Array(combinedBufferLen);
+                tmp.set(new Float32Array(buffer1), 0);
+                tmp.set(new Float32Array(buffer2), buffer1.length);
+                tmp.set(new Float32Array(buffer3), buffer1.length + buffer2.length);
 
-            this.verticlesVBO = gl.createBuffer();
-            gl.bindBuffer( gl.ARRAY_BUFFER, this.verticlesVBO );
-            gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(wmoGroupObject.verticles), gl.STATIC_DRAW );
+                if (buffer4) {
+                    tmp.set(new Float32Array(buffer4), buffer1.length + buffer2.length + buffer3.length);
+                }
+                return tmp;
+            };
 
-            this.textCoordsVBO = gl.createBuffer();
-            gl.bindBuffer( gl.ARRAY_BUFFER, this.textCoordsVBO );
-            gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(wmoGroupObject.textCoords), gl.STATIC_DRAW );
+            var combinedArray =
+                appendBuffer(
+                    wmoGroupObject.verticles,
+                    wmoGroupObject.normals,
+                    wmoGroupObject.textCoords,
+                    wmoGroupObject.colorVerticles
+                );
+
+            this.combinedVBO = gl.createBuffer();
+            gl.bindBuffer( gl.ARRAY_BUFFER, this.combinedVBO);
+            gl.bufferData( gl.ARRAY_BUFFER, combinedArray, gl.STATIC_DRAW );
+
+            this.positionOffset = 0;
+            this.normalOffset = wmoGroupObject.verticles.length;
+            this.textOffset = wmoGroupObject.verticles.length + wmoGroupObject.normals.length;
+            this.colorOffset = wmoGroupObject.verticles.length + wmoGroupObject.normals.length + wmoGroupObject.textCoords.length;
 
             this.indexVBO = gl.createBuffer();
-            gl.bindBuffer( gl.ARRAY_BUFFER, this.indexVBO );
-            gl.bufferData( gl.ARRAY_BUFFER, new Int16Array(wmoGroupObject.indicies), gl.STATIC_DRAW );
+            gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO );
+            gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(wmoGroupObject.indicies), gl.STATIC_DRAW );
         };
 
         this.draw = function(){
+            var gl = this.gl;
+            var wmoGroupObject = this.wmoGroupFile;
 
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.combinedVBO);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
+
+            gl.enableVertexAttribArray(0);
+            gl.enableVertexAttribArray(1);
+            gl.enableVertexAttribArray(2);
+
+            gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, this.positionOffset*4); // position
+            gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, this.normalOffset*4); // normal
+            gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, this.textOffset*4); // texcoord
+
+
+
+
+            gl.activeTexture(gl.TEXTURE0);
+            for (var j = 0; j < wmoGroupObject.renderBatches.length; j++) {
+                var renderBatch = wmoGroupObject.renderBatches[j];
+
+                var texIndex = renderBatch.tex;
+                var textureObject = this.textureArray[texIndex];
+
+                if (textureObject) {
+                    gl.bindTexture(gl.TEXTURE_2D, textureObject.texture);
+                    gl.drawElements(gl.TRIANGLES, renderBatch.count, gl.UNSIGNED_SHORT, renderBatch.startIndex * 2);
+                } else {
+                    //$log.log("textureObject num ", texIndex, " was not loaded")
+                }
+            }
+
+            /*
+            for j := 0 to high(batches) do
+                with batches[j] do
+                    begin
+
+            if parent.aMOMT[tex].blendMode <> 0 then
+            begin
+            glEnable(GL_ALPHA_TEST);
+            if parent.aMOMT[tex].Flags1 and $80 > 0 then glAlphaFunc(GL_GREATER, 0.3);
+            if parent.aMOMT[tex].Flags1 and $01 > 0 then glAlphaFunc(GL_GREATER, 0.1);
+            end;
+            if (parent.aMOMT[tex].Flags1 and $04 > 0) <> CullFaceEnabled then
+            begin
+            CullFaceEnabled := (parent.aMOMT[tex].Flags1 and $04 > 0);
+            if CullFaceEnabled then
+            glEnable(GL_CULL_FACE)
+            else
+            glDisable(GL_CULL_FACE);
+            end;
+
+            glBindTexture(GL_TEXTURE_2D, parent.TextureList[tex][0].id);
+
+            //glDrawElements(GL_TRIANGLES, Count, GL_UNSIGNED_SHORT, @indices[startIndex]);
+            //glDrawElements(GL_TRIANGLES, Count, GL_UNSIGNED_SHORT, ptr(startIndex*sizeof(word)));
+            glDrawRangeElements(GL_TRIANGLES,minIndex,maxIndex,Count,GL_UNSIGNED_SHORT,ptr(startIndex*sizeof(word)));
+
+
+            if not CullFaceEnabled then
+            glEnable(GL_CULL_FACE);
+
+            glColor4f(1,1,1,1);
+
+            glBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
+            glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER, 0 );
+
+            if Indoor and (colorsize > 0) then
+            begin
+            glEnable(GL_LIGHTING);
+            glDisableClientState(GL_COLOR_ARRAY);
+            end;
+
+            if not GL_VERSION_1_5 then
+            glEnableClientState(GL_VERTEX_ARRAY);
+                    */
         };
 
 
