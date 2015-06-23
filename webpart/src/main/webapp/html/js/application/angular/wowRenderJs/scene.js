@@ -30,12 +30,12 @@
             "} ";
 
         var simpleFragmentShader =
-            "precision mediump float; "+
+            "precision highp float; "+
             "varying vec3 vNormal; "+
             "varying vec2 vTexCoord; "+
             "uniform sampler2D uTexture; "+
             "void main() { "+
-            "gl_FragColor = texture2D(uTexture, vTexCoord); "+
+            "   gl_FragColor = texture2D(uTexture, vTexCoord); "+
             "}";
 
         return function(canvas){
@@ -160,7 +160,7 @@
 
 
                 var perspectiveMatrix = [];
-                mat4.perspective(perspectiveMatrix, 45, canvas.width / canvas.height, 1, 400.0);
+                mat4.perspective(perspectiveMatrix, 45.0, $(canvas).width() / $(canvas).height(), 1, 400.0);
                 gl.uniformMatrix4fv(self.projectionMatrix, false, perspectiveMatrix);
 
 

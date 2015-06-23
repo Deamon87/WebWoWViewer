@@ -8,7 +8,7 @@
     threeJsElem.directive('wowJsRender', ['$log', '$timeout', '$interval', 'scene', function ($log, $timeout, $interval, scene) {
         return {
             restrict: 'E',
-            template: '<div class="threeJsDiv"><canvas style="width: 1024px; height: 768px"></canvas>' +
+            template: '<div class="threeJsDiv"><canvas width = "1024" height = "768"></canvas>' +
             '<div>camera = ( {{cameraVecs.cameraVec3[0]}}, {{cameraVecs.cameraVec3[1]}}, {{cameraVecs.cameraVec3[2]}} )</div>' +
             '<div>lookAt = ( {{cameraVecs.lookAtVec3[0]}}, {{cameraVecs.lookAtVec3[1]}}, {{cameraVecs.lookAtVec3[2]}} )</div>' +
 
