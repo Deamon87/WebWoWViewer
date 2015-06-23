@@ -12,10 +12,10 @@
 
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/jquery/dist/jquery.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/angular/angular.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/scenejs/api/latest/scenejs.js"></script>
 
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/webgl-debug.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/stats.js/build/stats.min.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/gl-matrix/dist/gl-matrix.js"></script>
 
 
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/text-encoding/lib/encoding-indexes.js"></script>
@@ -42,6 +42,7 @@
         <!-- WoW js render -->
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/wowRenderJs/cache.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/wowRenderJs/scene.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/wowRenderJs/camera/firstPersonCamera.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/wowRenderJs/geometry/adtGeomCache.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/wowRenderJs/geometry/m2GeomCache.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/application/angular/wowRenderJs/geometry/skinGeomCache.js"></script>

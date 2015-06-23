@@ -31,7 +31,8 @@
         "scenejs" : "xeolabs/scenejs",
         "threejs" : "r70",
         "stats.js" : "r12",
-        "text-encoding" : "v0.5.1"
+        "text-encoding" : "v0.5.1",
+        "gl-matrix" : "v2.2.1"
     },
     "resolutions": {
         "angular": "1.2.27",

@@ -15,6 +15,7 @@
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/scenejs/api/latest/scenejs.js"></script>
 
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/stats.js/build/stats.min.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/gl-matrix/dist/gl-matrix.js"></script>
 
 
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/text-encoding/lib/encoding-indexes.js"></script>

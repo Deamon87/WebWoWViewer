@@ -4,20 +4,28 @@
 
 'use strict';
 
-
 (function (window, $, undefined) {
-    var scene = angular.module('js.wow.render.scene', ['js.wow.render.geometry.wmoGeomCache', 'js.wow.render.geometry.wmoMainCache', 'js.wow.render.wmoObjectFactory', 'js.wow.render.texture.textureCache']);
-    scene.factory("scene", ['$q', '$timeout', 'wmoObjectFactory', 'wmoMainCache', 'wmoGeomCache', 'textureWoWCache', function ($q, $timeout, wmoObjectFactory, wmoMainCache, wmoGeomCache, textureWoWCache) {
+    var scene = angular.module('js.wow.render.scene', [
+        'js.wow.render.geometry.wmoGeomCache',
+        'js.wow.render.geometry.wmoMainCache',
+        'js.wow.render.wmoObjectFactory',
+        'js.wow.render.texture.textureCache',
+        'js.wow.render.camera.firstPersonCamera']);
+    scene.factory("scene", ['$q', '$timeout', 'wmoObjectFactory', 'wmoMainCache', 'wmoGeomCache', 'textureWoWCache', 'firstPersonCamera', function ($q, $timeout, wmoObjectFactory, wmoMainCache, wmoGeomCache, textureWoWCache, firstPersonCamera) {
 
         var simpleVertexShader =
             "attribute vec3 aPosition; "+
             "attribute vec3 aNormal; "+
             "attribute vec2 aTexCoord; "+
+
+            "uniform mat4 uModelView; "+
+            "uniform mat4 uPMatrix; "+
+
             "varying vec2 vTexCoord; "+
             "varying vec3 vNormal; "+
             "void main() { " +
             "    vTexCoord = aTexCoord; "+
-            "    gl_Position = vec4(aPosition, 1.0);"+
+            "    gl_Position = uPMatrix * uModelView * vec4(aPosition, 1);"+
             "    vNormal = aNormal; "+
             "} ";
 
@@ -103,6 +111,8 @@
                 // link the program.
                 gl.linkProgram(program);
 
+
+
                 // Check if it linked.
                 var success = gl.getProgramParameter(program, gl.LINK_STATUS);
                 if (!success) {
@@ -111,8 +121,12 @@
                     throw ("program filed to link:" + gl.getProgramInfoLog (program));
                 }
 
-                self.program = program;
+                var modelViewMatrix = gl.getUniformLocation(program, "uModelView");
+                var projectionMatrix = gl.getUniformLocation(program, "uPMatrix");
 
+                self.program = program;
+                self.modelViewMatrix = modelViewMatrix;
+                self.projectionMatrix = projectionMatrix;
             };
             self.initGlContext(canvas);
 
@@ -128,6 +142,10 @@
             self.draw = function (deltaTime){
                 var gl = self.gl;
 
+                var cameraVecs = camera.tick(deltaTime);
+                var lookAtMat4 = [];
+                mat4.lookAt(lookAtMat4, cameraVecs.cameraVec3, cameraVecs.lookAtVec3, [0,0,1]);
+
                 gl.disable(gl.BLEND);
                 gl.clearColor(0.7 + 0.3, 0.0, 0.0, 1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -136,7 +154,14 @@
                 //gl.LoadIdentity();
 
                 gl.activeTexture(gl.TEXTURE0);
+
                 gl.useProgram(self.program);
+                gl.uniformMatrix4fv(self.modelViewMatrix, false, lookAtMat4);
+
+
+                var perspectiveMatrix = [];
+                mat4.perspective(perspectiveMatrix, 45, canvas.width / canvas.height, 1, 400.0);
+                gl.uniformMatrix4fv(self.projectionMatrix, false, perspectiveMatrix);
 
 
                 var i;
@@ -145,6 +170,7 @@
                     sceneObject.draw();
                 }
 
+                return cameraVecs;
             };
 
             self.loadWMOMap = function(filename){
@@ -153,8 +179,10 @@
                 wmoObject.load(filename);
 
                 self.sceneObjectList = [wmoObject];
-            }
+            };
 
+
+            var camera = firstPersonCamera(canvas, document);
 
         };
     }]);
