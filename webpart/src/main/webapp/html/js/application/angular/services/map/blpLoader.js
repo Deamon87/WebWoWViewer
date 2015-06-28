@@ -45,6 +45,7 @@
                     };
 
                     var resultBLPObject = fileObject.parseSectionDefinition(resultBLPObject, blpDefinition, fileObject, offset);
+                    resultBLPObject.fileName = filePath;
 
                     /* Post load for texture data. Can't define them through declarative definition */
                     var width = resultBLPObject.width;
@@ -55,23 +56,23 @@
                         if (resultBLPObject.encoding == 2) {
                             switch(resultBLPObject.alphaDepth) {
                                 case 0:
-                                    resultBLPObject.textureFormat = "S3TC_DXT1";
+                                    resultBLPObject.textureFormat = "S3TC_RGB_DXT1";
                                     break;
                                 case 1:
-                                    resultBLPObject.textureFormat = "S3TC_DXT1";
+                                    resultBLPObject.textureFormat = "S3TC_RGB_DXT1";
                                     break;
                                 case 4:
-                                    resultBLPObject.textureFormat = "S3TC_DXT3";
+                                    resultBLPObject.textureFormat = "S3TC_RGBA_DXT3";
                                     break;
                                 case 8:
                                     if (resultBLPObject.alphaEncoding == 1) {
-                                        resultBLPObject.textureFormat = "S3TC_DXT3";
+                                        resultBLPObject.textureFormat = "S3TC_RGBA_DXT3";
                                     } else {
-                                        resultBLPObject.textureFormat = "S3TC_DXT5";
+                                        resultBLPObject.textureFormat = "S3TC_RGBA_DXT5";
                                     }
                                     break;
                                 default :
-                                    resultBLPObject.textureFormat = "S3TC_DXT3";
+                                    resultBLPObject.textureFormat = "S3TC_RGBA_DXT3";
                                     break;
                             }
                         }

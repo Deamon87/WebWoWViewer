@@ -39,8 +39,10 @@
                         content.addNode({
                             type: "import/wmo",
                             //src : "World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo"
+
                             //src : "World/wmo/Northrend/Dalaran/ND_Dalaran.wmo"
                             src : "World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo"
+
                             //src : "World/wmo/Dungeon/LD_DragonIsles/DragonIsles_D.wmo"
                             //src : "World/wmo/Azeroth/Buildings/Stormwind/Stormwind.wmo"
                         });

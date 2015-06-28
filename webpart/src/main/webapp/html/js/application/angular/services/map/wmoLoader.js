@@ -109,7 +109,7 @@
                                 renderBatch.unk = chunk.readUint8Array(offset, 12);
 
                                 renderBatch.startIndex = chunk.readUint32(offset);
-                                renderBatch.count      = chunk.readInt16(offset);
+                                renderBatch.count      = chunk.readUint16(offset);
                                 renderBatch.minIndex   = chunk.readInt16(offset);
                                 renderBatch.maxIndex   = chunk.readInt16(offset);
                                 renderBatch.flags      = chunk.readInt8(offset);

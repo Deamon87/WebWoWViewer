@@ -131,15 +131,14 @@ firstPersonCamera.factory('firstPersonCamera', ['$log', function ($log) {
                     /* Calc look at position */
 
                     dir = vec3.rotateY(dir, dir, [0, 0, 0], degToRad(av));
-                    dir = vec3.rotateZ(dir, dir, [0, 0, 0], degToRad(ah));
+                    dir = vec3.rotateZ(dir, dir, [0, 0, 0], degToRad(-ah));
 
                     var lookat = [];
-                    vec3.add(lookat, camera, dir);
 
                     /* Calc camera position */
                     if (MDHorizontal !== 0) {
                         var right = [];
-                        vec3.rotateZ(right, dir, [0, 0, 0], degToRad(90));
+                        vec3.rotateZ(right, dir, [0, 0, 0], degToRad(-90));
                         right[2] = 0;
 
                         vec3.normalize(right, right);
@@ -149,13 +148,17 @@ firstPersonCamera.factory('firstPersonCamera', ['$log', function ($log) {
                     }
 
                     if (MDDepth !== 0) {
-                        var movDir = dir;
+                        var movDir = [];
+                        vec3.copy(movDir, dir);
+
                         vec3.scale(movDir, movDir, dTime * moveSpeed * MDDepth);
                         vec3.add(camera, camera, movDir);
                     }
                     if (MDVertical !== 0) {
                         camera[2] = camera[2] + dTime * moveSpeed * MDVertical;
                     }
+
+                    vec3.add(lookat, camera, dir);
 
                     return {
                         lookAtVec3: lookat,

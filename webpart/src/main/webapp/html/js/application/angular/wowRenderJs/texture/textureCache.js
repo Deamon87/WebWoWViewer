@@ -23,26 +23,33 @@
             );
 
             switch (textureFormat){
-                case "S3TC_DXT1":
+                case "S3TC_RGB_DXT1":
+                    textureFormat = ext.COMPRESSED_RGB_S3TC_DXT1_EXT;
+                    break;
+
+                case "S3TC_RGBA_DXT1":
                     textureFormat = ext.COMPRESSED_RGBA_S3TC_DXT1_EXT;
                     break;
 
-                case "S3TC_DXT3":
+
+                case "S3TC_RGBA_DXT3":
                     textureFormat = ext.COMPRESSED_RGBA_S3TC_DXT3_EXT;
                     break;
 
-                case "S3TC_DXT5":
+                case "S3TC_RGBA_DXT5":
                     textureFormat = ext.COMPRESSED_RGBA_S3TC_DXT5_EXT;
                     break;
             }
             /* ToDo : check if compressed format is supported on this gpu */
 
             if (textureFormat != "BGRA") {
-                for(var k = 0; k < mipmaps.length; k++) {
+                for( var k = 0; k < mipmaps.length; k++) {
                     gl.compressedTexImage2D(gl.TEXTURE_2D, k, textureFormat, mipmaps[k].width, mipmaps[k].height, 0, mipmaps[k].texture);
                 }
             } else {
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.BGRA, gl.UNSIGNED_BYTE, image.texture);
+                for( var k = 0; k < mipmaps.length; k++) {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.BGRA, gl.UNSIGNED_BYTE,  mipmaps[k].texture);
+                }
             }
 
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
@@ -76,6 +83,7 @@
             }, function process(blpFile) {
                 var textureObj = new Texture(self.gl);
                 textureObj.loadFromMipmaps(blpFile.mipmaps, blpFile.textureFormat);
+                textureObj.fileName = blpFile.fileName;
 
                 return textureObj
             });

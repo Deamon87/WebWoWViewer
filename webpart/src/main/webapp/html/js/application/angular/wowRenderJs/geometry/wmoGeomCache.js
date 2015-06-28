@@ -92,18 +92,30 @@
             gl.enableVertexAttribArray(0);
             gl.enableVertexAttribArray(1);
             gl.enableVertexAttribArray(2);
-
+            if (wmoGroupObject.colorVerticles) {
+                gl.enableVertexAttribArray(3);
+            } else {
+                gl.disableVertexAttribArray(3);
+            }
             gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0); // position
             gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, this.normalOffset*4); // normal
             gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, this.textOffset*4); // texcoord
-
+            if (wmoGroupObject.colorVerticles) {
+                gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, this.colorOffset * 4); // color
+            }
 
             gl.activeTexture(gl.TEXTURE0);
             for (var j = 0; j < wmoGroupObject.renderBatches.length; j++) {
                 var renderBatch = wmoGroupObject.renderBatches[j];
 
                 var texIndex = renderBatch.tex;
-                var textureObject = this.textureArray[texIndex];
+
+                if (this.momt[texIndex].flags1 & 0x4 > 0) {
+                    gl.enable(gl.CULL_FACE);
+                } else {
+                    gl.disable(gl.CULL_FACE);
+                }
+                var textureObject = this.textureArray[j];
 
                 if (textureObject) {
                     gl.bindTexture(gl.TEXTURE_2D, textureObject.texture);
@@ -112,51 +124,6 @@
                     //$log.log("textureObject num ", texIndex, " was not loaded")
                 }
             }
-
-            /*
-            for j := 0 to high(batches) do
-                with batches[j] do
-                    begin
-
-            if parent.aMOMT[tex].blendMode <> 0 then
-            begin
-            glEnable(GL_ALPHA_TEST);
-            if parent.aMOMT[tex].Flags1 and $80 > 0 then glAlphaFunc(GL_GREATER, 0.3);
-            if parent.aMOMT[tex].Flags1 and $01 > 0 then glAlphaFunc(GL_GREATER, 0.1);
-            end;
-            if (parent.aMOMT[tex].Flags1 and $04 > 0) <> CullFaceEnabled then
-            begin
-            CullFaceEnabled := (parent.aMOMT[tex].Flags1 and $04 > 0);
-            if CullFaceEnabled then
-            glEnable(GL_CULL_FACE)
-            else
-            glDisable(GL_CULL_FACE);
-            end;
-
-            glBindTexture(GL_TEXTURE_2D, parent.TextureList[tex][0].id);
-
-            //glDrawElements(GL_TRIANGLES, Count, GL_UNSIGNED_SHORT, @indices[startIndex]);
-            //glDrawElements(GL_TRIANGLES, Count, GL_UNSIGNED_SHORT, ptr(startIndex*sizeof(word)));
-            glDrawRangeElements(GL_TRIANGLES,minIndex,maxIndex,Count,GL_UNSIGNED_SHORT,ptr(startIndex*sizeof(word)));
-
-
-            if not CullFaceEnabled then
-            glEnable(GL_CULL_FACE);
-
-            glColor4f(1,1,1,1);
-
-            glBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
-            glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER, 0 );
-
-            if Indoor and (colorsize > 0) then
-            begin
-            glEnable(GL_LIGHTING);
-            glDisableClientState(GL_COLOR_ARRAY);
-            end;
-
-            if not GL_VERSION_1_5 then
-            glEnableClientState(GL_VERTEX_ARRAY);
-                    */
         };
 
 

@@ -17,28 +17,50 @@
             "attribute vec3 aPosition; "+
             "attribute vec3 aNormal; "+
             "attribute vec2 aTexCoord; "+
+            "attribute vec4 aColor; "+
 
             "uniform mat4 uModelView; "+
             "uniform mat4 uPMatrix; "+
 
             "varying vec2 vTexCoord; "+
             "varying vec3 vNormal; "+
+            "varying vec4 vColor; "+
             "void main() { " +
             "    vTexCoord = aTexCoord; "+
+            "    vColor = aColor; "+
             "    gl_Position = uPMatrix * uModelView * vec4(aPosition, 1);"+
             "    vNormal = aNormal; "+
             "} ";
 
         var simpleFragmentShader =
-            "precision highp float; "+
+            "precision lowp float; "+
             "varying vec3 vNormal; "+
             "varying vec2 vTexCoord; "+
+            "varying vec4 vColor; "+
             "uniform sampler2D uTexture; "+
             "void main() { "+
-            "   gl_FragColor = texture2D(uTexture, vTexCoord); "+
+            "   vec4 tex = texture2D(uTexture, vTexCoord); "+
+            "   gl_FragColor =  vec4(" +
+            "   vColor.a*tex.r + (1.0 - vColor.a)*vColor.r, " +
+            "   vColor.a*tex.g + (1.0 - vColor.a)*vColor.g, " +
+            "   vColor.a*tex.b + (1.0 - vColor.a)*vColor.b, " +
+            "   tex.a + vColor.a" +
+            ");" +
+                //"if(gl_FragColor.a < 0.3) "+
+                //"   discard; "+
             "}";
-
         return function(canvas){
+
+            var stats = new Stats();
+            stats.setMode( 1 ); // 0: fps, 1: ms, 2: mb
+
+            // align top-left
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+
+            document.body.appendChild( stats.domElement );
+
             var self = this;
 
             function throwOnGLError(err, funcName, args) {
@@ -107,6 +129,7 @@
                 gl.bindAttribLocation(program, 0, "aPosition");
                 gl.bindAttribLocation(program, 1, "aNormal");
                 gl.bindAttribLocation(program, 2, "aTexCoord");
+                gl.bindAttribLocation(program, 3, "aColor");
 
                 // link the program.
                 gl.linkProgram(program);
@@ -127,6 +150,12 @@
                 self.program = program;
                 self.modelViewMatrix = modelViewMatrix;
                 self.projectionMatrix = projectionMatrix;
+
+                gl.useProgram(self.program);
+                var perspectiveMatrix = [];
+                mat4.perspective(perspectiveMatrix, 45.0, canvas.width / canvas.height, 1, 1000  );
+                gl.uniformMatrix4fv(self.projectionMatrix, false, perspectiveMatrix);
+                gl.useProgram(null);
             };
             self.initGlContext(canvas);
 
@@ -150,25 +179,18 @@
                 gl.clearColor(0.7 + 0.3, 0.0, 0.0, 1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-                //gl.MatrixMode(GL_MODELVIEW);
-                //gl.LoadIdentity();
-
                 gl.activeTexture(gl.TEXTURE0);
 
                 gl.useProgram(self.program);
                 gl.uniformMatrix4fv(self.modelViewMatrix, false, lookAtMat4);
 
-
-                var perspectiveMatrix = [];
-                mat4.perspective(perspectiveMatrix, 45.0, $(canvas).width() / $(canvas).height(), 1, 400.0);
-                gl.uniformMatrix4fv(self.projectionMatrix, false, perspectiveMatrix);
-
-
+                stats.begin();
                 var i;
                 for (i = 0; i < self.sceneObjectList.length; i ++) {
                     var sceneObject = self.sceneObjectList[i];
                     sceneObject.draw();
                 }
+                stats.end();
 
                 return cameraVecs;
             };
