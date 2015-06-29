@@ -8,10 +8,12 @@
     var scene = angular.module('js.wow.render.scene', [
         'js.wow.render.geometry.wmoGeomCache',
         'js.wow.render.geometry.wmoMainCache',
+        'js.wow.render.geometry.m2GeomCache',
+        'js.wow.render.geometry.skinGeomCache',
         'js.wow.render.wmoObjectFactory',
         'js.wow.render.texture.textureCache',
         'js.wow.render.camera.firstPersonCamera']);
-    scene.factory("scene", ['$q', '$timeout', 'wmoObjectFactory', 'wmoMainCache', 'wmoGeomCache', 'textureWoWCache', 'firstPersonCamera', function ($q, $timeout, wmoObjectFactory, wmoMainCache, wmoGeomCache, textureWoWCache, firstPersonCamera) {
+    scene.factory("scene", ['$q', '$timeout', 'wmoObjectFactory', 'wmoMainCache', 'wmoGeomCache', 'textureWoWCache', 'm2GeomCache', 'skinGeomCache', 'firstPersonCamera', function ($q, $timeout, wmoObjectFactory, wmoMainCache, wmoGeomCache, textureWoWCache, m2GeomCache, skinGeomCache, firstPersonCamera) {
 
         var simpleVertexShader =
             "attribute vec3 aPosition; "+
@@ -49,6 +51,7 @@
                 //"if(gl_FragColor.a < 0.3) "+
                 //"   discard; "+
             "}";
+
         return function(canvas){
 
             var stats = new Stats();
@@ -159,14 +162,53 @@
             };
             self.initGlContext(canvas);
 
-            self.wmoGeomCache = new wmoGeomCache();
-            self.wmoGeomCache.initGlContext(self.gl);
+            self.sceneApi = {
+                getGlContext : function() {
+                    return self.gl;
+                },
+                loadTexture: function(fileName){
+                    return self.textureCache.loadTexture(fileName);
+                },
+                unLoadTexture : function (fileName){
+                    self.textureCache.unLoadTexture(fileName);
+                },
+                loadWmoMain : function (fileName){
+                    return self.wmoMainCache.loadWmoMain(fileName);
+                },
+                unloadWmoMain : function (fileName){
+                    self.wmoMainCache.unloadWmoMain(fileName);
+                },
+                loadWmoGeom : function (fileName){
+                    return self.wmoGeomCache.loadWmoGeom(fileName);
+                },
+                unloadWmoGeom : function (fileName){
+                    self.wmoGeomCache.unLoadWmoGeom(fileName);
+                },
+                loadM2Geom : function () {
 
-            self.wmoMainCache = new wmoMainCache();
-            self.wmoMainCache.initGlContext(self.gl);
+                },
+                unloadM2Geom : function (){
 
-            self.textureCache = new textureWoWCache();
-            self.textureCache.initGlContext(self.gl);
+                },
+                loadSkinGeom : function (){
+
+                },
+                unloadSkinGeom : function (){
+
+                },
+                loadAdtGeom : function (){
+
+                },
+                unloadAdtGeom : function (){
+
+                }
+            };
+
+            self.wmoGeomCache = new wmoGeomCache(self.sceneApi);
+            self.wmoMainCache = new wmoMainCache(self.sceneApi);
+            self.textureCache = new textureWoWCache(self.sceneApi);
+            self.m2GeomCache = new m2GeomCache(self.sceneApi);
+            self.skinGeomCache = new skinGeomCache(self.sceneApi);
 
             self.draw = function (deltaTime){
                 var gl = self.gl;
@@ -196,8 +238,7 @@
             };
 
             self.loadWMOMap = function(filename){
-                var wmoObject = new wmoObjectFactory();
-                wmoObject.setCaches(self.wmoMainCache, self.wmoGeomCache, self.textureCache);
+                var wmoObject = new wmoObjectFactory(self.sceneApi);
                 wmoObject.load(filename);
 
                 self.sceneObjectList = [wmoObject];

@@ -5,21 +5,12 @@
 /* App Module */
 (function (window, $, undefined) {
 
-    function WmoGeom(glContext) {
-        this.gl = glContext;
-
+    function WmoGeom(wmoGroupFile, sceneApi) {
+        this.gl = sceneApi.getGlContext();
 
         this.combinedVBO = null;
         this.indexVBO = null;
-
-        this.assign = function(wmoGroupObject){
-            this.wmoGroupFile = wmoGroupObject;
-        };
-
-
-        this.provideTextureCache = function(textureCache){
-            this.textureCache = textureCache;
-        };
+        this.wmoGroupFile = wmoGroupFile;
 
         this.textureArray = [];
         this.loadTextures = function(momt){
@@ -33,7 +24,8 @@
         };
         this.loadTexture = function(index, filename){
             var self = this;
-            this.textureCache.loadTexture(filename).then(function success(textObject){
+
+            sceneApi.loadTexture(filename).then(function success(textObject){
                 self.textureArray[index] = textObject;
             }, function error(){
             });
@@ -126,8 +118,6 @@
             }
         };
 
-
-
         this.destroy = function() {
             var gl = this.gl;
             if (this.texture) {
@@ -141,7 +131,7 @@
     var wmoGeomCache = angular.module('js.wow.render.geometry.wmoGeomCache', ['main.services.map.wmoLoader', 'js.wow.render.cacheTemplate']);
     wmoGeomCache.factory("wmoGeomCache", ['wmoGroupLoader', 'cacheTemplate', '$q', function(wmoGroupLoader, cacheTemplate, $q){
 
-        function WmoGeomCache() {
+        function WmoGeomCache(sceneApi) {
             var self = this;
 
             var cache = cacheTemplate(function loadGroupWmo(fileName){
@@ -149,15 +139,10 @@
                 return wmoGroupLoader(fileName, true);
             }, function process(wmoGroupFile) {
 
-                var wmoGeomObj = new WmoGeom(self.gl);
-                wmoGeomObj.assign(wmoGroupFile);
+                var wmoGeomObj = new WmoGeom(wmoGroupFile, sceneApi);
                 wmoGeomObj.createVBO();
                 return wmoGeomObj;
             });
-
-            self.initGlContext = function (glContext) {
-                this.gl = glContext;
-            };
 
             self.loadWmoGeom = function (fileName){
                 return cache.get(fileName);

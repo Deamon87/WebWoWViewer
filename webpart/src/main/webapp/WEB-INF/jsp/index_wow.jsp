@@ -13,7 +13,7 @@
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/jquery/dist/jquery.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/angular/angular.js"></script>
 
-        <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/webgl-debug.js"></script>
+        <!--<script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/webgl-debug.js"></script>-->
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/stats.js/build/stats.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/html/js/lib/bower/gl-matrix/dist/gl-matrix.js"></script>
 

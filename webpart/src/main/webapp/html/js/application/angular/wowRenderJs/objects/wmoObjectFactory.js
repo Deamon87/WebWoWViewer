@@ -7,40 +7,30 @@
     var cacheTemplate = angular.module('js.wow.render.wmoObjectFactory', []);
     cacheTemplate.factory("wmoObjectFactory", ['$q', '$timeout', function($q, $timeout) {
 
-        function WmoObject(){
+        function WmoObject(sceneApi){
             var self = this;
 
             self.wmoGroupArray = [];
-
-            self.initGlContex = function(gl) {
-                self.gl = gl;
-            };
-
-            self.setCaches = function(wmoMainCache, wmoGeomCache, textureCache){
-                self.wmoMainCache = wmoMainCache;
-                self.wmoGeomCache = wmoGeomCache;
-                self.textureCache = textureCache;
-            };
-
             self.loadGeom = function (num, filename){
-                self.wmoGeomCache.loadWmoGeom(filename).then(
+                sceneApi.loadWmoGeom(filename).then(
                     function success(wmoGeom){
                         self.wmoGroupArray[num] = wmoGeom;
 
                         /* 1. Load textures */
-                        wmoGeom.provideTextureCache(self.textureCache);
                         wmoGeom.loadTextures(self.wmoObj.momt);
 
                     }, function error(){
-
                     }
                 );
             };
 
-            self.load = function (filename){
+            self.loadDoodads = function (doodadsInd){
+            };
+
+            self.load = function (filename, doodadsInd){
                 var deferred = $q.defer();
 
-                var wmoMailPromise = self.wmoMainCache.loadWmoMain(filename);
+                var wmoMailPromise = sceneApi.loadWmoMain(filename);
                 wmoMailPromise.then(function success(wmoObj){
                     self.wmoObj = wmoObj;
                     self.wmoGroupArray = [];
@@ -56,11 +46,10 @@
                         }
 
                         self.loadGeom(i, template + "_" + num + ".wmo");
-
                     }
 
                     /* 2. Load doodads */
-
+                    self.loadDoodads(doodadsInd);
                 }, function error (){
 
 
@@ -68,16 +57,12 @@
             };
 
             self.draw = function () {
-
                 /* Draw */
                 for (var i = 0; i < self.wmoGroupArray.length; i++){
                     if (self.wmoGroupArray[i]){
                         self.wmoGroupArray[i].draw();
                     }
                 }
-
-
-
             }
         }
 

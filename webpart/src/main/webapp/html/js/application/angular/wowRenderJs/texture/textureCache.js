@@ -5,8 +5,8 @@
 /* App Module */
 (function (window, $, undefined) {
 
-    function Texture(glContext) {
-        this.gl = glContext;
+    function Texture(sceneApi) {
+        this.gl = sceneApi.getGlContext();
 
         this.texture = null;
 
@@ -72,7 +72,7 @@
     var textureWoWCache = angular.module('js.wow.render.texture.textureCache', ['main.services.map.blpLoader', 'js.wow.render.cacheTemplate']);
     textureWoWCache.factory("textureWoWCache", ['blpLoader', 'cacheTemplate', '$q', function(blpLoader, cacheTemplate, $q){
 
-        function TextureWoWCache() {
+        function TextureWoWCache(sceneApi) {
             var self = this;
 
             /* Init cache */
@@ -81,7 +81,7 @@
                 return blpLoader(fileName);
 
             }, function process(blpFile) {
-                var textureObj = new Texture(self.gl);
+                var textureObj = new Texture(sceneApi);
                 textureObj.loadFromMipmaps(blpFile.mipmaps, blpFile.textureFormat);
                 textureObj.fileName = blpFile.fileName;
 
@@ -89,10 +89,6 @@
             });
 
             /* Exposed interface */
-            self.initGlContext = function (glContext) {
-                this.gl = glContext;
-            };
-
             self.loadTexture = function (fileName){
                 return cache.get(fileName);
             };

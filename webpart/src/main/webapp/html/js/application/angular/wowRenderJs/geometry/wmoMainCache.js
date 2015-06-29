@@ -6,7 +6,7 @@
     var wmoGeomCache = angular.module('js.wow.render.geometry.wmoMainCache', ['main.services.map.wmoLoader', 'js.wow.render.cacheTemplate']);
     wmoGeomCache.factory("wmoMainCache", ['wmoLoader', 'cacheTemplate', '$q', function(wmoLoader, cacheTemplate, $q){
 
-        function WmoMainCache() {
+        function WmoMainCache(sceneApi) {
             var self = this;
 
             var cache = cacheTemplate(function loadGroupWmo(fileName){
@@ -15,10 +15,6 @@
             }, function (a){
                 return a;
             });
-
-            self.initGlContext = function (glContext) {
-                this.gl = glContext;
-            };
 
             self.loadWmoMain = function (fileName){
                 return cache.get(fileName);
