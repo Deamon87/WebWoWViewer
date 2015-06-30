@@ -15,11 +15,6 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             this.m2File = m2File;
         };
 
-
-        this.provideTextureCache = function(textureCache){
-            this.textureCache = textureCache;
-        };
-
         this.textureArray = [];
         this.loadTextures = function(tSkinFile){
             /*

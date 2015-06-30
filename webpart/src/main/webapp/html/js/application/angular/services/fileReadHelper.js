@@ -20,9 +20,18 @@
 
 
         return function (arrayBuffer, start, end){
-            var dataView = new DataView(arrayBuffer, start, end);
-            var uint8Array = new Uint8Array(arrayBuffer, start, end);
-
+            var dataView;
+            if (start&&end) {
+                dataView = new DataView(arrayBuffer, start, end);
+            } else {
+                dataView = new DataView(arrayBuffer);
+            }
+            var uint8Array;
+            if (start&&end) {
+                uint8Array = new Uint8Array(arrayBuffer, start, end);
+            } else {
+                uint8Array = new Uint8Array(arrayBuffer);
+            }
             return {
                 getLength : function(){
                     return uint8Array.length;
