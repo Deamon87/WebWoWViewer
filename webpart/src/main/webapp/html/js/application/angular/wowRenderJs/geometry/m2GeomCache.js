@@ -6,53 +6,46 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
 
     function M2Geom(sceneApi){
+        this.sceneApi = sceneApi;
         this.gl = sceneApi.getGlContext();
 
         this.combinedVBO = null;
         this.indexVBO = null;
-
-        this.assign = function(m2File){
-            this.m2File = m2File;
-        };
-
         this.textureArray = [];
-        this.loadTextures = function(tSkinFile){
-            /*
-            this.momt = momt;
+    }
+    M2Geom.prototype = {
+        assign: function (m2File) {
+            this.m2File = m2File;
+        },
+        loadTextures : function(){
+             var textureDefinition = this.m2File.textureDefinition;
 
-            this.textureArray.length = this.wmoGroupFile.renderBatches.length;
-
-            for (var i = 0; i < this.wmoGroupFile.renderBatches.length ; i++){
-                var textIndex = this.wmoGroupFile.renderBatches[i].tex;
-                this.loadTexture(i, momt[textIndex].textureName1);
-            }
-            */
-        };
-        this.loadTexture = function(index, filename){
+             for (var i = 0; i < textureDefinition.length ; i++){
+                this.loadTexture(i, textureDefinition[i].textureName);
+             }
+        },
+        loadTexture : function(index, filename){
             var self = this;
-            this.textureCache.loadTexture(filename).then(function success(textObject){
+            this.sceneApi.loadTexture(filename).then(function success(textObject){
                 self.textureArray[index] = textObject;
             }, function error(){
             });
-        };
-        this.createVBO = function(){
+        },
+        createVBO : function(){
             var gl = this.gl;
             var m2Object = this.m2File;
 
             this.vertexVBO = gl.createBuffer();
             gl.bindBuffer( gl.ARRAY_BUFFER, this.vertexVBO);
-            gl.bufferData( gl.ARRAY_BUFFER, m2Object.modelVertex, gl.STATIC_DRAW );
+            gl.bufferData( gl.ARRAY_BUFFER, m2Object.vertexes, gl.STATIC_DRAW );
 
             /* Index is taken from skin object */
-            /*
-            this.indexVBO = gl.createBuffer();
-            gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO );
-            gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(m2Object.indicies), gl.STATIC_DRAW );
-            */
-        };
-    }
+        }
+    };
 
     function M2GeomCache(sceneApi) {
+        var self = this;
+
         var cache = cacheTemplate(function loadGroupWmo(fileName){
             /* Must return promise */
             return mdxLoader(fileName);
@@ -61,6 +54,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             var m2GeomObj = new M2Geom(sceneApi);
             m2GeomObj.assign(m2File);
             m2GeomObj.createVBO();
+            m2GeomObj.loadTextures();
+
             return m2GeomObj;
         });
 

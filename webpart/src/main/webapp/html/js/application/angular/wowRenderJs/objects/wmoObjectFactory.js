@@ -25,6 +25,25 @@
             };
 
             self.loadDoodads = function (doodadsInd){
+                self.doodadsArray = [];
+                var doodadsSet = self.wmoObj.modd[doodadsInd];
+                for (var i = 0; i < doodadsSet.doodads.length; i++) {
+                    var doodad = doodadsSet.doodads[i];
+                    self.loadDoodad(i, doodad);
+                }
+            };
+            self.loadDoodad = function (index, doodad) {
+                var nameTemplate = doodad.modelName.substr(0, doodad.modelName.length-4);
+                var modelFileName = nameTemplate + '.m2';
+                var skinFileName = nameTemplate + '00.skin';
+
+                var m2Promise = sceneApi.loadM2Geom(modelFileName);
+                var skinPromise = sceneApi.loadSkinGeom(skinFileName);
+
+                $q.all([m2Promise,skinPromise]).then(function(result){
+                    var model = result;
+                    self.doodadsArray[index] = model;
+                });
             };
 
             self.load = function (filename, doodadsInd){

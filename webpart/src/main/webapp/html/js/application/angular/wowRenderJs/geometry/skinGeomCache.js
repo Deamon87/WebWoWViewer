@@ -3,7 +3,7 @@
 'use strict';
 
 var m2GeomCache = angular.module('js.wow.render.geometry.skinGeomCache', ['main.services.map.skinLoader', 'js.wow.render.cacheTemplate']);
-m2GeomCache.factory("skinGeomCache", ['skinLoader', 'cacheTemplate', '$q', function(mdxLoader, cacheTemplate, $q){
+m2GeomCache.factory("skinGeomCache", ['skinLoader', 'cacheTemplate', '$q', function(skinLoader, cacheTemplate, $q){
 
     function SkinGeom(sceneApi){
         this.gl = sceneApi.getGlContext();
@@ -16,11 +16,11 @@ m2GeomCache.factory("skinGeomCache", ['skinLoader', 'cacheTemplate', '$q', funct
 
         this.createVBO = function(){
             var gl = this.gl;
-            var m2Object = this.m2File;
+            var skinObject = this.skinFile;
 
              this.indexVBO = gl.createBuffer();
              gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO );
-             gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(m2Object.indicies), gl.STATIC_DRAW );
+             gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(skinObject.header.indicies), gl.STATIC_DRAW );
         };
     }
 

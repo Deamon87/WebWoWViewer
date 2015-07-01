@@ -80,7 +80,22 @@
                 {
                     name : "vertexes",
                     offset: "ofsVertexes",
-                    count : "nVertexes",
+                    //count : "nVertexes",
+                    len : function(obj){
+                        return obj.nVertexes
+                            * (
+                                (4 * 3)
+                                + 4
+                                + 4
+                                + (4 * 3)
+                                + 4
+                                + 4
+                                + 4
+                                + 4
+                            );
+                    },
+                    type : 'uint8Array'
+                    /*
                     type : "layout",
                     layout: [
                         {name: "pos",           type : "vector3f"},
@@ -91,7 +106,7 @@
                         {name: "textureY",      type : "float32"},
                         {name : "unk1",         type : "int32"},
                         {name : "unk2",         type : "int32"}
-                    ]
+                    ]     */
                 },
                 {
                     name : "textureDefinition",

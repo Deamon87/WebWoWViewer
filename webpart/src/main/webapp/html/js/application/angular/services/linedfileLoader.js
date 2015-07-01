@@ -102,6 +102,8 @@
                         var len = sectionDefinition.len;
                         if (typeof sectionDefinition.len == "string") {
                             len = parentObject[len];
+                        } else if (typeof sectionDefinition.len == "function") {
+                            len = sectionDefinition.len(parentObject);
                         }
 
                         if (offset && offs) {

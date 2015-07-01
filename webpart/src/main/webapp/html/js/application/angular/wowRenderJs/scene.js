@@ -21,17 +21,21 @@
             "attribute vec2 aTexCoord; "+
             "attribute vec4 aColor; "+
 
+            "uniform float uAlphaTest;"+
             "uniform mat4 uModelView; "+
             "uniform mat4 uPMatrix; "+
+
 
             "varying vec2 vTexCoord; "+
             "varying vec3 vNormal; "+
             "varying vec4 vColor; "+
+            "varying float vAlphaTest; "+
             "void main() { " +
             "    vTexCoord = aTexCoord; "+
             "    vColor = aColor; "+
             "    gl_Position = uPMatrix * uModelView * vec4(aPosition, 1);"+
             "    vNormal = aNormal; "+
+            "    vAlphaTest = uAlphaTest; "+
             "} ";
 
         var simpleFragmentShader =
@@ -39,6 +43,7 @@
             "varying vec3 vNormal; "+
             "varying vec2 vTexCoord; "+
             "varying vec4 vColor; "+
+            "varying float vAlphaTest; "+
             "uniform sampler2D uTexture; "+
             "void main() { "+
             "   vec4 tex = texture2D(uTexture, vTexCoord); "+
@@ -47,9 +52,9 @@
             "   vColor.a*tex.g + (1.0 - vColor.a)*vColor.g, " +
             "   vColor.a*tex.b + (1.0 - vColor.a)*vColor.b, " +
             "   tex.a + vColor.a" +
-            ");" +
-                //"if(gl_FragColor.a < 0.3) "+
-                //"   discard; "+
+            "); " +
+                "if(gl_FragColor.a < vAlphaTest) "+
+                "   discard; "+
             "}";
 
         return function(canvas){
@@ -149,6 +154,7 @@
 
                 var modelViewMatrix = gl.getUniformLocation(program, "uModelView");
                 var projectionMatrix = gl.getUniformLocation(program, "uPMatrix");
+                var uAlphaTest = gl.getUniformLocation(program, "uAlphaTest");
 
                 self.program = program;
                 self.modelViewMatrix = modelViewMatrix;
@@ -184,24 +190,25 @@
                 unloadWmoGeom : function (fileName){
                     self.wmoGeomCache.unLoadWmoGeom(fileName);
                 },
-                loadM2Geom : function () {
-
+                loadM2Geom : function (fileName) {
+                    return self.m2GeomCache.loadM2(fileName);
                 },
-                unloadM2Geom : function (){
-
+                unloadM2Geom : function (fileName){
+                    self.m2GeomCache.unLoadM2(fileName);
                 },
-                loadSkinGeom : function (){
-
+                loadSkinGeom : function (fileName){
+                    return self.skinGeomCache.loadSkin(fileName);
                 },
-                unloadSkinGeom : function (){
-
+                unloadSkinGeom : function (fileName){
+                    self.skinGeomCache.unLoadSkin(fileName);
                 },
                 loadAdtGeom : function (){
 
                 },
                 unloadAdtGeom : function (){
 
-                }
+                },
+                /* Shader information */
             };
 
             self.wmoGeomCache = new wmoGeomCache(self.sceneApi);
@@ -239,7 +246,7 @@
 
             self.loadWMOMap = function(filename){
                 var wmoObject = new wmoObjectFactory(self.sceneApi);
-                wmoObject.load(filename);
+                wmoObject.load(filename, 0);
 
                 self.sceneObjectList = [wmoObject];
             };

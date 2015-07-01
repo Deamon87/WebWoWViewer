@@ -223,14 +223,17 @@
                 },
                 "MODN": function (wmoObj, chunk) {
                     var offset = {offs: 0};
+                    var modelNames = chunk.readUint8Array(offset, chunk.chunkLen);
+
+                    /*
                     var m2Names = [];
                     for (var i = 0; i < wmoObj.nModels; i++) {
                         var str = chunk.readString(offset);
                         offset.offs++;
                         m2Names.push(str);
-                    }
+                    }     */
 
-                    wmoObj.modn = m2Names;
+                    wmoObj.modn = modelNames;
                 },
                 "MODS": function (wmoObj, chunk) {
                     var offset = {offs: 0};
@@ -251,6 +254,7 @@
                     /* Requires loaded MODS chunk. Pure parsing is not possible =(*/
                     var offset = {offs: 0};
                     var doodadsPerSet = [];
+                    var modelNames = wmoObj.modn;
 
                     for (var i = 0; i < wmoObj.nDoodadSets; i++) {
                         var doodadSetInfo = wmoObj.mods[i];
@@ -262,6 +266,7 @@
                         for (var j = 0; j < doodadSetInfo.number; j++) {
                             var doodad = {};
                             doodad.nameIndex = chunk.readInt32(offset);
+                            doodad.modelName = fileReadHelper(modelNames.buffer).readString({offs : doodad.nameIndex}, modelNames.length - doodad.nameIndex);
                             doodad.pos       = chunk.readVector3f(offset);
                             doodad.rotation  = chunk.readQuaternion(offset);
                             doodad.scale     = chunk.readFloat32(offset);
