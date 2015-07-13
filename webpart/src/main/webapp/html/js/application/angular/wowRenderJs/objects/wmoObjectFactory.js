@@ -31,8 +31,8 @@
                 var doodadsSet = self.wmoObj.modd[doodadsInd];
 
                 this.doodadsArray = [];
-                //for (var i = 0; i < doodadsSet.doodads.length; i++) {
-                for (var i = 0; i < 10; i++) {
+                for (var i = 0; i < doodadsSet.doodads.length; i++) {
+                //for (var i = 0; i < (doodadsSet.doodads.length > 10) ? 10 : doodadsSet.doodads.length; i++) {
                     var doodad = doodadsSet.doodads[i];
                     this.loadDoodad(i, doodad);
                 }
@@ -62,7 +62,7 @@
                             num = '0' + num;
                         }
 
-                        //self.loadGeom(i, template + "_" + num + ".wmo");
+                        self.loadGeom(i, template + "_" + num + ".wmo");
                     }
 
                     /* 2. Load doodads */
@@ -72,6 +72,13 @@
             },
             draw : function () {
                 /* Draw */
+                var gl = this.sceneApi.getGlContext();
+                var uniforms = this.sceneApi.getShaderUniforms();
+                var identMatrix = mat4.create();
+                mat4.identity(identMatrix);
+
+                gl.uniformMatrix4fv(uniforms.placementMatrix, false, identMatrix);
+
                 for (var i = 0; i < this.wmoGroupArray.length; i++){
                     if (this.wmoGroupArray[i]){
                         this.wmoGroupArray[i].draw();

@@ -82,8 +82,15 @@
 
                 this.submeshArray = submeshArray;
             },
-            draw : function (){
+            draw : function (placementMatrix){
                 if ((this.m2Geom) && (this.skinGeom)) {
+                    var gl = this.sceneApi.getGlContext();
+                    var uniforms = this.sceneApi.getShaderUniforms();
+
+                    gl.uniformMatrix4fv(uniforms.placementMatrix, false, placementMatrix);
+
+
+
                     this.m2Geom.draw(this.skinGeom, this.submeshArray);
                 }
             }

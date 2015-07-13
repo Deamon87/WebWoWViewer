@@ -24,6 +24,7 @@
             "uniform float uAlphaTest;"+
             "uniform mat4 uModelView; "+
             "uniform mat4 uPMatrix; "+
+            "uniform mat4 uPlacementMat; "+
 
 
             "varying vec2 vTexCoord; "+
@@ -33,7 +34,7 @@
             "void main() { " +
             "    vTexCoord = aTexCoord; "+
             "    vColor = aColor; "+
-            "    gl_Position = uPMatrix * uModelView * vec4(aPosition, 1);"+
+            "    gl_Position = uPMatrix * uModelView * uPlacementMat * vec4(aPosition, 1);"+
             "    vNormal = aNormal; "+
             "    vAlphaTest = uAlphaTest; "+
             "} ";
@@ -151,11 +152,13 @@
                 }
 
                 var modelViewMatrix = gl.getUniformLocation(program, "uModelView");
+                var placementMatrix = gl.getUniformLocation(program, "uPlacementMat");
                 var projectionMatrix = gl.getUniformLocation(program, "uPMatrix");
                 var uAlphaTest = gl.getUniformLocation(program, "uAlphaTest");
 
                 self.program = program;
                 self.modelViewMatrix = modelViewMatrix;
+                self.placementMatrix = placementMatrix;
                 self.projectionMatrix = projectionMatrix;
 
                 gl.useProgram(self.program);
@@ -169,6 +172,13 @@
             self.sceneApi = {
                 getGlContext : function() {
                     return self.gl;
+                },
+                getShaderUniforms : function (){
+                    return {
+                        modelViewMatrix : self.modelViewMatrix,
+                        placementMatrix : self.placementMatrix,
+                        projectionMatrix : self.projectionMatrix
+                    }
                 },
                 loadTexture: function(fileName){
                     return self.textureCache.loadTexture(fileName);
