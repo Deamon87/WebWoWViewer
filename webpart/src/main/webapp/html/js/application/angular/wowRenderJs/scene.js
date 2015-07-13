@@ -142,8 +142,6 @@
                 // link the program.
                 gl.linkProgram(program);
 
-
-
                 // Check if it linked.
                 var success = gl.getProgramParameter(program, gl.LINK_STATUS);
                 if (!success) {
@@ -207,7 +205,7 @@
                 },
                 unloadAdtGeom : function (){
 
-                },
+                }
                 /* Shader information */
             };
 

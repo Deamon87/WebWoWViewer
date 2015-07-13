@@ -80,7 +80,22 @@
                 {
                     name : "vertexes",
                     offset: "ofsVertexes",
-                    //count : "nVertexes",
+                    type : 'uint8Array',
+                    /*
+                    count : "nVertexes",
+
+                    type : "layout",
+                    layout: [
+                    {name: "pos",           type : "vector3f"},
+                    {name: "bonesWeight",   type : "uint8Array", len: 4},
+                    {name: "bones",         type : "uint8Array", len: 4},
+                    {name: "normal",        type : "vector3f"},
+                    {name: "textureX",      type : "float32"},
+                    {name: "textureY",      type : "float32"},
+                    {name : "unk1",         type : "int32"},
+                    {name : "unk2",         type : "int32"}
+                    ]
+                    */
                     len : function(obj){
                         return obj.nVertexes
                             * (
@@ -93,20 +108,7 @@
                                 + 4
                                 + 4
                             );
-                    },
-                    type : 'uint8Array'
-                    /*
-                    type : "layout",
-                    layout: [
-                        {name: "pos",           type : "vector3f"},
-                        {name: "bonesWeight",   type : "uint8Array", len: 4},
-                        {name: "bones",         type : "uint8Array", len: 4},
-                        {name: "normal",        type : "vector3f"},
-                        {name: "textureX",      type : "float32"},
-                        {name: "textureY",      type : "float32"},
-                        {name : "unk1",         type : "int32"},
-                        {name : "unk2",         type : "int32"}
-                    ]     */
+                    }
                 },
                 {
                     name : "textureDefinition",

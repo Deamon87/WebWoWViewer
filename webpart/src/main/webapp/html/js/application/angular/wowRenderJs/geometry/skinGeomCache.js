@@ -18,9 +18,17 @@ m2GeomCache.factory("skinGeomCache", ['skinLoader', 'cacheTemplate', '$q', funct
             var gl = this.gl;
             var skinObject = this.skinFile;
 
+            var indicies = [];
+            var skinFileHeader = this.skinFile.header;
+            indicies.length = skinFileHeader.triangles.length;
+
+            for (var i = 0; i < indicies.length; i ++) {
+                indicies[i] = skinFileHeader.indexes[skinFileHeader.triangles[i]];
+            }
+
              this.indexVBO = gl.createBuffer();
              gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO );
-             gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(skinObject.header.indicies), gl.STATIC_DRAW );
+             gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indicies), gl.STATIC_DRAW );
         };
     }
 
