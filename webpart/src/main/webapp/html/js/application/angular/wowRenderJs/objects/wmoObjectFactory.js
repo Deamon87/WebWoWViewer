@@ -66,7 +66,7 @@
                     }
 
                     /* 2. Load doodads */
-                    //self.loadDoodads(doodadsInd);
+                    self.loadDoodads(doodadsInd);
                 }, function error (){
                 });
             },

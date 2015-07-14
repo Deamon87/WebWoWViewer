@@ -12,7 +12,7 @@
         WmoM2Object.prototype = {
 
             draw : function () {
-                this.mdxObject.draw(this.placementMatrix);
+                this.mdxObject.draw(this.placementMatrix, this.diffuseColor);
             },
             createPlacementMatrix : function(doodad){
                 var placementMatrix = mat4.create();
@@ -42,6 +42,7 @@
             load : function (doodad){
                 var self = this;
 
+                self.diffuseColor = doodad.color;
                 self.createPlacementMatrix(doodad);
                 self.mdxObject.load(doodad.modelName, 0);
             }

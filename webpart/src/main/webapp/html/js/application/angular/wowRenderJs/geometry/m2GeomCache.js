@@ -40,9 +40,14 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
             /* Index is taken from skin object */
         },
-        draw : function (skinObject, submeshArray) {
+        draw : function (skinObject, submeshArray, placementMatrix, color) {
             var gl = this.gl;
             var m2Object = this.m2File;
+            var uniforms = this.sceneApi.getShaderUniforms();
+            var colorVector = [color&0xff, (color&0xff00) >> 8,
+                (color&0xff0000) >> 16,(color&0xff000000) >> 24]
+
+            gl.uniformMatrix4fv(uniforms.placementMatrix, false, placementMatrix);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
 
@@ -50,6 +55,10 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             gl.enableVertexAttribArray(0);
             gl.enableVertexAttribArray(1);
             gl.enableVertexAttribArray(2);
+            gl.disableVertexAttribArray(3);
+            gl.vertexAttrib4f(3, colorVector[0] / 255.0, colorVector[1] / 255.0,
+                colorVector[2] / 255.0, colorVector[3] / 255.0);
+            //gl.vertexAttrib4f(3, 0.5, 0.5, 0.5, 0.5);
 
             /*
              {name: "pos",           type : "vector3f"},           0+12 = 12

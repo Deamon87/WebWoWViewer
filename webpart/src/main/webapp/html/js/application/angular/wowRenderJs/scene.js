@@ -48,16 +48,13 @@
             "uniform sampler2D uTexture; "+
             "void main() { "+
             "   vec4 tex = texture2D(uTexture, vTexCoord).rgba; "+
-            "   vec4 trueColor = vColor*(1.0/255.0);  "+
+            "   vec4 trueColor = vColor;  "+
             "   gl_FragColor =  vec4(" +
-            //"   tex.a*tex.r + (1.0 - tex.a)*trueColor.b, " +
-            //"   tex.a*tex.g + (1.0 - tex.a)*trueColor.g, " +
-            //"   tex.a*tex.b + (1.0 - tex.a)*trueColor.r, " +
             "   (tex.r * trueColor.b) , " +
             "   (tex.g * trueColor.g) , " +
             "   (tex.b * trueColor.r) , " +
 
-            "   trueColor.a + tex.a" +
+            "   tex.a" +
             "); " +
                 "if(gl_FragColor.a < vAlphaTest) "+
                 "   discard; "+
@@ -182,7 +179,8 @@
                     return {
                         modelViewMatrix : self.modelViewMatrix,
                         placementMatrix : self.placementMatrix,
-                        projectionMatrix : self.projectionMatrix
+                        projectionMatrix : self.projectionMatrix,
+                        uAlphaTest : self.uAlphaTest
                     }
                 },
                 loadTexture: function(fileName){
@@ -237,10 +235,11 @@
                 var lookAtMat4 = [];
                 mat4.lookAt(lookAtMat4, cameraVecs.cameraVec3, cameraVecs.lookAtVec3, [0,0,1]);
 
-                gl.enable(gl.BLEND);
-                gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-                gl.clearColor(0.7 + 0.3, 0.0, 0.0, 1.0);
+                gl.disable(gl.BLEND);
+                //gl.clearColor(0.7 + 0.3, 0.0, 0.0, 1.0);
+                gl.clearColor(0.6, 0.95, 1.0, 1);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                gl.disable(gl.CULL_FACE);
 
                 gl.activeTexture(gl.TEXTURE0);
 

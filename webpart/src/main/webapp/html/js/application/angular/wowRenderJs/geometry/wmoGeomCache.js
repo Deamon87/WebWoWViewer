@@ -7,6 +7,7 @@
 
     function WmoGeom(wmoGroupFile, sceneApi) {
         this.gl = sceneApi.getGlContext();
+        this.sceneApi = sceneApi;
 
         this.combinedVBO = null;
         this.indexVBO = null;
@@ -76,6 +77,7 @@
 
         this.draw = function(){
             var gl = this.gl;
+            var shaderUniforms = this.sceneApi.getShaderUniforms();
             var wmoGroupObject = this.wmoGroupFile;
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
@@ -93,7 +95,9 @@
             gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, this.normalOffset*4); // normal
             gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, this.textOffset*4); // texcoord
             if (wmoGroupObject.colorVerticles) {
-                gl.vertexAttribPointer(3, 4, gl.UNSIGNED_BYTE, false, 0, this.colorOffset * 4); // color
+                gl.vertexAttribPointer(3, 4, gl.UNSIGNED_BYTE, true, 0, this.colorOffset * 4); // color
+            } else {
+                gl.vertexAttrib4f(3, 1.0, 1.0, 1.0, 1.0);
             }
 
             gl.activeTexture(gl.TEXTURE0);
@@ -102,10 +106,24 @@
 
                 var texIndex = renderBatch.tex;
 
-                if (this.momt[texIndex].flags1 & 0x4 > 0) {
-                    gl.enable(gl.CULL_FACE);
+                if (this.momt[texIndex].blendMode != 0) {
+                    if ((this.momt[texIndex].flags1 & 0x80) > 0) {
+
+                        gl.uniform1f(shaderUniforms.uAlphaTest, 0.3);
+                        //glAlphaFunc(GL_GREATER, 0.3);
+                    }
+                    if ((this.momt[texIndex].flags1 & 0x01) > 0) {
+                        gl.uniform1f(shaderUniforms.uAlphaTest, 0.1);
+                        //glAlphaFunc(GL_GREATER, 0.1);
+                    }
                 } else {
+                    gl.uniform1f(shaderUniforms.uAlphaTest, 1.0);
+                }
+
+                if ((this.momt[texIndex].flags1 & 0x4) > 0) {
                     gl.disable(gl.CULL_FACE);
+                } else {
+                    gl.enable(gl.CULL_FACE);
                 }
                 var textureObject = this.textureArray[j];
 
@@ -115,6 +133,8 @@
                 } else {
                     //$log.log("textureObject num ", texIndex, " was not loaded")
                 }
+
+                gl.uniform1f(shaderUniforms.uAlphaTest, 1.0);
             }
         };
 
