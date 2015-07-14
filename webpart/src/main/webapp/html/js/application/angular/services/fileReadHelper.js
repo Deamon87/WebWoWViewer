@@ -103,6 +103,14 @@
 
                     return vector;
                 },
+                readInt8Array : function (offsetObj, length) {
+                    var vector = new Int8Array(length);
+                    for (var i = 0; i < length; i ++) {
+                        vector[i] = this.readInt8(offsetObj);
+                    }
+
+                    return vector;
+                },
                 readUint16Array : function (offsetObj, length) {
                     var vector = [];
                     for (var i = 0; i < length; i ++) {

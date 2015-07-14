@@ -5,7 +5,7 @@
     var threeJsElem = angular.module('main.directives.wowJsRender', ['js.wow.render.scene']);
 
 
-    threeJsElem.directive('wowJsRender', ['$log', '$timeout', '$interval', 'scene', function ($log, $timeout, $interval, scene) {
+    threeJsElem.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window', 'scene', function ($log, $timeout, $interval, $window, scene) {
         return {
             restrict: 'E',
             template: '<div class="threeJsDiv"><canvas width = "1024" height = "768"></canvas>' +
@@ -19,7 +19,7 @@
                 var sceneObj = new scene(canvas);
                 var lastTimeStamp = undefined;
 
-                var renderIntervalObj = $interval(function(){
+                var renderfunc = function(){
 
                     var currentTimeStamp = new Date().getTime();
                     var timeDelta = 0;
@@ -30,9 +30,10 @@
 
                     var cameraVecs = sceneObj.draw(timeDelta);
 
-
                     scope.cameraVecs = cameraVecs;
-                }, 1);
+                    $window.requestAnimationFrame(renderfunc);
+                };
+                $window.requestAnimationFrame(renderfunc);
 
 
                 //sceneObj.loadWMOMap('World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo');

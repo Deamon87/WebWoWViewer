@@ -83,6 +83,7 @@
                         "MOCV": function (groupWMOObject, chunk) {
                             var offset = {offs : 0};
                             var cvLen = chunk.chunkLen / 4;
+                            /*
                             var colorArray = [];
                             for (var i = 0; i < cvLen; i++) {
                                 var color = {};
@@ -96,7 +97,8 @@
                                 colorArray.push(g);
                                 colorArray.push(b);
                                 colorArray.push(a);
-                            }
+                            } */
+                            var colorArray = chunk.readInt8Array({offs:0}, chunk.chunkLen);
                             groupWMOObject.colorVerticles = colorArray;
                         },
                         "MOBA": function (groupWMOObject, chunk) {

@@ -36,18 +36,18 @@
             var wmoGroupObject = this.wmoGroupFile;
 
             var appendBuffer = function(buffer1, buffer2, buffer3, buffer4) {
-                var combinedBufferLen = buffer1.length + buffer2.length + buffer3.length ;
+                var combinedBufferLen = buffer1.length*4 + buffer2.length*4 + buffer3.length*4 ;
                 if (buffer4) {
                     combinedBufferLen += buffer4.length;
                 }
 
-                var tmp = new Float32Array(combinedBufferLen);
-                tmp.set(new Float32Array(buffer1), 0);
-                tmp.set(new Float32Array(buffer2), buffer1.length);
-                tmp.set(new Float32Array(buffer3), buffer1.length + buffer2.length);
+                var tmp = new Uint8Array(combinedBufferLen);
+                tmp.set(new Uint8Array(new Float32Array(buffer1).buffer), 0);
+                tmp.set(new Uint8Array(new Float32Array(buffer2).buffer), buffer1.length*4);
+                tmp.set(new Uint8Array(new Float32Array(buffer3).buffer), (buffer1.length + buffer2.length)*4);
 
                 if (buffer4) {
-                    tmp.set(new Float32Array(buffer4), buffer1.length + buffer2.length + buffer3.length);
+                    tmp.set(new Uint8Array(buffer4.buffer), (buffer1.length + buffer2.length + buffer3.length)*4);
                 }
                 return tmp;
             };
@@ -93,7 +93,7 @@
             gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, this.normalOffset*4); // normal
             gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, this.textOffset*4); // texcoord
             if (wmoGroupObject.colorVerticles) {
-                gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, this.colorOffset * 4); // color
+                gl.vertexAttribPointer(3, 4, gl.UNSIGNED_BYTE, false, 0, this.colorOffset * 4); // color
             }
 
             gl.activeTexture(gl.TEXTURE0);
