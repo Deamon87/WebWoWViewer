@@ -28,12 +28,11 @@
         "angular-sanitize": "v1.2.27",
         "angular-ui-router": "~0.2.10",
         "jquery": "~1.11.1",
-        "scenejs" : "xeolabs/scenejs",
         "threejs" : "r70",
         "stats.js" : "r12",
         "text-encoding" : "v0.5.1",
         "gl-matrix" : "v2.2.1",
-
+        "decodeDXT" : "Deamon87/decodeDXT"
     },
     "resolutions": {
         "angular": "1.2.27",

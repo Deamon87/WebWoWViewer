@@ -44,8 +44,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             var gl = this.gl;
             var m2Object = this.m2File;
             var uniforms = this.sceneApi.getShaderUniforms();
-            var colorVector = [color&0xff, (color&0xff00) >> 8,
-                (color&0xff0000) >> 16,(color&0xff000000) >> 24]
+            var colorVector = [color&0xff, (color>> 8)&0xff,
+                (color>>16)&0xff, (color>> 24)&0xff];
 
             gl.uniformMatrix4fv(uniforms.placementMatrix, false, placementMatrix);
 

@@ -48,16 +48,18 @@
             "uniform sampler2D uTexture; "+
             "void main() { "+
             "   vec4 tex = texture2D(uTexture, vTexCoord).rgba; "+
-            "   vec4 trueColor = vColor;  "+
-            "   gl_FragColor =  vec4(" +
-            "   (tex.r * trueColor.b) , " +
-            "   (tex.g * trueColor.g) , " +
-            "   (tex.b * trueColor.r) , " +
+            //"   gl_FragColor =  vec4(tex.r, tex.g, tex.b, tex.a);" +
 
-            "   tex.a" +
-            "); " +
-                "if(gl_FragColor.a < vAlphaTest) "+
-                "   discard; "+
+             "   vec4 trueColor = vColor;  "+
+             "   gl_FragColor =  vec4(" +
+             "   (tex.r * trueColor.b) , " +
+             "   (tex.g * trueColor.g) , " +
+             "   (tex.b * trueColor.r) , " +
+
+             "   1.0" +
+             "); " +
+             "if(gl_FragColor.a < vAlphaTest) "+
+             "   discard; "+
             "}";
 
         return function(canvas){
@@ -82,7 +84,7 @@
 
             self.initGlContext = function (canvas){
                 try {
-                    var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                    var gl = canvas.getContext("webgl", {premultipliedAlpha: false}) || canvas.getContext("experimental-webgl", {premultipliedAlpha: false});
                     gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError);
                 }
                 catch(e) {}
@@ -162,6 +164,7 @@
                 self.modelViewMatrix = modelViewMatrix;
                 self.placementMatrix = placementMatrix;
                 self.projectionMatrix = projectionMatrix;
+                self.uAlphaTest = uAlphaTest;
 
                 gl.useProgram(self.program);
                 var perspectiveMatrix = [];

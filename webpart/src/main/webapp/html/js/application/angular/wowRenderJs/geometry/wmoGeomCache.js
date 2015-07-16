@@ -79,6 +79,7 @@
             var gl = this.gl;
             var shaderUniforms = this.sceneApi.getShaderUniforms();
             var wmoGroupObject = this.wmoGroupFile;
+            var isIndoor = (wmoGroupObject.mogp.Flags & 0x2000) > 0;
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
 
@@ -86,21 +87,22 @@
             gl.enableVertexAttribArray(0);
             gl.enableVertexAttribArray(1);
             gl.enableVertexAttribArray(2);
-            if (wmoGroupObject.colorVerticles) {
-                gl.enableVertexAttribArray(3);
-            } else {
-                gl.disableVertexAttribArray(3);
-            }
+
+
             gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0); // position
             gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, this.normalOffset*4); // normal
             gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, this.textOffset*4); // texcoord
-            if (wmoGroupObject.colorVerticles) {
+
+            if (isIndoor && (wmoGroupObject.colorVerticles) &&(wmoGroupObject.colorVerticles.length > 0)) {
+                gl.enableVertexAttribArray(3);
                 gl.vertexAttribPointer(3, 4, gl.UNSIGNED_BYTE, true, 0, this.colorOffset * 4); // color
             } else {
+                gl.disableVertexAttribArray(3);
                 gl.vertexAttrib4f(3, 1.0, 1.0, 1.0, 1.0);
             }
 
             gl.activeTexture(gl.TEXTURE0);
+            gl.uniform1f(shaderUniforms.uAlphaTest, -1.0);
             for (var j = 0; j < wmoGroupObject.renderBatches.length; j++) {
                 var renderBatch = wmoGroupObject.renderBatches[j];
 
@@ -117,7 +119,7 @@
                         //glAlphaFunc(GL_GREATER, 0.1);
                     }
                 } else {
-                    gl.uniform1f(shaderUniforms.uAlphaTest, 1.0);
+                    gl.uniform1f(shaderUniforms.uAlphaTest, -1.0);
                 }
 
                 if ((this.momt[texIndex].flags1 & 0x4) > 0) {
@@ -130,12 +132,16 @@
                 if (textureObject) {
                     gl.bindTexture(gl.TEXTURE_2D, textureObject.texture);
                     gl.drawElements(gl.TRIANGLES, renderBatch.count, gl.UNSIGNED_SHORT, renderBatch.startIndex * 2);
-                } else {
-                    //$log.log("textureObject num ", texIndex, " was not loaded")
-                }
 
-                gl.uniform1f(shaderUniforms.uAlphaTest, 1.0);
+                    var lastError = gl.getError()
+                    if (lastError!=0) {
+                        debugger;
+                    }
+                } else {
+                  //$log.log("textureObject num ", texIndex, " was not loaded")
+                }
             }
+            gl.uniform1f(shaderUniforms.uAlphaTest, -1.0);
         };
 
         this.destroy = function() {
