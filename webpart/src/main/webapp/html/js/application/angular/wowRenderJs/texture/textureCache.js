@@ -22,87 +22,85 @@
                 gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc") ||
                 gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc")
             );
+            var textureGPUFormat = null;
+            if (ext) {
+                switch (textureFormat) {
+                    case "S3TC_RGB_DXT1":
+                        textureGPUFormat = ext.COMPRESSED_RGB_S3TC_DXT1_EXT;
+                        break;
 
-            switch (textureFormat){
+                    case "S3TC_RGBA_DXT1":
+                        textureGPUFormat = ext.COMPRESSED_RGBA_S3TC_DXT1_EXT;
+                        break;
+
+
+                    case "S3TC_RGBA_DXT3":
+                        textureGPUFormat = ext.COMPRESSED_RGBA_S3TC_DXT3_EXT;
+                        break;
+
+                    case "S3TC_RGBA_DXT5":
+                        textureGPUFormat = ext.COMPRESSED_RGBA_S3TC_DXT5_EXT;
+                        break;
+                }
+            }
+
+            /* S3TC is not supported on mobile platforms */
+            var useDXT1Decoding = (!((ext != undefined) && (ext.COMPRESSED_RGB_S3TC_DXT1_EXT != undefined))) ||
+                (!((ext != undefined) && (ext.COMPRESSED_RGBA_S3TC_DXT1_EXT != undefined)));
+            var useDXT3Decoding = !((ext != undefined) && (ext.COMPRESSED_RGBA_S3TC_DXT3_EXT != undefined));
+            var useDXT5Decoding = !((ext != undefined) && (ext.COMPRESSED_RGBA_S3TC_DXT5_EXT != undefined));
+
+
+            /* Hack for DXT1. It still falls on gpu when width is not equal to height and one of them is less than 8 :/ */
+            useDXT1Decoding = useDXT1Decoding ||
+                (
+                    (textureFormat === "S3TC_RGB_DXT1") ||
+                    (textureFormat === "S3TC_RGBA_DXT1")
+                ) &&( mipmaps[0].width !== mipmaps[0].height );
+
+            var generateMipMaps = false;
+            switch (textureFormat) {
                 case "S3TC_RGB_DXT1":
-                    textureFormat = ext.COMPRESSED_RGB_S3TC_DXT1_EXT;
-                    break;
-
                 case "S3TC_RGBA_DXT1":
-                    textureFormat = ext.COMPRESSED_RGBA_S3TC_DXT1_EXT;
-                    break;
+                    for( var k = 0; k < mipmaps.length; k++) {
+                        if (useDXT1Decoding) {
+                            var decodedResult = dxtLib.decodeDXT1toBitmap32(mipmaps[k].texture, mipmaps[k].width, mipmaps[k].height);
 
+                            gl.texImage2D(gl.TEXTURE_2D, k, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE, decodedResult.decData);
+                        } else {
+                            gl.compressedTexImage2D(gl.TEXTURE_2D, k, textureGPUFormat, mipmaps[k].width, mipmaps[k].height, 0, mipmaps[k].texture);
+                        }
+                    }
+                    break;
 
                 case "S3TC_RGBA_DXT3":
-                    textureFormat = ext.COMPRESSED_RGBA_S3TC_DXT3_EXT;
+                    for( var k = 0; k < mipmaps.length; k++) {
+                        if (useDXT3Decoding) {
+                            var decodedResult = dxtLib.decodeDXT3toBitmap32(mipmaps[k].texture , mipmaps[k].width, mipmaps[k].height);
+                            gl.texImage2D(gl.TEXTURE_2D, k, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE,  decodedResult.decData);
+                        } else {
+                            gl.compressedTexImage2D(gl.TEXTURE_2D, k, textureGPUFormat, mipmaps[k].width, mipmaps[k].height, 0, mipmaps[k].texture);
+                        }
+                    }
+
                     break;
 
                 case "S3TC_RGBA_DXT5":
-                    textureFormat = ext.COMPRESSED_RGBA_S3TC_DXT5_EXT;
-                    break;
-            }
-            /* ToDo : check if compressed format is supported on this gpu */
-
-            var generateMipMaps = false;
-            if (textureFormat != "BGRA") {
-                /* Hack for DXT1. It still falls on gpu :/ */
-                var useDXT1Decoding =
-                    (
-                        (textureFormat === ext.COMPRESSED_RGB_S3TC_DXT1_EXT) ||
-                        (textureFormat === ext.COMPRESSED_RGBA_S3TC_DXT1_EXT)
-                    ) &&( mipmaps[0].width !== mipmaps[0].height );
-
-                /* Hack for DXT5 textures. Somehow webgl do not display them correctly */
-                //var useDXT5Decoding = (textureFormat === ext.COMPRESSED_RGBA_S3TC_DXT5_EXT);
-                var useDXT5Decoding = false;
-
-                for( var k = 0; k < mipmaps.length; k++) {
-
-                    if (useDXT1Decoding){
-                        var decodedResult = dxtLib.decodeDXT1toBitmap32(mipmaps[k].texture , mipmaps[k].width, mipmaps[k].height, function (colorArray){
-                            var oldred = colorArray[1];
-                            colorArray[0] = colorArray[2];
-                            colorArray[2] = oldred;
-
-                            //test 2 with 0, 1, 3
-                            //test 0 with
-                            //var oldred = colorArray[2];
-                            //colorArray[2] = colorArray[3];
-                            //colorArray[3] = oldred;
-
-                            return colorArray;
-                        });
-                        var textureColorFormat;
-                        if (textureFormat === ext.COMPRESSED_RGB_S3TC_DXT1_EXT) {
-                            textureColorFormat = gl.RGBA;
+                    for( var k = 0; k < mipmaps.length; k++) {
+                        if (useDXT5Decoding) {
+                            var decodedResult = dxtLib.decodeDXT5toBitmap32(mipmaps[k].texture , mipmaps[k].width, mipmaps[k].height);
+                            gl.texImage2D(gl.TEXTURE_2D, k, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE,  decodedResult.decData);
                         } else {
-                            textureColorFormat = gl.RGBA;
-                        }
-
-                        gl.texImage2D(gl.TEXTURE_2D, k, textureColorFormat, mipmaps[k].width, mipmaps[k].height, 0, textureColorFormat, gl.UNSIGNED_BYTE,  decodedResult.decData);
-                    } else if (useDXT5Decoding) {
-                        var decodedResult = dxtLib.decodeDXT5toBitmap32(mipmaps[k].texture , mipmaps[k].width, mipmaps[k].height);
-                        gl.texImage2D(gl.TEXTURE_2D, k, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE,  decodedResult.decData);
-
-                        gl.generateMipmap(gl.TEXTURE_2D);
-                        break;
-                    } else {
-                        gl.compressedTexImage2D(gl.TEXTURE_2D, k, textureFormat, mipmaps[k].width, mipmaps[k].height, 0, mipmaps[k].texture);
-                        var lasterror = gl.getError();
-                        if (lasterror!=0) {
-                            debugger;
+                            gl.compressedTexImage2D(gl.TEXTURE_2D, k, textureGPUFormat, mipmaps[k].width, mipmaps[k].height, 0, mipmaps[k].texture);
                         }
                     }
+                    break;
 
-
-                    if (gl.getError()!=0) {
-                        debugger;
+                case "BGRA":
+                    for( var k = 0; k < mipmaps.length; k++) {
+                        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE,  mipmaps[k].texture);
                     }
-                }
-            } else {
-                for( var k = 0; k < mipmaps.length; k++) {
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.BGRA, gl.UNSIGNED_BYTE,  mipmaps[k].texture);
-                }
+                    break;
             }
 
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);

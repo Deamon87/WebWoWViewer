@@ -78,9 +78,44 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             if (submeshArray) {
                 for (var i = 0; i < submeshArray.length; i++) {
                     if (submeshArray[i].isRendered) {
+                        if (submeshArray[i].texUnit1Texture) {
+                            //try {
+                                var renderFlagIndex = skinObject.skinFile.header.texs[submeshArray[i].texUnit1TexIndex].renderFlagIndex;
+                                switch (m2Object.renderFlags[renderFlagIndex].blend) {
+                                    case 0 : //BM_OPAQUE
+                                        gl.disable(gl.BLEND);
+                                        gl.uniform1f(uniforms.uAlphaTest, -1.0);
+                                        break;
+                                    case 1 : //BM_TRANSPARENT
+                                        gl.disable(gl.BLEND);
+                                        gl.uniform1f(uniforms.uAlphaTest, 0.001);
+                                        break;
+                                    case 2 : //BM_ALPHA_BLEND
+                                        gl.uniform1f(uniforms.uAlphaTest, -1);
+                                        gl.enable(gl.BLEND);
+                                        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // default blend func
+                                        break;
+                                    case 3 : //BM_ADDITIVE
+                                        gl.uniform1f(uniforms.uAlphaTest, -1);
+                                        gl.enable(gl.BLEND);
+                                        gl.blendFunc(gl.SRC_COLOR, gl.ONE);
+                                        break;
+                                    case 4 : //BM_ADDITIVE_ALPHA
+                                        gl.uniform1f(uniforms.uAlphaTest, -1);
+                                        gl.enable(gl.BLEND);
+                                        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                                        break;
+                                    default :
+                                        gl.uniform1f(uniforms.uAlphaTest, -1);
+                                        gl.enable(gl.BLEND);
+                                        gl.blendFunc(gl.DST_COLOR, gl.SRC_COLOR);
 
-                        if (submeshArray[i].textureTexUnit1) {
-                            gl.bindTexture(gl.TEXTURE_2D, submeshArray[i].textureTexUnit1.texture);
+                                        break;
+                                }
+                            //}catch (e) {
+                            //    debugger;
+                            //}
+                            gl.bindTexture(gl.TEXTURE_2D, submeshArray[i].texUnit1Texture.texture);
                             gl.drawElements(gl.TRIANGLES, skinObject.skinFile.header.subMeshes[i].idxCount, gl.UNSIGNED_SHORT, skinObject.skinFile.header.subMeshes[i].idxStart * 2);
                         }
                     }

@@ -70,7 +70,27 @@ firstPersonCamera.factory('firstPersonCamera', ['$log', function ($log) {
                     m_y = event.pageY;
                 }
             }
+            function touchStart(event) {
+                mleft_pressed = 1;
+                m_x = event.pageX;
+                m_y = event.pageY;
+            }
+            function touchMove(event) {
+                var x = event.touches[0].pageX; // Собираем данные
+                var y = event.touches[0].pageY; // и еще
 
+                if (mleft_pressed === 1) {
+                    ah = ah + (x - m_x) / 4.0;
+                    av = av + (y - m_y) / 4.0;
+                    if (av < -89) {
+                        av = -89
+                    } else if (av > 89) {
+                        av = 89;
+                    }
+                    m_x = x;
+                    m_y = y;
+                }
+            }
             function mouseUp(event) {
                 if (event.button === 0) {
                     mleft_pressed = 0;
@@ -96,8 +116,11 @@ firstPersonCamera.factory('firstPersonCamera', ['$log', function ($log) {
             }
 
             canvas.addEventListener('mousemove', mouseMove, false);
+            canvas.addEventListener('touchmove', touchMove, false);
             canvas.addEventListener('mousedown', mouseDown, false);
+            canvas.addEventListener('touchstart', touchStart, false);
             canvas.addEventListener('mouseup', mouseUp, false);
+            canvas.addEventListener('touchend', mouseUp, false);
             canvas.addEventListener('mouseout', mouseout, false);
 
             var lastDownTarget;

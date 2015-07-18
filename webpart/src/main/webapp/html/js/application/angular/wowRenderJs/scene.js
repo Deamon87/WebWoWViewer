@@ -56,10 +56,11 @@
              "   (tex.g * trueColor.g) , " +
              "   (tex.b * trueColor.r) , " +
 
-             "   1.0" +
+             "   tex.a" +
              "); " +
              "if(gl_FragColor.a < vAlphaTest) "+
              "   discard; "+
+                "gl_FragColor.a = 1.0;"+
             "}";
 
         return function(canvas){
