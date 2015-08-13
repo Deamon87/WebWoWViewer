@@ -11,8 +11,8 @@
         }
         WmoM2Object.prototype = {
 
-            draw : function () {
-                this.mdxObject.draw(this.placementMatrix, this.diffuseColor);
+            draw : function (deltaTime) {
+                this.mdxObject.draw(deltaTime, this.placementMatrix, this.diffuseColor);
             },
             createPlacementMatrix : function(doodad){
                 var placementMatrix = mat4.create();

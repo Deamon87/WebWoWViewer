@@ -22,8 +22,6 @@
                     var m2Geom = result[0];
                     var skinGeom = result[1];
 
-
-
                     self.m2Geom = m2Geom;
                     self.skinGeom = skinGeom;
 
@@ -69,22 +67,50 @@
 
                         /* 2.2. Assign and load textures */
                         if (mdxTextureDefinition.texType === 0) {
-                            (function (submeshData, mdxTextureDefinition) {
+                            (function (submeshData, mdxTextureDefinition, textureIndex) {
                                 self.sceneApi.loadTexture(mdxTextureDefinition.textureName)
                                     .then(function success(textObject) {
-                                        submeshData.textureTexUnit1 = textObject;
+                                        submeshData.texUnit1Texture = textObject;
+                                        submeshData.texUnit1TexIndex = textureIndex;
+
                                     }, function error() {
                                     });
-                            })(submeshData, mdxTextureDefinition);
+                            })(submeshData, mdxTextureDefinition, i);
                         }
                     }
                 }
 
                 this.submeshArray = submeshArray;
             },
-            draw : function (placementMatrix, color){
+            getSubMeshColor : function (deltaTime) {
+                var colors = this.m2Geom.m2File.colors;
+                if (colors.length > 0) {
+                    var result = [];
+                    result.length = colors.length;
+
+                    for (var i = 0; i < colors.length; i++) {
+                        var vector = colors[i].color.valuesPerAnimation[0][0];
+                        var alpha = colors[i].alpha.valuesPerAnimation[0][0];
+
+                        result[i] = [vector.x, vector.y, vector.z, alpha/32767];
+                    }
+
+                    return result;
+
+                } else {
+                    return null;
+                }
+            },
+            draw : function (deltaTime, placementMatrix, color){
+                var colorVector = [color&0xff, (color>> 8)&0xff,
+                    (color>>16)&0xff, (color>> 24)&0xff];
+                colorVector[0] /= 255.0; colorVector[1] /= 255.0;
+                colorVector[2] /= 255.0; colorVector[3] /= 255.0;
+
                 if ((this.m2Geom) && (this.skinGeom)) {
-                    this.m2Geom.draw(this.skinGeom, this.submeshArray, placementMatrix, color);
+                    var subMeshColors = this.getSubMeshColor(deltaTime);
+
+                    this.m2Geom.draw(this.skinGeom, this.submeshArray, placementMatrix, colorVector, subMeshColors);
                 }
             }
         };

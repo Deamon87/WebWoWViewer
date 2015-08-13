@@ -20,6 +20,7 @@
                         return fileReadHelper(a, offset, length)
                     };
                     this.readType = function(fileObject, sectionDef, offset, len) {
+                        var self = this;
                         var result;
 
                         var type = sectionDef.type;
@@ -63,6 +64,52 @@
                                 } else {
                                     result = fileObject.readString(offset, 9999);
                                 }
+                                break;
+                            case "ablock" :
+
+                                result = {};
+                                result.interpolation_type = fileObject.readUint16(offset);
+                                result.global_sequence = fileObject.readUint16(offset);
+
+                                /* 1. Timestamps  */
+                                var timeStampAnimationsCnt = fileObject.readUint32(offset);
+                                var timeStampAnimationsOffsets =  fileObject.readInt32Array(offset, timeStampAnimationsCnt );
+
+                                result.timestampsPerAnimation = [];
+                                result.timestampsPerAnimation.length = timeStampAnimationsCnt;
+
+                                for (var i = 0; i < timeStampAnimationsCnt; i++) {
+                                    result.timestampsPerAnimation[i] = [];
+                                    var offs1 = {offs: timeStampAnimationsOffsets[i]} ;
+
+                                    var timestampsCnt = fileObject.readUint32(offs1);
+                                    result.timestampsPerAnimation[i].length = timestampsCnt;
+                                    for (var j = 0; j < timestampsCnt; j++) {
+                                        var timeOffset = fileObject.readUint32(offs1);
+                                        result.timestampsPerAnimation[i][j] = fileObject.readUint32({offs : timeOffset});
+                                    }
+                                }
+
+                                /* 2. Values */
+                                var valuesAnimationsCnt = fileObject.readUint32(offset);
+                                var valuesAnimationsOffsets =  fileObject.readInt32Array(offset, valuesAnimationsCnt );
+
+                                result.valuesPerAnimation = [];
+                                result.valuesPerAnimation.length = valuesAnimationsCnt;
+
+                                for (var i = 0; i < valuesAnimationsCnt; i++) {
+                                    result.valuesPerAnimation[i] = [];
+                                    var offs1 = {offs: valuesAnimationsOffsets[i]} ;
+
+                                    var valuesCnt = fileObject.readUint32(offs1);
+                                    result.valuesPerAnimation[i].length = valuesCnt;
+
+                                    for (var j = 0; j < valuesCnt; j++) {
+                                        var valueOffset = fileObject.readUint32(offs1);
+                                        result.valuesPerAnimation[i][j] = self.readType(fileObject, {type : sectionDef.valType}, {offs : valueOffset});
+                                    }
+                                }
+
                                 break;
                             case "layout" :
                                 /*

@@ -40,12 +40,10 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
             /* Index is taken from skin object */
         },
-        draw : function (skinObject, submeshArray, placementMatrix, color) {
+        draw : function (skinObject, submeshArray, placementMatrix, colorVector, subMeshColors) {
             var gl = this.gl;
             var m2Object = this.m2File;
             var uniforms = this.sceneApi.getShaderUniforms();
-            var colorVector = [color&0xff, (color>> 8)&0xff,
-                (color>>16)&0xff, (color>> 24)&0xff];
 
             gl.uniformMatrix4fv(uniforms.placementMatrix, false, placementMatrix);
 
@@ -56,8 +54,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             gl.enableVertexAttribArray(1);
             gl.enableVertexAttribArray(2);
             gl.disableVertexAttribArray(3);
-            gl.vertexAttrib4f(3, colorVector[0] / 255.0, colorVector[1] / 255.0,
-                colorVector[2] / 255.0, colorVector[3] / 255.0);
+
             //gl.vertexAttrib4f(3, 0.5, 0.5, 0.5, 0.5);
 
             /*
@@ -79,7 +76,33 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                 for (var i = 0; i < submeshArray.length; i++) {
                     if (submeshArray[i].isRendered) {
                         if (submeshArray[i].texUnit1Texture) {
+
+
+
                             //try {
+                                var colorIndex = skinObject.skinFile.header.texs[submeshArray[i].texUnit1TexIndex].colorIndex;
+                                if ((colorIndex > 0) && (subMeshColors)) {
+                                    var submeshColor = subMeshColors[colorIndex];
+
+                                    gl.vertexAttrib4f(3,
+                                        submeshColor[0],
+                                        submeshColor[1],
+                                        submeshColor[2],
+                                        submeshColor[3])
+
+                                } else {
+
+                                    gl.vertexAttrib4f(3,
+                                        colorVector[0],
+                                        colorVector[1],
+                                        colorVector[2],
+                                        colorVector[3]);
+
+                                    //gl.vertexAttrib4f(3, 1, 1, 1, 1);
+                                }
+
+
+
                                 var renderFlagIndex = skinObject.skinFile.header.texs[submeshArray[i].texUnit1TexIndex].renderFlagIndex;
                                 switch (m2Object.renderFlags[renderFlagIndex].blend) {
                                     case 0 : //BM_OPAQUE

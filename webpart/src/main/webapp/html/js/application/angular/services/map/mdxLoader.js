@@ -135,6 +135,24 @@
                     type: "uint16"
                 },
                 {
+                    name : "colors",
+                    offset: "ofsColors",
+                    count : "nColors",
+                    type: "layout",
+                    layout: [
+                        {
+                            name: "color",
+                            type: "ablock",
+                            valType: "vector3f"
+                        },
+                        {
+                            name: "alpha",
+                            type: "ablock",
+                            valType: "int16"
+                        }
+                    ]
+                },
+                {
                     name : "texReplace",
                     offset: "ofsTexReplace",
                     count : "nTexReplace",

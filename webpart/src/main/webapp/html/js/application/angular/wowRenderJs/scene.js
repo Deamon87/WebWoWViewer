@@ -254,7 +254,7 @@
                 var i;
                 for (i = 0; i < self.sceneObjectList.length; i ++) {
                     var sceneObject = self.sceneObjectList[i];
-                    sceneObject.draw();
+                    sceneObject.draw(deltaTime);
                 }
                 stats.end();
 
