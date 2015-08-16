@@ -107,6 +107,22 @@
                 colorVector[0] /= 255.0; colorVector[1] /= 255.0;
                 colorVector[2] /= 255.0; colorVector[3] /= 255.0;
 
+                //colorVector = [colorVector[0]*2, colorVector[1]*2,colorVector[2]*2, colorVector[3]*2];
+                /*
+                var color2 = 4280361249;
+                var colorVector2 = [color2&0xff, (color2>> 8)&0xff,
+                    (color2>>16)&0xff, (color2>> 24)&0xff];
+                colorVector2[0] /= 255.0; colorVector2[1] /= 255.0;
+                colorVector2[2] /= 255.0; colorVector2[3] /= 255.0;
+
+                colorVector = [
+                    colorVector[0]*colorVector2[3]+ (1.0 - colorVector2[3])*colorVector2[0],
+                    colorVector[1]*colorVector2[3]+ (1.0 - colorVector2[3])*colorVector2[0],
+                    colorVector[2]*colorVector2[3]+ (1.0 - colorVector2[3])*colorVector2[0],
+                    colorVector[3]*colorVector2[3]+ (1.0 - colorVector2[3])*colorVector2[0]];
+                 */
+
+
                 if ((this.m2Geom) && (this.skinGeom)) {
                     var subMeshColors = this.getSubMeshColor(deltaTime);
 

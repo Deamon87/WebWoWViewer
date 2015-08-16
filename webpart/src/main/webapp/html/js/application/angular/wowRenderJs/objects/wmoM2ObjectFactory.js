@@ -42,6 +42,8 @@
             load : function (doodad){
                 var self = this;
 
+                self.doodad = doodad;
+
                 self.diffuseColor = doodad.color;
                 self.createPlacementMatrix(doodad);
                 self.mdxObject.load(doodad.modelName, 0);

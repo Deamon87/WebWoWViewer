@@ -86,6 +86,9 @@
                 }
 
                 for (var i = 0; i < this.doodadsArray.length; i++) {
+                    //if (i != window.dboNumber){
+                    //    continue;
+                    //}
                     this.doodadsArray[i].draw()
                 }
             }

@@ -153,6 +153,25 @@
                     ]
                 },
                 {
+                    name : "transparencies",
+                    offset: "ofsTransparency",
+                    count : "nTransparency",
+                    type: "layout",
+                    layout: [
+                        {
+                            name: "values",
+                            type: "ablock",
+                            valType: "int16"
+                        },
+                    ]
+                },
+                {
+                    name : "transLookup",
+                    offset: "ofsTransLookup",
+                    count : "nTransLookup",
+                    type: "int16"
+                },
+                {
                     name : "texReplace",
                     offset: "ofsTexReplace",
                     count : "nTexReplace",
