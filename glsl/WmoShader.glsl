@@ -1,4 +1,11 @@
-#extension WEBGL_draw_buffers: enable
+//https://www.khronos.org/registry/webgl/extensions/WEBGL_draw_buffers/
+//For drawbuffers in glsl of webgl you need to use GL_EXT_draw_buffers instead of WEBGL_draw_buffers
+#ifdef GL_EXT_draw_buffers
+    #extension GL_EXT_draw_buffers: require
+    #extension OES_texture_float_linear : enabled
+    #define drawBuffersIsSupported 1
+#endif
+
 
 #ifdef COMPILING_VS
 /* vertex shader code */
@@ -14,7 +21,7 @@ uniform mat4 uPlacementMat;
 varying vec2 vTexCoord;
 varying vec4 vColor;
 
-#ifdef WEBGL_draw_buffers
+#ifdef drawBuffersIsSupported
 
 varying vec3 vNormal;
 varying vec3 vPosition;
@@ -27,16 +34,18 @@ void main() {
     vTexCoord = aTexCoord;
     vColor = aColor;
 
-#ifndef WEBGL_draw_buffers
+#ifndef drawBuffersIsSupported
 
     gl_Position = uPMatrix * uLookAtMat * worldPoint;
 
 #else
+    gl_Position = worldPoint;
+
 
     vNormal = normalize((uPlacementMat * vec4(aNormal, 0)).xyz);
     vPosition = worldPoint.xyz;
 
-#endif //WEBGL_draw_buffers
+#endif //drawBuffersIsSupported
 
 }
 #endif //COMPILING_VS
@@ -66,7 +75,7 @@ void main() {
 
     finalColor.a = 1.0; //do I really need it now?
 
-#ifndef WEBGL_draw_buffers
+#ifndef drawBuffersIsSupported
 
     //Forward rendering without lights
     gl_FragColor = finalColor;
@@ -78,7 +87,7 @@ void main() {
     gl_FragData[1] = vec4(vPosition.xyz,0);
     gl_FragData[2] = vec4(vNormal.xyz,0);
 
-#endif //WEBGL_draw_buffers
+#endif //drawBuffersIsSupported
 }
 
 #endif //COMPILING_FS

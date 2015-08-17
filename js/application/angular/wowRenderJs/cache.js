@@ -1,10 +1,7 @@
 /**
  * Created by Deamon on 27/02/2015.
  */
-
-
 'use strict';
-
 
 (function (window, $, undefined) {
     var cacheTemplate = angular.module('js.wow.render.cacheTemplate', []);

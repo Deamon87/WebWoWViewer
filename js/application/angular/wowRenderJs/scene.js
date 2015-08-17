@@ -127,31 +127,78 @@
                 var gl = this.gl;
 
                 var wdb_ext = gl.getExtension('WEBGL_draw_buffers');
-                if (false) {
+                if (wdb_ext) {
+                    gl.getExtension("WEBGL_depth_texture");
+                    gl.getExtension("OES_texture_float");
+                    gl.getExtension("OES_texture_float_linear");
                     // We can use deferred shading
                     this.deferredRendering = true;
 
                     // Taken from https://hacks.mozilla.org/2014/01/webgl-deferred-shading/
-                    var tx = [];
-                    tx.push(gl.createTexture());
-                    tx.push(gl.createTexture());
-                    tx.push(gl.createTexture());
-                    tx.push(gl.createTexture());
+                    // And https://github.com/YuqinShao/Tile_Based_WebGL_DeferredShader/blob/master/deferredshading/deferred.js
 
-                    var fb = gl.createFramebuffer();
+                    var depthTexture = gl.createTexture();
+                    var normalTexture = gl.createTexture();
+                    var positionTexture = gl.createTexture();
+                    var colorTexture = gl.createTexture();
+                    var depthRGBTexture = gl.createTexture();
 
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, wdb_ext.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, tx[0], 0);
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, wdb_ext.COLOR_ATTACHMENT1_WEBGL, gl.TEXTURE_2D, tx[1], 0);
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, wdb_ext.COLOR_ATTACHMENT2_WEBGL, gl.TEXTURE_2D, tx[2], 0);
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, wdb_ext.COLOR_ATTACHMENT3_WEBGL, gl.TEXTURE_2D, tx[3], 0)
+                    gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.canvas.width, this.canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
 
-                    wdb_ext.drawBuffersWEBGL([
-                        wdb_ext.COLOR_ATTACHMENT0_WEBGL, // gl_FragData[0]
-                        wdb_ext.COLOR_ATTACHMENT1_WEBGL, // gl_FragData[1]
-                        wdb_ext.COLOR_ATTACHMENT2_WEBGL, // gl_FragData[2]
-                        wdb_ext.COLOR_ATTACHMENT3_WEBGL  // gl_FragData[3]
-                    ]);
+
+                    gl.bindTexture(gl.TEXTURE_2D, normalTexture);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
+
+
+                    gl.bindTexture(gl.TEXTURE_2D, positionTexture);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
+
+
+                    gl.bindTexture(gl.TEXTURE_2D, colorTexture);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
+
+
+                    gl.bindTexture(gl.TEXTURE_2D, depthRGBTexture);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
+
+                    var fbo = gl.createFramebuffer();
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+                    var bufs = [];
+                    bufs[0] = wdb_ext.COLOR_ATTACHMENT0_WEBGL;
+                    bufs[1] = wdb_ext.COLOR_ATTACHMENT1_WEBGL;
+                    bufs[2] = wdb_ext.COLOR_ATTACHMENT2_WEBGL;
+                    bufs[3] = wdb_ext.COLOR_ATTACHMENT3_WEBGL;
+                    wdb_ext.drawBuffersWEBGL(bufs);
+
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[0], gl.TEXTURE_2D, depthRGBTexture, 0);
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[1], gl.TEXTURE_2D, normalTexture, 0);
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[2], gl.TEXTURE_2D, positionTexture, 0);
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[3], gl.TEXTURE_2D, colorTexture, 0);
+
+
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
                 }
             },
             initShaders : function (){
