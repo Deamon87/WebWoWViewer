@@ -1,0 +1,19 @@
+{
+  "name": "web-wow-viewer",
+  "version": "0.0.1",
+  "authors": [
+    "Deamon87 <dmitolm@gmail.com>"
+  ],
+  "description": "Web based map viewer for WoW",
+  "license": "GPL",
+
+  "devDependencies": {
+    "grunt-bower-task" : "0.4.0",
+    "grunt-bower-concat" : "0.4.0",
+    "grunt-contrib-uglify" : "0.6.0",
+    "grunt-contrib-compress": "^0.13.0",
+    "grunt-contrib-watch": "0.6.0",
+    "grunt-ngmin" : "0.0.3",
+    "grunt-angular-templates" : "0.5.7"
+  }
+}

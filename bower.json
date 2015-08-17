@@ -1,41 +1,36 @@
 {
-    "name": "WoWWebViewer",
-    "version": "0.0.1",
-    "authors": [
-        "Deamon87 <a@aa.aa>"
-    ],
-    "description": "WoWWebViewer",
-    "license": "GPL",
-    "private": false,
-    "ignore": [
-        "**/.*",
-        "node_modules",
-        "bower_components",
-        "app/bower_components",
-        "test"
-    ],
-    "exportsOverride": {
-        "Jcrop": {
-            "js": "js/jquery.Jcrop.js"
-        }
-    },
-    "dependencies": {
-        "angular": "v1.2.27",
-        "angular-animate": "v1.2.27",
-        "angular-mocks": "v1.2.27",
-        "angular-resource": "v1.2.27",
-        "angular-route": "v1.2.27",
-        "angular-sanitize": "v1.2.27",
-        "angular-ui-router": "~0.2.10",
-        "jquery": "~1.11.1",
-        "threejs" : "r70",
-        "stats.js" : "r12",
-        "text-encoding" : "v0.5.1",
-        "gl-matrix" : "v2.2.1",
-        "decodeDXT" : "Deamon87/decodeDXT"
-    },
-    "resolutions": {
-        "angular": "1.2.27",
-        "jquery": "~1.11.1"
+  "name": "WoWWebViewer",
+  "version": "0.0.1",
+  "authors": [
+    "Deamon87 <dmitolm@gmail.com>"
+  ],
+  "description": "WoWWebViewer",
+  "license": "GPL",
+  "private": false,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "app/bower_components",
+    "test"
+  ],
+  "exportsOverride": {
+    "Jcrop": {
+      "js": "js/jquery.Jcrop.js"
     }
+  },
+  "dependencies": {
+    "angular": "v1.2.27",
+    "angular-animate": "v1.2.27",
+    "angular-mocks": "v1.2.27",
+    "angular-resource": "v1.2.27",
+    "angular-route": "v1.2.27",
+    "angular-sanitize": "v1.2.27",
+    "angular-ui-router": "~0.2.10",
+    "jquery": "~1.11.1",
+    "stats.js" : "r12",
+    "text-encoding": "v0.5.1",
+    "gl-matrix": "v2.2.1",
+    "decodeDXT": "Deamon87/decodeDXT"
+  }
 }
