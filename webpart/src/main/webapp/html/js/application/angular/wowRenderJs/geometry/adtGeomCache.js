@@ -1,3 +1,3 @@
-/* M2 Geometry Cache */
+/* adt Geometry Cache */
 /* global alert: false */
 'use strict';
