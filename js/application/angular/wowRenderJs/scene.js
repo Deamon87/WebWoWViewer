@@ -160,7 +160,7 @@
                 var promisesArray = [];
 
                 /* Get and compile shaders */
-                promise = $http.get("/html/glsl/WmoShader.glsl")
+                promise = $http.get("glsl/WmoShader.glsl")
                     .then(function success(result){
                         var shaderText = result.data;
                         var shader = self.compileShader(shaderText, shaderText);

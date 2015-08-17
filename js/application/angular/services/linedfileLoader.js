@@ -10,7 +10,7 @@
     linedFileLoader.factory('linedFileLoader', ['configService', "fileReadHelper", '$http', "$q", '$log', function (configService, fileReadHelper, $http, $q, $log) {
         return function (filePath) {
             var deferred = $q.defer();
-            var fullPath = configService.urlToLoadWoWFile + filePath;
+            var fullPath = configService.getUrlToLoadWoWFile() + filePath;
 
             $http.get(fullPath, {responseType: "arraybuffer"}).success(function(a) {
                 var fileReader = fileReadHelper(a);

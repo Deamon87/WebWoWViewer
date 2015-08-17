@@ -5,16 +5,17 @@
     var threeJsElem = angular.module('main.directives.wowJsRender', ['js.wow.render.scene']);
 
 
-    threeJsElem.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window', 'scene', function ($log, $timeout, $interval, $window, scene) {
+    threeJsElem.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window', 'scene',
+        function ($log, $timeout, $interval, $window, scene) {
         return {
             restrict: 'E',
-            template: '<div class="threeJsDiv"><canvas width = "1024" height = "768" ></canvas>' +
+            template: '<div class=""><canvas width = "1024" height = "768" ></canvas>' +
             '<div>camera = ( {{cameraVecs.cameraVec3[0]}}, {{cameraVecs.cameraVec3[1]}}, {{cameraVecs.cameraVec3[2]}} )</div>' +
             '<div>lookAt = ( {{cameraVecs.lookAtVec3[0]}}, {{cameraVecs.lookAtVec3[1]}}, {{cameraVecs.lookAtVec3[2]}} )</div>' +
 
             '</div>',
             link: function postLink(scope, element, attrs) {
-                var canvas = element.find('canvas').get(0);
+                var canvas = element.find('canvas')[0];
 
                 var sceneObj = new scene(canvas);
                 var lastTimeStamp = undefined;
@@ -36,7 +37,6 @@
                     $window.requestAnimationFrame(renderfunc);
                 };
                 $window.requestAnimationFrame(renderfunc);
-
 
                 //sceneObj.loadWMOMap('World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo');
                 //sceneObj.loadWMOMap("World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo");

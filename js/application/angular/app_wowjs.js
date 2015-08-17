@@ -17,14 +17,55 @@
             'main.services.map.blpLoader',
             'main.services.map.mdxLoader',
             'main.services.map.skinLoader',
-
+            'main.glsl.cache',
             'main.directives.wowJsRender'
 
         ]);
 
+    main.controller("UrlChooserCtrl",['$scope', 'configService',function($scope, configService){
+        $scope.isReadyForStart = false;
+        $scope.params = {};
+        $scope.params.urlForLoading = '';
+
+        $scope.startApplication = function () {
+            configService.setUrlToLoadWoWFile($scope.params.urlForLoading);
+            $scope.isReadyForStart = true;
+        }
+    }]);
+
+    main.config(['$provide', '$httpProvider', function ($provide, $httpProvider) {
+
+        /* 1. Interception of http ajax requests */
+        $provide.factory('myHttpInterceptor', ['$window', '$q', '$templateCache', function ($window, $q, $templateCache) {
+            return {
+
+                'request': function (config) {
+                    if (config.url) {
+                        var index = config.url.indexOf('.glsl'),
+                            isRequestToShader = index > -1;
+
+                        if (!isRequestToShader) {
+                            if (!config.params) {
+                                config.params = {};
+                            }
+                            //config.params.t = new Date().getTime();
+                        } else {
+                            config.cache = $templateCache;
+                        }
+                    }
+
+                    return config;
+                }
+            };
+        }]);
+
+        $httpProvider.interceptors.push('myHttpInterceptor');
+    }]);
+
+
     main.run(['mapDBC', 'wdtLoader', 'wmoLoader', 'wmoGroupLoader', 'mdxLoader', 'skinLoader', 'blpLoader', '$log',
         function( mapDBC, wdtLoader, wmoLoader, wmoGroupLoader, mdxLoader, skinLoader, blpLoader, $log ) {
-            mapDBC();
+
         }]);
 })(window, jQuery);
 

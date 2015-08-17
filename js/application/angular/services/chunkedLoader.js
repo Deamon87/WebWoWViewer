@@ -10,7 +10,7 @@
 
         return function (filePath) {
             var deferred = $q.defer();
-            var fullPath = configService.urlToLoadWoWFile + filePath;
+            var fullPath = configService.getUrlToLoadWoWFile() + filePath;
 
             $http.get(fullPath, {responseType: "arraybuffer"}).success(function(a) {
                 var fileReader = fileReadHelper(a);

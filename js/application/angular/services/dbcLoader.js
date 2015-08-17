@@ -12,7 +12,7 @@
         */
         return function (dbcFilePath) {
             var deferred = $q.defer();
-            var fullPath = configService.urlToLoadWoWFile + dbcFilePath;
+            var fullPath = configService.getUrlToLoadWoWFile() + dbcFilePath;
 
             var dbcHeaderLen = 20;
 
