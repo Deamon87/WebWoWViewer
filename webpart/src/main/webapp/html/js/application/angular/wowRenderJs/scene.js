@@ -37,6 +37,7 @@
             }, function error(){
             });
             self.initSceneApi();
+            self.initDeferredRendering();
             self.initCaches();
             self.initCamera(canvas, document);
 
@@ -90,14 +91,14 @@
                     throw ("program filed to link:" + gl.getProgramInfoLog (program));
                 }
 
-                var modelViewMatrix = gl.getUniformLocation(program, "uModelView");
+                var lookAtMatrix = gl.getUniformLocation(program, "uLookAtMat");
                 var placementMatrix = gl.getUniformLocation(program, "uPlacementMat");
                 var projectionMatrix = gl.getUniformLocation(program, "uPMatrix");
                 var uAlphaTest = gl.getUniformLocation(program, "uAlphaTest");
 
                 return {
                     program : program,
-                    modelViewMatrix : modelViewMatrix,
+                    lookAtMatrix : lookAtMatrix,
                     placementMatrix : placementMatrix,
                     projectionMatrix : projectionMatrix,
                     uAlphaTest : uAlphaTest
@@ -118,8 +119,40 @@
                     alert("Unable to initialize WebGL. Your browser may not support it.");
                     gl = null;
                 }
+
                 this.gl = gl;
                 this.canvas = canvas;
+            },
+            initDeferredRendering : function (){
+                var gl = this.gl;
+
+                var wdb_ext = gl.getExtension('WEBGL_draw_buffers');
+                if (false) {
+                    // We can use deferred shading
+                    this.deferredRendering = true;
+
+                    // Taken from https://hacks.mozilla.org/2014/01/webgl-deferred-shading/
+                    var tx = [];
+                    tx.push(gl.createTexture());
+                    tx.push(gl.createTexture());
+                    tx.push(gl.createTexture());
+                    tx.push(gl.createTexture());
+
+                    var fb = gl.createFramebuffer();
+
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, wdb_ext.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, tx[0], 0);
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, wdb_ext.COLOR_ATTACHMENT1_WEBGL, gl.TEXTURE_2D, tx[1], 0);
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, wdb_ext.COLOR_ATTACHMENT2_WEBGL, gl.TEXTURE_2D, tx[2], 0);
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, wdb_ext.COLOR_ATTACHMENT3_WEBGL, gl.TEXTURE_2D, tx[3], 0)
+
+                    wdb_ext.drawBuffersWEBGL([
+                        wdb_ext.COLOR_ATTACHMENT0_WEBGL, // gl_FragData[0]
+                        wdb_ext.COLOR_ATTACHMENT1_WEBGL, // gl_FragData[1]
+                        wdb_ext.COLOR_ATTACHMENT2_WEBGL, // gl_FragData[2]
+                        wdb_ext.COLOR_ATTACHMENT3_WEBGL  // gl_FragData[3]
+                    ]);
+                }
             },
             initShaders : function (){
                 var self = this;
@@ -155,7 +188,7 @@
                     },
                     getShaderUniforms: function () {
                         return {
-                            modelViewMatrix: self.currentShaderProgram.modelViewMatrix,
+                            lookAtMatrix: self.currentShaderProgram.lookAtMatrix,
                             placementMatrix: self.currentShaderProgram.placementMatrix,
                             projectionMatrix: self.currentShaderProgram.projectionMatrix,
                             uAlphaTest: self.uAlphaTest
@@ -203,6 +236,16 @@
                 this.camera = firstPersonCamera(canvas, document);
             },
 
+            glClearScreen : function(gl){
+                gl.clearDepth(1.0);
+                gl.enable(gl.DEPTH_TEST);
+                gl.depthFunc(gl.LEQUAL);
+
+                gl.disable(gl.BLEND);
+                gl.clearColor(0.6, 0.95, 1.0, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                gl.disable(gl.CULL_FACE);
+            },
             draw : function (deltaTime) {
                 var gl = this.gl;
 
@@ -214,22 +257,15 @@
                 var perspectiveMatrix = [];
                 mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000  );
 
-                gl.clearDepth(1.0);
-                gl.enable(gl.DEPTH_TEST);
-                gl.depthFunc(gl.LEQUAL);
-
-                gl.disable(gl.BLEND);
-                gl.clearColor(0.6, 0.95, 1.0, 1);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-                gl.disable(gl.CULL_FACE);
-
                 if (!this.isShadersLoaded) return;
 
+                this.glClearScreen(gl);
                 gl.activeTexture(gl.TEXTURE0);
 
                 this.currentShaderProgram = this.wmoShader;
                 gl.useProgram(this.currentShaderProgram.program);
-                gl.uniformMatrix4fv(this.currentShaderProgram.modelViewMatrix, false, lookAtMat4);
+
+                gl.uniformMatrix4fv(this.currentShaderProgram.lookAtMatrix, false, lookAtMat4);
                 gl.uniformMatrix4fv(this.currentShaderProgram.projectionMatrix, false, perspectiveMatrix);
 
                 this.stats.begin();
