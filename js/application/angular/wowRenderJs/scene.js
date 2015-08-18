@@ -29,6 +29,7 @@
             this.stats = stats;
 
             var self = this;
+            self.enableDeferred = false;
 
             self.sceneObjectList = [];
             self.initGlContext(canvas);
@@ -37,7 +38,11 @@
             }, function error(){
             });
             self.initSceneApi();
-            self.initDeferredRendering();
+
+            if (self.enableDeferred) {
+                self.initDeferredRendering();
+            }
+
             self.initCaches();
             self.initCamera(canvas, document);
 
@@ -95,13 +100,15 @@
                 var placementMatrix = gl.getUniformLocation(program, "uPlacementMat");
                 var projectionMatrix = gl.getUniformLocation(program, "uPMatrix");
                 var uAlphaTest = gl.getUniformLocation(program, "uAlphaTest");
+                //var uGlobalLighting = gl.getUniformLocation(program, "uGlobalLighting");
 
                 return {
                     program : program,
                     lookAtMatrix : lookAtMatrix,
                     placementMatrix : placementMatrix,
                     projectionMatrix : projectionMatrix,
-                    uAlphaTest : uAlphaTest
+                    uAlphaTest : uAlphaTest,
+                    uGlobalLighting : uGlobalLighting
                 }
             },
             initGlContext : function (canvas){
@@ -238,7 +245,8 @@
                             lookAtMatrix: self.currentShaderProgram.lookAtMatrix,
                             placementMatrix: self.currentShaderProgram.placementMatrix,
                             projectionMatrix: self.currentShaderProgram.projectionMatrix,
-                            uAlphaTest: self.uAlphaTest
+                            uAlphaTest: self.currentShaderProgram.uAlphaTest,
+                            uGlobalLighting: self.currentShaderProgram.uGlobalLighting
                         }
                     },
                     loadTexture: function (fileName) {

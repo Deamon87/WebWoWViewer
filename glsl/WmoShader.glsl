@@ -1,11 +1,13 @@
 //https://www.khronos.org/registry/webgl/extensions/WEBGL_draw_buffers/
 //For drawbuffers in glsl of webgl you need to use GL_EXT_draw_buffers instead of WEBGL_draw_buffers
+
+#ifdef ENABLE_DEFERRED
 #ifdef GL_EXT_draw_buffers
     #extension GL_EXT_draw_buffers: require
-    #extension OES_texture_float_linear : enabled
+    #extension OES_texture_float_linear : enable
     #define drawBuffersIsSupported 1
 #endif
-
+#endif
 
 #ifdef COMPILING_VS
 /* vertex shader code */
@@ -58,6 +60,7 @@ varying vec2 vTexCoord;
 varying vec4 vColor;
 varying vec3 vPosition;
 
+//uniform vec4  uGlobalLighting;
 uniform float uAlphaTest;
 uniform sampler2D uTexture;
 
@@ -73,7 +76,16 @@ void main() {
     if(finalColor.a < uAlphaTest)
         discard;
 
+    //Apply global lighting
+/*
+    finalColor = vec4(
+        (finalColor.r + uGlobalLighting.r) ,
+        (finalColor.g + uGlobalLighting.g) ,
+        (finalColor.b + uGlobalLighting.b) ,
+        finalColor.a);
+  */
     finalColor.a = 1.0; //do I really need it now?
+
 
 #ifndef drawBuffersIsSupported
 

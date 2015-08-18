@@ -46,6 +46,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             var uniforms = this.sceneApi.getShaderUniforms();
 
             gl.uniformMatrix4fv(uniforms.placementMatrix, false, placementMatrix);
+            //gl.uniform4f(uniforms.uGlobalLighting, colorVector[0], colorVector[1],colorVector[2],colorVector[3]);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
 
