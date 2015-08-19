@@ -78,27 +78,28 @@
         this.draw = function(){
             var gl = this.gl;
             var shaderUniforms = this.sceneApi.getShaderUniforms();
+            var shaderAttributes = this.sceneApi.getShaderAttributes();
             var wmoGroupObject = this.wmoGroupFile;
             var isIndoor = (wmoGroupObject.mogp.Flags & 0x2000) > 0;
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.combinedVBO);
-            gl.enableVertexAttribArray(0);
-            gl.enableVertexAttribArray(1);
-            gl.enableVertexAttribArray(2);
+            gl.enableVertexAttribArray(shaderAttributes.aPosition);
+            //gl.enableVertexAttribArray(shaderAttributes.aNormal);
+            gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
 
 
-            gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0); // position
-            gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, this.normalOffset*4); // normal
-            gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, this.textOffset*4); // texcoord
+            gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0); // position
+            //gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 0, this.normalOffset*4); // normal
+            gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 0, this.textOffset*4); // texcoord
 
             if (isIndoor && (wmoGroupObject.colorVerticles) &&(wmoGroupObject.colorVerticles.length > 0)) {
-                gl.enableVertexAttribArray(3);
-                gl.vertexAttribPointer(3, 4, gl.UNSIGNED_BYTE, true, 0, this.colorOffset * 4); // color
+                gl.enableVertexAttribArray(shaderAttributes.aColor);
+                gl.vertexAttribPointer(shaderAttributes.aColor, 4, gl.UNSIGNED_BYTE, true, 0, this.colorOffset * 4); // color
             } else {
-                gl.disableVertexAttribArray(3);
-                gl.vertexAttrib4f(3, 1.0, 1.0, 1.0, 1.0);
+                gl.disableVertexAttribArray(shaderAttributes.aColor);
+                gl.vertexAttrib4f(shaderAttributes.aColor, 1.0, 1.0, 1.0, 1.0);
             }
 
             gl.activeTexture(gl.TEXTURE0);

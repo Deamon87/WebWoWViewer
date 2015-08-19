@@ -31,12 +31,14 @@ varying vec3 vPosition;
 #endif
 
 void main() {
-    vec4 worldPoint = uPlacementMat * vec4(aPosition, 1);
+    vec4 worldPoint = vec4(normalize(aNormal),0);
+    worldPoint = uPlacementMat * vec4(aPosition, 1);
 
     vTexCoord = aTexCoord;
     vColor = aColor;
 
 #ifndef drawBuffersIsSupported
+
 
     gl_Position = uPMatrix * uLookAtMat * worldPoint;
 

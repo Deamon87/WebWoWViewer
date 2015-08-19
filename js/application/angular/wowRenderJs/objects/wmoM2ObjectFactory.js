@@ -39,12 +39,16 @@
                 this.placementInvertMatrix = placementInvertMatrix;
                 this.placementMatrix = placementMatrix;
             },
-            load : function (doodad){
+            load : function (doodad, useLocalColor){
                 var self = this;
 
                 self.doodad = doodad;
 
-                self.diffuseColor = doodad.color;
+                if (useLocalColor) {
+                    self.diffuseColor = doodad.color;
+                } else {
+                    self.diffuseColor = 0xffffffff;
+                }
                 self.createPlacementMatrix(doodad);
                 self.mdxObject.load(doodad.modelName, 0);
             }

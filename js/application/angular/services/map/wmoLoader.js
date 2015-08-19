@@ -133,7 +133,7 @@
                             throw "Got bad group WMO file " + wmoFilePath;
                         }
                         var version = chunk.readInt32({offs: 0});
-                        $log.info("Loading ", wmoFilePath, ", version ", version);
+                        //$log.info("Loading ", wmoFilePath, ", version ", version);
 
                         /* Versioning */
                         if (version == 17) {
@@ -188,6 +188,22 @@
                     wmoObj.BoundBoxCorner2 = chunk.readVector3f(offset);
 
                     wmoObj.WMOId = chunk.readInt32(offset);
+                },
+                "MOGI" : function (wmoObj, chunk) {
+                    var offset = {offs: 0};
+
+                    var groupInfos = [];
+                    for (var i = 0; i < wmoObj.nGroups; i++) {
+                        var groupInfo = {};
+                        groupInfo.flags = chunk.readUint32(offset);
+                        groupInfo.bb1 = chunk.readVector3f(offset);
+                        groupInfo.bb2 = chunk.readVector3f(offset);
+                        groupInfo.nameoffset = chunk.readInt32(offset);
+
+                        groupInfos.push(groupInfo);
+                    }
+
+                    wmoObj.groupInfos = groupInfos;
                 },
                 "MOMT": function (wmoObj, chunk) {
                     var offset = {offs: 0};
@@ -291,7 +307,7 @@
                             throw "Got bad WMO file " + wmoFilePath;
                         }
                         var version = chunk.readInt32({offs : 0});
-                        $log.info("Loading ", wmoFilePath, ", version ", version);
+                        //$log.info("Loading ", wmoFilePath, ", version ", version);
 
                         /* Versioning */
                         if (version == 17){

@@ -35,14 +35,14 @@
                                         if (subchunkHandler){
                                             subchunkHandler(resultObj, subChunk);
                                         } else {
-                                            $log.info("Unknown SubChunk. Ident = " + subChunk.chunkIdent+", file = "+fullPath);
+                                            //$log.info("Unknown SubChunk. Ident = " + subChunk.chunkIdent+", file = "+fullPath);
                                         }
 
                                         subChunk = this.loadChunkAtOffset(subChunk.nextChunkOffset);
                                     }
                                 }
                             } else {
-                                $log.info("Unknown Chunk. Ident = " + chunk.chunkIdent+", file = "+fullPath);
+                                //$log.info("Unknown Chunk. Ident = " + chunk.chunkIdent+", file = "+fullPath);
                             }
                             chunk = this.loadChunkAtOffset(chunk.nextChunkOffset);
                         }

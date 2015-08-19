@@ -80,11 +80,6 @@
                 gl.attachShader(program, vertexShader);
                 gl.attachShader(program, fragmentShader);
 
-                gl.bindAttribLocation(program, 0, "aPosition");
-                gl.bindAttribLocation(program, 1, "aNormal");
-                gl.bindAttribLocation(program, 2, "aTexCoord");
-                gl.bindAttribLocation(program, 3, "aColor");
-
                 // link the program.
                 gl.linkProgram(program);
 
@@ -96,20 +91,45 @@
                     throw ("program filed to link:" + gl.getProgramInfoLog (program));
                 }
 
-                var lookAtMatrix = gl.getUniformLocation(program, "uLookAtMat");
-                var placementMatrix = gl.getUniformLocation(program, "uPlacementMat");
-                var projectionMatrix = gl.getUniformLocation(program, "uPMatrix");
-                var uAlphaTest = gl.getUniformLocation(program, "uAlphaTest");
-                //var uGlobalLighting = gl.getUniformLocation(program, "uGlobalLighting");
+                var shader = {};
+                shader['program'] = program;
 
-                return {
-                    program : program,
-                    lookAtMatrix : lookAtMatrix,
-                    placementMatrix : placementMatrix,
-                    projectionMatrix : projectionMatrix,
-                    uAlphaTest : uAlphaTest,
-                    uGlobalLighting : uGlobalLighting
+                //From https://github.com/greggman/webgl-fundamentals/blob/master/webgl/resources/webgl-utils.js
+
+                //Get attributes
+                var shaderAttribs = {};
+                var attribNum = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+                for (var ii = 0; ii < attribNum; ++ii) {
+                    var attribInfo = gl.getActiveAttrib(program, ii);
+                    if (!attribInfo) {
+                        break;
+                    }
+                    var index = gl.getAttribLocation(program, attribInfo.name);
+                    shaderAttribs[attribInfo.name] = index;
                 }
+                shader.shaderAttributes = shaderAttribs;
+
+
+                //Get uniforms
+                var shaderUniforms = {};
+                var uniformsNumber = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+                for (var ii = 0; ii < uniformsNumber; ++ii) {
+                    var uniformInfo = gl.getActiveUniform(program, ii);
+                    if (!uniformInfo) {
+                        break;
+                    }
+
+                    var name = uniformInfo.name;
+                    if (name.substr(-3) === "[0]") {
+                        name = name.substr(0, name.length - 3);
+                    }
+
+                    var uniformLoc = gl.getUniformLocation(program, name);
+                    shaderUniforms[name] = uniformLoc;
+                }
+                shader.shaderUniforms = shaderUniforms;
+
+                return shader;
             },
             initGlContext : function (canvas){
                 function throwOnGLError(err, funcName, args) {
@@ -222,8 +242,18 @@
                     },function error(){
                         throw 'could not load shader'
                     });
-
                 promisesArray.push(promise);
+
+                promise = $http.get("glsl/drawBBShader.glsl")
+                    .then(function success(result){
+                        var shaderText = result.data;
+                        var shader = self.compileShader(shaderText, shaderText);
+                        self.bbShader = shader;
+                    },function error(){
+                        throw 'could not load shader'
+                    });
+                promisesArray.push(promise);
+
 
                 return $q.all(promisesArray)
             },
@@ -241,13 +271,10 @@
                         return self.gl;
                     },
                     getShaderUniforms: function () {
-                        return {
-                            lookAtMatrix: self.currentShaderProgram.lookAtMatrix,
-                            placementMatrix: self.currentShaderProgram.placementMatrix,
-                            projectionMatrix: self.currentShaderProgram.projectionMatrix,
-                            uAlphaTest: self.currentShaderProgram.uAlphaTest,
-                            uGlobalLighting: self.currentShaderProgram.uGlobalLighting
-                        }
+                        return self.currentShaderProgram.shaderUniforms;
+                    },
+                    getShaderAttributes: function () {
+                        return self.currentShaderProgram.shaderAttributes;
                     },
                     loadTexture: function (fileName) {
                         return self.textureCache.loadTexture(fileName);
@@ -317,19 +344,32 @@
                 this.glClearScreen(gl);
                 gl.activeTexture(gl.TEXTURE0);
 
-                this.currentShaderProgram = this.wmoShader;
+                //1. Draw bounding boxes
+                /*
+                this.currentShaderProgram = this.bbShader;
                 gl.useProgram(this.currentShaderProgram.program);
 
-                gl.uniformMatrix4fv(this.currentShaderProgram.lookAtMatrix, false, lookAtMat4);
-                gl.uniformMatrix4fv(this.currentShaderProgram.projectionMatrix, false, perspectiveMatrix);
+                gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
+                gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
+                */
 
-                this.stats.begin();
-                var i;
-                for (i = 0; i < this.sceneObjectList.length; i ++) {
-                    var sceneObject = this.sceneObjectList[i];
-                    sceneObject.draw(deltaTime);
+                //2. Draw scene
+
+                this.currentShaderProgram = this.wmoShader;
+                if (this.currentShaderProgram) {
+                    gl.useProgram(this.currentShaderProgram.program);
+
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
+
+                    this.stats.begin();
+                    var i;
+                    for (i = 0; i < this.sceneObjectList.length; i++) {
+                        var sceneObject = this.sceneObjectList[i];
+                        sceneObject.draw(deltaTime);
+                    }
+                    this.stats.end();
                 }
-                this.stats.end();
 
                 return cameraVecs;
             },

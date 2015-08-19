@@ -44,19 +44,20 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             var gl = this.gl;
             var m2Object = this.m2File;
             var uniforms = this.sceneApi.getShaderUniforms();
+            var shaderAttributes = this.sceneApi.getShaderAttributes();
 
-            gl.uniformMatrix4fv(uniforms.placementMatrix, false, placementMatrix);
+            gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
             //gl.uniform4f(uniforms.uGlobalLighting, colorVector[0], colorVector[1],colorVector[2],colorVector[3]);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexVBO);
-            gl.enableVertexAttribArray(0);
-            gl.enableVertexAttribArray(1);
-            gl.enableVertexAttribArray(2);
-            gl.disableVertexAttribArray(3);
+            gl.enableVertexAttribArray(shaderAttributes.aPosition);
+            //gl.enableVertexAttribArray(shaderAttributes.aNormal);
+            gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
+            gl.disableVertexAttribArray(shaderAttributes.aColor);
 
-            //gl.vertexAttrib4f(3, 0.5, 0.5, 0.5, 0.5);
+            //gl.vertexAttrib4f(shaderAttributes.aColor, 0.5, 0.5, 0.5, 0.5);
 
             /*
              {name: "pos",           type : "vector3f"},           0+12 = 12
@@ -69,23 +70,20 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
              {name : "unk2",         type : "int32"}               44+4 = 48
             */
 
-            gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 48, 0);  // position
-            gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 48, 20); // normal
-            gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 48, 32); // texcoord
+            gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 48, 0);  // position
+            //gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 48, 20); // normal
+            gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 48, 32); // texcoord
 
             if (submeshArray) {
                 for (var i = 0; i < submeshArray.length; i++) {
                     if (submeshArray[i].isRendered) {
                         if (submeshArray[i].texUnit1Texture) {
-
-
-
                             //try {
                                 var colorIndex = skinObject.skinFile.header.texs[submeshArray[i].texUnit1TexIndex].colorIndex;
                                 if ((colorIndex > 0) && (subMeshColors)) {
                                     var submeshColor = subMeshColors[colorIndex];
 
-                                    gl.vertexAttrib4f(3,
+                                    gl.vertexAttrib4f(shaderAttributes.aColor,
                                         submeshColor[0],
                                         submeshColor[1],
                                         submeshColor[2],
@@ -93,13 +91,13 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
                                 } else {
 
-                                    gl.vertexAttrib4f(3,
+                                    gl.vertexAttrib4f(shaderAttributes.aColor,
                                         colorVector[0],
                                         colorVector[1],
                                         colorVector[2],
                                         colorVector[3]);
 
-                                    //gl.vertexAttrib4f(3, 1, 1, 1, 1);
+                                    //gl.vertexAttrib4f(shaderAttributes.aColor, 1, 1, 1, 1);
                                 }
 
 
