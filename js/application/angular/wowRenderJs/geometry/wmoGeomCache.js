@@ -114,10 +114,12 @@
                     if ((this.momt[texIndex].flags1 & 0x80) > 0) {
 
                         gl.uniform1f(shaderUniforms.uAlphaTest, 0.3);
+                        //gl.uniform1f(shaderUniforms.uAlphaTest, 1.0 - 0.8784314);
                         //glAlphaFunc(GL_GREATER, 0.3);
                     }
                     if ((this.momt[texIndex].flags1 & 0x01) > 0) {
                         gl.uniform1f(shaderUniforms.uAlphaTest, 0.1);
+                        // /gl.uniform1f(shaderUniforms.uAlphaTest, 0.003921569);
                         //glAlphaFunc(GL_GREATER, 0.1);
                     }
                 } else {

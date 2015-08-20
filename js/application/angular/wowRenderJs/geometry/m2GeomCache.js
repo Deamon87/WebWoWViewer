@@ -111,6 +111,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                                     case 1 : //BM_TRANSPARENT
                                         gl.disable(gl.BLEND);
                                         gl.uniform1f(uniforms.uAlphaTest, 0.001);
+                                        //gl.uniform1f(uniforms.uAlphaTest, 0.003921569);
                                         break;
                                     case 2 : //BM_ALPHA_BLEND
                                         gl.uniform1f(uniforms.uAlphaTest, -1);
@@ -143,6 +144,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     }
                 }
             }
+            gl.uniform1f(uniforms.uAlphaTest, -1);
         }
     };
 
