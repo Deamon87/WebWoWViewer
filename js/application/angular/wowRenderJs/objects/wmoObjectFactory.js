@@ -103,6 +103,34 @@
                 }, function error (){
                 });
             },
+            drawBB : function () {
+                var gl = this.sceneApi.getGlContext();
+                var uniforms = this.sceneApi.getShaderUniforms();
+
+                for (var i = 0; i < this.wmoGroupArray.length; i++){
+                    var groupInfo = this.wmoObj.groupInfos[i];
+                    var bb1 = groupInfo.bb1,
+                        bb2 = groupInfo.bb2;
+
+                    var center = [
+                        (bb1.x + bb2.x)/2,
+                        (bb1.y + bb2.y)/2,
+                        (bb1.z + bb2.z)/2
+                    ];
+
+                    var scale = [
+                        bb2.x - center[0],
+                        bb2.y - center[1],
+                        bb2.z - center[2]
+                    ];
+
+                    gl.uniform3fv(uniforms.uBBScale, new Float32Array(scale));
+                    gl.uniform3fv(uniforms.uBBCenter, new Float32Array(center));
+
+                    gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
+                }
+
+            },
             draw : function () {
                 /* Draw */
                 var gl = this.sceneApi.getGlContext();

@@ -43,6 +43,7 @@
                 self.initDeferredRendering();
             }
 
+            self.initBoxVBO();
             self.initCaches();
             self.initCamera(canvas, document);
 
@@ -317,6 +318,43 @@
             initCamera : function (canvas, document){
                 this.camera = firstPersonCamera(canvas, document);
             },
+            initBoxVBO : function(){
+                var gl = this.gl;
+
+                //From https://en.wikibooks.org/wiki/OpenGL_Programming/Bounding_box
+                var vertices = [
+                    -1, -1, -1, //0
+                    1, -1, -1,  //1
+                    1, -1, 1,   //2
+                    -1, -1, 1,  //3
+                    -1, 1, 1,   //4
+                    1, 1, 1,    //5
+                    1, 1, -1,   //6
+                    -1, 1, -1,  //7
+                ];
+
+                var vbo_vertices = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, vbo_vertices);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+                var elements = [
+                    0, 1, 1, 2, 2, 3, 3, 0,
+                    4, 5, 5, 6, 6, 7, 7, 4,
+                    7, 6, 6, 1, 1, 0, 0, 7,
+                    3, 2, 2, 5, 5, 4, 4, 3,
+                    6, 5, 5, 2, 2, 1, 1, 6,
+                    0, 3, 3, 4, 4, 7, 7, 0
+                ];
+                var ibo_elements = gl.createBuffer();
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo_elements);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(elements), gl.STATIC_DRAW);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+                this.bbBoxVars = {
+                    vbo_vertices : vbo_vertices,
+                    ibo_elements : ibo_elements
+                }
+            },
 
             glClearScreen : function(gl){
                 gl.clearDepth(1.0);
@@ -344,17 +382,29 @@
                 this.glClearScreen(gl);
                 gl.activeTexture(gl.TEXTURE0);
 
-                //1. Draw bounding boxes
-                /*
-                this.currentShaderProgram = this.bbShader;
-                gl.useProgram(this.currentShaderProgram.program);
+                this.stats.begin();
 
-                gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
-                gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
-                */
+                //1. Draw bounding boxes
+                this.currentShaderProgram = this.bbShader;
+                if (this.currentShaderProgram) {
+                    gl.useProgram(this.currentShaderProgram.program);
+
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bbBoxVars.ibo_elements);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.bbBoxVars.vbo_vertices);
+
+                    gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.aPosition);
+                    gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0);  // position
+
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
+
+                    for (i = 0; i < this.sceneObjectList.length; i++) {
+                        var sceneObject = this.sceneObjectList[i];
+                        sceneObject.drawBB();
+                    }
+                }
 
                 //2. Draw scene
-
                 this.currentShaderProgram = this.wmoShader;
                 if (this.currentShaderProgram) {
                     gl.useProgram(this.currentShaderProgram.program);
@@ -362,14 +412,13 @@
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
 
-                    this.stats.begin();
                     var i;
                     for (i = 0; i < this.sceneObjectList.length; i++) {
                         var sceneObject = this.sceneObjectList[i];
                         sceneObject.draw(deltaTime);
                     }
-                    this.stats.end();
                 }
+                this.stats.end();
 
                 return cameraVecs;
             },

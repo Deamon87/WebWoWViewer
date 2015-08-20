@@ -2,14 +2,18 @@
 /* vertex shader code */
 attribute vec3 aPosition;
 
-uniform vec4 uBBScale;
-uniform vec4 uBBCenter;
+uniform vec3 uBBScale;
+uniform vec3 uBBCenter;
 
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 
 void main() {
-    vec4 worldPoint = ((vec4(aPosition, 1) * uBBScale) + uBBCenter);
+    vec4 worldPoint = vec4(
+        aPosition.x*uBBScale.x + uBBCenter.x,
+        aPosition.y*uBBScale.y + uBBCenter.y,
+        aPosition.z*uBBScale.z + uBBCenter.z,
+        1);
 
     gl_Position = uPMatrix * uLookAtMat * worldPoint;
 }

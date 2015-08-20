@@ -79,6 +79,7 @@
             var gl = this.gl;
             var shaderUniforms = this.sceneApi.getShaderUniforms();
             var shaderAttributes = this.sceneApi.getShaderAttributes();
+
             var wmoGroupObject = this.wmoGroupFile;
             var isIndoor = (wmoGroupObject.mogp.Flags & 0x2000) > 0;
 
