@@ -100,8 +100,6 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                                     //gl.vertexAttrib4f(shaderAttributes.aColor, 1, 1, 1, 1);
                                 }
 
-
-
                                 var renderFlagIndex = skinObject.skinFile.header.texs[submeshArray[i].texUnit1TexIndex].renderFlagIndex;
                                 switch (m2Object.renderFlags[renderFlagIndex].blend) {
                                     case 0 : //BM_OPAQUE
