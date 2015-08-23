@@ -25,7 +25,8 @@
     main.controller("UrlChooserCtrl",['$scope', 'configService',function($scope, configService){
         $scope.isReadyForStart = false;
         $scope.params = {};
-        $scope.params.urlForLoading = '';
+        $scope.params.urlForLoading = configService.getUrlToLoadWoWFile();
+
 
         $scope.startApplication = function () {
             configService.setUrlToLoadWoWFile($scope.params.urlForLoading);
