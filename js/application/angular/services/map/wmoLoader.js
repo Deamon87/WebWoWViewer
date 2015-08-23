@@ -152,7 +152,8 @@
                 /* First chunk in file has to be MVER */
 
                 var wmoObj = {};
-                chunkedFile.processFile(wmoObj, new BaseGroupWMOLoader(), 0);
+                chunkedFile.setSectionReaders(new BaseGroupWMOLoader());
+                chunkedFile.processFile(wmoObj);
 
                 deferred.resolve(wmoObj);
             }, function error() {
@@ -326,7 +327,8 @@
                 /* First chunk in file has to be MVER */
 
                 var wmoObj = {};
-                chunkedFile.processFile(wmoObj, new BaseWMOLoader());
+                chunkedFile.setSectionReaders( new BaseWMOLoader());
+                chunkedFile.processFile(wmoObj);
 
                 deferred.resolve(wmoObj);
             }, function error(){

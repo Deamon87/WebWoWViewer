@@ -15,35 +15,46 @@
             $http.get(fullPath, {responseType: "arraybuffer"}).success(function(a) {
                 var fileReader = fileReadHelper(a);
 
-                var chunkedFileObj = {
+                var sectionReaders  = null;
 
-                    processFile: function(resultObj, sectionReaders){
+                var chunkedFileObj = {
+                    setSectionReaders : function (value) {
+                        sectionReaders = value;
+                    },
+                    processChunkAtOffs : function (offs, resultObj) {
+                        var chunk = this.loadChunkAtOffset(offs);
+                        this.processChunk(chunk, resultObj);
+                    },
+                    processChunk : function (chunk, resultObj){
+                        var sectionHandlerProc = sectionReaders.getHandler(chunk.chunkIdent);
+                        if (sectionHandlerProc){
+                            if (typeof sectionHandlerProc === 'function') {
+                                sectionHandlerProc(resultObj, chunk, this);
+                            } else {
+                                var offset = sectionHandlerProc[chunk.chunkIdent](resultObj, chunk);
+
+                                /* Iteration through subchunks */
+                                var subChunk = this.loadChunkAtOffset(chunk.chunkOffset + offset.offs);
+                                while (subChunk.chunkIdent != "") {
+                                    var subchunkHandler = sectionHandlerProc.subChunks[subChunk.chunkIdent];
+                                    if (subchunkHandler){
+                                        subchunkHandler(resultObj, subChunk, this);
+                                    } else {
+                                        //$log.info("Unknown SubChunk. Ident = " + subChunk.chunkIdent+", file = "+fullPath);
+                                    }
+
+                                    subChunk = this.loadChunkAtOffset(subChunk.nextChunkOffset);
+                                }
+                            }
+                        } else {
+                            //$log.info("Unknown Chunk. Ident = " + chunk.chunkIdent+", file = "+fullPath);
+                        }
+                    },
+                    processFile: function(resultObj){
                         var chunk = this.loadChunkAtOffset(0);
 
                         while (chunk.chunkIdent != "") {
-                            var sectionHandlerProc = sectionReaders.getHandler(chunk.chunkIdent);
-                            if (sectionHandlerProc){
-                                if (typeof sectionHandlerProc === 'function') {
-                                    sectionHandlerProc(resultObj, chunk);
-                                } else {
-                                    var offset = sectionHandlerProc[chunk.chunkIdent](resultObj, chunk);
-
-                                    /* Iteration through subchunks */
-                                    var subChunk = this.loadChunkAtOffset(chunk.chunkOffset + offset.offs);
-                                    while (subChunk.chunkIdent != "") {
-                                        var subchunkHandler = sectionHandlerProc.subChunks[subChunk.chunkIdent];
-                                        if (subchunkHandler){
-                                            subchunkHandler(resultObj, subChunk);
-                                        } else {
-                                            //$log.info("Unknown SubChunk. Ident = " + subChunk.chunkIdent+", file = "+fullPath);
-                                        }
-
-                                        subChunk = this.loadChunkAtOffset(subChunk.nextChunkOffset);
-                                    }
-                                }
-                            } else {
-                                //$log.info("Unknown Chunk. Ident = " + chunk.chunkIdent+", file = "+fullPath);
-                            }
+                            this.processChunk(chunk, resultObj, sectionReaders);
                             chunk = this.loadChunkAtOffset(chunk.nextChunkOffset);
                         }
                     },
@@ -62,7 +73,6 @@
 
                         /* If chunk is empty - skip it. Otherwise - load the chunkData */
                         var chunkReader = null;
-
                         if (chunkSize > 0) {
                             chunkReader = fileReadHelper(a, offsetObj.offs, chunkSize);
                         }
