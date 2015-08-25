@@ -56,6 +56,7 @@
                     },
                     "MCIN" : function (adtObject, chunk, chunkedFile) {
                         var offs = {offs : 0};
+                        //16x16 records
                         for (var i = 0; i < 256; i++) {
                             var MCINEntry = {};
                             MCINEntry.offsetMCNK = chunk.readUint32(offs);
@@ -63,65 +64,126 @@
                             MCINEntry.flags = chunk.readUint32(offs);
                             MCINEntry.asyncId = chunk.readUint32(offs);
 
+                            //Load and process MCNK for this block
                             chunkedFile.processChunkAtOffs({offs : MCINEntry.offsetMCNK}, adtObject);
                         }
                     },
-                    "MCNK" : function (adtObject, chunk) {
+                    "MCNK" : function (mcnkObj, chunk) {
                         var offs = {offs : 0};
-                        var flags                 = chunk.readUint32(offs);
-                        var ix                    = chunk.readUint32(offs);
-                        var iy                    = chunk.readUint32(offs);
-                        var nLayers               = chunk.readUint32(offs);
-                        var nDoodadRefs           = chunk.readUint32(offs);
+
+                        mcnkObj.flags             = chunk.readUint32(offs);
+                        mcnkObj.ix                = chunk.readUint32(offs);
+                        mcnkObj.iy                = chunk.readUint32(offs);
+                        mcnkObj.nLayers           = chunk.readUint32(offs);
+                        mcnkObj.nDoodadRefs       = chunk.readUint32(offs);
                         var ofsHeight             = chunk.readUint32(offs);
                         var ofsNormal             = chunk.readUint32(offs);
                         var ofsLayer              = chunk.readUint32(offs);
                         var ofsRefs               = chunk.readUint32(offs);
                         var ofsAlpha              = chunk.readUint32(offs);
-                        var sizeAlpha             = chunk.readUint32(offs);
+                        mcnkObj.sizeAlpha         = chunk.readUint32(offs);
                         var ofsShadow             = chunk.readUint32(offs);
-                        var sizeShadow            = chunk.readUint32(offs);
-                        var areaid                = chunk.readUint32(offs);
-                        var nMapObjRefs           = chunk.readUint32(offs);
-                        var holes                 = chunk.readUint32(offs);
-                        var s1                    = chunk.readUint16(offs);
-                        var s2                    = chunk.readUint16(offs);
-                        var d1                    = chunk.readUint32(offs);
-                        var d2                    = chunk.readUint32(offs);
-                        var d3                    = chunk.readUint32(offs);
-                        var predTex               = chunk.readUint32(offs);
+                        mcnkObj.sizeShadow        = chunk.readUint32(offs);
+                        mcnkObj.areaid            = chunk.readUint32(offs);
+                        mcnkObj.nMapObjRefs       = chunk.readUint32(offs);
+                        mcnkObj.holes             = chunk.readUint32(offs);
+                        mcnkObj.s1                 = chunk.readUint16(offs);
+                        mcnkObj.s2                 = chunk.readUint16(offs);
+                        mcnkObj.d1                = chunk.readUint32(offs);
+                        mcnkObj.d2                = chunk.readUint32(offs);
+                        mcnkObj.d3                = chunk.readUint32(offs);
+                        mcnkObj.predTex           = chunk.readUint32(offs);
                         var nEffectDoodad         = chunk.readUint32(offs);
                         var ofsSndEmitters        = chunk.readUint32(offs);
                         var nSndEmitters          = chunk.readUint32(offs);
                         var ofsLiquid             = chunk.readUint32(offs);
                         var sizeLiquid            = chunk.readUint32(offs);
-                        var pos                   = chunk.readVector3f(offs);
-                        var textureId             = chunk.readUint32(offs);
-                        var props                 = chunk.readUint32(offs);
-                        var effectId              = chunk.readUint32(offs);
+                        var pos                    = chunk.readVector3f(offs);
+                        mcnkObj.textureId         = chunk.readUint32(offs);
+                        mcnkObj.props             = chunk.readUint32(offs);
+                        mcnkObj.effectId          = chunk.readUint32(offs);
 
+                        //1. Load MCVT
 
-                    },
-                    "MTEX" : function () {
-
-                    },
-                    "MMDX" : function () {
-
-                    },
-                    "MMID" : function () {
+                        //2. Load MCNR
+                        //3. Load MCLY
+                        //4. Load MCAL
 
                     },
-                    "MWMO" : function () {
+                    "MTEX" : function (adtObject, chunk) {
+                        var offset = {offs: 0};
+                        var textureNames = chunk.readUint8Array(offset, chunk.chunkLen);
 
+                        adtObject.mtex = textureNames;
                     },
-                    "MWID" : function () {
+                    "MMDX" : function (adtObject, chunk) {
+                        var offset = {offs: 0};
+                        var m2Names = chunk.readUint8Array(offset, chunk.chunkLen);
 
+                        adtObject.mmdx = m2Names;
                     },
-                    "MDDF" : function () {
+                    "MMID" : function (adtObject, chunk) {
+                        var offset = {offs: 0};
+                        var mmid = chunk.readInt32Array(offset, chunk.chunkLen >> 2);
 
+                        adtObject.mmid = mmid;
                     },
-                    "MODF" : function () {
+                    "MWMO" : function (adtObject, chunk) {
+                        var offset = {offs: 0};
+                        var wmoNames = chunk.readUint8Array(offset, chunk.chunkLen);
 
+                        adtObject.mwmo = wmoNames;
+                    },
+                    "MWID" : function (adtObject, chunk) {
+                        var offset = {offs: 0};
+                        var mwid = chunk.readInt32Array(offset, chunk.chunkLen >> 2);
+
+                        adtObject.mwid = mwid;
+                    },
+                    "MDDF" : function (adtObject, chunk) {
+                        var m2Objs = [];
+                        var offset = {offs : 0};
+
+                        var mddfCount = (chunk.chunkLen / (4 + 4 + 4*3 + 4*3 + 4));
+                        for (var i = 0; i < mddfCount; i++){
+                            var m2Placement = {};
+
+                            m2Placement.nameID    = chunk.readInt32(offset);
+                            m2Placement.uniqueId  = chunk.readInt32(offset);
+                            m2Placement.pos       = chunk.readVector3f(offset);
+                            m2Placement.rotation  = chunk.readVector3f(offset);
+                            //flags               : WORD;
+                            m2Placement.scale     = chunk.readInt32(offset);
+
+                            m2Objs.push(m2Placement);
+                        }
+
+                        adtObject.mddf = m2Objs;
+                    },
+                    "MODF" : function (adtObject, chunk) {
+                        var offset = { offs : 0 };
+                        var wmoObjs = [];
+
+                        var modfCount = (chunk.chunkLen / (4 + 4 + 4*3 + 4*3 +4*3 + 4*3 + 2 + 2 + 4));
+                        for (var i = 0; i < modfCount; i++) {
+                            var modfChunk = {};
+
+                            modfChunk.nameId = chunk.readInt32(offset);
+                            modfChunk.uniqueId = chunk.readInt32(offset);
+
+                            modfChunk.pos        = chunk.readVector3f(offset);
+                            modfChunk.rotation   = chunk.readVector3f(offset);
+                            modfChunk.bb1        = chunk.readVector3f(offset);
+                            modfChunk.bb2        = chunk.readVector3f(offset);
+
+                            modfChunk.doodadSet = chunk.readUint16(offset);
+                            modfChunk.nameSet   = chunk.readUint16(offset);
+                            modfChunk.flags     = chunk.readInt32(offset);
+
+                            wmoObjs.add(modfChunk);
+                        }
+
+                        adtObject.wmoObjs = wmoObjs;
                     }
                 };
 
