@@ -38,25 +38,28 @@
                         var pad7 = chunk.readUint32(offs);
 
                         //1. Load MCIN
-                        chunkedFile.processChunkAtOffs({offs : mcinOffs}, adtObject);
+                        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mcinOffs, adtObject);
                         //2. Load MTEX
-                        chunkedFile.processChunkAtOffs({offs : mtexOffs}, adtObject);
+                        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mtexOffs, adtObject);
                         //3. Load MMDX
-                        chunkedFile.processChunkAtOffs({offs : mmdxOffs}, adtObject);
+                        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mmdxOffs, adtObject);
                         //4. Load MMID
-                        chunkedFile.processChunkAtOffs({offs : mmidOffs}, adtObject);
+                        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mmidOffs, adtObject);
                         //5. Load MWMO
-                        chunkedFile.processChunkAtOffs({offs : mwmoOffs}, adtObject);
+                        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mwmoOffs, adtObject);
                         //6. Load MWID
-                        chunkedFile.processChunkAtOffs({offs : mwidOffs}, adtObject);
+                        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mwidOffs, adtObject);
                         //7. Load MDDF
-                        chunkedFile.processChunkAtOffs({offs : mddfOffs}, adtObject);
+                        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mddfOffs, adtObject);
                         //8. Load MODF
-                        chunkedFile.processChunkAtOffs({offs : modfOffs}, adtObject);
+                        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + modfOffs, adtObject);
+
+                        chunk.nextChunkOffset = chunkedFile.getFileSize();
                     },
                     "MCIN" : function (adtObject, chunk, chunkedFile) {
                         var offs = {offs : 0};
                         //16x16 records
+                        var mcnkObjs = [];
                         for (var i = 0; i < 256; i++) {
                             var MCINEntry = {};
                             MCINEntry.offsetMCNK = chunk.readUint32(offs);
@@ -65,12 +68,14 @@
                             MCINEntry.asyncId = chunk.readUint32(offs);
 
                             //Load and process MCNK for this block
-                            chunkedFile.processChunkAtOffs({offs : MCINEntry.offsetMCNK}, adtObject);
+                            var mcnkObj = {};
+                            chunkedFile.processChunkAtOffs(MCINEntry.offsetMCNK, mcnkObj);
+                            mcnkObjs.push(mcnkObj);
                         }
+                        adtObject.mcnkObjs = mcnkObjs;
                     },
-                    "MCNK" : function (mcnkObj, chunk) {
+                    "MCNK" : function (mcnkObj, chunk, chunkedFile) {
                         var offs = {offs : 0};
-
                         mcnkObj.flags             = chunk.readUint32(offs);
                         mcnkObj.ix                = chunk.readUint32(offs);
                         mcnkObj.iy                = chunk.readUint32(offs);
@@ -98,45 +103,112 @@
                         var nSndEmitters          = chunk.readUint32(offs);
                         var ofsLiquid             = chunk.readUint32(offs);
                         var sizeLiquid            = chunk.readUint32(offs);
-                        var pos                    = chunk.readVector3f(offs);
+                        mcnkObj.pos               = chunk.readVector3f(offs);
                         mcnkObj.textureId         = chunk.readUint32(offs);
                         mcnkObj.props             = chunk.readUint32(offs);
                         mcnkObj.effectId          = chunk.readUint32(offs);
 
                         //1. Load MCVT
-
+                        chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsHeight, mcnkObj);
                         //2. Load MCNR
+                        chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsNormal, mcnkObj);
                         //3. Load MCLY
+                        chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsLayer, mcnkObj);
                         //4. Load MCAL
-
+                        chunkedFile.processChunkAtOffsWithSize(chunk.chunkOffset + ofsAlpha, mcnkObj.sizeAlpha, mcnkObj);
                     },
+                    "MCVT" : function (mcnkObj, chunk, chunkedFile) {
+                        var offs = {offs : 0};
+
+                        var heights = chunk.readFloat32Array(offs, 145);
+                        mcnkObj.heights = heights;
+                    },
+                    "MCNR" : function (mcnkObj, chunk, chunkedFile) {
+                        var offs = {offs : 0};
+                        var normales = [];
+
+                        for (var i = 0; i < 9*9 + 8*8; i++) {
+                            var x = chunk.readInt8(offs) / 127;
+                            var y = chunk.readInt8(offs) / 127;
+                            var z = chunk.readInt8(offs) / 127;
+
+                            normales.push(x);
+                            normales.push(y);
+                            normales.push(z);
+                        }
+                        mcnkObj.normales = normales;
+                    },
+                    "MCLY" : function (mcnkObj, chunk, chunkedFile) {
+                        var offs = {offs : 0};
+                        var recCount = chunk.chunkLen >> 4;
+                        var textureLayers = [];
+
+                        for (var i = 0; i < recCount; i++) {
+                            var textureLayer = {};
+                            textureLayer.textureID  = chunk.readInt32(offs); //offset into MTEX list
+                            textureLayer.flags      = chunk.readInt8(offs);
+                            textureLayer.alphaMap   = chunk.readInt8(offs);
+                            textureLayer.detailTex = chunk.readInt8(offs);
+                            textureLayers.push(textureLayer);
+                        }
+
+                        mcnkObj.textureLayers = textureLayers;
+                    },
+                    "MCAL" : function (mcnkObj, chunk, chunkedFile) {
+                        var offset = {offs: 0};
+                        var alphaArray = chunk.readUint8Array(offset, chunk.chunkLen);
+
+                        mcnkObj.alphaArray = alphaArray;
+                    },
+
                     "MTEX" : function (adtObject, chunk) {
                         var offset = {offs: 0};
-                        var textureNames = chunk.readUint8Array(offset, chunk.chunkLen);
+                        var textureNames = null;
+
+                        if (chunk.chunkLen > 0) {
+                            textureNames = chunk.readUint8Array(offset, chunk.chunkLen);
+                        }
 
                         adtObject.mtex = textureNames;
                     },
                     "MMDX" : function (adtObject, chunk) {
                         var offset = {offs: 0};
-                        var m2Names = chunk.readUint8Array(offset, chunk.chunkLen);
+                        var m2Names = null;
+
+                        if (chunk.chunkLen > 0) {
+                            m2Names = chunk.readUint8Array(offset, chunk.chunkLen);
+                        }
 
                         adtObject.mmdx = m2Names;
                     },
                     "MMID" : function (adtObject, chunk) {
                         var offset = {offs: 0};
-                        var mmid = chunk.readInt32Array(offset, chunk.chunkLen >> 2);
+                        var mmid = null;
+
+                        if (chunk.chunkLen > 0) {
+                            mmid = chunk.readInt32Array(offset, chunk.chunkLen >> 2);
+                        }
 
                         adtObject.mmid = mmid;
                     },
                     "MWMO" : function (adtObject, chunk) {
                         var offset = {offs: 0};
-                        var wmoNames = chunk.readUint8Array(offset, chunk.chunkLen);
+                        var wmoNames = null;
+
+                        if (chunk.chunkLen > 0) {
+                            wmoNames = chunk.readUint8Array(offset, chunk.chunkLen);
+                        }
 
                         adtObject.mwmo = wmoNames;
                     },
                     "MWID" : function (adtObject, chunk) {
                         var offset = {offs: 0};
-                        var mwid = chunk.readInt32Array(offset, chunk.chunkLen >> 2);
+
+                        var mwid = null;
+
+                        if (chunk.chunkLen > 0) {
+                            mwid = chunk.readInt32Array(offset, chunk.chunkLen >> 2);
+                        }
 
                         adtObject.mwid = mwid;
                     },

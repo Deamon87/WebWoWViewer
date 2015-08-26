@@ -18,8 +18,15 @@
                 var sectionReaders  = null;
 
                 var chunkedFileObj = {
+                    getFileSize : function (){
+                        return fileReader.getLength();
+                    },
                     setSectionReaders : function (value) {
                         sectionReaders = value;
+                    },
+                    processChunkAtOffsWithSize : function (offs, size, resultObj) {
+                        var chunk = this.loadChunkAtOffset(offs, size);
+                        this.processChunk(chunk, resultObj);
                     },
                     processChunkAtOffs : function (offs, resultObj) {
                         var chunk = this.loadChunkAtOffset(offs);
@@ -58,17 +65,22 @@
                             chunk = this.loadChunkAtOffset(chunk.nextChunkOffset);
                         }
                     },
-                    loadChunkAtOffset : function (offset){
+                    loadChunkAtOffset : function (offset, size){
                         var offsetObj = { offs : offset };
 
                         /* Read chunk header */
                         var chunkIdent = "";
                         var chunkSize = 0;
+                        var chunkDataOff = -1;
 
                         // 8 is length of chunk header
                         if (offsetObj.offs + 8 < fileReader.getLength()) {
                             chunkIdent = fileReader.reverseStr(fileReader.readString(offsetObj, 4));
                             chunkSize = fileReader.readInt32(offsetObj);
+                            if (size != undefined) {
+                                chunkSize = size
+                            }
+                            chunkDataOff = offsetObj.offs;
                         }
 
                         /* If chunk is empty - skip it. Otherwise - load the chunkData */
@@ -82,6 +94,7 @@
                             chunkLen   : chunkSize,
 
                             chunkOffset: offset,
+                            chunkDataOffset : chunkDataOff,
                             nextChunkOffset : offset + 8 + chunkSize //8 is length of chunk header
                         };
                         chunkPiece.__proto__ = chunkReader;
