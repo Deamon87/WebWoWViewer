@@ -32,12 +32,15 @@
                     var cameraVecs = sceneObj.draw(timeDelta);
                     scope.cameraVecs = cameraVecs;
 
-                    scope.$digest();
+                    //scope.$digest();
 
                     $window.requestAnimationFrame(renderfunc);
                 };
                 $window.requestAnimationFrame(renderfunc);
 
+                $window.setInterval(function(){
+                    scope.$digest();
+                }, 200);
                 //sceneObj.loadWMOMap('World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo');
                 sceneObj.loadWMOMap("World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo");
                 //sceneObj.loadWMOMap("WORLD/WMO/OUTLAND/TEROKKAR/SHATTRATHCITY.WMO");
@@ -46,8 +49,10 @@
                 //sceneObj.loadWMOMap("World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo");
                 //sceneObj.loadWMOMap("World/wmo/Dungeon/MD_DiamondMt/DiamondMountain.wmo");
 
+
                 //adtLoader('world//maps\\AhnQiraj\\AhnQiraj_26_46.adt');
                 //adtLoader('world//maps\\Kalimdor\\Kalimdor_19_12.adt')
+                //adtLoader('world\\maps\\Kalimdor\\Kalimdor_1_1.adt')
             }
         }
     }]);

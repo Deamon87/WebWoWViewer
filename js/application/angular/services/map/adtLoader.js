@@ -252,7 +252,7 @@
                             modfChunk.nameSet   = chunk.readUint16(offset);
                             modfChunk.flags     = chunk.readInt32(offset);
 
-                            wmoObjs.add(modfChunk);
+                            wmoObjs.push(modfChunk);
                         }
 
                         adtObject.wmoObjs = wmoObjs;
