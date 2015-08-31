@@ -42,7 +42,7 @@
                     scope.$digest();
                 }, 200);
                 //sceneObj.loadWMOMap('World/wmo/Dungeon/Ulduar/Ulduar_dwarf77.wmo');
-                sceneObj.loadWMOMap("World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo");
+                //sceneObj.loadWMOMap("World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo");
                 //sceneObj.loadWMOMap("WORLD/WMO/OUTLAND/TEROKKAR/SHATTRATHCITY.WMO");
                 //sceneObj.loadWMOMap("World/wmo/Northrend/Dalaran/ND_Dalaran.wmo");
                 //sceneObj.loadWMOMap("World/wmo/Azeroth/Buildings/Stormwind/Stormwind.wmo");
@@ -51,8 +51,8 @@
 
 
                 //adtLoader('world//maps\\AhnQiraj\\AhnQiraj_26_46.adt');
-                //adtLoader('world//maps\\Kalimdor\\Kalimdor_19_12.adt')
-                //adtLoader('world\\maps\\Kalimdor\\Kalimdor_1_1.adt')
+                adtLoader('world\\maps\\Kalimdor\\Kalimdor_19_12.adt')
+                adtLoader('world\\maps\\Kalimdor\\Kalimdor_1_1.adt')
             }
         }
     }]);

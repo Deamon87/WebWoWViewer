@@ -54,6 +54,21 @@
                         //8. Load MODF
                         chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + modfOffs, adtObject);
 
+                        //9. Add texture names
+                        for (var i = 0; i < adtObject.mcnkObjs.length; i++) {
+                            var mcnkObj = adtObject.mcnkObjs[i];
+                            var mtex = adtObject.mtex;
+                            var mtexBuff = fileReadHelper(adtObject.mtex.buffer);
+
+                            for (var j = 0; j < mcnkObj.textureLayers.length; j++) {
+                                var textIndex = mcnkObj.textureLayers[j].textureID;
+                                var textureName = mtexBuff.readString({offs : textIndex}, mtex.length - textIndex);
+
+                                mcnkObj.textureLayers[j].textureName = textureName;
+                            }
+                        }
+
+                        //Stop loading
                         chunk.nextChunkOffset = chunkedFile.getFileSize();
                     },
                     "MCIN" : function (adtObject, chunk, chunkedFile) {
@@ -217,6 +232,9 @@
                         var offset = {offs : 0};
 
                         var mddfCount = (chunk.chunkLen / (4 + 4 + 4*3 + 4*3 + 4));
+                        if (mddfCount > 0) {
+                            var mmdxBuff = fileReadHelper(adtObject.mmdx.buffer);
+                        }
                         for (var i = 0; i < mddfCount; i++){
                             var m2Placement = {};
 
@@ -227,6 +245,8 @@
                             //flags               : WORD;
                             m2Placement.scale     = chunk.readInt32(offset);
 
+                            var nameOffset = adtObject.mmid[m2Placement.nameID];
+                            m2Placement.fileName  = mmdxBuff.readString({offs : nameOffset}, mmdxBuff.getLength() - nameOffset);
                             m2Objs.push(m2Placement);
                         }
 
@@ -235,8 +255,12 @@
                     "MODF" : function (adtObject, chunk) {
                         var offset = { offs : 0 };
                         var wmoObjs = [];
-
                         var modfCount = (chunk.chunkLen / (4 + 4 + 4*3 + 4*3 +4*3 + 4*3 + 2 + 2 + 4));
+
+                        if (modfCount > 0)  {
+                            var mwmoBuff = fileReadHelper(adtObject.mwmo.buffer);
+                        }
+
                         for (var i = 0; i < modfCount; i++) {
                             var modfChunk = {};
 
@@ -251,6 +275,9 @@
                             modfChunk.doodadSet = chunk.readUint16(offset);
                             modfChunk.nameSet   = chunk.readUint16(offset);
                             modfChunk.flags     = chunk.readInt32(offset);
+
+                            var nameOffset = adtObject.mwid[modfChunk.nameId];
+                            modfChunk.fileName  = mwmoBuff.readString({offs : nameOffset}, mwmoBuff.getLength() - nameOffset);
 
                             wmoObjs.push(modfChunk);
                         }
@@ -272,6 +299,7 @@
                 chunkedFile.setSectionReaders(new ADTLoader());
                 chunkedFile.processFile(adtObj);
 
+                console.log(adtObj);
                 deferred.resolve(adtObj);
             }, function error() {
                 deferred.reject();
