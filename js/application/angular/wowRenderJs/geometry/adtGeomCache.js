@@ -7,23 +7,29 @@ adtGeomCache.factory("adtGeomCache", ['mdxLoader', 'cacheTemplate', '$q', functi
         this.gl = sceneApi.getGlContext();
 
         this.combinedVBO = null;
-        this.textureArray = [];
+        this.textureArray = new Array(255);
     }
     ADTGeom.prototype = {
         assign: function (adtFile) {
             this.adtFile = adtFile;
         },
         loadTextures : function(){
-            var textureDefinition = this.adtFile.textureDefinition;
+            var mcnkObjs = this.adtFile.mcnkObjs;
 
-            for (var i = 0; i < textureDefinition.length ; i++){
-                this.loadTexture(i, textureDefinition[i].textureName);
+            for (var i = 0; i < mcnkObjs.length; i++) {
+                var mcnkObj = mcnkObjs[i];
+
+                if(mcnkObj.textureLayers && (mcnkObj.textureLayers.length > 0)) {
+                    for (var j = 0; j < mcnkObj.textureLayers.length; j++ ) {
+                        this.loadTexture(i, j, mcnkObj.textureLayers[i].textureName);
+                    }
+                }
             }
         },
-        loadTexture : function(index, filename){
+        loadTexture : function(index, layerInd, filename){
             var self = this;
             this.sceneApi.loadTexture(filename).then(function success(textObject){
-                self.textureArray[index] = textObject;
+                self.textureArray[index][layerInd] = textObject;
             }, function error(){
             });
         },
