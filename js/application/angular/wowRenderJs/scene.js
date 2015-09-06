@@ -44,6 +44,7 @@
             }
 
             self.initBoxVBO();
+            self.initAdtTexCoordsVBO();
             self.initCaches();
             self.initCamera(canvas, document);
 
@@ -257,6 +258,34 @@
 
 
                 return $q.all(promisesArray)
+            },
+            initAdtTexCoordsVBO : function () {
+                var gl = this.getGlContext();
+                var coordinates = [];
+                var k = 0;
+                for (var j = 0; j < 17; j++) {
+                    var L;
+                    if ((j & 1) == 0) {
+                        L = 9;
+                    } else {
+                        L = 8;
+                    }
+                    for (var i = 0; i < L; i++) {
+                        var tx = (1/8) * i;
+                        var ty = (1/17)* j;
+                        if ((j&2) == 0) tx = tx+(0.5/8.0);
+
+                        coordinates[k] = tx; k++//*(0.99);
+                        coordinates[k] = ty; k++//*(0.99);
+                    }
+                }
+
+                var txCoords = gl.createBuffer();
+                gl.bindBuffer( gl.ARRAY_BUFFER, txCoords);
+                gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(coordinates), gl.STATIC_DRAW );
+                gl.bindBuffer( gl.ARRAY_BUFFER, null);
+
+                this.adtTextureCoords = txCoords();
             },
             initCaches : function (){
                 this.wmoGeomCache = new wmoGeomCache(this.sceneApi);

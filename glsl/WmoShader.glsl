@@ -24,10 +24,8 @@ varying vec2 vTexCoord;
 varying vec4 vColor;
 
 #ifdef drawBuffersIsSupported
-
 varying vec3 vNormal;
 varying vec3 vPosition;
-
 #endif
 
 void main() {
@@ -38,17 +36,12 @@ void main() {
     vColor = aColor;
 
 #ifndef drawBuffersIsSupported
-
-
     gl_Position = uPMatrix * uLookAtMat * worldPoint;
-
 #else
     gl_Position = worldPoint;
 
-
     vNormal = normalize((uPlacementMat * vec4(aNormal, 0)).xyz);
     vPosition = worldPoint.xyz;
-
 #endif //drawBuffersIsSupported
 
 }
@@ -88,19 +81,14 @@ void main() {
   */
     finalColor.a = 1.0; //do I really need it now?
 
-
 #ifndef drawBuffersIsSupported
-
     //Forward rendering without lights
     gl_FragColor = finalColor;
-
 #else
-
     //Deferred rendering
     gl_FragData[0] = finalColor;
     gl_FragData[1] = vec4(vPosition.xyz,0);
     gl_FragData[2] = vec4(vNormal.xyz,0);
-
 #endif //drawBuffersIsSupported
 }
 
