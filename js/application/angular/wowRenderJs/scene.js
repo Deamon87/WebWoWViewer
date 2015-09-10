@@ -44,7 +44,7 @@
             }
 
             self.initBoxVBO();
-            self.initAdtTexCoordsVBO();
+            self.initAdtTexCoords();
             self.initCaches();
             self.initCamera(canvas, document);
 
@@ -254,13 +254,21 @@
                     },function error(){
                         throw 'could not load shader'
                     });
+
+                promisesArray.push(promise);promise = $http.get("glsl/adtShader.glsl")
+                    .then(function success(result){
+                        var shaderText = result.data;
+                        var shader = self.compileShader(shaderText, shaderText);
+                        self.adtShader = shader;
+                    },function error(){
+                        throw 'could not load shader'
+                    });
                 promisesArray.push(promise);
 
 
                 return $q.all(promisesArray)
             },
-            initAdtTexCoordsVBO : function () {
-                var gl = this.getGlContext();
+            initAdtTexCoords : function () {
                 var coordinates = [];
                 var k = 0;
                 for (var j = 0; j < 17; j++) {
@@ -280,12 +288,7 @@
                     }
                 }
 
-                var txCoords = gl.createBuffer();
-                gl.bindBuffer( gl.ARRAY_BUFFER, txCoords);
-                gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(coordinates), gl.STATIC_DRAW );
-                gl.bindBuffer( gl.ARRAY_BUFFER, null);
-
-                this.adtTextureCoords = txCoords();
+                this.adtTextureCoords = coordinates;
             },
             initCaches : function (){
                 this.wmoGeomCache = new wmoGeomCache(this.sceneApi);
@@ -305,6 +308,9 @@
                     },
                     getShaderAttributes: function () {
                         return self.currentShaderProgram.shaderAttributes;
+                    },
+                    getAdtTexCoordinates : function () {
+                        return self.adtTextureCoords;
                     },
                     loadTexture: function (fileName) {
                         return self.textureCache.loadTexture(fileName);
@@ -336,10 +342,10 @@
                     unloadSkinGeom: function (fileName) {
                         self.skinGeomCache.unLoadSkin(fileName);
                     },
-                    loadAdtGeom: function () {
+                    loadAdtGeom: function (fileName) {
 
                     },
-                    unloadAdtGeom: function () {
+                    unloadAdtGeom: function (fileName) {
 
                     }
                 };

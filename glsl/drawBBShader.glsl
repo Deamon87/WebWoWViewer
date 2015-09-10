@@ -13,7 +13,7 @@ void main() {
         aPosition.x*uBBScale.x + uBBCenter.x,
         aPosition.y*uBBScale.y + uBBCenter.y,
         aPosition.z*uBBScale.z + uBBCenter.z,
-        1);
+    1);
 
     gl_Position = uPMatrix * uLookAtMat * worldPoint;
 }

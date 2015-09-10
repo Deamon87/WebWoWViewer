@@ -18,6 +18,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
         loadTextures : function(){
             var mcnkObjs = this.adtFile.mcnkObjs;
 
+            /* 1. Load rgb textures */
             for (var i = 0; i < mcnkObjs.length; i++) {
                 var mcnkObj = mcnkObjs[i];
 
@@ -27,6 +28,8 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                     }
                 }
             }
+
+            /* 2. Load alpha textures */
         },
         loadTexture : function(index, layerInd, filename){
             var self = this;
@@ -83,6 +86,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                     }
                 }
             }
+            stripOffsets.push(strips.length);
 
             return { strips : strips, stripOffsets : stripOffsets};
         },
@@ -90,13 +94,67 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             var gl = this.gl;
             var m2Object = this.adtFile;
 
-            this.heightVBO = gl.createBuffer();
-            gl.bindBuffer( gl.ARRAY_BUFFER, this.vertexVBO);
-            gl.bufferData( gl.ARRAY_BUFFER, m2Object.vertexes, gl.STATIC_DRAW );
+            /* 1. help index + Heights + texCoords +  */
+            var vboArray = [];
 
+            /* 1.1 help index */
+            for (var i = 0; i < 9*9+8*8; i++) {
+                vboArray.push(i);
+            }
+
+            /* 1.2 Heights */
+            var mcnkObjs = this.adtFile.mcnkObjs;
+            for (var i = 0; i < mcnkObjs.length; i++) {
+                for (var j = 0; j < 145; j++) {
+                    vboArray.push(mcnkObjs[i].heights[j]);
+                }
+            }
+
+
+            /* 1.3 texCoords */
+            var coords = this.sceneApi.getAdtTexCoordinates();
+            for (var i = 0; i < coords.length; i++) {
+                vboArray.push(coords[i]);
+            }
+
+            /* 1.4 Make combinedVbo */
+            this.combinedVbo = gl.createBuffer();
+            gl.bindBuffer( gl.ARRAY_BUFFER, this.combinedVbo);
+            gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(vboArray), gl.STATIC_DRAW );
+
+            this.indexOffset = 0;
+            this.heightOffset = coords.length;
+            this.textOffset = coords.length + mcnkObjs.length*145;
+
+            /* 2. Strips */
             this.stripVBO = gl.createBuffer();
             gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.stripVBO);
-            gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Float32Array(this.triangleStrip), gl.STATIC_DRAW );
+            gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Float32Array(this.triangleStrip.strips), gl.STATIC_DRAW );
+        },
+        draw : function () {
+            var gl = this.gl;
+            var stripOffsets = this.triangleStrip.stripOffsets;
+            var shaderUniforms = this.sceneApi.getShaderUniforms();
+            var shaderAttributes = this.sceneApi.getShaderAttributes();
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.heightVBO);
+
+            gl.enableVertexAttribArray(shaderAttributes.aHeight);
+            gl.enableVertexAttribArray(shaderAttributes.aIndex);
+            gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
+
+            gl.vertexAttribPointer(shaderAttributes.aIndex,  1, gl.FLOAT, false, 0, this.indexOffset);
+            gl.vertexAttribPointer(shaderAttributes.aHeight, 1, gl.FLOAT, false, 0, this.heightOffset);
+            gl.vertexAttribPointer(shaderAttributes.aTexCoord, 1, gl.FLOAT, false, 0, this.textOffset);
+
+            //Draw
+            var mcnkObjs = this.adtFile.mcnkObjs;
+            for (var i = 0; i < mcnkObjs.length; i++) {
+
+                gl.bindTexture(gl.TEXTURE_2D, textureObject.texture);
+                gl.drawElements(gl.TRIANGLE_STRIP, stripOffsets[i+1] , gl.UNSIGNED_SHORT, stripOffsets[i]*2);
+            }
         }
     };
 

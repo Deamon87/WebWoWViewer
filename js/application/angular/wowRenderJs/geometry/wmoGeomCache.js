@@ -136,11 +136,6 @@
                 if (textureObject) {
                     gl.bindTexture(gl.TEXTURE_2D, textureObject.texture);
                     gl.drawElements(gl.TRIANGLES, renderBatch.count, gl.UNSIGNED_SHORT, renderBatch.startIndex * 2);
-
-                    var lastError = gl.getError()
-                    if (lastError!=0) {
-                        debugger;
-                    }
                 } else {
                   //$log.log("textureObject num ", texIndex, " was not loaded")
                 }
