@@ -14,7 +14,7 @@
         'js.wow.render.texture.textureCache',
         'js.wow.render.camera.firstPersonCamera']);
     scene.factory("scene", ['$q', '$timeout', '$http', 'wmoObjectFactory', 'wmoMainCache', 'wmoGeomCache', 'textureWoWCache', 'm2GeomCache', 'skinGeomCache', 'firstPersonCamera',
-        function ($q, $timeout, $http, wmoObjectFactory, wmoMainCache, wmoGeomCache, textureWoWCache, m2GeomCache, skinGeomCache, firstPersonCamera) {
+        function ($q, $timeout, $http, wmoObjectFactory, wmoMainCache, wmoGeomCache, textureWoWCache, m2GeomCache, skinGeomCache, adtGeomCache, firstPersonCamera) {
 
         function Scene (canvas) {
             var stats = new Stats();
@@ -296,6 +296,7 @@
                 this.textureCache = new textureWoWCache(this.sceneApi);
                 this.m2GeomCache = new m2GeomCache(this.sceneApi);
                 this.skinGeomCache = new skinGeomCache(this.sceneApi);
+                this.adtGeomCache = new adtGeomCache(this.sceneApi);
             },
             initSceneApi : function() {
                 var self = this;
@@ -343,10 +344,10 @@
                         self.skinGeomCache.unLoadSkin(fileName);
                     },
                     loadAdtGeom: function (fileName) {
-
+                        self.adtGeomCache.loadAdt(fileName);
                     },
                     unloadAdtGeom: function (fileName) {
-
+                        self.adtGeomCache.unLoadAdt(fileName);
                     }
                 };
             },

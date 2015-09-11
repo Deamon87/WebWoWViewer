@@ -2,10 +2,26 @@
 'use strict';
 var adtGeomCache = angular.module('js.wow.render.geometry.adtGeomCache', ['main.services.map.adtLoader', 'js.wow.render.cacheTemplate']);
 adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', function(adtLoader, cacheTemplate, $q){
-    function ADTGeom(sceneApi){
+    function parseAlphaTextures(adtObj){
+        for (var i = 0; i < adtObj.mcnkObjs.length; i++) {
+            var mcnkObj = adtObj.mcnkObjs[i];
+            var alphaArray = mcnkObj.alphaArray;
+            var layers = mcnkObj.textureLayers;
+
+            for (var j = 0; j < layers.length; j++ ) {
+                if (layers[i].flag & 0x200 > 0) {
+                    //Compressed
+                } else {
+                    //Uncompressed
+                }
+            }
+        }
+    }
+    function ADTGeom(sceneApi, wdtFile){
         this.sceneApi = sceneApi;
         this.gl = sceneApi.getGlContext();
 
+        this.wdtFile = wdtFile;
         this.combinedVBO = null;
         this.textureArray = new Array(255);
         this.triangleStrip = this.createTriangleStrip;
@@ -16,6 +32,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             this.adtFile = adtFile;
         },
         loadTextures : function(){
+            var gl = this.gl;
             var mcnkObjs = this.adtFile.mcnkObjs;
 
             /* 1. Load rgb textures */
@@ -30,6 +47,23 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             }
 
             /* 2. Load alpha textures */
+            var chunkCount = mcnkObjs.length;
+            var maxAlphaTexPerChunk = 4;
+            var alphaTexSize = 64;
+
+            var texWidth = maxAlphaTexPerChunk * alphaTexSize;
+            var texHeight = chunkCount * alphaTexSize;
+            var alphaTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, alphaTexture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, texWidth, texHeight, 0, gl.ALPHA, gl.UNSIGNED_BYTE);
+
+            for (var i = 0; i < mcnkObjs.length; i++) {
+                var layers = mcnkObjs[i].textureLayers;
+                for (var j = 0; j < layers.length; j++) {
+                    layers[j]
+                }
+
+            }
         },
         loadTexture : function(index, layerInd, filename){
             var self = this;
@@ -39,7 +73,6 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             });
         },
         createTriangleStrip : function (){
-            var stripObjs = [];
             var mcnkObjs = this.adtFile.mcnkObjs;
 
             function isHole(hole, i, j) {
@@ -110,7 +143,6 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                 }
             }
 
-
             /* 1.3 texCoords */
             var coords = this.sceneApi.getAdtTexCoordinates();
             for (var i = 0; i < coords.length; i++) {
@@ -145,18 +177,46 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
 
             gl.vertexAttribPointer(shaderAttributes.aIndex,  1, gl.FLOAT, false, 0, this.indexOffset);
-            gl.vertexAttribPointer(shaderAttributes.aHeight, 1, gl.FLOAT, false, 0, this.heightOffset);
             gl.vertexAttribPointer(shaderAttributes.aTexCoord, 1, gl.FLOAT, false, 0, this.textOffset);
 
             //Draw
             var mcnkObjs = this.adtFile.mcnkObjs;
             for (var i = 0; i < mcnkObjs.length; i++) {
+                var mcnkObj = mcnkObjs[i];
+                gl.vertexAttribPointer(shaderAttributes.aHeight, 1, gl.FLOAT, false, 0, this.heightOffset+i*145);
+                gl.uniform3fv(shaderUniforms.aPos, mcnkObj.pos);
 
+
+                gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, textureObject.texture);
                 gl.drawElements(gl.TRIANGLE_STRIP, stripOffsets[i+1] , gl.UNSIGNED_SHORT, stripOffsets[i]*2);
             }
         }
     };
 
+    function AdtGeomCache(sceneApi) {
+        var self = this;
 
+        var cache = cacheTemplate(function loadAdtFile(fileName){
+            /* Must return promise */
+            return adtLoader(fileName);
+        }, function process(m2File) {
+            var adtGeomObj = new ADTGeom(sceneApi);
+            adtGeomObj.assign(m2File);
+            adtGeomObj.createVBO();
+            adtGeomObj.loadTextures();
+
+            return adtGeomObj;
+        });
+
+        self.loadAdt = function (fileName){
+            return cache.get(fileName);
+        };
+
+        self.unLoadAdt = function (fileName) {
+            cache.remove(fileName)
+        }
+    }
+
+    return AdtGeomCache;
 }]);

@@ -8,6 +8,7 @@
         return function(filename){
             var deferred = $q.defer();
 
+
             function ADTLoader() {
                 var handlerTable = {
                     "MVER" : function (adtObject, chunk) {
@@ -53,20 +54,6 @@
                         chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mddfOffs, adtObject);
                         //8. Load MODF
                         chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + modfOffs, adtObject);
-
-                        //9. Add texture names
-                        for (var i = 0; i < adtObject.mcnkObjs.length; i++) {
-                            var mcnkObj = adtObject.mcnkObjs[i];
-                            var mtex = adtObject.mtex;
-                            var mtexBuff = fileReadHelper(adtObject.mtex.buffer);
-
-                            for (var j = 0; j < mcnkObj.textureLayers.length; j++) {
-                                var textIndex = mcnkObj.textureLayers[j].textureID;
-                                var textureName = mtexBuff.readString({offs : textIndex}, mtex.length - textIndex);
-
-                                mcnkObj.textureLayers[j].textureName = textureName;
-                            }
-                        }
 
                         //Stop loading
                         chunk.nextChunkOffset = chunkedFile.getFileSize();
@@ -161,6 +148,7 @@
                         for (var i = 0; i < recCount; i++) {
                             var textureLayer = {};
                             textureLayer.textureID  = chunk.readInt32(offs); //offset into MTEX list
+
                             textureLayer.flags      = chunk.readInt8(offs);
                             textureLayer.alphaMap   = chunk.readInt8(offs);
                             textureLayer.detailTex = chunk.readInt8(offs);
@@ -290,6 +278,21 @@
                     return handlerTable[sectionName];
                 }
             }
+            function addTextureNames(adtObj){
+                //Add texture names
+                for (var i = 0; i < adtObj.mcnkObjs.length; i++) {
+                    var mcnkObj = adtObj.mcnkObjs[i];
+                    var mtex = adtObj.mtex;
+                    var mtexBuff = fileReadHelper(adtObj.mtex.buffer);
+
+                    for (var j = 0; j < mcnkObj.textureLayers.length; j++) {
+                        var textIndex = mcnkObj.textureLayers[j].textureID;
+                        var textureName = mtexBuff.readString({offs : textIndex}, mtex.length - textIndex);
+
+                        mcnkObj.textureLayers[j].textureName = textureName;
+                    }
+                }
+            }
 
             var promise = chunkedLoader(filename);
             promise.then(function (chunkedFile) {
@@ -298,6 +301,9 @@
                 var adtObj = {};
                 chunkedFile.setSectionReaders(new ADTLoader());
                 chunkedFile.processFile(adtObj);
+                addTextureNames(adtObj);
+                parseAlphaTextures(adtObj);
+
 
                 console.log(adtObj);
                 deferred.resolve(adtObj);
