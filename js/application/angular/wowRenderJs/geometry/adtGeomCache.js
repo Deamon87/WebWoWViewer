@@ -59,7 +59,8 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                             currentLayer[offO] =  (alphaArray[alphaOffs] & 0xf0 );
                             currentLayer[offO+1] = (alphaArray[alphaOffs] & 0x0f ) << 4 ;
 
-                            readCnt+=2; readForThisLayer+=2;
+
+                            offO+=2; readCnt+=2; readForThisLayer+=2; alphaOffs++;
                             if (readCnt >=64) {
                                 offO = offO + xStride - 64;
                                 readCnt = 0;
@@ -117,7 +118,13 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
 
                 gl.bindTexture(gl.TEXTURE_2D, alphaTexture);
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, texWidth, texHeight, 0, gl.ALPHA, gl.UNSIGNED_BYTE, new Uint8Array(megaAlphaTexture[i]));
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
                 gl.generateMipmap(gl.TEXTURE_2D);
+
                 gl.bindTexture(gl.TEXTURE_2D, null);
                 alphaTextures.push(alphaTexture)
             }
