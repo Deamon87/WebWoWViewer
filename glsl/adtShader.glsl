@@ -52,9 +52,9 @@ uniform sampler2D layer3;
 uniform sampler2D alphaTexture;
 
 void main() {
-    vec2 a4Coords = vec2(2.0/4.0 + vTexCoord.x/4.0, vTexCoord.y);
-    vec2 a3Coords = vec2(1.0/4.0 + vTexCoord.x/4.0, vTexCoord.y);
-    vec2 a2Coords = vec2(0.0/4.0 + vTexCoord.x/4.0, vTexCoord.y);
+    vec2 a4Coords = vec2(2.0/4.0+ vTexCoord.x/4.0, vTexCoord.y-0.05);
+    vec2 a3Coords = vec2(1.0/4.0+ vTexCoord.x/4.0, vTexCoord.y-0.05);
+    vec2 a2Coords = vec2(0.0/4.0+ vTexCoord.x/4.0, vTexCoord.y-0.05);
 
     vec3 tex4 = texture2D(layer3, vTexCoord).rgb;
     float a4 = texture2D(alphaTexture, a4Coords).a;
