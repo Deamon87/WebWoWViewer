@@ -36,7 +36,7 @@
                     /* Check the ident */
                     if (fileIdent != "BLP2"){
                         $log.error("Unknown BLP file ident = ", fileIdent, ", filepath = ", filePath);
-                        promise.reject();
+                        deferred.reject();
                     }
 
                     /* Parse the header */

@@ -149,9 +149,9 @@
                             var textureLayer = {};
                             textureLayer.textureID  = chunk.readInt32(offs); //offset into MTEX list
 
-                            textureLayer.flags      = chunk.readInt8(offs);
-                            textureLayer.alphaMap   = chunk.readInt8(offs);
-                            textureLayer.detailTex = chunk.readInt8(offs);
+                            textureLayer.flags      = chunk.readInt32(offs);
+                            textureLayer.alphaMap   = chunk.readInt32(offs);
+                            textureLayer.detailTex  = chunk.readInt32(offs);
                             textureLayers.push(textureLayer);
                         }
 
@@ -166,10 +166,11 @@
 
                     "MTEX" : function (adtObject, chunk) {
                         var offset = {offs: 0};
-                        var textureNames = null;
+                        var textureNames = [];
 
-                        if (chunk.chunkLen > 0) {
-                            textureNames = chunk.readUint8Array(offset, chunk.chunkLen);
+                        while (offset.offs < chunk.chunkLen) {
+                            var textStr = chunk.readString(offset, chunk.chunkLen - offset.offs); offset.offs += 1;
+                            textureNames.push(textStr);
                         }
 
                         adtObject.mtex = textureNames;
@@ -283,11 +284,10 @@
                 for (var i = 0; i < adtObj.mcnkObjs.length; i++) {
                     var mcnkObj = adtObj.mcnkObjs[i];
                     var mtex = adtObj.mtex;
-                    var mtexBuff = fileReadHelper(adtObj.mtex.buffer);
 
                     for (var j = 0; j < mcnkObj.textureLayers.length; j++) {
                         var textIndex = mcnkObj.textureLayers[j].textureID;
-                        var textureName = mtexBuff.readString({offs : textIndex}, mtex.length - textIndex);
+                        var textureName = mtex[textIndex];
 
                         mcnkObj.textureLayers[j].textureName = textureName;
                     }

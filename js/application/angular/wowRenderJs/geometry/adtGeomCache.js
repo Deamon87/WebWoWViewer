@@ -57,7 +57,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                         for (var iY = 0; iY < 31; iY++){
                             //Old world
                             currentLayer[offO] =  (alphaArray[alphaOffs] & 0xf0 );
-                            currentLayer[offO+1] = (alphaArray[alphaOffs] & 0x0f ) >>> 4 ;
+                            currentLayer[offO+1] = (alphaArray[alphaOffs] & 0x0f ) << 4 ;
 
                             readCnt+=2; readForThisLayer+=2;
                             if (readCnt >=64) {
