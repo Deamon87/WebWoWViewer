@@ -259,7 +259,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
 
                     //Bind layer textures
                     for (var j=1; j < this.textureArray[i].length; j++) {
-                        if (this.textureArray[i][j].texture) {
+                        if ((this.textureArray[i][j]) && (this.textureArray[i][j].texture)) {
                             gl.activeTexture(gl.TEXTURE1 + j);
                             //gl.enable(gl.TEXTURE_2D);
                             gl.bindTexture(gl.TEXTURE_2D, this.textureArray[i][j].texture);
