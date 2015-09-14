@@ -302,8 +302,6 @@
                 chunkedFile.setSectionReaders(new ADTLoader());
                 chunkedFile.processFile(adtObj);
                 addTextureNames(adtObj);
-                parseAlphaTextures(adtObj);
-
 
                 console.log(adtObj);
                 deferred.resolve(adtObj);

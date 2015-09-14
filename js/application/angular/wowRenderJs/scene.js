@@ -10,11 +10,20 @@
         'js.wow.render.geometry.wmoMainCache',
         'js.wow.render.geometry.m2GeomCache',
         'js.wow.render.geometry.skinGeomCache',
+        'js.wow.render.geometry.adtGeomCache',
+
         'js.wow.render.wmoObjectFactory',
+        'js.wow.render.adtObjectFactory',
         'js.wow.render.texture.textureCache',
         'js.wow.render.camera.firstPersonCamera']);
-    scene.factory("scene", ['$q', '$timeout', '$http', 'wmoObjectFactory', 'wmoMainCache', 'wmoGeomCache', 'textureWoWCache', 'm2GeomCache', 'skinGeomCache', 'firstPersonCamera',
-        function ($q, $timeout, $http, wmoObjectFactory, wmoMainCache, wmoGeomCache, textureWoWCache, m2GeomCache, skinGeomCache, adtGeomCache, firstPersonCamera) {
+    scene.factory("scene", ['$q', '$timeout', '$http',
+            'adtObjectFactory', 'wmoObjectFactory',
+            'wmoMainCache', 'wmoGeomCache', 'textureWoWCache', 'm2GeomCache', 'skinGeomCache', 'adtGeomCache',
+            'firstPersonCamera',
+        function ($q, $timeout, $http,
+                  adtObjectFactory, wmoObjectFactory,
+                  wmoMainCache, wmoGeomCache, textureWoWCache, m2GeomCache, skinGeomCache, adtGeomCache,
+                  firstPersonCamera) {
 
         function Scene (canvas) {
             var stats = new Stats();
@@ -32,6 +41,9 @@
             self.enableDeferred = false;
 
             self.sceneObjectList = [];
+            self.sceneAdts = [];
+
+
             self.initGlContext(canvas);
             self.initShaders().then(function success() {
                 self.isShadersLoaded = true;
@@ -344,7 +356,7 @@
                         self.skinGeomCache.unLoadSkin(fileName);
                     },
                     loadAdtGeom: function (fileName) {
-                        self.adtGeomCache.loadAdt(fileName);
+                        return self.adtGeomCache.loadAdt(fileName);
                     },
                     unloadAdtGeom: function (fileName) {
                         self.adtGeomCache.unLoadAdt(fileName);
@@ -434,13 +446,33 @@
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
 
-                    for (i = 0; i < this.sceneObjectList.length; i++) {
+                    for (var i = 0; i < this.sceneObjectList.length; i++) {
                         var sceneObject = this.sceneObjectList[i];
                         sceneObject.drawBB();
                     }
                 }
 
                 //2. Draw scene
+                //2.1 Draw ADTs
+                this.currentShaderProgram = this.adtShader;
+                if (this.currentShaderProgram) {
+                    gl.useProgram(this.currentShaderProgram.program);
+
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
+
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.layer0, 0);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.alphaTexture, 1);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.layer1, 2);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.layer2, 3);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.layer3, 4);
+
+                    for (var i = 0; i < this.sceneAdts.length; i++){
+                        this.sceneAdts[i].draw();
+                    }
+                }
+
+                //2.2 Draw scene
                 this.currentShaderProgram = this.wmoShader;
                 if (this.currentShaderProgram) {
                     gl.useProgram(this.currentShaderProgram.program);
@@ -463,6 +495,12 @@
                 wmoObject.load(filename, 0);
 
                 this.sceneObjectList = [wmoObject];
+            },
+            loadMap : function (fileName){
+                var adtObject = new adtObjectFactory(this.sceneApi);
+                adtObject.load(fileName);
+
+                this.sceneAdts = [adtObject];
             }
         };
 

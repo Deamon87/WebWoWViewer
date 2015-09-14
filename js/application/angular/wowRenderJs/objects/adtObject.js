@@ -2,7 +2,7 @@
 
 (function (window, $, undefined) {
     var adtObjectFactory = angular.module('js.wow.render.adtObjectFactory', []);
-    adtObjectFactory.factory("adtObjectFactory", ['$q', function($q) {
+    adtObjectFactory.factory("adtObjectFactory", ['$q', function ($q) {
         function ADTObject(sceneApi){
             this.sceneApi = sceneApi;
         }
@@ -20,7 +20,8 @@
                     this.adtGeom.draw();
                 }
             }
-        }
+        };
 
-    }]);
+        return ADTObject;
+     }]);
 })(window, jQuery);

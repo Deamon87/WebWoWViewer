@@ -14,23 +14,27 @@ const float UNITSIZE = 533.333333333 / 16.0 / 8.0;
 
 void main() {
 
-/*   0    1    2    3    4    5    6    7    8
+/*
+     Y
+  X  0    1    2    3    4    5    6    7    8
         9   10   11   12   13   14   15   16
 */
-    float iX = mod(aIndex, 17.0);
-    float iY = floor(aIndex/17.0);
+    float iX = floor(aIndex/17.0);
+    float iY = mod(aIndex, 17.0);
 
     vec4 worldPoint = vec4(
-        aPos.x + iX * UNITSIZE,
-        aPos.y + iY * UNITSIZE,
+        aPos.x - iX * UNITSIZE,
+        aPos.y - iY * UNITSIZE,
         aPos.z + aHeight,
         1);
 
-    if (iX > 8.0) {
-        worldPoint.x = worldPoint.x - 8.5 * UNITSIZE;
-    }
+    vTexCoord = vec2(iX / 8.0, iY / 8.0);
 
-    vTexCoord = aTexCoord;
+
+    if (iY > 8.0) {
+        worldPoint.y = aPos.y - (iY - 8.5) * UNITSIZE;
+        vTexCoord.x = (iY-8.5) / 8.0;
+    }
 
     gl_Position = uPMatrix * uLookAtMat * worldPoint;
 }
@@ -40,30 +44,33 @@ void main() {
 precision lowp float;
 
 varying vec2 vTexCoord;
-
-uniform sampler2D Layer0;
-uniform sampler2D Layer1;
-uniform sampler2D Layer2;
-uniform sampler2D Layer3;
-uniform sampler2D Alpha1;
-uniform sampler2D Alpha2;
-uniform sampler2D Alpha3;
+uniform float uChunkId;
+uniform sampler2D layer0;
+uniform sampler2D layer1;
+uniform sampler2D layer2;
+uniform sampler2D layer3;
+uniform sampler2D alphaTexture;
 
 void main() {
-    vec3 tex4 = texture2D(Layer3, vTexCoord).rgb;
-    float a4 = texture2D(Alpha3, vTexCoord).a;
+    vec2 a4Coords = vec2(uChunkId/256.0, 3.0/4.0) + vTexCoord;
+    vec2 a3Coords = vec2(uChunkId/256.0, 2.0/4.0) + vTexCoord;
+    vec2 a2Coords = vec2(uChunkId/256.0, 1.0/4.0) + vTexCoord;
 
-    vec3 tex3 = texture2D(Layer2, vTexCoord).rgb;
-    float a3 = texture2D(Alpha2, vTexCoord).a;
+    vec3 tex4 = texture2D(layer3, vTexCoord).rgb;
+    float a4 = texture2D(alphaTexture, a4Coords).a;
 
-    vec3 tex2 = texture2D(Layer1, vTexCoord).rgb;
-    float a2 = texture2D(Alpha1, vTexCoord).a;
+    vec3 tex3 = texture2D(layer2, vTexCoord).rgb;
+    float a3 = texture2D(alphaTexture, a3Coords).a;
 
-    vec3 tex1 = texture2D(Layer0, vTexCoord).rgb;
+    vec3 tex2 = texture2D(layer1, vTexCoord).rgb;
+    float a2 = texture2D(alphaTexture, a2Coords).a;
+
+    vec3 tex1 = texture2D(layer0, vTexCoord).rgb;
     //vec4 a1 = texture2D(uTexture, vTexCoord).rgba;
 
     //Mix formula for 4 texture mixing
     vec4 finalColor = vec4(a4 * tex4 - (a4  - 1.0) * ( (a3 - 1.0)*( tex1 * (a2 - 1.0) - a2*tex2) + a3*tex3), 1);
+    //vec4 finalColor = vec4(tex1, 1);
 
     finalColor.a = 1.0;
     gl_FragColor = finalColor;
