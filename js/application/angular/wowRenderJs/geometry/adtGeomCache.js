@@ -7,16 +7,20 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
     function parseAlphaTextures(adtObj, wdtObj){
         var megaTexture = [];
         var xStride = 64*4; // (width of alphaTex) * (max number of textures per chunk)
-        megaTexture[xStride*256*64-1] = 0;
+        //megaTexture[xStride*256*64-1] = 0;
 
         for (var i = 0; i < adtObj.mcnkObjs.length; i++) {
             var mcnkObj = adtObj.mcnkObjs[i];
             var alphaArray = mcnkObj.alphaArray;
             var layers = mcnkObj.textureLayers;
 
+            var currentLayer = [];
+            megaTexture.push(currentLayer);
+            currentLayer[((64*4) * 64)-1] = 0;
+
             for (var j = 0; j < layers.length; j++ ) {
                 var alphaOffs = layers[j].alphaMap;
-                var offO = (xStride)*i + (64 * j);
+                var offO = (64 * j);
                 var readCnt = 0;
                 var readForThisLayer = 0;
 
@@ -34,8 +38,10 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                         {
                             if (readForThisLayer == 4096) break;
 
-                            megaTexture[offO++] = alphaArray[alphaOffs];
-                            if ((++readCnt) >=64) {
+                            currentLayer[offO++] = alphaArray[alphaOffs];
+                            readCnt++; readForThisLayer++;
+
+                            if (readCnt >=64) {
                                 offO = offO + xStride - 64;
                                 readCnt = 0;
                                 readForThisLayer++;
@@ -50,9 +56,11 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                     for (var iX =0; iX < 63; iX++) {
                         for (var iY = 0; iY < 31; iY++){
                             //Old world
-                            megaTexture[offO] =  (alphaArray[alphaOffs] & 0xf0 );
-                            megaTexture[offO+1] = (alphaArray[alphaOffs] & 0x0f ) >>> 4 ;
-                            if ((readCnt+=2) >=64) {
+                            currentLayer[offO] =  (alphaArray[alphaOffs] & 0xf0 );
+                            currentLayer[offO+1] = (alphaArray[alphaOffs] & 0x0f ) >>> 4 ;
+
+                            readCnt+=2; readForThisLayer+=2;
+                            if (readCnt >=64) {
                                 offO = offO + xStride - 64;
                                 readCnt = 0;
                             }
@@ -100,16 +108,21 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             var alphaTexSize = 64;
 
             var texWidth = maxAlphaTexPerChunk * alphaTexSize;
-            var texHeight = chunkCount * alphaTexSize;
+            var texHeight = alphaTexSize;
 
             var megaAlphaTexture = parseAlphaTextures(this.adtFile, this.wdtFile);
-            var alphaTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, alphaTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, texWidth, texHeight, 0, gl.ALPHA, gl.UNSIGNED_BYTE, new Uint8Array(megaAlphaTexture));
-            gl.generateMipmap(gl.TEXTURE_2D);
-            gl.bindTexture(gl.TEXTURE_2D, null);
+            var alphaTextures = [];
+            for (var i = 0; i < mcnkObjs.length; i++) {
+                var alphaTexture = gl.createTexture();
 
-            this.megaAlphaTexture = alphaTexture;
+                gl.bindTexture(gl.TEXTURE_2D, alphaTexture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, texWidth, texHeight, 0, gl.ALPHA, gl.UNSIGNED_BYTE, new Uint8Array(megaAlphaTexture[i]));
+                gl.generateMipmap(gl.TEXTURE_2D);
+                gl.bindTexture(gl.TEXTURE_2D, null);
+                alphaTextures.push(alphaTexture)
+            }
+
+            this.alphaTextures = alphaTextures;
         },
         loadTexture : function(index, layerInd, filename){
             var self = this;
@@ -224,24 +237,33 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             gl.vertexAttribPointer(shaderAttributes.aIndex,  1, gl.FLOAT, false, 0, this.indexOffset*4);
             gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 0, this.textOffset*4);
 
+            gl.uniform1i(shaderUniforms.layer0, 0);
+            gl.uniform1i(shaderUniforms.layer1, 2);
+            gl.uniform1i(shaderUniforms.layer2, 3);
+            gl.uniform1i(shaderUniforms.layer3, 4);
+            gl.uniform1i(shaderUniforms.alphaTexture, 1);
+
             //Draw
             var mcnkObjs = this.adtFile.mcnkObjs;
             for (var i = 0; i < 256; i++) {
                 var mcnkObj = mcnkObjs[i];
                 gl.vertexAttribPointer(shaderAttributes.aHeight, 1, gl.FLOAT, false, 0, (this.heightOffset+i*145) * 4);
                 gl.uniform3f(shaderUniforms.aPos, mcnkObj.pos.x, mcnkObj.pos.y, mcnkObj.pos.z);
-                gl.uniform1f(shaderUniforms.uChunkId, 1);
 
                 if ((this.textureArray[i]) && (this.textureArray[i][0])) {
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, this.textureArray[i][0].texture);
 
                     gl.activeTexture(gl.TEXTURE1);
-                    gl.bindTexture(gl.TEXTURE_2D, this.megaAlphaTexture);
+                    gl.bindTexture(gl.TEXTURE_2D, this.alphaTextures[i]);
 
+                    //Bind layer textures
                     for (var j=1; j < this.textureArray[i].length; j++) {
-                        gl.activeTexture(gl.TEXTURE0 + j + 1);
-                        gl.bindTexture(gl.TEXTURE_2D, this.textureArray[i][j].texture);
+                        if (this.textureArray[i][j].texture) {
+                            gl.activeTexture(gl.TEXTURE1 + j);
+                            //gl.enable(gl.TEXTURE_2D);
+                            gl.bindTexture(gl.TEXTURE_2D, this.textureArray[i][j].texture);
+                        }
                     }
 
                     var stripLength = (i == 0) ? 0 : stripOffsets[i+1] - stripOffsets[i];
@@ -257,9 +279,9 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
         var cache = cacheTemplate(function loadAdtFile(fileName){
             /* Must return promise */
             return adtLoader(fileName);
-        }, function process(m2File) {
+        }, function process(adtFile) {
             var adtGeomObj = new ADTGeom(sceneApi);
-            adtGeomObj.assign(m2File);
+            adtGeomObj.assign(adtFile);
             adtGeomObj.createTriangleStrip();
             adtGeomObj.createVBO();
             adtGeomObj.loadTextures();

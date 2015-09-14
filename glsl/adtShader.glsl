@@ -30,8 +30,8 @@ void main() {
 
     vTexCoord = vec2(iX / 8.0, iY / 8.0);
 
-
-    if (iY > 8.0) {
+    //On Intel Graphics ">" is equal to ">="
+    if (iY > 8.1) {
         worldPoint.y = aPos.y - (iY - 8.5) * UNITSIZE;
         vTexCoord.x = (iY-8.5) / 8.0;
     }
@@ -44,7 +44,6 @@ void main() {
 precision lowp float;
 
 varying vec2 vTexCoord;
-uniform float uChunkId;
 uniform sampler2D layer0;
 uniform sampler2D layer1;
 uniform sampler2D layer2;
@@ -52,9 +51,9 @@ uniform sampler2D layer3;
 uniform sampler2D alphaTexture;
 
 void main() {
-    vec2 a4Coords = vec2(uChunkId/256.0, 3.0/4.0) + vTexCoord;
-    vec2 a3Coords = vec2(uChunkId/256.0, 2.0/4.0) + vTexCoord;
-    vec2 a2Coords = vec2(uChunkId/256.0, 1.0/4.0) + vTexCoord;
+    vec2 a4Coords = vec2(0, 3.0/4.0) + vTexCoord;
+    vec2 a3Coords = vec2(0, 2.0/4.0) + vTexCoord;
+    vec2 a2Coords = vec2(0, 1.0/4.0) + vTexCoord;
 
     vec3 tex4 = texture2D(layer3, vTexCoord).rgb;
     float a4 = texture2D(alphaTexture, a4Coords).a;
@@ -69,8 +68,8 @@ void main() {
     //vec4 a1 = texture2D(uTexture, vTexCoord).rgba;
 
     //Mix formula for 4 texture mixing
-    vec4 finalColor = vec4(a4 * tex4 - (a4  - 1.0) * ( (a3 - 1.0)*( tex1 * (a2 - 1.0) - a2*tex2) + a3*tex3), 1);
-    //vec4 finalColor = vec4(tex1, 1);
+    //vec4 finalColor = vec4(a4 * tex4 - (a4  - 1.0) * ( (a3 - 1.0)*( tex1 * (a2 - 1.0) - a2*tex2) + a3*tex3), 1);
+    vec4 finalColor = vec4(tex2, 1);
 
     finalColor.a = 1.0;
     gl_FragColor = finalColor;
