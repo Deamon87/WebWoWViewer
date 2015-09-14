@@ -27,7 +27,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                 if (layers[j].flags & 0x200 > 0) {
                     //Compressed
                     //http://www.pxr.dk/wowdev/wiki/index.php?title=ADT/v18
-                    while( readForThisLayer < 4096 )
+                   /* while( readForThisLayer < 4096 )
                     {
                         // fill or copy mode
                         var fill = alphaArray[alphaOffs] & 0x80;
@@ -50,15 +50,14 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                             if( !fill ) alphaOffs++;
                         }
                         if( fill ) alphaOffs++;
-                    }
+                    }              */
                 } else {
                     //Uncompressed
-                    for (var iX =0; iX < 63; iX++) {
-                        for (var iY = 0; iY < 31; iY++){
+                    for (var iX =0; iX < 64; iX++) {
+                        for (var iY = 0; iY < 32; iY++){
                             //Old world
-                            currentLayer[offO] =  (alphaArray[alphaOffs] & 0xf0 );
-                            currentLayer[offO+1] = (alphaArray[alphaOffs] & 0x0f ) << 4 ;
-
+                            currentLayer[offO] =  Math.floor((((alphaArray[alphaOffs] & 0xf0 ) >> 4) / 15) * 255);
+                            currentLayer[offO+1] = Math.floor(((alphaArray[alphaOffs] & 0x0f ) / 15) * 255);
 
                             offO+=2; readCnt+=2; readForThisLayer+=2; alphaOffs++;
                             if (readCnt >=64) {
@@ -67,6 +66,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                             }
                         }
                     }
+                    console.log("readForThisLayer = " + readForThisLayer);
                 }
             }
         }
@@ -266,10 +266,12 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
 
                     //Bind layer textures
                     for (var j=1; j < this.textureArray[i].length; j++) {
+                        gl.activeTexture(gl.TEXTURE1 + j);
                         if ((this.textureArray[i][j]) && (this.textureArray[i][j].texture)) {
-                            gl.activeTexture(gl.TEXTURE1 + j);
                             //gl.enable(gl.TEXTURE_2D);
                             gl.bindTexture(gl.TEXTURE_2D, this.textureArray[i][j].texture);
+                        } else {
+                            gl.bindTexture(gl.TEXTURE_2D, null);
                         }
                     }
 

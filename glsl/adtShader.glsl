@@ -8,7 +8,7 @@ uniform vec3 aPos;
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 
-varying vec2 vTexCoord;
+varying vec2 vChunkCoords;
 
 const float UNITSIZE = 533.333333333 / 16.0 / 8.0;
 
@@ -28,13 +28,13 @@ void main() {
         aPos.z + aHeight,
         1);
 
-    vTexCoord = vec2(iX / 8.0, iY / 8.0);
+    vChunkCoords = vec2(iX, iY);
 
     //On Intel Graphics ">" is equal to ">="
     if (iX > 8.1) {
         worldPoint.y = aPos.y - (iX - 8.5) * UNITSIZE;
         worldPoint.y = aPos.x - (iY + 0.5) * UNITSIZE;
-        vTexCoord.y = (iX-8.5) / 8.0;
+        vChunkCoords.x = (iX-8.5);
     }
 
     gl_Position = uPMatrix * uLookAtMat * worldPoint;
@@ -44,7 +44,8 @@ void main() {
 #ifdef COMPILING_FS
 precision lowp float;
 
-varying vec2 vTexCoord;
+varying vec2 vChunkCoords;
+
 uniform sampler2D layer0;
 uniform sampler2D layer1;
 uniform sampler2D layer2;
@@ -52,9 +53,11 @@ uniform sampler2D layer3;
 uniform sampler2D alphaTexture;
 
 void main() {
-    vec2 a4Coords = vec2(2.0/4.0+ vTexCoord.x/4.0, vTexCoord.y-0.05);
-    vec2 a3Coords = vec2(1.0/4.0+ vTexCoord.x/4.0, vTexCoord.y-0.05);
-    vec2 a2Coords = vec2(0.0/4.0+ vTexCoord.x/4.0, vTexCoord.y-0.05);
+    vec2 vTexCoord = vChunkCoords;
+
+    vec2 a4Coords = vec2(3.0/4.0+ vChunkCoords.x/4.0/8.0, vChunkCoords.y/8.0 );
+    vec2 a3Coords = vec2(2.0/4.0+ vChunkCoords.x/4.0/8.0, vChunkCoords.y/8.0 );
+    vec2 a2Coords = vec2(1.0/4.0+ vChunkCoords.x/4.0/8.0, vChunkCoords.y/8.0 );
 
     vec3 tex4 = texture2D(layer3, vTexCoord).rgb;
     float a4 = texture2D(alphaTexture, a4Coords).a;
@@ -70,10 +73,13 @@ void main() {
     //vec4 a1 = texture2D(uTexture, vTexCoord).rgba;
 
     //Mix formula for 4 texture mixing
-    vec4 finalColor = vec4(a4 * tex4 - (a4  - 1.0) * ( (a3 - 1.0)*( tex1 * (a2 - 1.0) - a2*tex2) + a3*tex3), 1);
+    //vec4 finalColor = vec4(a4 * tex4 - (a4  - 1.0) * ( (a3 - 1.0)*( tex1 * (a2 - 1.0) - a2*tex2) + a3*tex3), 1);
     //vec4 finalColor = vec4(tex2, 1);
-    //vec4 finalColor = vec4(tex1 * (1.0 - a2) + a2*tex2, 1);
-
+    //vec4 finalColor = vec4(tex1 * (1.0 - a4) + a4*tex4, 1);
+    vec4 finalColor = vec4(tex1 * (1.0 - a2) + a2*tex2, 1);
+    finalColor = vec4(finalColor.rgb * (1.0 - a3) + a3*tex3, 1);
+    finalColor = vec4(finalColor.rgb * (1.0 - a4) + a4*tex4, 1);
+    //vec4 finalColor = vec4(tex1 * (1.0 - (a2 + a3 + a4)) + tex2 * a2 + tex3 * a3 + tex4* a4, 1);
 
     finalColor.a = 1.0;
     gl_FragColor = finalColor;
