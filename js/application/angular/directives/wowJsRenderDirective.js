@@ -49,8 +49,11 @@
                 //sceneObj.loadWMOMap("World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo");
                 //sceneObj.loadWMOMap("World/wmo/Dungeon/MD_DiamondMt/DiamondMountain.wmo");
 
-                sceneObj.loadMap("world\\maps\\Kalimdor\\Kalimdor_32_32.adt");
-                //sceneObj.loadMap("world\\maps\\Azeroth\\Azeroth_31_31.adt");
+                //sceneObj.loadMap("Kalimdor", 32, 32);
+                //sceneObj.loadMap("Azeroth", 31, 31);
+                sceneObj.loadMap("Northrend", 30, 23); sceneObj.setCameraPos(4800, 1066, 137);
+
+
                 //adtLoader('world//maps\\AhnQiraj\\AhnQiraj_26_46.adt');
                 //adtLoader('world\\maps\\Kalimdor\\Kalimdor_19_12.adt')
                 //adtLoader('world\\maps\\Kalimdor\\Kalimdor_1_1.adt')

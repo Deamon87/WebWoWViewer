@@ -24,13 +24,13 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                 var readCnt = 0;
                 var readForThisLayer = 0;
 
-                if (layers[j].flags & 0x200 > 0) {
+                if ((layers[j].flags & 0x200) > 0) {
                     //Compressed
                     //http://www.pxr.dk/wowdev/wiki/index.php?title=ADT/v18
-                   /* while( readForThisLayer < 4096 )
+                    while( readForThisLayer < 4096 )
                     {
                         // fill or copy mode
-                        var fill = alphaArray[alphaOffs] & 0x80;
+                        var fill = (alphaArray[alphaOffs] & 0x80 );
                         var n = alphaArray[alphaOffs] & 0x7F;
                         alphaOffs++;
 
@@ -50,22 +50,37 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                             if( !fill ) alphaOffs++;
                         }
                         if( fill ) alphaOffs++;
-                    }              */
+                    }
                 } else {
                     //Uncompressed
-                    for (var iX =0; iX < 64; iX++) {
-                        for (var iY = 0; iY < 32; iY++){
-                            //Old world
-                            currentLayer[offO] =  Math.floor((((alphaArray[alphaOffs] & 0xf0 ) >> 4) / 15) * 255);
-                            currentLayer[offO+1] = Math.floor(((alphaArray[alphaOffs] & 0x0f ) / 15) * 255);
+                    if (((wdtObj.flags & 0x4) > 0) || ((wdtObj.flags & 0x80) > 0)) {
+                        for (var iX =0; iX < 64; iX++) {
+                            for (var iY = 0; iY < 64; iY++){
+                                currentLayer[offO] = alphaArray[alphaOffs];
 
-                            offO+=2; readCnt+=2; readForThisLayer+=2; alphaOffs++;
-                            if (readCnt >=64) {
-                                offO = offO + xStride - 64;
-                                readCnt = 0;
+                                offO+=1; readCnt+=1; readForThisLayer+=1; alphaOffs++;
+                                if (readCnt >=64) {
+                                    offO = offO + xStride - 64;
+                                    readCnt = 0;
+                                }
+                            }
+                        }
+                    } else {
+                        for (var iX =0; iX < 64; iX++) {
+                            for (var iY = 0; iY < 32; iY++){
+                                //Old world
+                                currentLayer[offO] =  Math.floor((((alphaArray[alphaOffs] & 0xf0 ) >> 4) / 15) * 255);
+                                currentLayer[offO+1] = Math.floor(((alphaArray[alphaOffs] & 0x0f ) / 15) * 255);
+
+                                offO+=2; readCnt+=2; readForThisLayer+=2; alphaOffs++;
+                                if (readCnt >=64) {
+                                    offO = offO + xStride - 64;
+                                    readCnt = 0;
+                                }
                             }
                         }
                     }
+
                     console.log("readForThisLayer = " + readForThisLayer);
                 }
             }
@@ -289,7 +304,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             /* Must return promise */
             return adtLoader(fileName);
         }, function process(adtFile) {
-            var adtGeomObj = new ADTGeom(sceneApi);
+            var adtGeomObj = new ADTGeom(sceneApi, sceneApi.getCurrentWdt());
             adtGeomObj.assign(adtFile);
             adtGeomObj.createTriangleStrip();
             adtGeomObj.createVBO();

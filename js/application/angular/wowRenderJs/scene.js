@@ -17,10 +17,12 @@
         'js.wow.render.texture.textureCache',
         'js.wow.render.camera.firstPersonCamera']);
     scene.factory("scene", ['$q', '$timeout', '$http',
+            'wdtLoader',
             'adtObjectFactory', 'wmoObjectFactory',
             'wmoMainCache', 'wmoGeomCache', 'textureWoWCache', 'm2GeomCache', 'skinGeomCache', 'adtGeomCache',
             'firstPersonCamera',
         function ($q, $timeout, $http,
+                  wdtLoader,
                   adtObjectFactory, wmoObjectFactory,
                   wmoMainCache, wmoGeomCache, textureWoWCache, m2GeomCache, skinGeomCache, adtGeomCache,
                   firstPersonCamera) {
@@ -325,6 +327,9 @@
                     getAdtTexCoordinates : function () {
                         return self.adtTextureCoords;
                     },
+                    getCurrentWdt : function (){
+                        return self.currentWdt;
+                    },
                     loadTexture: function (fileName) {
                         return self.textureCache.loadTexture(fileName);
                     },
@@ -496,11 +501,24 @@
 
                 this.sceneObjectList = [wmoObject];
             },
-            loadMap : function (fileName){
-                var adtObject = new adtObjectFactory(this.sceneApi);
-                adtObject.load(fileName);
+            loadMap : function (mapName, x, y){
+                var self = this;
+                var wdtFileName = "world/maps/"+mapName+"/"+mapName+".wdt";
 
-                this.sceneAdts = [adtObject];
+                wdtLoader(wdtFileName).then(function success(wdtFile){
+                    self.currentWdt = wdtFile;
+                    var adtFileName = "world/maps/"+mapName+"/"+mapName+"_"+x+"_"+y+".adt";
+                    var adtObject = new adtObjectFactory(self.sceneApi);
+                    adtObject.load(adtFileName);
+
+                    self.sceneAdts = [adtObject];
+                }, function error(){
+
+                })
+
+            },
+            setCameraPos : function (x, y, z) {
+                this.camera.setCameraPos(x,y,z);
             }
         };
 

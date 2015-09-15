@@ -23,7 +23,7 @@
                 while (chunk.chunkIdent != "") {
                     switch (chunk.chunkIdent) {
                         case "MAIN":
-                            var chunkOffs = 0;
+                            var chunkOffs = { offs : 0 };
                             var tileTable = {};
 
                             for (var i =0; i < 64; i++) {
@@ -31,7 +31,7 @@
 
                                 for (var j = 0; j < 64; j++ ) {
                                     tile[j] = chunk.readInt32(chunkOffs);
-                                    chunkOffs+=4; // skip next 4 bytes. They are plain zeros
+                                    chunkOffs.offs+=4; // skip next 4 bytes. They are plain zeros
                                 }
                                 tileTable[i] = tile;
                             }
@@ -39,11 +39,14 @@
                             wdtObj.tileTable = tile;
                             break;
                         case "MPHD":
-                            wdtObj.isWMOMap = chunk.readUint8(0) & 1 > 0;
+                            var offset = { offs : 0 };
+                            wdtObj.flags = chunk.readUint8(offset);
+                            wdtObj.isWMOMap = wdtObj.flags & 1 > 0;
                             break;
 
                         case "MWMO":
-                            wdtObj.wmoName = chunk.readString(0);
+                            var offset = { offs : 0 };
+                            wdtObj.wmoName = chunk.readString(offset);
                             break;
 
                         case "MODF":

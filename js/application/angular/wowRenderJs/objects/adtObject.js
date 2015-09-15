@@ -3,7 +3,7 @@
 (function (window, $, undefined) {
     var adtObjectFactory = angular.module('js.wow.render.adtObjectFactory', []);
     adtObjectFactory.factory("adtObjectFactory", ['$q', function ($q) {
-        function ADTObject(sceneApi){
+        function ADTObject(sceneApi, wdtFile){
             this.sceneApi = sceneApi;
         }
         ADTObject.prototype = {

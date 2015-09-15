@@ -187,6 +187,9 @@ firstPersonCamera.factory('firstPersonCamera', ['$log', function ($log) {
                         lookAtVec3: lookat,
                         cameraVec3: camera
                     }
+                },
+                setCameraPos : function (x, y, z) {
+                    camera = [x, y, z];
                 }
             }
 
