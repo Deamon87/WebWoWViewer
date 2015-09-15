@@ -466,6 +466,12 @@
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
 
+                    if (this.currentWdt && ((this.currentWdt.flags & 0x04) > 0)) {
+                        gl.uniform1i(this.currentShaderProgram.shaderUniforms.uNewFormula, 1);
+                    } else {
+                        gl.uniform1i(this.currentShaderProgram.shaderUniforms.uNewFormula, 0);
+                    }
+
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.layer0, 0);
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.alphaTexture, 1);
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.layer1, 2);

@@ -46,11 +46,14 @@ precision lowp float;
 
 varying vec2 vChunkCoords;
 
+uniform int uNewFormula;
+
 uniform sampler2D layer0;
 uniform sampler2D layer1;
 uniform sampler2D layer2;
 uniform sampler2D layer3;
 uniform sampler2D alphaTexture;
+
 
 void main() {
     vec2 vTexCoord = vChunkCoords;
@@ -73,13 +76,12 @@ void main() {
     //vec4 a1 = texture2D(uTexture, vTexCoord).rgba;
 
     //Mix formula for 4 texture mixing
-    //vec4 finalColor = vec4(a4 * tex4 - (a4  - 1.0) * ( (a3 - 1.0)*( tex1 * (a2 - 1.0) - a2*tex2) + a3*tex3), 1);
-    //vec4 finalColor = vec4(tex2, 1);
-    //vec4 finalColor = vec4(tex1 * (1.0 - a4) + a4*tex4, 1);
-    //vec4 finalColor = vec4(tex1 * (1.0 - a2) + a2*tex2, 1);
-    //finalColor = vec4(finalColor.rgb * (1.0 - a3) + a3*tex3, 1);
-    //finalColor = vec4(finalColor.rgb * (1.0 - a4) + a4*tex4, 1);
-    vec4 finalColor = vec4(tex1 * (1.0 - (a2 + a3 + a4)) + tex2 * a2 + tex3 * a3 + tex4* a4, 1);
+    vec4 finalColor;
+    if (uNewFormula >= 1) {
+        finalColor = vec4(tex1 * (1.0 - (a2 + a3 + a4)) + tex2 * a2 + tex3 * a3 + tex4* a4, 1);
+    } else {
+        finalColor = vec4(a4 * tex4 - (a4  - 1.0) * ( (a3 - 1.0)*( tex1 * (a2 - 1.0) - a2*tex2) + a3*tex3), 1);
+    }
 
     finalColor.a = 1.0;
     gl_FragColor = finalColor;

@@ -51,7 +51,9 @@
 
                 //sceneObj.loadMap("Kalimdor", 32, 32);
                 //sceneObj.loadMap("Azeroth", 31, 31);
-                sceneObj.loadMap("Northrend", 30, 23); sceneObj.setCameraPos(4800, 1066, 137);
+                sceneObj.loadMap("Northrend", 29, 22); sceneObj.setCameraPos(4800, 1066, 137);
+                //sceneObj.loadMap("DeathKnightStart", 41, 27); sceneObj.setCameraPos(2374, -4829, 230);
+                //sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
 
 
                 //adtLoader('world//maps\\AhnQiraj\\AhnQiraj_26_46.adt');
