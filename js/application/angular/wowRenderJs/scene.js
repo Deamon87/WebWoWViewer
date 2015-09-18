@@ -18,12 +18,12 @@
         'js.wow.render.camera.firstPersonCamera']);
     scene.factory("scene", ['$q', '$timeout', '$http',
             'wdtLoader',
-            'adtObjectFactory', 'wmoObjectFactory',
+            'adtM2ObjectFactory', 'adtObjectFactory', 'wmoObjectFactory',
             'wmoMainCache', 'wmoGeomCache', 'textureWoWCache', 'm2GeomCache', 'skinGeomCache', 'adtGeomCache',
             'firstPersonCamera',
         function ($q, $timeout, $http,
                   wdtLoader,
-                  adtObjectFactory, wmoObjectFactory,
+                  adtM2ObjectFactory, adtObjectFactory, wmoObjectFactory,
                   wmoMainCache, wmoGeomCache, textureWoWCache, m2GeomCache, skinGeomCache, adtGeomCache,
                   firstPersonCamera) {
 
@@ -330,6 +330,23 @@
                     getCurrentWdt : function (){
                         return self.currentWdt;
                     },
+                    loadAdtM2Obj : function (doodad){
+                        var deferred = $q.defer();
+
+                        var adtM2 = new adtM2ObjectFactory(this);
+                        adtM2.load(doodad, false);
+                        self.sceneObjectList.push(adtM2);
+
+                        deferred.resolve(adtM2);
+
+                        return deferred.promise;
+                    },
+                    loadAdtWmo : function (wmoDef){
+                        var wmoObject = new wmoObjectFactory(self.sceneApi);
+                        wmoObject.load(wmoDef);
+
+                        self.sceneObjectList.push(wmoObject);
+                    },
                     loadTexture: function (fileName) {
                         return self.textureCache.loadTexture(fileName);
                     },
@@ -490,6 +507,8 @@
 
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
+
+                    gl.activeTexture(gl.TEXTURE0);
 
                     var i;
                     for (i = 0; i < this.sceneObjectList.length; i++) {

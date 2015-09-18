@@ -11,7 +11,7 @@
             load : function (modelName, skinNum, submeshRenderData){
                 var self = this;
 
-                var nameTemplate = modelName.substr(0, modelName.length-4);
+                var nameTemplate = modelName.split('.')[0];
                 var modelFileName = nameTemplate + '.m2';
                 var skinFileName = nameTemplate + '00.skin';
 

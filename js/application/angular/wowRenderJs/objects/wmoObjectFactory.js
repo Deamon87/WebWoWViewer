@@ -58,6 +58,34 @@
                     return false;
                 }
             },
+            createPlacementMatrix : function(modf){
+                var TILESIZE = 533.333333333;
+
+                var posx = modf.pos.x-32*TILESIZE;
+                var posy = modf.pos.y;
+                var posz = modf.pos.z-32*TILESIZE;
+
+                var placementMatrix = mat4.create();
+                mat4.identity(placementMatrix);
+
+                mat4.rotateX(placementMatrix, placementMatrix, glMatrix.toRadian(90));
+                mat4.rotateY(placementMatrix, placementMatrix, glMatrix.toRadian(-90));
+
+                // with FPosition do glTranslatef(x,y,z);
+                mat4.translate(placementMatrix, placementMatrix, [posx, posy, posz]);
+
+                mat4.rotateY(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.y - 90));
+                mat4.rotateZ(placementMatrix, placementMatrix, glMatrix.toRadian(-modf.rotation.x));
+                mat4.rotateX(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.z));
+
+                mat4.rotateX(placementMatrix, placementMatrix, glMatrix.toRadian(-90));
+
+                var placementInvertMatrix = mat4.create();
+                mat4.invert(placementInvertMatrix, placementMatrix);
+
+                this.placementInvertMatrix = placementInvertMatrix;
+                this.placementMatrix = placementMatrix;
+            },
             loadDoodads : function (doodadsInd){
                 var self = this;
                 var doodadsSet = self.wmoObj.modd[doodadsInd];
@@ -74,11 +102,17 @@
 
                 self.doodadsArray[index] = new wmoM2ObjectFactory(self.sceneApi);
                 var useLocalLighting = self.checkIfUseLocalLighting(doodad.pos);
-                self.doodadsArray[index].load(doodad, useLocalLighting)
+                self.doodadsArray[index].load(doodad, self.placementMatrix, useLocalLighting);
             },
-            load : function (filename, doodadsInd){
+            load : function (modf){
                 var deferred = $q.defer();
                 var self = this;
+
+                var filename = modf.fileName;
+                var doodadsInd = modf.doodadSet;
+
+                /* 1. Create matrix */
+                self.createPlacementMatrix(modf);
 
                 var wmoMailPromise = self.sceneApi.loadWmoMain(filename);
                 wmoMailPromise.then(function success(wmoObj){
@@ -100,8 +134,12 @@
 
                     /* 2. Load doodads */
                     self.loadDoodads(doodadsInd);
+
+                    deferred.resolve(self);
                 }, function error (){
                 });
+
+                return deferred.promise;
             },
             drawBB : function () {
                 var gl = this.sceneApi.getGlContext();
@@ -135,10 +173,10 @@
                 /* Draw */
                 var gl = this.sceneApi.getGlContext();
                 var uniforms = this.sceneApi.getShaderUniforms();
-                var identMatrix = mat4.create();
-                mat4.identity(identMatrix);
 
-                gl.uniformMatrix4fv(uniforms.uPlacementMat, false, identMatrix);
+                if (this.placementMatrix) {
+                    gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
+                }
 
                 for (var i = 0; i < this.wmoGroupArray.length; i++){
                     if (this.wmoGroupArray[i]){
