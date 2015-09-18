@@ -59,13 +59,17 @@
         <script type="text/javascript" src="js/application/angular/directives/wowJsRenderDirective.js"></script>
         <script type="text/javascript" src="js/application/angular/app_wowjs.js"></script>
     </head>
-    <body ng-app="main.app" ng-controller="UrlChooserCtrl">
-        <div ng-if="!isReadyForStart">
-            <input type="text" ng-model="params.urlForLoading"/>
-            <button ng-click="startApplication()">Start application</button>
-        </div>
-        <div ng-if="isReadyForStart">
-            <wow-js-render ></wow-js-render>
+    <body ng-app="main.app" ng-controller="UrlChooserCtrl" style="background: black">
+        <div style="margin: auto;position: absolute; top: 0; left: 0; bottom: 0; right: 0;">
+            <div ng-if="!isReadyForStart">
+                <input type="text" ng-model="params.urlForLoading" style="width: 215px"/>
+                <button ng-click="startApplication()">Start application</button>
+            </div>
+            <div ng-if="isReadyForStart" style="width: 1054px; height: 855px; overflow: auto; margin: auto; position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0; color: white">
+                <wow-js-render ></wow-js-render>
+                <p>Controls: W - forward, S - backward, A - left, D - right, Q - up, E - down, Mouse - move camera</p>
+            </div>
         </div>
     </body>
 </html>
