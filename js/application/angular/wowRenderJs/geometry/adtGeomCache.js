@@ -80,8 +80,6 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                             }
                         }
                     }
-
-                    console.log("readForThisLayer = " + readForThisLayer);
                 }
             }
         }
