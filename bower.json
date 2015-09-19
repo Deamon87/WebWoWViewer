@@ -14,6 +14,9 @@
     "app/bower_components",
     "test"
   ],
+  "main" : {
+    ""
+  }
   "exportsOverride": {
     "Jcrop": {
       "js": "js/jquery.Jcrop.js"
@@ -31,6 +34,7 @@
     "stats.js" : "r12",
     "text-encoding": "v0.5.1",
     "gl-matrix": "v2.2.1",
-    "decodeDXT": "Deamon87/decodeDXT"
+    "decodeDXT": "Deamon87/decodeDXT",
+    "zip.js" : "gildas-lormeau/zip.js"
   }
 }

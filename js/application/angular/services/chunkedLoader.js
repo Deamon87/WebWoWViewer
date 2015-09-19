@@ -3,16 +3,15 @@
  */
 (function (window, $, undefined) {
 
-    var chunkedLoader = angular.module('main.services.chunkedLoader', ['main.services.fileReadHelper']);
+    var chunkedLoader = angular.module('main.services.chunkedLoader', ['main.services.fileReadHelper', 'main.services.fileLoader']);
 
 
-    chunkedLoader.factory('chunkedLoader', ['configService', "fileReadHelper", '$http', "$q", '$log', function(configService, fileReadHelper, $http, $q, $log) {
+    chunkedLoader.factory('chunkedLoader', ['fileLoader', "fileReadHelper", "$q", '$log', function(fileLoader, fileReadHelper, $q, $log) {
 
         return function (filePath) {
             var deferred = $q.defer();
-            var fullPath = configService.getUrlToLoadWoWFile() + filePath;
 
-            $http.get(fullPath, {responseType: "arraybuffer"}).success(function(a) {
+            fileLoader(filePath).then(function success(a) {
                 var fileReader = fileReadHelper(a);
 
                 var sectionReaders  = null;
@@ -89,22 +88,22 @@
                             chunkReader = fileReadHelper(a, offsetObj.offs, chunkSize);
                         }
 
-                        var chunkPiece = {
-                            chunkIdent : chunkIdent,
-                            chunkLen   : chunkSize,
+                        var chunkPiece = Object.create(chunkReader, {
+                            chunkIdent :  {value: chunkIdent},
+                            chunkLen   :  {value : chunkSize},
 
-                            chunkOffset: offset,
-                            chunkDataOffset : chunkDataOff,
-                            nextChunkOffset : offset + 8 + chunkSize //8 is length of chunk header
-                        };
-                        chunkPiece.__proto__ = chunkReader;
+                            chunkOffset: {value : offset},
+                            chunkDataOffset : {value : chunkDataOff},
+                            nextChunkOffset : {value :offset + 8 + chunkSize} //8 is length of chunk header
+                        });
+                        //chunkPiece.__proto__ = ;
 
                         return chunkPiece;
                     }
                 };
 
                 deferred.resolve(chunkedFileObj);
-            }).error(function() {
+            }, function error() {
                 deferred.reject();
             });
 

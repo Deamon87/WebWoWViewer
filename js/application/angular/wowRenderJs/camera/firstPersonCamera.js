@@ -147,7 +147,7 @@ firstPersonCamera.factory('firstPersonCamera', ['$log', function ($log) {
             return {
                 tick: function (timeDelta) {
                     var dir = [1, 0, 0];
-                    var moveSpeed = 0.5;
+                    var moveSpeed = 0.05;
 
                     var dTime = timeDelta;
 

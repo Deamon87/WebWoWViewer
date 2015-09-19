@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title></title>
+        <title>WebWoWViewer: tech demo</title>
 
         <!----------------->
         <!--  Libraries  -->
@@ -17,6 +17,8 @@
         <script type="text/javascript" src="js/lib/bower/text-encoding/lib/encoding-indexes.js"></script>
         <script type="text/javascript" src="js/lib/bower/text-encoding/lib/encoding.js"></script>
 
+        <script type="text/javascript" src="js/lib/bower/zip.js/WebContent/zip.js"></script>
+
 
         <!---------------------->
         <!-- Application code -->
@@ -25,6 +27,7 @@
         <script type="text/javascript" src="js/application/angular/services/fileReadHelper.js"></script>
         <script type="text/javascript" src="js/application/angular/services/dbcLoader.js"></script>
 
+        <script type="text/javascript" src="js/application/angular/services/fileLoader.js"></script>
         <script type="text/javascript" src="js/application/angular/services/chunkedLoader.js"></script>
         <script type="text/javascript" src="js/application/angular/services/linedfileLoader.js"></script>
 
@@ -65,8 +68,7 @@
                 <input type="text" ng-model="params.urlForLoading" style="width: 215px"/>
                 <button ng-click="startApplication()">Start application</button>
             </div>
-            <div ng-if="isReadyForStart" style="width: 1054px; height: 855px; overflow: auto; margin: auto; position: absolute;
-  top: 0; left: 0; bottom: 0; right: 0; color: white">
+            <div ng-if="isReadyForStart" style="width: 1054px; height: 855px; overflow: hidden; margin: auto; position: absolute; top: 0; left: 0; bottom: 0; right: 0; color: white">
                 <wow-js-render ></wow-js-render>
                 <p>Controls: W - forward, S - backward, A - left, D - right, Q - up, E - down, Mouse - move camera</p>
             </div>

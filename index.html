@@ -1,6 +1,8 @@
 <html>
     <head>
-        <title></title>
+        <title>WebWoWViewer: tech demo</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
 
         <!----------------->
         <!--  Libraries  -->
@@ -18,8 +20,7 @@
             <input type="text" ng-model="params.urlForLoading" style="width: 215px"/>
             <button ng-click="startApplication()">Start application</button>
         </div>
-        <div ng-if="isReadyForStart" style="width: 1054px; height: 855px; overflow: auto; margin: auto; position: absolute;
-  top: 0; left: 0; bottom: 0; right: 0; color: white">
+        <div ng-if="isReadyForStart" style="width: 1054px; height: 855px; overflow: hidden; margin: auto; position: absolute; top: 0; left: 0; bottom: 0; right: 0; color: white">
             <wow-js-render ></wow-js-render>
             <p>Controls: W - forward, S - backward, A - left, D - right, Q - up, E - down, Mouse - move camera</p>
         </div>

@@ -58,9 +58,9 @@ uniform sampler2D alphaTexture;
 void main() {
     vec2 vTexCoord = vChunkCoords;
 
-    vec2 a4Coords = vec2(3.0/4.0+ vChunkCoords.x/4.0/8.0, vChunkCoords.y/8.0 );
-    vec2 a3Coords = vec2(2.0/4.0+ vChunkCoords.x/4.0/8.0, vChunkCoords.y/8.0 );
-    vec2 a2Coords = vec2(1.0/4.0+ vChunkCoords.x/4.0/8.0, vChunkCoords.y/8.0 );
+    vec2 a4Coords = vec2(3.0/4.0+ ((vChunkCoords.x/8.0)* 62.0/63.0 + 0.5/63.0 ) /4.0, vChunkCoords.y/8.0 * 62.0/63.0 - 0.5/63.0 );
+    vec2 a3Coords = vec2(2.0/4.0+ ((vChunkCoords.x/8.0)* 62.0/63.0 + 0.5/63.0 ) /4.0, vChunkCoords.y/8.0 * 62.0/63.0 - 0.5/63.0 );
+    vec2 a2Coords = vec2(1.0/4.0+ ((vChunkCoords.x/8.0)* 62.0/63.0 + 0.5/63.0 ) /4.0, vChunkCoords.y/8.0 * 62.0/63.0 - 0.5/63.0 );
 
     vec3 tex4 = texture2D(layer3, vTexCoord).rgb;
     float a4 = texture2D(alphaTexture, a4Coords).a;

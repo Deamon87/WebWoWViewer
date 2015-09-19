@@ -2,6 +2,7 @@
     var configService = angular.module('main.services.config', []);
     configService.factory('configService', [function() {
         var urlToLoadWoWFile = '/get/';
+        var readFileMethod = 'http';
 
         var savedUrlForLoading = localStorage.getItem('urlForLoading');
         if (savedUrlForLoading) {
@@ -16,6 +17,12 @@
             setUrlToLoadWoWFile : function (url){
                 urlToLoadWoWFile = url;
                 localStorage.setItem('urlForLoading', url);
+            },
+            getFileReadMethod : function(){
+                return readFileMethod;
+            },
+            getArchiveUrl : function (){
+
             }
         }
 

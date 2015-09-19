@@ -7,12 +7,11 @@
     var linedFileLoader = angular.module('main.services.linedFileLoader', ['main.services.fileReadHelper']);
 
 
-    linedFileLoader.factory('linedFileLoader', ['configService', "fileReadHelper", '$http', "$q", '$log', function (configService, fileReadHelper, $http, $q, $log) {
+    linedFileLoader.factory('linedFileLoader', ['fileLoader', "fileReadHelper", "$q", '$log', function (fileLoader, fileReadHelper, $q, $log) {
         return function (filePath) {
             var deferred = $q.defer();
-            var fullPath = configService.getUrlToLoadWoWFile() + filePath;
 
-            $http.get(fullPath, {responseType: "arraybuffer"}).success(function(a) {
+            fileLoader(filePath).then(function success(a) {
                 var fileReader = fileReadHelper(a);
 
                 function LinedFileObj(){
@@ -189,7 +188,7 @@
                 var linedFileObj = new LinedFileObj();
 
                 deferred.resolve(linedFileObj);
-            }).error(function() {
+            }, function error() {
                 deferred.reject();
             });
 

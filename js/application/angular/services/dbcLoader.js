@@ -6,17 +6,16 @@
 
     var loadDBCService = angular.module('main.services.dbcLoader', ['main.services.config']);
 
-    loadDBCService.factory('loadDBC', ['configService', 'fileReadHelper', '$http', "$q", function(configService, fileReadHelper, $http, $q) {
+    loadDBCService.factory('loadDBC', ['fileLoader', 'fileReadHelper', "$q", function(fileLoader, fileReadHelper, $q) {
         /*
             Returns deferredObject
         */
         return function (dbcFilePath) {
             var deferred = $q.defer();
-            var fullPath = configService.getUrlToLoadWoWFile() + dbcFilePath;
 
             var dbcHeaderLen = 20;
 
-            $http.get(fullPath, {responseType: "arraybuffer"}).success(function(a) {
+            fileLoader(dbcFilePath).then(function success(a) {
                 var fileReader = fileReadHelper(a);
                 var offset = {offs : 0};
 
@@ -69,7 +68,7 @@
                 };
 
                 deferred.resolve(dbcObject);
-            }).error(function a(){
+            }, function error(){
                 deferred.reject(null);
             });
 
