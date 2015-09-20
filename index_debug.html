@@ -13,11 +13,15 @@
         <script type="text/javascript" src="js/lib/bower/gl-matrix/dist/gl-matrix.js"></script>
         <script type="text/javascript" src="js/lib/bower/decodeDXT/decodeDXT.js"></script>
 
+        <script type="text/javascript" src="js/lib/bower/angular-bootstrap/ui-bootstrap.min.js"></script>
+        <script type="text/javascript" src="js/lib/bower/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+
 
         <script type="text/javascript" src="js/lib/bower/text-encoding/lib/encoding-indexes.js"></script>
         <script type="text/javascript" src="js/lib/bower/text-encoding/lib/encoding.js"></script>
 
         <script type="text/javascript" src="js/lib/bower/zip.js/WebContent/zip.js"></script>
+        <script type="text/javascript" src="js/lib/bower/zip.js/WebContent/zip-ext.js"></script>
 
 
         <!---------------------->
@@ -60,7 +64,12 @@
 
         <!-- WoW js directives -->
         <script type="text/javascript" src="js/application/angular/directives/wowJsRenderDirective.js"></script>
+        <script type="text/javascript" src="js/application/angular/directives/fileDownload.js"></script>
         <script type="text/javascript" src="js/application/angular/app_wowjs.js"></script>
+
+
+        <link rel="stylesheet" href="js/lib/bower/bootstrap/dist/css/bootstrap.css"/>
+
     </head>
     <body ng-app="main.app" ng-controller="UrlChooserCtrl" style="background: black">
         <div style="margin: auto;position: absolute; top: 0; left: 0; bottom: 0; right: 0;">
@@ -68,10 +77,17 @@
                 <input type="text" ng-model="params.urlForLoading" style="width: 215px"/>
                 <button ng-click="startApplication()">Start application</button>
             </div>
+            <div ng-if="isReadyForDownload">
+                <file-downloader url="params.zipUrl" loaded-file="params.zipFile" file-progress="params.downLoadProgress">
+                        <progressbar max="100" value="params.downLoadProgress">{{params.downLoadProgress}}</progressbar>
+                </file-downloader>
+            </div>
+
             <div ng-if="isReadyForStart" style="width: 1054px; height: 855px; overflow: hidden; margin: auto; position: absolute; top: 0; left: 0; bottom: 0; right: 0; color: white">
                 <wow-js-render ></wow-js-render>
                 <p>Controls: W - forward, S - backward, A - left, D - right, Q - up, E - down, Mouse - move camera</p>
             </div>
+
         </div>
     </body>
 </html>

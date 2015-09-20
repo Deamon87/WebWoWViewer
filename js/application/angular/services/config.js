@@ -2,7 +2,9 @@
     var configService = angular.module('main.services.config', []);
     configService.factory('configService', [function() {
         var urlToLoadWoWFile = '/get/';
-        var readFileMethod = 'http';
+        var readFileMethod = 'zip';
+        var archiveUrl = 'http://deamon87.github.io/WoWFiles/shattrath.zip';
+        var archiveFile = null;
 
         var savedUrlForLoading = localStorage.getItem('urlForLoading');
         if (savedUrlForLoading) {
@@ -22,8 +24,16 @@
                 return readFileMethod;
             },
             getArchiveUrl : function (){
+                return archiveUrl;
+            },
 
+            getArhiveFile : function (){
+                return archiveFile;
+            },
+            setArchiveFile : function(archive) {
+                archiveFile = archive;
             }
+
         }
 
 

@@ -9,8 +9,9 @@
             var defer = $q.defer();
             initDefers.push(defer);
 
-            var zipFileUrl = configService.getArchiveUrl();
-            zip.createReader(new zip.BlobReader(blob), function(reader) {
+            var zipFile = configService.getArhiveFile();
+            zip.workerScriptsPath = 'js/lib/bower/zip.js/WebContent/';
+            zip.createReader(new zip.BlobReader(new Blob([zipFile])), function(reader) {
 
                 // get all entries from the zip
                 reader.getEntries(function(entries) {
@@ -34,8 +35,8 @@
 
             var result = null;
             zipEntries.every(function(entry) {
-                if(entry.fileName == fileName) {
-                    result = entry
+                if(entry.filename.toLowerCase() == fileName.toLowerCase()) {
+                    result = entry;
                     return false;
                 }
 
@@ -44,7 +45,14 @@
 
             if (result) {
                 result.getData(new zip.BlobWriter(), function(data) {
-                    defer.resolve(data);
+                    var fileReader = new FileReader;
+                    fileReader.onload = function (evt) {
+                        // Read out file contents as a Data URL
+                        var result = evt.target.result;
+                        defer.resolve(result);
+                    };
+                    // Load blob as Data URL
+                    fileReader.readAsArrayBuffer(data);
                 });
             } else {
                 defer.reject(null);

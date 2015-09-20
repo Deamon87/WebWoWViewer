@@ -18,20 +18,37 @@
             'main.services.map.mdxLoader',
             'main.services.map.skinLoader',
             'main.glsl.cache',
-            'main.directives.wowJsRender'
+            'main.directives.wowJsRender',
+            'main.directives.fileDownloader'
 
         ]);
 
     main.controller("UrlChooserCtrl",['$scope', 'configService',function($scope, configService){
         $scope.isReadyForStart = false;
+        $scope.isReadyForDownload = false;
+
+
         $scope.params = {};
         $scope.params.urlForLoading = configService.getUrlToLoadWoWFile();
-
+        $scope.params.zipFile = null;
 
         $scope.startApplication = function () {
             configService.setUrlToLoadWoWFile($scope.params.urlForLoading);
-            $scope.isReadyForStart = true;
-        }
+            $scope.params.zipUrl = configService.getArchiveUrl();
+            $scope.params.downLoadProgress = 0;
+
+            $scope.isReadyForDownload = true;
+        };
+
+        $scope.$watch('params.zipFile', function(newValue){
+            if (newValue) {
+
+                configService.setArchiveFile(newValue);
+
+                $scope.isReadyForDownload = false;
+                $scope.isReadyForStart = true;
+            }
+        })
     }]);
 
     main.config(['$provide', '$httpProvider', function ($provide, $httpProvider) {

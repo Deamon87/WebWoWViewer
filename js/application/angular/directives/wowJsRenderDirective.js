@@ -2,10 +2,8 @@
  * Created by Deamon on 10/03/2015.
  */
 (function (window, $, undefined) {
-    var threeJsElem = angular.module('main.directives.wowJsRender', ['js.wow.render.scene']);
-
-
-    threeJsElem.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window', 'scene', 'adtLoader',
+    var wowJsRender = angular.module('main.directives.wowJsRender', ['js.wow.render.scene']);
+    wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window', 'scene', 'adtLoader',
         function ($log, $timeout, $interval, $window, scene, adtLoader) {
         return {
             restrict: 'E',

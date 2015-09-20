@@ -224,7 +224,11 @@
 
                 /* Parse the header */
                 var resultMDXObject = {};
-                resultMDXObject = fileObject.parseSectionDefinition(resultMDXObject, mdxDescription, fileObject, offset);
+                    try {
+                        resultMDXObject = fileObject.parseSectionDefinition(resultMDXObject, mdxDescription, fileObject, offset);
+                    } catch (e) {
+                        deferred.reject();
+                    }
 
                 deferred.resolve(resultMDXObject);
             },
