@@ -5,7 +5,7 @@ An attempt to recreate old WoWMapViewer application from scratch and entirely in
 Current target is Wrath of the Lich King
 
 ##Tech demo
-https://deamon87.github.io/WebWoWViewer/index.html
+http://deamon87.github.io/WebWoWViewer/index.html
 
 This is early demo. 
 After data is downloaded and application is started (blue screen will appear), give it around 30-40 seconds to upload data to GPU. After that it will become less laggy and more responsive.
