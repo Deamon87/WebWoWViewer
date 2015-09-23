@@ -10,7 +10,6 @@
             initDefers.push(defer);
 
             var zipFile = configService.getArhiveFile();
-            zip.workerScriptsPath = 'js/lib/bower/zip.js/WebContent/';
             zip.createReader(new zip.BlobReader(new Blob([zipFile])), function(reader) {
 
                 // get all entries from the zip
@@ -32,10 +31,11 @@
         }
         function readZipFile(fileName){
             var defer = $q.defer();
+            fileName = fileName.replace(/\u0000/g, '');
 
             var result = null;
             zipEntries.every(function(entry) {
-                if(entry.filename.toLowerCase() == fileName.toLowerCase()) {
+                if(entry.filename.trim().toLowerCase() == fileName.toLowerCase()) {
                     result = entry;
                     return false;
                 }

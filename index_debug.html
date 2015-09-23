@@ -23,7 +23,6 @@
         <script type="text/javascript" src="js/lib/bower/zip.js/WebContent/zip.js"></script>
         <script type="text/javascript" src="js/lib/bower/zip.js/WebContent/zip-ext.js"></script>
 
-
         <!---------------------->
         <!-- Application code -->
         <!---------------------->
@@ -60,7 +59,9 @@
         <script type="text/javascript" src="js/application/angular/wowRenderJs/texture/textureCache.js"></script>
 
         <!-- Shader -->
-        <script type="text/javascript" src="js/shaders.js"></script>
+        <script type="text/javascript" src="js/temp/shaders.js"></script>
+        <script type="text/javascript" src="js/temp/worker-inflater.js"></script>
+
 
         <!-- WoW js directives -->
         <script type="text/javascript" src="js/application/angular/directives/wowJsRenderDirective.js"></script>
@@ -73,15 +74,17 @@
     </head>
     <body ng-app="main.app" ng-controller="UrlChooserCtrl" style="background: black">
         <div style="margin: auto;position: absolute; top: 0; left: 0; bottom: 0; right: 0;">
-            <div ng-if="!isReadyForStart">
+            <div ng-if="!isReadyForStart" style="width: 652px; height: 345px; overflow: hidden; margin: auto; position: absolute; top: 0; left: 0; bottom: 0; right: 0; ">
                 <input type="text" ng-model="params.urlForLoading" style="width: 215px"/>
                 <button ng-click="startApplication()">Start application</button>
-            </div>
-            <div ng-if="isReadyForDownload">
-                <file-downloader url="params.zipUrl" loaded-file="params.zipFile" file-progress="params.downLoadProgress">
+
+                <div ng-if="isReadyForDownload">
+                    <file-downloader url="params.zipUrl" loaded-file="params.zipFile" file-progress="params.downLoadProgress">
                         <progressbar max="100" value="params.downLoadProgress">{{params.downLoadProgress}}</progressbar>
-                </file-downloader>
+                    </file-downloader>
+                </div>
             </div>
+
 
             <div ng-if="isReadyForStart" style="width: 1054px; height: 855px; overflow: hidden; margin: auto; position: absolute; top: 0; left: 0; bottom: 0; right: 0; color: white">
                 <wow-js-render ></wow-js-render>

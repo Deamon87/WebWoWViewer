@@ -94,7 +94,7 @@
 
                             chunkOffset: {value : offset},
                             chunkDataOffset : {value : chunkDataOff},
-                            nextChunkOffset : {value :offset + 8 + chunkSize} //8 is length of chunk header
+                            nextChunkOffset : {value :offset + 8 + chunkSize, writable: true} //8 is length of chunk header
                         });
                         //chunkPiece.__proto__ = ;
 

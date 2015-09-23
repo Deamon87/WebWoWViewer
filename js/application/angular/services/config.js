@@ -11,6 +11,12 @@
             urlToLoadWoWFile = savedUrlForLoading;
         }
 
+        //zip.workerScriptsPath = 'js/lib/bower/zip.js/WebContent/';
+        /*zip.workerScripts = {
+            deflater: ['<zip_js_dir>/z-worker.js', '<zip_js_dir>/deflate.js'],
+            inflater: null
+        };*/
+
         return {
 
             getUrlToLoadWoWFile: function (){
