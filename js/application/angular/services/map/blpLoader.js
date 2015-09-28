@@ -24,10 +24,9 @@
     };
 
         return function(filePath) {
-            var deferred = $q.defer();
             var promise = linedFileLoader(filePath);
 
-            promise.then(function success(fileObject){
+            var newPromise = promise.then(function success(fileObject){
                     /* Read the header */
                     var offset = {offs : 0};
                     var fileIdent = fileObject.readNZTString(offset, 4);
@@ -35,8 +34,9 @@
 
                     /* Check the ident */
                     if (fileIdent != "BLP2"){
-                        $log.error("Unknown BLP file ident = ", fileIdent, ", filepath = ", filePath);
-                        deferred.reject();
+                        var errorMessage = "Unknown BLP file ident = "+ fileIdent+ ", filepath = ", filePath;
+                        $log.error(errorMessage);
+                        throw errorMessage;
                     }
 
                     /* Parse the header */
@@ -101,13 +101,13 @@
                     }
                     resultBLPObject.mipmaps = mipmaps;
 
-                    deferred.resolve(resultBLPObject);
+                    return resultBLPObject;
                 },
                 function error(errorObj){
-                    deferred.reject();
+                    return errorObj;
                 });
 
-            return deferred.promise;
+            return newPromise;
         }
     }]);
 })(window, jQuery);
