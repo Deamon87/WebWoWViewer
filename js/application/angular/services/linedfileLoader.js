@@ -9,9 +9,7 @@
 
     linedFileLoader.factory('linedFileLoader', ['fileLoader', "fileReadHelper", "$q", '$log', function (fileLoader, fileReadHelper, $q, $log) {
         return function (filePath) {
-            var deferred = $q.defer();
-
-            fileLoader(filePath).then(function success(a) {
+            return fileLoader(filePath).then(function success(a) {
                 var fileReader = fileReadHelper(a);
 
                 function LinedFileObj(){
@@ -187,12 +185,11 @@
 
                 var linedFileObj = new LinedFileObj();
 
-                deferred.resolve(linedFileObj);
-            }, function error() {
-                deferred.reject();
+                return linedFileObj;
+            }, function error(e) {
+                return e;
             });
 
-            return deferred.promise;
         };
 
     }]);

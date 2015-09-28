@@ -34,6 +34,7 @@
     "text-encoding": "v0.5.1",
     "gl-matrix": "v2.2.1",
     "decodeDXT": "Deamon87/decodeDXT",
+    "q" : "q#1.0.1",
     "zip.js" : "gildas-lormeau/zip.js"
   }
 }

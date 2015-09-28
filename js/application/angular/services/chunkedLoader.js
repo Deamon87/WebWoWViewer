@@ -9,9 +9,7 @@
     chunkedLoader.factory('chunkedLoader', ['fileLoader', "fileReadHelper", "$q", '$log', function(fileLoader, fileReadHelper, $q, $log) {
 
         return function (filePath) {
-            var deferred = $q.defer();
-
-            fileLoader(filePath).then(function success(a) {
+            return fileLoader(filePath).then(function success(a) {
                 var fileReader = fileReadHelper(a);
 
                 var sectionReaders  = null;
@@ -102,12 +100,10 @@
                     }
                 };
 
-                deferred.resolve(chunkedFileObj);
-            }, function error() {
-                deferred.reject();
+                return chunkedFileObj;
+            }, function error(e) {
+                return e;
             });
-
-            return deferred.promise;
         }
     }]);
 

@@ -14,16 +14,18 @@
 
                 // get all entries from the zip
                 reader.getEntries(function(entries) {
-                    initDefers.forEach(function(defer){
-                        defer.resolve(entries);
-                    });
+                    var len = initDefers.length;
+                    for (var i = 0; i < len; i++) {
+                        initDefers[i].resolve(entries);
+                    }
                     initDefers = [];
                 });
             }, function(error) {
                 // onerror callback
-                initDefers.forEach(function(defer){
-                    defer.reject(error);
-                });
+                var len = initDefers.length;
+                for (var i = 0; i < len; i++) {
+                    initDefers[i].reject(error);
+                }
                 initDefers = [];
             });
 
@@ -52,6 +54,7 @@
                         defer.resolve(result);
                     };
                     // Load blob as Data URL
+
                     fileReader.readAsArrayBuffer(data);
                 });
             } else {
@@ -63,41 +66,34 @@
 
         function fileLoader(filePath) {
             if (configService.getFileReadMethod() == 'http') {
-                var defer = $q.defer();
-
                 var fullPath = configService.getUrlToLoadWoWFile() + filePath;
 
-                $http.get(fullPath, {responseType: "arraybuffer"}).success(function(a) {
-                    defer.resolve(a);
+                return $http.get(fullPath, {responseType: "arraybuffer"}).success(function(a) {
+                    return a;
                 })
                 .error(function(a){
-                    defer.reject(a);
+                    return a;
                 });
 
-                return defer.promise;
             } else if (configService.getFileReadMethod() == 'zip') {
-                var defer = $q.defer();
-
                 if (!zipEntries) {
-                    initZipEntries().then(function succees(a){
+                    return initZipEntries().then(function succees(a){
                         zipEntries = a;
-                        readZipFile(filePath).then(function success(fileData) {
-                            defer.resolve(fileData);
-                        }, function error(e) {
-                            defer.reject(e);
-                        });
+                        return readZipFile(filePath);
                     }, function error(a){
-                        defer.reject(a);
+
+                    }).then(function success(fileData) {
+                        return fileData;
+                    }, function error(e) {
+                        return e;
                     });
                 } else {
-                    readZipFile(filePath).then(function success(fileData) {
-                        defer.resolve(fileData);
+                    return readZipFile(filePath).then(function success(fileData) {
+                        return fileData;
                     }, function error(e) {
-                        defer.reject(e);
+                        return e;
                     });
                 }
-
-                return defer.promise;
             }
         }
 

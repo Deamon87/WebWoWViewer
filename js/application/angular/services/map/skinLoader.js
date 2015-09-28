@@ -82,7 +82,7 @@
             var deferred = $q.defer();
             var promise = linedFileLoader(filePath);
 
-            promise.then(function success(fileObject){
+            var newPromise = promise.then(function success(fileObject){
                     /* Read the header */
                     var offset = {offs : 0};
                     var fileIdent = fileObject.readNZTString(offset, 4);
@@ -90,8 +90,9 @@
 
                     /* Check the ident */
                     if (fileIdent != "SKIN"){
-                        $log.error("Unknown SKIN file ident = ", fileIdent, ", filepath = ", filePath);
-                        promise.reject();
+                        var errorMessage = "Unknown SKIN file ident = "+ fileIdent + ", filepath = " +  filePath;
+                        $log.error(errorMessage);
+                        throw errorMessage;
                     }
 
                     /* Parse the header */
@@ -101,13 +102,13 @@
 
                     resultSkinObject.header = fileObject.parseSectionDefinition(resultSkinObject, skinDefinition, fileObject, offset);
 
-                    deferred.resolve(resultSkinObject);
+                    return resultSkinObject;
                 },
                 function error(errorObj){
-                    deferred.reject();
+                    return errorObj;
                 });
 
-            return deferred.promise;
+            return newPromise;
         }
     }]);
 
