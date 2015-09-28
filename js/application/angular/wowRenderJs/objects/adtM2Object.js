@@ -10,6 +10,9 @@
             self.mdxObject = new mdxObject(sceneApi);
         }
         AdtM2Object.prototype = {
+            sceneApi : null,
+            mdxObject : null,
+
             drawBB : function (){
 
             },

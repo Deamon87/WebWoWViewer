@@ -37,7 +37,8 @@
             $scope.params.zipUrl = configService.getArchiveUrl();
             $scope.params.downLoadProgress = 0;
 
-            $scope.isReadyForDownload = true;
+            $scope.isReadyForDownload = configService.getFileReadMethod() == "zip" ;
+            $scope.isReadyForStart = configService.getFileReadMethod() == "http" ;
         };
 
         $scope.$watch('params.zipFile', function(newValue){

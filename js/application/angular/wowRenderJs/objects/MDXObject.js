@@ -8,6 +8,7 @@
             this.sceneApi = sceneApi;
         }
         MDXObject.prototype = {
+            sceneApi : null,
             load : function (modelName, skinNum, submeshRenderData){
                 var self = this;
 
@@ -25,13 +26,17 @@
                     self.m2Geom = m2Geom;
                     self.skinGeom = skinGeom;
 
+                    var gl = self.sceneApi.getGlContext();
+                    var result = self.m2Geom.createVAO(gl, skinGeom);
+                    self.vao = result.vao;
+                    self.vaoExt = result.ext;
+
                     self.makeSubmeshArray(m2Geom, skinGeom, submeshRenderData)
                 });
             },
             makeSubmeshArray : function (mdxObject, skinObject, submeshRenderData) {
-                var submeshArray = [];
                 var self = this;
-                submeshArray.length = 15;
+                var submeshArray = new Array(15);
 
                 /* 1. Free previous subMeshArray */
 
@@ -85,8 +90,7 @@
             getSubMeshColor : function (deltaTime) {
                 var colors = this.m2Geom.m2File.colors;
                 if (colors.length > 0) {
-                    var result = [];
-                    result.length = colors.length;
+                    var result = new Array(colors.length);
 
                     for (var i = 0; i < colors.length; i++) {
                         var vector = colors[i].color.valuesPerAnimation[0][0];
@@ -126,7 +130,7 @@
                 if ((this.m2Geom) && (this.skinGeom)) {
                     var subMeshColors = this.getSubMeshColor(deltaTime);
 
-                    this.m2Geom.draw(this.skinGeom, this.submeshArray, placementMatrix, colorVector, subMeshColors);
+                    this.m2Geom.draw(this.skinGeom, this.submeshArray, placementMatrix, colorVector, subMeshColors, this.vao, this.vaoExt);
                 }
             }
         };

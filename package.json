@@ -6,7 +6,10 @@
   ],
   "description": "Web based map viewer for WoW",
   "license": "GPL",
-
+  "main": "index.html",
+  "window": {
+    "toolbar": true
+  },
   "devDependencies": {
     "grunt-bower-task" : "0.4.0",
     "grunt-bower-concat" : "0.4.0",

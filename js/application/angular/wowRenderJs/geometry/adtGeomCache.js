@@ -257,18 +257,12 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             gl.vertexAttribPointer(shaderAttributes.aIndex,  1, gl.FLOAT, false, 0, this.indexOffset*4);
             gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 0, this.textOffset*4);
 
-            gl.uniform1i(shaderUniforms.layer0, 0);
-            gl.uniform1i(shaderUniforms.layer1, 2);
-            gl.uniform1i(shaderUniforms.layer2, 3);
-            gl.uniform1i(shaderUniforms.layer3, 4);
-            gl.uniform1i(shaderUniforms.alphaTexture, 1);
-
             //Draw
             var mcnkObjs = this.adtFile.mcnkObjs;
             for (var i = 0; i < 256; i++) {
                 var mcnkObj = mcnkObjs[i];
                 gl.vertexAttribPointer(shaderAttributes.aHeight, 1, gl.FLOAT, false, 0, (this.heightOffset+i*145) * 4);
-                gl.uniform3f(shaderUniforms.aPos, mcnkObj.pos.x, mcnkObj.pos.y, mcnkObj.pos.z);
+                gl.uniform3f(shaderUniforms.uPos, mcnkObj.pos.x, mcnkObj.pos.y, mcnkObj.pos.z);
 
                 if ((this.textureArray[i]) && (this.textureArray[i][0])) {
                     gl.activeTexture(gl.TEXTURE0);

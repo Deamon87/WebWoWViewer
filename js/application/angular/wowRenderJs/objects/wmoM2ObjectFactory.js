@@ -10,6 +10,8 @@
             self.mdxObject = new mdxObject(sceneApi);
         }
         WmoM2Object.prototype = {
+            sceneApi : null,
+            mdxObject : null,
 
             draw : function (deltaTime) {
                 this.mdxObject.draw(deltaTime, this.placementMatrix, this.diffuseColor);

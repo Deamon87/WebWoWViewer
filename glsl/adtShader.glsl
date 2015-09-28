@@ -4,7 +4,7 @@ attribute float aHeight;
 attribute float aIndex;
 attribute vec2 aTexCoord;
 
-uniform vec3 aPos;
+uniform vec3 uPos;
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 
@@ -23,17 +23,17 @@ void main() {
     float iY = floor(aIndex/17.0);
 
     vec4 worldPoint = vec4(
-        aPos.x - iY * UNITSIZE,
-        aPos.y - iX * UNITSIZE,
-        aPos.z + aHeight,
+        uPos.x - iY * UNITSIZE,
+        uPos.y - iX * UNITSIZE,
+        uPos.z + aHeight,
         1);
 
     vChunkCoords = vec2(iX, iY);
 
     //On Intel Graphics ">" is equal to ">="
     if (iX > 8.1) {
-        worldPoint.y = aPos.y - (iX - 8.5) * UNITSIZE;
-        worldPoint.y = aPos.x - (iY + 0.5) * UNITSIZE;
+        worldPoint.y = uPos.y - (iX - 8.5) * UNITSIZE;
+        worldPoint.y = uPos.x - (iY + 0.5) * UNITSIZE;
         vChunkCoords.x = (iX-8.5);
     }
 
@@ -48,11 +48,11 @@ varying vec2 vChunkCoords;
 
 uniform int uNewFormula;
 
-uniform sampler2D layer0;
-uniform sampler2D layer1;
-uniform sampler2D layer2;
-uniform sampler2D layer3;
-uniform sampler2D alphaTexture;
+uniform sampler2D uLayer0;
+uniform sampler2D uLayer1;
+uniform sampler2D uLayer2;
+uniform sampler2D uLayer3;
+uniform sampler2D uAlphaTexture;
 
 
 void main() {
@@ -62,17 +62,17 @@ void main() {
     vec2 a3Coords = vec2(2.0/4.0+ ((vChunkCoords.x/8.0)* 62.0/63.0 + 0.5/63.0 ) /4.0, vChunkCoords.y/8.0 * 62.0/63.0 - 0.5/63.0 );
     vec2 a2Coords = vec2(1.0/4.0+ ((vChunkCoords.x/8.0)* 62.0/63.0 + 0.5/63.0 ) /4.0, vChunkCoords.y/8.0 * 62.0/63.0 - 0.5/63.0 );
 
-    vec3 tex4 = texture2D(layer3, vTexCoord).rgb;
-    float a4 = texture2D(alphaTexture, a4Coords).a;
+    vec3 tex4 = texture2D(uLayer3, vTexCoord).rgb;
+    float a4 = texture2D(uAlphaTexture, a4Coords).a;
 
-    vec3 tex3 = texture2D(layer2, vTexCoord).rgb;
-    float a3 = texture2D(alphaTexture, a3Coords).a;
+    vec3 tex3 = texture2D(uLayer2, vTexCoord).rgb;
+    float a3 = texture2D(uAlphaTexture, a3Coords).a;
 
-    vec3 tex2 = texture2D(layer1, vTexCoord).rgb;
-    float a2 = texture2D(alphaTexture, a2Coords).a;
+    vec3 tex2 = texture2D(uLayer1, vTexCoord).rgb;
+    float a2 = texture2D(uAlphaTexture, a2Coords).a;
     //float a2 = 0.3;
 
-    vec3 tex1 = texture2D(layer0, vTexCoord).rgb;
+    vec3 tex1 = texture2D(uLayer0, vTexCoord).rgb;
     //vec4 a1 = texture2D(uTexture, vTexCoord).rgba;
 
     //Mix formula for 4 texture mixing

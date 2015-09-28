@@ -452,7 +452,7 @@
                 this.glClearScreen(gl);
                 gl.activeTexture(gl.TEXTURE0);
 
-                this.stats.begin();
+                //this.stats.begin();
 
                 //1. Draw bounding boxes
                 this.currentShaderProgram = this.bbShader;
@@ -489,11 +489,11 @@
                         gl.uniform1i(this.currentShaderProgram.shaderUniforms.uNewFormula, 0);
                     }
 
-                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.layer0, 0);
-                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.alphaTexture, 1);
-                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.layer1, 2);
-                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.layer2, 3);
-                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.layer3, 4);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer0, 0);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uAlphaTexture, 1);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer1, 2);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer2, 3);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer3, 4);
 
                     for (var i = 0; i < this.sceneAdts.length; i++){
                         this.sceneAdts[i].draw();
@@ -516,7 +516,7 @@
                         sceneObject.draw(deltaTime);
                     }
                 }
-                this.stats.end();
+               // this.stats.end();
 
                 return cameraVecs;
             },
