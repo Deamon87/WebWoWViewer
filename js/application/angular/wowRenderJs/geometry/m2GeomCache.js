@@ -8,11 +8,15 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
     function M2Geom(sceneApi){
         this.sceneApi = sceneApi;
         this.gl = sceneApi.getGlContext();
-
-        this.combinedVBO = null;
-        this.textureArray = [];
     }
     M2Geom.prototype = {
+        sceneApi : null,
+        gl : null,
+        combinedVBO : null,
+        vao : null,
+        vaoExt : null,
+        textureArray : [],
+
         assign: function (m2File) {
             this.m2File = m2File;
         },
@@ -40,14 +44,21 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
             /* Index is taken from skin object */
         },
-        draw : function (skinObject, submeshArray, placementMatrix, colorVector, subMeshColors) {
-            var gl = this.gl;
-            var m2Object = this.m2File;
-            var uniforms = this.sceneApi.getShaderUniforms();
-            var shaderAttributes = this.sceneApi.getShaderAttributes();
+        createVAO: function (gl, skinObject){
+            var ext = gl.getExtension("OES_vertex_array_object"); // Vendor prefixes may apply!
+            if (ext) {
+                var vao = ext.createVertexArrayOES();
+                ext.bindVertexArrayOES(vao);
 
-            gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
-            //gl.uniform4f(uniforms.uGlobalLighting, colorVector[0], colorVector[1],colorVector[2],colorVector[3]);
+                this.setupAttributes(gl, skinObject);
+
+                ext.bindVertexArrayOES(null);
+            }
+
+            return {vao : vao, ext : ext};
+        },
+        setupAttributes : function(gl, skinObject){
+            var shaderAttributes = this.sceneApi.getShaderAttributes();
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
 
@@ -68,11 +79,26 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
              {name: "textureY",      type : "float32"},            36+4 = 40
              {name : "unk1",         type : "int32"},              40+4 = 44
              {name : "unk2",         type : "int32"}               44+4 = 48
-            */
+             */
 
             gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 48, 0);  // position
             //gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 48, 20); // normal
             gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 48, 32); // texcoord
+        },
+        draw : function (skinObject, submeshArray, placementMatrix, colorVector, subMeshColors, vao, vaoExt) {
+            var gl = this.gl;
+            var m2Object = this.m2File;
+            var uniforms = this.sceneApi.getShaderUniforms();
+            var shaderAttributes = this.sceneApi.getShaderAttributes();
+
+            gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
+            //gl.uniform4f(uniforms.uGlobalLighting, colorVector[0], colorVector[1],colorVector[2],colorVector[3]);
+
+            //if (!vao) {
+                this.setupAttributes(gl, skinObject);
+            //} else {
+            //    vaoExt.bindVertexArrayOES(vao);
+            //}
 
             if (submeshArray) {
                 for (var i = 0; i < submeshArray.length; i++) {
