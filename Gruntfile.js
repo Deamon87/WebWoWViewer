@@ -19,7 +19,8 @@ module.exports = function(grunt) {
                 mainFiles:{
                     'angular':'angular.min.js',
                     'stats.js': 'build/stats.min.js',
-                    'zip.js' : 'WebContent/zip.js'
+                    'hqx-js' : 'WebContent/zip.js',
+                    'zip.js' : 'src/hqx.js'
                 }
             }
         },

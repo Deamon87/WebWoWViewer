@@ -43,8 +43,8 @@
                 adtPromise.then( function (result) {
                     self.adtGeom = result;
 
-                    self.loadM2s();
-                    self.loadWmos();
+                    //self.loadM2s();
+                    //self.loadWmos();
                 });
             },
             draw : function (deltaTime){
