@@ -17,6 +17,9 @@
   "exportsOverride": {
     "Jcrop": {
       "js": "js/jquery.Jcrop.js"
+    },
+    "hqx-js" : {
+      "js" : "src/hqx.js"
     }
   },
   "dependencies": {
@@ -34,6 +37,8 @@
     "text-encoding": "v0.5.1",
     "gl-matrix": "v2.2.1",
     "decodeDXT": "Deamon87/decodeDXT",
+    "q" : "q#1.0.1",
+    "hqx-js" : "yjh0502/hqx-js",
     "zip.js" : "gildas-lormeau/zip.js"
   }
 }

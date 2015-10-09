@@ -148,19 +148,19 @@
             }
 
             var promise = chunkedLoader(wmoFilePath);
-            promise.then(function (chunkedFile) {
+            var newPromise = promise.then(function (chunkedFile) {
                 /* First chunk in file has to be MVER */
 
                 var wmoObj = {};
                 chunkedFile.setSectionReaders(new BaseGroupWMOLoader());
                 chunkedFile.processFile(wmoObj);
 
-                deferred.resolve(wmoObj);
-            }, function error() {
-                deferred.reject();
+                return wmoObj;
+            }, function error(errorObj) {
+                return errorObj;
             });
 
-            return deferred.promise;
+            return newPromise;
         }
     }]);
 
@@ -170,8 +170,6 @@
     */
     wmoLoader.factory('wmoLoader', ["chunkedLoader", "fileReadHelper", "$q", '$log', function (chunkedLoader, fileReadHelper, $q, $log) {
         return function(wmoFilePath){
-            var deferred = $q.defer();
-
             var wmo_ver17 = {
                 "MOHD" : function(wmoObj, chunk) {
                     var offset = {offs: 0};
@@ -323,19 +321,18 @@
             }
 
             var promise = chunkedLoader(wmoFilePath);
-            promise.then(function(chunkedFile){
+            var newPromise = promise.then(function(chunkedFile){
                 /* First chunk in file has to be MVER */
 
                 var wmoObj = {};
                 chunkedFile.setSectionReaders( new BaseWMOLoader());
                 chunkedFile.processFile(wmoObj);
 
-                deferred.resolve(wmoObj);
+                return wmoObj;
             }, function error(){
-                deferred.reject();
             });
 
-            return deferred.promise;
+            return newPromise;
         };
     }]);
 })(window, jQuery);

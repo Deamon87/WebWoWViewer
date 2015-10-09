@@ -2,7 +2,7 @@
 
 (function (window, $, undefined) {
     var mdxObject = angular.module('js.wow.render.mdxObject', []);
-    mdxObject.factory("mdxObject", ['$q', '$timeout', function($q, $timeout) {
+    mdxObject.factory("mdxObject", ['$q', '$timeout', '$log', function($q, $timeout, $log) {
 
         function MDXObject(sceneApi){
             this.sceneApi = sceneApi;
@@ -26,12 +26,16 @@
                     self.m2Geom = m2Geom;
                     self.skinGeom = skinGeom;
 
-                    var gl = self.sceneApi.getGlContext();
-                    var result = self.m2Geom.createVAO(gl, skinGeom);
-                    self.vao = result.vao;
-                    self.vaoExt = result.ext;
+                    if (!m2Geom) {
+                        $log.log("m2 file failed to load : "+ modelName);
+                    } else {
+                        var gl = self.sceneApi.getGlContext();
+                        //var result = self.m2Geom.createVAO(gl, skinGeom);
+                        //self.vao = result.vao;
+                        //self.vaoExt = result.ext;
 
-                    self.makeSubmeshArray(m2Geom, skinGeom, submeshRenderData)
+                        self.makeSubmeshArray(m2Geom, skinGeom, submeshRenderData)
+                    }
                 });
             },
             makeSubmeshArray : function (mdxObject, skinObject, submeshRenderData) {

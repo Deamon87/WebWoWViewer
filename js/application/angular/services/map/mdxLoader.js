@@ -200,10 +200,9 @@
         };
 
         return function(filePath) {
-            var deferred = $q.defer();
             var promise = linedFileLoader(filePath);
 
-            promise.then(function success(fileObject){
+            var newPromise = promise.then(function success(fileObject){
                 /* Read the header */
                 var offset = {offs : 0};
                 var fileIdent = fileObject.readNZTString(offset, 4);
@@ -211,15 +210,17 @@
 
                 /* Check the ident */
                 if (fileIdent != "MD20"){
-                    $log.error("Unknown MDX file ident = ", fileIdent, ", filepath = ", filePath);
-                    promise.reject();
+                    var errorMessage = "Unknown MDX file ident = " + fileIdent + ", filepath = " +  filePath;
+                    $log.error(errorMessage);
+                    throw errorMessage;
                 }
 
                 /* Check the version */
                 var mdxDescription = mdxTablePerVersion[fileVersion];
                 if (mdxDescription == undefined) {
-                    $log.error("Unknown MDX file version = ", fileVersion, ", filepath = ", filePath);
-                    promise.reject();
+                    var errorMessage = "Unknown MDX file version = " + fileVersion + ", filepath = " + filePath;
+                    $log.error(errorMessage);
+                    throw errorMessage;
                 }
 
                 /* Parse the header */
@@ -227,16 +228,16 @@
                     try {
                         resultMDXObject = fileObject.parseSectionDefinition(resultMDXObject, mdxDescription, fileObject, offset);
                     } catch (e) {
-                        deferred.reject();
+                        throw e;
                     }
 
-                deferred.resolve(resultMDXObject);
+                return resultMDXObject;
             },
             function error(errorObj){
-                deferred.reject();
+                return errorObj;
             });
 
-            return deferred.promise;
+            return newPromise;
         }
     }]);
 
