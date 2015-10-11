@@ -3,24 +3,6 @@
 var adtGeomCache = angular.module('js.wow.render.geometry.adtGeomCache', ['main.services.map.adtLoader', 'js.wow.render.cacheTemplate']);
 adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', function(adtLoader, cacheTemplate, $q){
 
-
-    function copyAlphaToBufRGBA(alphaArray, bufferRGBA, buffOffset, length){
-        var i;
-        for (i = 0 ; i < length; i++) {
-            bufferRGBA[buffOffset + i*4 + 0] = 0;
-            bufferRGBA[buffOffset + i*4 + 1] = 0;
-            bufferRGBA[buffOffset + i*4 + 2] = 0;
-            bufferRGBA[buffOffset + i*4 + 3] = alphaArray[i];
-        }
-    }
-
-    function copyBufRGBAToAlpha(alphaArray, bufferRGBA, buffOffset, length){
-        var i;
-        for (i = 0 ; i < length; i++) {
-            alphaArray[i] = bufferRGBA[buffOffset + i*4 + 3];
-        }
-    }
-
     //Function returns big texture
     function parseAlphaTextures(adtObj, wdtObj){
         var megaTexture = [];
@@ -86,7 +68,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                         for (var iX =0; iX < 64; iX++) {
                             for (var iY = 0; iY < 32; iY++){
                                 //Old world
-                                currentLayer[offO] =   ((alphaArray[alphaOffs] & 0xf0 ) >> 4) * 17;
+                                currentLayer[offO] =  ((alphaArray[alphaOffs] & 0xf0 ) >> 4) * 17;
                                 currentLayer[offO+1] = (alphaArray[alphaOffs] & 0x0f ) * 17;
 
                                 offO+=2; readCnt+=2; readForThisLayer+=2; alphaOffs++;
@@ -99,29 +81,6 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                     }
                 }
             }
-
-            var Module = window.Module;
-            var hqx_init = Module.cwrap("hqxInit");
-            var hqx_filter = Module.cwrap("hq" + 3 + "x_32", "number", ["number", "number", "number", "number"]);
-
-            var origWidth = 256;
-            var origHeight = 64;
-
-            var resWidth = origWidth * 3;
-            var resHeight = origHeight * 3;
-
-            var pixelCount = origWidth * origHeight;
-            var buf_from = Module._malloc(pixelCount * 4);
-            var buf_to = Module._malloc(pixelCount * 4 * (3 * 3));
-
-            copyAlphaToBufRGBA(currentLayer, Module.HEAPU8, buf_from, pixelCount);
-
-            hqx_filter(buf_from, buf_to, origWidth, origHeight);
-
-            copyBufRGBAToAlpha(currentLayer, Module.HEAPU8, buf_to, pixelCount * 3 * 3)
-
-            Module._free(buf_from);
-            Module._free(buf_to);
         }
         return megaTexture;
     }
@@ -159,7 +118,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             /* 2. Load alpha textures */
             var chunkCount = mcnkObjs.length;
             var maxAlphaTexPerChunk = 4;
-            var alphaTexSize = 64 * 3;
+            var alphaTexSize = 64;
 
             var texWidth = maxAlphaTexPerChunk * alphaTexSize;
             var texHeight = alphaTexSize;
@@ -171,8 +130,8 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
 
                 gl.bindTexture(gl.TEXTURE_2D, alphaTexture);
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, texWidth, texHeight, 0, gl.ALPHA, gl.UNSIGNED_BYTE, new Uint8Array(megaAlphaTexture[i]));
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 

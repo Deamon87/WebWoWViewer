@@ -68,10 +68,9 @@
             if (configService.getFileReadMethod() == 'http') {
                 var fullPath = configService.getUrlToLoadWoWFile() + filePath;
 
-                return $http.get(fullPath, {responseType: "arraybuffer"}).success(function(a) {
-                    return a;
-                })
-                .error(function(a){
+                return $http.get(fullPath, {responseType: "arraybuffer"}).then(function success(a) {
+                    return a.data;
+                }, function error(a){
                     return a;
                 });
 
