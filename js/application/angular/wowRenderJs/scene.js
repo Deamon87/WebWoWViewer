@@ -15,13 +15,16 @@
         'js.wow.render.wmoObjectFactory',
         'js.wow.render.adtObjectFactory',
         'js.wow.render.texture.textureCache',
-        'js.wow.render.camera.firstPersonCamera']);
+        'js.wow.render.camera.firstPersonCamera',
+        'js.wow.render.scene.graph']);
     scene.factory("scene", ['$q', '$timeout', '$http',
+            'graphManager',
             'wdtLoader',
             'adtM2ObjectFactory', 'adtObjectFactory', 'wmoObjectFactory',
             'wmoMainCache', 'wmoGeomCache', 'textureWoWCache', 'm2GeomCache', 'skinGeomCache', 'adtGeomCache',
             'firstPersonCamera',
         function ($q, $timeout, $http,
+                  graphManager,
                   wdtLoader,
                   adtM2ObjectFactory, adtObjectFactory, wmoObjectFactory,
                   wmoMainCache, wmoGeomCache, textureWoWCache, m2GeomCache, skinGeomCache, adtGeomCache,
@@ -47,23 +50,25 @@
 
 
             self.initGlContext(canvas);
+            self.initArrayInstancedExt();
             self.initShaders().then(function success() {
                 self.isShadersLoaded = true;
             }, function error(){
             });
             self.initSceneApi();
 
+
             if (self.enableDeferred) {
                 self.initDeferredRendering();
             }
 
             self.initBoxVBO();
-            self.initAdtTexCoords();
             self.initCaches();
             self.initCamera(canvas, document);
 
         }
         Scene.prototype = {
+            instancing_ext : null,
             compileShader : function(vectShaderString, fragmentShaderString) {
                 var gl = this.gl;
 
@@ -165,6 +170,13 @@
 
                 this.gl = gl;
                 this.canvas = canvas;
+            },
+            initArrayInstancedExt : function (){
+                var gl = this.gl;
+                var instancing_ext = gl.getExtension('ANGLE_instanced_arrays');
+                if (instancing_ext) {
+                    this.instancing_ext = instancing_ext;
+                }
             },
             initDeferredRendering : function (){
                 var gl = this.gl;
@@ -282,28 +294,6 @@
 
                 return $q.all(promisesArray)
             },
-            initAdtTexCoords : function () {
-                var coordinates = [];
-                var k = 0;
-                for (var j = 0; j < 17; j++) {
-                    var L;
-                    if ((j & 1) == 0) {
-                        L = 9;
-                    } else {
-                        L = 8;
-                    }
-                    for (var i = 0; i < L; i++) {
-                        var tx = (1/8) * i;
-                        var ty = (1/17)* j;
-                        if ((j&2) == 0) tx = tx+(0.5/8.0);
-
-                        coordinates[k] = tx; k++//*(0.99);
-                        coordinates[k] = ty; k++//*(0.99);
-                    }
-                }
-
-                this.adtTextureCoords = coordinates;
-            },
             initCaches : function (){
                 this.wmoGeomCache = new wmoGeomCache(this.sceneApi);
                 this.wmoMainCache = new wmoMainCache(this.sceneApi);
@@ -318,70 +308,84 @@
                     getGlContext: function () {
                         return self.gl;
                     },
-                    getShaderUniforms: function () {
-                        return self.currentShaderProgram.shaderUniforms;
-                    },
-                    getShaderAttributes: function () {
-                        return self.currentShaderProgram.shaderAttributes;
-                    },
-                    getAdtTexCoordinates : function () {
-                        return self.adtTextureCoords;
-                    },
                     getCurrentWdt : function (){
                         return self.currentWdt;
                     },
-                    loadAdtM2Obj : function (doodad){
-                        var deferred = $q.defer();
+                    extensions : {
+                        getInstancingExt : function (){
+                            return self.instancing_ext;
+                        }
+                    },
+                    shaders : {
+                        getShaderUniforms: function () {
+                            return self.currentShaderProgram.shaderUniforms;
+                        },
+                        getShaderAttributes: function () {
+                            return self.currentShaderProgram.shaderAttributes;
+                        }
+                    },
 
-                        var adtM2 = new adtM2ObjectFactory(this);
-                        adtM2.load(doodad, false);
-                        self.sceneObjectList.push(adtM2);
+                    objects : {
+                        loadAdtM2Obj : function (doodad){
+                            var deferred = $q.defer();
 
-                        deferred.resolve(adtM2);
+                            var adtM2 = new adtM2ObjectFactory(self.sceneApi);
+                            adtM2.load(doodad, false);
+                            graphManager.addAdtM2Object(adtM2);
 
-                        return deferred.promise;
-                    },
-                    loadAdtWmo : function (wmoDef){
-                        var wmoObject = new wmoObjectFactory(self.sceneApi);
-                        wmoObject.load(wmoDef);
+                            deferred.resolve(adtM2);
 
-                        self.sceneObjectList.push(wmoObject);
+                            return deferred.promise;
+                        },
+                        loadAdtWmo : function (wmoDef){
+                            var wmoObject = new wmoObjectFactory(self.sceneApi);
+                            wmoObject.load(wmoDef);
+
+                            graphManager.addWmoObject(wmoObject);
+                        },
+                        loadWmoM2Obj : function (doodadDef){
+
+
+                            graphManager.addWmoObject(wmoObject);
+                        }
                     },
-                    loadTexture: function (fileName) {
-                        return self.textureCache.loadTexture(fileName);
-                    },
-                    unLoadTexture: function (fileName) {
-                        self.textureCache.unLoadTexture(fileName);
-                    },
-                    loadWmoMain: function (fileName) {
-                        return self.wmoMainCache.loadWmoMain(fileName);
-                    },
-                    unloadWmoMain: function (fileName) {
-                        self.wmoMainCache.unloadWmoMain(fileName);
-                    },
-                    loadWmoGeom: function (fileName) {
-                        return self.wmoGeomCache.loadWmoGeom(fileName);
-                    },
-                    unloadWmoGeom: function (fileName) {
-                        self.wmoGeomCache.unLoadWmoGeom(fileName);
-                    },
-                    loadM2Geom: function (fileName) {
-                        return self.m2GeomCache.loadM2(fileName);
-                    },
-                    unloadM2Geom: function (fileName) {
-                        self.m2GeomCache.unLoadM2(fileName);
-                    },
-                    loadSkinGeom: function (fileName) {
-                        return self.skinGeomCache.loadSkin(fileName);
-                    },
-                    unloadSkinGeom: function (fileName) {
-                        self.skinGeomCache.unLoadSkin(fileName);
-                    },
-                    loadAdtGeom: function (fileName) {
-                        return self.adtGeomCache.loadAdt(fileName);
-                    },
-                    unloadAdtGeom: function (fileName) {
-                        self.adtGeomCache.unLoadAdt(fileName);
+                    resources : {
+                        loadTexture: function (fileName) {
+                            return self.textureCache.loadTexture(fileName);
+                        },
+                        unLoadTexture: function (fileName) {
+                            self.textureCache.unLoadTexture(fileName);
+                        },
+                        loadWmoMain: function (fileName) {
+                            return self.wmoMainCache.loadWmoMain(fileName);
+                        },
+                        unloadWmoMain: function (fileName) {
+                            self.wmoMainCache.unloadWmoMain(fileName);
+                        },
+                        loadWmoGeom: function (fileName) {
+                            return self.wmoGeomCache.loadWmoGeom(fileName);
+                        },
+                        unloadWmoGeom: function (fileName) {
+                            self.wmoGeomCache.unLoadWmoGeom(fileName);
+                        },
+                        loadM2Geom: function (fileName) {
+                            return self.m2GeomCache.loadM2(fileName);
+                        },
+                        unloadM2Geom: function (fileName) {
+                            self.m2GeomCache.unLoadM2(fileName);
+                        },
+                        loadSkinGeom: function (fileName) {
+                            return self.skinGeomCache.loadSkin(fileName);
+                        },
+                        unloadSkinGeom: function (fileName) {
+                            self.skinGeomCache.unLoadSkin(fileName);
+                        },
+                        loadAdtGeom: function (fileName) {
+                            return self.adtGeomCache.loadAdt(fileName);
+                        },
+                        unloadAdtGeom: function (fileName) {
+                            self.adtGeomCache.unLoadAdt(fileName);
+                        }
                     }
                 };
             },
@@ -452,7 +456,7 @@
                 this.glClearScreen(gl);
                 gl.activeTexture(gl.TEXTURE0);
 
-                //this.stats.begin();
+                this.stats.begin();
 
                 //1. Draw bounding boxes
                 this.currentShaderProgram = this.bbShader;
@@ -516,7 +520,7 @@
                         sceneObject.draw(deltaTime);
                     }
                 }
-               // this.stats.end();
+                this.stats.end();
 
                 return cameraVecs;
             },

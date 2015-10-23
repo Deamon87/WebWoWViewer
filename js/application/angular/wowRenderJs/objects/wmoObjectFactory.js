@@ -15,7 +15,7 @@
         WmoObject.prototype = {
             loadGeom : function (num, filename){
                 var self = this;
-                self.sceneApi.loadWmoGeom(filename).then(
+                self.sceneApi.resources.loadWmoGeom(filename).then(
                     function success(wmoGeom){
                         self.wmoGroupArray[num] = wmoGeom;
 
@@ -102,7 +102,7 @@
 
                 self.doodadsArray[index] = new wmoM2ObjectFactory(self.sceneApi);
                 var useLocalLighting = self.checkIfUseLocalLighting(doodad.pos);
-                self.doodadsArray[index].load(doodad, self.placementMatrix, useLocalLighting);
+                return self.doodadsArray[index].load(doodad, self.placementMatrix, useLocalLighting);
             },
             load : function (modf){
                 var deferred = $q.defer();
@@ -114,7 +114,7 @@
                 /* 1. Create matrix */
                 self.createPlacementMatrix(modf);
 
-                var wmoMailPromise = self.sceneApi.loadWmoMain(filename);
+                var wmoMailPromise = self.sceneApi.resources.loadWmoMain(filename);
                 wmoMailPromise.then(function success(wmoObj){
                     self.wmoObj = wmoObj;
                     self.wmoGroupArray = [];
@@ -143,7 +143,7 @@
             },
             drawBB : function () {
                 var gl = this.sceneApi.getGlContext();
-                var uniforms = this.sceneApi.getShaderUniforms();
+                var uniforms = this.sceneApi.shaders.getShaderUniforms();
 
                 for (var i = 0; i < this.wmoGroupArray.length; i++){
                     var groupInfo = this.wmoObj.groupInfos[i];
@@ -172,7 +172,7 @@
             draw : function () {
                 /* Draw */
                 var gl = this.sceneApi.getGlContext();
-                var uniforms = this.sceneApi.getShaderUniforms();
+                var uniforms = this.sceneApi.shaders.getShaderUniforms();
 
                 if (this.placementMatrix) {
                     gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
@@ -182,13 +182,6 @@
                     if (this.wmoGroupArray[i]){
                         this.wmoGroupArray[i].draw();
                     }
-                }
-
-                for (var i = 0; i < this.doodadsArray.length; i++) {
-                    //if (i != window.dboNumber){
-                    //    continue;
-                    //}
-                    this.doodadsArray[i].draw()
                 }
             }
         };

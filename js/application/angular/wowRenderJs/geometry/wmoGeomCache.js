@@ -26,7 +26,7 @@
         this.loadTexture = function(index, filename){
             var self = this;
 
-            sceneApi.loadTexture(filename).then(function success(textObject){
+            sceneApi.resources.loadTexture(filename).then(function success(textObject){
                 self.textureArray[index] = textObject;
             }, function error(){
             });
@@ -77,8 +77,8 @@
 
         this.draw = function(){
             var gl = this.gl;
-            var shaderUniforms = this.sceneApi.getShaderUniforms();
-            var shaderAttributes = this.sceneApi.getShaderAttributes();
+            var shaderUniforms = this.sceneApi.shaders.getShaderUniforms();
+            var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
             var wmoGroupObject = this.wmoGroupFile;
             var isIndoor = (wmoGroupObject.mogp.Flags & 0x2000) > 0;

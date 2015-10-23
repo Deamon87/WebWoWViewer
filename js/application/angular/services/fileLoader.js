@@ -71,7 +71,6 @@
                 return $http.get(fullPath, {responseType: "arraybuffer"}).then(function success(a) {
                     return a.data;
                 }, function error(a){
-                    return a;
                 });
 
             } else if (configService.getFileReadMethod() == 'zip') {

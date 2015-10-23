@@ -17,7 +17,7 @@
                     //for (var i = 0; i < (doodadsSet.doodads.length > 10) ? 10 : doodadsSet.doodads.length; i++) {
                     var doodad = m2Positions[i];
                     //this.loadM2(i, doodad);
-                    this.sceneApi.loadAdtM2Obj(doodad);
+                    this.sceneApi.objects.loadAdtM2Obj(doodad);
                 }
             },
             loadM2 : function (index, doodad) {
@@ -33,18 +33,18 @@
                 this.wmoArray = [];
 
                 wmoPositions.forEach(function(wmoDef) {
-                    self.sceneApi.loadAdtWmo(wmoDef);
+                    self.sceneApi.objects.loadAdtWmo(wmoDef);
                 });
             },
             load: function (modelName) {
                 var self = this;
 
-                var adtPromise = this.sceneApi.loadAdtGeom(modelName);
+                var adtPromise = this.sceneApi.resources.loadAdtGeom(modelName);
                 adtPromise.then( function (result) {
                     self.adtGeom = result;
 
-                    //self.loadM2s();
-                    //self.loadWmos();
+                    self.loadM2s();
+                    self.loadWmos();
                 });
             },
             draw : function (deltaTime){

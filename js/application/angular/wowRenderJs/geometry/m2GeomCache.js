@@ -13,8 +13,6 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
         sceneApi : null,
         gl : null,
         combinedVBO : null,
-        vao : null,
-        vaoExt : null,
         textureArray : [],
 
         assign: function (m2File) {
@@ -29,7 +27,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
         },
         loadTexture : function(index, filename){
             var self = this;
-            this.sceneApi.loadTexture(filename).then(function success(textObject){
+            this.sceneApi.resources.loadTexture(filename).then(function success(textObject){
                 self.textureArray[index] = textObject;
             }, function error(){
             });
@@ -44,21 +42,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
             /* Index is taken from skin object */
         },
-        createVAO: function (gl, skinObject){
-            var ext = gl.getExtension("OES_vertex_array_object"); // Vendor prefixes may apply!
-            if (ext) {
-                var vao = ext.createVertexArrayOES();
-                ext.bindVertexArrayOES(vao);
-
-                this.setupAttributes(gl, skinObject);
-
-                ext.bindVertexArrayOES(null);
-            }
-
-            return {vao : vao, ext : ext};
-        },
         setupAttributes : function(gl, skinObject){
-            var shaderAttributes = this.sceneApi.getShaderAttributes();
+            var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
 
@@ -88,8 +73,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
         draw : function (skinObject, submeshArray, placementMatrix, colorVector, subMeshColors, vao, vaoExt) {
             var gl = this.gl;
             var m2Object = this.m2File;
-            var uniforms = this.sceneApi.getShaderUniforms();
-            var shaderAttributes = this.sceneApi.getShaderAttributes();
+            var uniforms = this.sceneApi.shaders.getShaderUniforms();
+            var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
             gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
             //gl.uniform4f(uniforms.uGlobalLighting, colorVector[0], colorVector[1],colorVector[2],colorVector[3]);
@@ -116,14 +101,12 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                                         submeshColor[3])
 
                                 } else {
-
                                     gl.vertexAttrib4f(shaderAttributes.aColor,
                                         colorVector[0],
                                         colorVector[1],
                                         colorVector[2],
                                         colorVector[3]);
 
-                                    //gl.vertexAttrib4f(shaderAttributes.aColor, 1, 1, 1, 1);
                                 }
 
                                 var renderFlagIndex = skinObject.skinFile.header.texs[submeshArray[i].texUnit1TexIndex].renderFlagIndex;

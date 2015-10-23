@@ -9,6 +9,7 @@
         }
         MDXObject.prototype = {
             sceneApi : null,
+            subMeshColors : null,
             load : function (modelName, skinNum, submeshRenderData){
                 var self = this;
 
@@ -16,10 +17,10 @@
                 var modelFileName = nameTemplate + '.m2';
                 var skinFileName = nameTemplate + '00.skin';
 
-                var m2Promise = this.sceneApi.loadM2Geom(modelFileName);
-                var skinPromise = this.sceneApi.loadSkinGeom(skinFileName);
+                var m2Promise = this.sceneApi.resources.loadM2Geom(modelFileName);
+                var skinPromise = this.sceneApi.resources.loadSkinGeom(skinFileName);
 
-                $q.all([m2Promise,skinPromise]).then(function(result){
+                return $q.all([m2Promise,skinPromise]).then(function(result){
                     var m2Geom = result[0];
                     var skinGeom = result[1];
 
@@ -30,7 +31,7 @@
                         $log.log("m2 file failed to load : "+ modelName);
                     } else {
                         var gl = self.sceneApi.getGlContext();
-                        //var result = self.m2Geom.createVAO(gl, skinGeom);
+                        //var result = self.createVAO(gl, m2Geom, skinGeom);
                         //self.vao = result.vao;
                         //self.vaoExt = result.ext;
 
@@ -77,7 +78,7 @@
                         /* 2.2. Assign and load textures */
                         if (mdxTextureDefinition.texType === 0) {
                             (function (submeshData, mdxTextureDefinition, textureIndex) {
-                                self.sceneApi.loadTexture(mdxTextureDefinition.textureName)
+                                self.sceneApi.resources.loadTexture(mdxTextureDefinition.textureName)
                                     .then(function success(textObject) {
                                         submeshData.texUnit1Texture = textObject;
                                         submeshData.texUnit1TexIndex = textureIndex;
@@ -90,6 +91,19 @@
                 }
 
                 this.submeshArray = submeshArray;
+            },
+            createVAO: function (gl, m2Geom, skinObject){
+                var ext = gl.getExtension("OES_vertex_array_object"); // Vendor prefixes may apply!
+                if (ext) {
+                    var vao = ext.createVertexArrayOES();
+                    ext.bindVertexArrayOES(vao);
+
+                    m2Geom.setupAttributes(gl, skinObject);
+
+                    ext.bindVertexArrayOES(null);
+                }
+
+                return {vao : vao, ext : ext};
             },
             getSubMeshColor : function (deltaTime) {
                 var colors = this.m2Geom.m2File.colors;
@@ -109,32 +123,18 @@
                     return null;
                 }
             },
+            update : function(deltaTime) {
+                var subMeshColors = this.getSubMeshColor(deltaTime);
+                this.subMeshColors = subMeshColors;
+            },
             draw : function (deltaTime, placementMatrix, color){
                 var colorVector = [color&0xff, (color>> 8)&0xff,
                     (color>>16)&0xff, (color>> 24)&0xff];
                 colorVector[0] /= 255.0; colorVector[1] /= 255.0;
                 colorVector[2] /= 255.0; colorVector[3] /= 255.0;
 
-                //colorVector = [colorVector[0]*2, colorVector[1]*2,colorVector[2]*2, colorVector[3]*2];
-                /*
-                var color2 = 4280361249;
-                var colorVector2 = [color2&0xff, (color2>> 8)&0xff,
-                    (color2>>16)&0xff, (color2>> 24)&0xff];
-                colorVector2[0] /= 255.0; colorVector2[1] /= 255.0;
-                colorVector2[2] /= 255.0; colorVector2[3] /= 255.0;
-
-                colorVector = [
-                    colorVector[0]*colorVector2[3]+ (1.0 - colorVector2[3])*colorVector2[0],
-                    colorVector[1]*colorVector2[3]+ (1.0 - colorVector2[3])*colorVector2[0],
-                    colorVector[2]*colorVector2[3]+ (1.0 - colorVector2[3])*colorVector2[0],
-                    colorVector[3]*colorVector2[3]+ (1.0 - colorVector2[3])*colorVector2[0]];
-                 */
-
-
                 if ((this.m2Geom) && (this.skinGeom)) {
-                    var subMeshColors = this.getSubMeshColor(deltaTime);
-
-                    this.m2Geom.draw(this.skinGeom, this.submeshArray, placementMatrix, colorVector, subMeshColors, this.vao, this.vaoExt);
+                    this.m2Geom.draw(this.skinGeom, this.submeshArray, placementMatrix, colorVector, this.subMeshColors, this.vao, this.vaoExt);
                 }
             }
         };

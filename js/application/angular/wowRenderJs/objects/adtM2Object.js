@@ -56,7 +56,7 @@
                 self.mddf = mddf;
 
                 self.createPlacementMatrix(mddf);
-                self.mdxObject.load(mddf.fileName, 0);
+                return self.mdxObject.load(mddf.fileName, 0);
             }
         };
 

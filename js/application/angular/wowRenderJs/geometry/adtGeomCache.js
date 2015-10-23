@@ -145,7 +145,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
         },
         loadTexture : function(index, layerInd, filename){
             var self = this;
-            this.sceneApi.loadTexture(filename).then(function success(textObject){
+            this.sceneApi.resources.loadTexture(filename).then(function success(textObject){
                 self.textureArray[index][layerInd] = textObject;
             }, function error(){
             });
@@ -223,14 +223,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
                 }
             }
 
-            /* 1.3 texCoords */
-            this.textOffset = vboArray.length;
-            var coords = this.sceneApi.getAdtTexCoordinates();
-            for (var i = 0; i < coords.length; i++) {
-                vboArray.push(coords[i]);
-            }
-
-            /* 1.4 Make combinedVbo */
+            /* 1.3 Make combinedVbo */
             this.combinedVbo = gl.createBuffer();
             gl.bindBuffer( gl.ARRAY_BUFFER, this.combinedVbo);
             gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(vboArray), gl.STATIC_DRAW );
@@ -243,18 +236,16 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
         draw : function () {
             var gl = this.gl;
             var stripOffsets = this.triangleStrip.stripOffsets;
-            var shaderUniforms = this.sceneApi.getShaderUniforms();
-            var shaderAttributes = this.sceneApi.getShaderAttributes();
+            var shaderUniforms = this.sceneApi.shaders.getShaderUniforms();
+            var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.stripVBO);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.combinedVbo);
 
             gl.enableVertexAttribArray(shaderAttributes.aHeight);
             gl.enableVertexAttribArray(shaderAttributes.aIndex);
-            gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
 
             gl.vertexAttribPointer(shaderAttributes.aIndex,  1, gl.FLOAT, false, 0, this.indexOffset*4);
-            gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 0, this.textOffset*4);
 
             //Draw
             var mcnkObjs = this.adtFile.mcnkObjs;

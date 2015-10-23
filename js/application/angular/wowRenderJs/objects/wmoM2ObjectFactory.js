@@ -19,8 +19,7 @@
             createPlacementMatrix : function(doodad, wmoPlacementMatrix){
                 var placementMatrix = mat4.create();
                 mat4.identity(placementMatrix);
-
-                mat4.multiply(placementMatrix,placementMatrix, wmoPlacementMatrix);
+                mat4.multiply(placementMatrix, placementMatrix, wmoPlacementMatrix);
 
                 // with FPosition do glTranslatef(x,y,z);
                 mat4.translate(placementMatrix, placementMatrix, [doodad.pos.x,doodad.pos.y,doodad.pos.z]);
@@ -54,7 +53,7 @@
                     self.diffuseColor = 0xffffffff;
                 }
                 self.createPlacementMatrix(doodad, wmoPlacementMatrix);
-                self.mdxObject.load(doodad.modelName, 0);
+                return self.mdxObject.load(doodad.modelName, 0);
             }
         };
 
