@@ -88,6 +88,9 @@
             },
             loadDoodads : function (doodadsInd){
                 var self = this;
+                if (!self.wmoObj.modd) {
+                    return;
+                }
                 var doodadsSet = self.wmoObj.modd[doodadsInd];
 
                 this.doodadsArray = [];
@@ -100,9 +103,8 @@
             loadDoodad : function (index, doodad) {
                 var self = this;
 
-                self.doodadsArray[index] = new wmoM2ObjectFactory(self.sceneApi);
                 var useLocalLighting = self.checkIfUseLocalLighting(doodad.pos);
-                return self.doodadsArray[index].load(doodad, self.placementMatrix, useLocalLighting);
+                return self.sceneApi.objects.loadWmoM2Obj(doodad, self.placementMatrix, useLocalLighting);
             },
             load : function (modf){
                 var deferred = $q.defer();

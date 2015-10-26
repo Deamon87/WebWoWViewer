@@ -56,6 +56,7 @@
             }, function error(){
             });
             self.initSceneApi();
+            self.initSceneGraph();
 
 
             if (self.enableDeferred) {
@@ -302,6 +303,9 @@
                 this.skinGeomCache = new skinGeomCache(this.sceneApi);
                 this.adtGeomCache = new adtGeomCache(this.sceneApi);
             },
+            initSceneGraph : function () {
+                this.graphManager = new graphManager(this.sceneApi);
+            },
             initSceneApi : function() {
                 var self = this;
                 this.sceneApi = {
@@ -343,10 +347,10 @@
 
                             graphManager.addWmoObject(wmoObject);
                         },
-                        loadWmoM2Obj : function (doodadDef){
+                        loadWmoM2Obj : function (doodadDef, placementMatrix, useLocalLightning){
 
 
-                            graphManager.addWmoObject(wmoObject);
+                            graphManager.addWmoM2Object(doodadDef, placementMatrix, useLocalLightning);
                         }
                     },
                     resources : {
@@ -542,9 +546,7 @@
 
                     self.sceneAdts = [adtObject];
                 }, function error(){
-
                 })
-
             },
             setCameraPos : function (x, y, z) {
                 this.camera.setCameraPos(x,y,z);

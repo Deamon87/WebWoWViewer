@@ -31,7 +31,7 @@
                     },
                     processChunk : function (chunk, resultObj){
                         var sectionHandlerProc = sectionReaders.getHandler(chunk.chunkIdent);
-                        if (sectionHandlerProc){
+                        if (sectionHandlerProc && chunk.chunkLen !== 0){
                             if (typeof sectionHandlerProc === 'function') {
                                 sectionHandlerProc(resultObj, chunk, this);
                             } else {
