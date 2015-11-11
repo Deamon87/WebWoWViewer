@@ -123,10 +123,32 @@
                     return null;
                 }
             },
+            getMeshesToRender : function() {
+                var meshesToRender = [];
+
+                for (var i = 0; i < this.submeshArray.length; i++) {
+                    if (this.submeshArray[i].isRendered) continue;
+
+                    var mesh = {
+                        m2Object : this,
+                        skin : this.skinGeom,
+                        meshIndex : i,
+                        color : this.subMeshColors[i],
+                        transparency : 0,
+                        animationMatrix : null
+                    };
+
+                    meshesToRender.push(mesh);
+                }
+
+                return meshesToRender;
+            },
             update : function(deltaTime) {
                 var subMeshColors = this.getSubMeshColor(deltaTime);
                 this.subMeshColors = subMeshColors;
             },
+
+
             draw : function (deltaTime, placementMatrix, color){
                 var colorVector = [color&0xff, (color>> 8)&0xff,
                     (color>>16)&0xff, (color>> 24)&0xff];

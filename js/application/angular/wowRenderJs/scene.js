@@ -321,36 +321,33 @@
                         }
                     },
                     shaders : {
+                        activateAdtShader : function () {
+                            self.activateAdtShader();
+                        },
+                        activateWMOShader : function () {
+                            self.activateWMOShader()
+                        },
                         getShaderUniforms: function () {
                             return self.currentShaderProgram.shaderUniforms;
                         },
                         getShaderAttributes: function () {
                             return self.currentShaderProgram.shaderAttributes;
                         }
+
                     },
 
                     objects : {
                         loadAdtM2Obj : function (doodad){
-                            var deferred = $q.defer();
-
-                            var adtM2 = new adtM2ObjectFactory(self.sceneApi);
-                            adtM2.load(doodad, false);
-                            graphManager.addAdtM2Object(adtM2);
-
-                            deferred.resolve(adtM2);
-
-                            return deferred.promise;
+                            return graphManager.addAdtM2Object(doodad);
                         },
                         loadAdtWmo : function (wmoDef){
-                            var wmoObject = new wmoObjectFactory(self.sceneApi);
-                            wmoObject.load(wmoDef);
-
-                            graphManager.addWmoObject(wmoObject);
+                            return graphManager.addWmoObject(wmoDef);
                         },
                         loadWmoM2Obj : function (doodadDef, placementMatrix, useLocalLightning){
-
-
-                            graphManager.addWmoM2Object(doodadDef, placementMatrix, useLocalLightning);
+                            return graphManager.addWmoM2Object(doodadDef, placementMatrix, useLocalLightning);
+                        },
+                        loadAdtChunk: function(mapName, x, y) {
+                            return graphManager.addADTObject(mapName, x, y)
                         }
                     },
                     resources : {
@@ -444,48 +441,10 @@
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.disable(gl.CULL_FACE);
             },
-            draw : function (deltaTime) {
-                var gl = this.gl;
-
-                var cameraVecs = this.camera.tick(deltaTime);
-
-                var lookAtMat4 = [];
-                mat4.lookAt(lookAtMat4, cameraVecs.cameraVec3, cameraVecs.lookAtVec3, [0,0,1]);
-
-                var perspectiveMatrix = [];
-                mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000  );
-
-                if (!this.isShadersLoaded) return;
-
-                this.glClearScreen(gl);
-                gl.activeTexture(gl.TEXTURE0);
-
-                this.stats.begin();
-
-                //1. Draw bounding boxes
-                this.currentShaderProgram = this.bbShader;
-                if (this.currentShaderProgram) {
-                    gl.useProgram(this.currentShaderProgram.program);
-
-                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bbBoxVars.ibo_elements);
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this.bbBoxVars.vbo_vertices);
-
-                    gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.aPosition);
-                    gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0);  // position
-
-                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
-                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
-
-                    for (var i = 0; i < this.sceneObjectList.length; i++) {
-                        var sceneObject = this.sceneObjectList[i];
-                        sceneObject.drawBB();
-                    }
-                }
-
-                //2. Draw scene
-                //2.1 Draw ADTs
+            activateAdtShader : function(){
                 this.currentShaderProgram = this.adtShader;
                 if (this.currentShaderProgram) {
+                    var gl = this.gl;
                     gl.useProgram(this.currentShaderProgram.program);
 
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
@@ -502,32 +461,67 @@
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer1, 2);
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer2, 3);
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer3, 4);
-
-                    for (var i = 0; i < this.sceneAdts.length; i++){
-                        this.sceneAdts[i].draw();
-                    }
                 }
-
-                //2.2 Draw scene
+            },
+            activateWMOShader : function() {
                 this.currentShaderProgram = this.wmoShader;
                 if (this.currentShaderProgram) {
+                    var gl = this.gl;
                     gl.useProgram(this.currentShaderProgram.program);
 
-                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
-                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
 
                     gl.activeTexture(gl.TEXTURE0);
-
-                    var i;
-                    for (i = 0; i < this.sceneObjectList.length; i++) {
-                        var sceneObject = this.sceneObjectList[i];
-                        sceneObject.draw(deltaTime);
-                    }
                 }
+            },
+            activateBoundingBoxShader : function () {
+                this.currentShaderProgram = this.bbShader;
+                if (this.currentShaderProgram) {
+                    var gl = this.gl;
+                    gl.useProgram(this.currentShaderProgram.program);
+
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bbBoxVars.ibo_elements);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.bbBoxVars.vbo_vertices);
+
+                    gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.aPosition);
+                    gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0);  // position
+
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
+                }
+            },
+
+
+            draw : function (deltaTime) {
+                var gl = this.gl;
+
+                var cameraVecs = this.camera.tick(deltaTime);
+
+                var lookAtMat4 = [];
+                mat4.lookAt(lookAtMat4, cameraVecs.cameraVec3, cameraVecs.lookAtVec3, [0,0,1]);
+
+                var perspectiveMatrix = [];
+                mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000  );
+
+                this.perspectiveMatrix = perspectiveMatrix;
+                this.lookAtMat4 = lookAtMat4;
+
+                if (!this.isShadersLoaded) return;
+
+                this.glClearScreen(gl);
+                gl.activeTexture(gl.TEXTURE0);
+
+                this.stats.begin();
+
+
                 this.stats.end();
 
                 return cameraVecs;
             },
+
+
+
             loadWMOMap : function(filename){
                 var wmoObject = new wmoObjectFactory(this.sceneApi);
                 wmoObject.load(filename, 0);
