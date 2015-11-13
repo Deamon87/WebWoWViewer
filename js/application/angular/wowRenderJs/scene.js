@@ -338,16 +338,16 @@
 
                     objects : {
                         loadAdtM2Obj : function (doodad){
-                            return graphManager.addAdtM2Object(doodad);
+                            return self.graphManager.addAdtM2Object(doodad);
                         },
                         loadAdtWmo : function (wmoDef){
-                            return graphManager.addWmoObject(wmoDef);
+                            return self.graphManager.addWmoObject(wmoDef);
                         },
                         loadWmoM2Obj : function (doodadDef, placementMatrix, useLocalLightning){
-                            return graphManager.addWmoM2Object(doodadDef, placementMatrix, useLocalLightning);
+                            return self.graphManager.addWmoM2Object(doodadDef, placementMatrix, useLocalLightning);
                         },
-                        loadAdtChunk: function(mapName, x, y) {
-                            return graphManager.addADTObject(mapName, x, y)
+                        loadAdtChunk: function(fileName) {
+                            return self.graphManager.addADTObject(fileName)
                         }
                     },
                     resources : {
@@ -447,8 +447,8 @@
                     var gl = this.gl;
                     gl.useProgram(this.currentShaderProgram.program);
 
-                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, lookAtMat4);
-                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, perspectiveMatrix);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
 
                     if (this.currentWdt && ((this.currentWdt.flags & 0x04) > 0)) {
                         gl.uniform1i(this.currentShaderProgram.shaderUniforms.uNewFormula, 1);
@@ -514,6 +514,8 @@
 
                 this.stats.begin();
 
+                this.graphManager.update(deltaTime);
+                this.graphManager.draw();
 
                 this.stats.end();
 
@@ -535,10 +537,8 @@
                 wdtLoader(wdtFileName).then(function success(wdtFile){
                     self.currentWdt = wdtFile;
                     var adtFileName = "world/maps/"+mapName+"/"+mapName+"_"+x+"_"+y+".adt";
-                    var adtObject = new adtObjectFactory(self.sceneApi);
-                    adtObject.load(adtFileName);
+                    self.graphManager.addADTObject(adtFileName);
 
-                    self.sceneAdts = [adtObject];
                 }, function error(){
                 })
             },

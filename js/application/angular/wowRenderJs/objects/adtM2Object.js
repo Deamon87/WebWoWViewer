@@ -13,11 +13,18 @@
             sceneApi : null,
             mdxObject : null,
 
+            getMeshesToRender : function () {
+                if (!this.mdxObject) return null;
+                return this.mdxObject.getMeshesToRender();
+            },
             drawBB : function (){
 
             },
-            draw : function (deltaTime) {
-                this.mdxObject.draw(deltaTime, this.placementMatrix, 0xffffffff);
+            draw : function () {
+                this.mdxObject.draw(this.placementMatrix, 0xffffffff);
+            },
+            update : function(deltaTime) {
+                this.mdxObject.update(deltaTime);
             },
             createPlacementMatrix : function(mddf){
                 var TILESIZE = 533.333333333;

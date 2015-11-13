@@ -13,8 +13,15 @@
             sceneApi : null,
             mdxObject : null,
 
-            draw : function (deltaTime) {
-                this.mdxObject.draw(deltaTime, this.placementMatrix, this.diffuseColor);
+            getMeshesToRender : function () {
+                if (!this.mdxObject) return null;
+                return this.mdxObject.getMeshesToRender();
+            },
+            update: function (deltaTime) {
+                this.mdxObject.update(deltaTime);
+            },
+            draw : function () {
+                this.mdxObject.draw(this.placementMatrix, this.diffuseColor);
             },
             createPlacementMatrix : function(doodad, wmoPlacementMatrix){
                 var placementMatrix = mat4.create();

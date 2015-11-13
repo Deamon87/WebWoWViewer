@@ -171,6 +171,9 @@
                 }
 
             },
+            update : function () {
+
+            },
             draw : function () {
                 /* Draw */
                 var gl = this.sceneApi.getGlContext();
