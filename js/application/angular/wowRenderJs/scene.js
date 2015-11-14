@@ -514,6 +514,14 @@
 
                 this.stats.begin();
 
+                this.graphManager.setCameraPos(
+                    vec4.fromValues(
+                        cameraVecs.cameraVec3[0],
+                        cameraVecs.cameraVec3[1],
+                        cameraVecs.cameraVec3[2],
+                        0
+                    )
+                );
                 this.graphManager.update(deltaTime);
                 this.graphManager.draw();
 

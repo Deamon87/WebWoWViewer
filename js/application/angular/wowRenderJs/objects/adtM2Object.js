@@ -20,6 +20,12 @@
             drawBB : function (){
 
             },
+            drawTransparentMeshes : function () {
+                this.mdxObject.drawTransparentMeshes(this.placementMatrix, 0xffffffff);
+            },
+            drawNonTransparentMeshes : function () {
+                this.mdxObject.drawNonTransparentMeshes(this.placementMatrix, 0xffffffff);
+            },
             draw : function () {
                 this.mdxObject.draw(this.placementMatrix, 0xffffffff);
             },
@@ -57,12 +63,22 @@
                 this.placementInvertMatrix = placementInvertMatrix;
                 this.placementMatrix = placementMatrix;
             },
+            calcOwnPosition : function () {
+                var position = vec4.fromValues(0,0,0,1);
+                vec4.transformMat4(position, position, this.placementMatrix);
+
+                this.position = position;
+            },
+            calcDistance : function (position) {
+                return vec4.distance(position, this.position);
+            },
             load : function (mddf){
                 var self = this;
 
                 self.mddf = mddf;
 
                 self.createPlacementMatrix(mddf);
+                self.calcOwnPosition();
                 return self.mdxObject.load(mddf.fileName, 0);
             }
         };

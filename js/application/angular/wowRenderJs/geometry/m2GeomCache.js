@@ -42,7 +42,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
             /* Index is taken from skin object */
         },
-        setupAttributes : function(gl, skinObject){
+        setupAttributes : function(skinObject){
+            var gl = this.gl;
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
@@ -70,88 +71,103 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             //gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 48, 20); // normal
             gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 48, 32); // texcoord
         },
+        setupUniforms : function (placementMatrix) {
+            var gl = this.gl;
+            var uniforms = this.sceneApi.shaders.getShaderUniforms();
+            gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
+        },
         draw : function (skinObject, submeshArray, placementMatrix, colorVector, subMeshColors, vao, vaoExt) {
             var gl = this.gl;
             var m2Object = this.m2File;
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-            gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
+            this.setupUniforms(placementMatrix);
+
             //gl.uniform4f(uniforms.uGlobalLighting, colorVector[0], colorVector[1],colorVector[2],colorVector[3]);
 
             //if (!vao) {
-                this.setupAttributes(gl, skinObject);
+                this.setupAttributes(skinObject);
             //} else {
             //    vaoExt.bindVertexArrayOES(vao);
             //}
 
             if (submeshArray) {
                 for (var i = 0; i < submeshArray.length; i++) {
-                    if (submeshArray[i].isRendered) {
-                        if (submeshArray[i].texUnit1Texture) {
-                            //try {
-                                var colorIndex = skinObject.skinFile.header.texs[submeshArray[i].texUnit1TexIndex].colorIndex;
-                                if ((colorIndex > 0) && (subMeshColors)) {
-                                    var submeshColor = subMeshColors[colorIndex];
-
-                                    gl.vertexAttrib4f(shaderAttributes.aColor,
-                                        submeshColor[0],
-                                        submeshColor[1],
-                                        submeshColor[2],
-                                        submeshColor[3])
-
-                                } else {
-                                    gl.vertexAttrib4f(shaderAttributes.aColor,
-                                        colorVector[0],
-                                        colorVector[1],
-                                        colorVector[2],
-                                        colorVector[3]);
-
-                                }
-
-                                var renderFlagIndex = skinObject.skinFile.header.texs[submeshArray[i].texUnit1TexIndex].renderFlagIndex;
-                                switch (m2Object.renderFlags[renderFlagIndex].blend) {
-                                    case 0 : //BM_OPAQUE
-                                        gl.disable(gl.BLEND);
-                                        gl.uniform1f(uniforms.uAlphaTest, -1.0);
-                                        break;
-                                    case 1 : //BM_TRANSPARENT
-                                        gl.disable(gl.BLEND);
-                                        //gl.uniform1f(uniforms.uAlphaTest, 2.9);
-                                        gl.uniform1f(uniforms.uAlphaTest, 0.903921569);
-                                        break;
-                                    case 2 : //BM_ALPHA_BLEND
-                                        gl.uniform1f(uniforms.uAlphaTest, -1);
-                                        gl.enable(gl.BLEND);
-                                        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // default blend func
-                                        break;
-                                    case 3 : //BM_ADDITIVE
-                                        gl.uniform1f(uniforms.uAlphaTest, -1);
-                                        gl.enable(gl.BLEND);
-                                        gl.blendFunc(gl.SRC_COLOR, gl.ONE);
-                                        break;
-                                    case 4 : //BM_ADDITIVE_ALPHA
-                                        gl.uniform1f(uniforms.uAlphaTest, -1);
-                                        gl.enable(gl.BLEND);
-                                        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-                                        break;
-                                    default :
-                                        gl.uniform1f(uniforms.uAlphaTest, -1);
-                                        gl.enable(gl.BLEND);
-                                        gl.blendFunc(gl.DST_COLOR, gl.SRC_COLOR);
-
-                                        break;
-                                }
-                            //}catch (e) {
-                            //    debugger;
-                            //}
-                            gl.bindTexture(gl.TEXTURE_2D, submeshArray[i].texUnit1Texture.texture);
-                            gl.drawElements(gl.TRIANGLES, skinObject.skinFile.header.subMeshes[i].idxCount, gl.UNSIGNED_SHORT, skinObject.skinFile.header.subMeshes[i].idxStart * 2);
-                        }
-                    }
+                    this.drawMesh(i, submeshArray[i], skinObject, subMeshColors)
                 }
             }
             gl.uniform1f(uniforms.uAlphaTest, -1);
+        },
+        drawMesh : function (meshIndex, subMeshData, skinObject, subMeshColors, colorVector){
+            var gl = this.gl;
+            var m2File = this.m2File;
+
+            var uniforms = this.sceneApi.shaders.getShaderUniforms();
+            var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+            if (subMeshData.isRendered) {
+                if (subMeshData.texUnit1Texture) {
+                    //try {
+                    var colorIndex = skinObject.skinFile.header.texs[subMeshData.texUnit1TexIndex].colorIndex;
+                    if ((colorIndex > 0) && (subMeshColors)) {
+                        var submeshColor = subMeshColors[colorIndex];
+
+                        gl.vertexAttrib4f(shaderAttributes.aColor,
+                            submeshColor[0],
+                            submeshColor[1],
+                            submeshColor[2],
+                            submeshColor[3])
+
+                    } else {
+                        gl.vertexAttrib4f(shaderAttributes.aColor,
+                            colorVector[0],
+                            colorVector[1],
+                            colorVector[2],
+                            colorVector[3]);
+
+                    }
+
+                    var renderFlagIndex = skinObject.skinFile.header.texs[subMeshData.texUnit1TexIndex].renderFlagIndex;
+                    switch (m2File.renderFlags[renderFlagIndex].blend) {
+                        case 0 : //BM_OPAQUE
+                            gl.disable(gl.BLEND);
+                            gl.uniform1f(uniforms.uAlphaTest, -1.0);
+                            break;
+                        case 1 : //BM_TRANSPARENT
+                            gl.disable(gl.BLEND);
+                            //gl.uniform1f(uniforms.uAlphaTest, 2.9);
+                            gl.uniform1f(uniforms.uAlphaTest, 0.903921569);
+                            break;
+                        case 2 : //BM_ALPHA_BLEND
+                            gl.uniform1f(uniforms.uAlphaTest, -1);
+                            gl.enable(gl.BLEND);
+                            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // default blend func
+                            break;
+                        case 3 : //BM_ADDITIVE
+                            gl.uniform1f(uniforms.uAlphaTest, -1);
+                            gl.enable(gl.BLEND);
+                            gl.blendFunc(gl.SRC_COLOR, gl.ONE);
+                            break;
+                        case 4 : //BM_ADDITIVE_ALPHA
+                            gl.uniform1f(uniforms.uAlphaTest, -1);
+                            gl.enable(gl.BLEND);
+                            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                            break;
+                        default :
+                            gl.uniform1f(uniforms.uAlphaTest, -1);
+                            gl.enable(gl.BLEND);
+                            gl.blendFunc(gl.DST_COLOR, gl.SRC_COLOR);
+
+                            break;
+                    }
+                    //}catch (e) {
+                    //    debugger;
+                    //}
+                    gl.bindTexture(gl.TEXTURE_2D, subMeshData.texUnit1Texture.texture);
+                    gl.drawElements(gl.TRIANGLES, skinObject.skinFile.header.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinObject.skinFile.header.subMeshes[meshIndex].idxStart * 2);
+                }
+            }
         }
     };
 

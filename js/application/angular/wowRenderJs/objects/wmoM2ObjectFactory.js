@@ -20,6 +20,12 @@
             update: function (deltaTime) {
                 this.mdxObject.update(deltaTime);
             },
+            drawTransparentMeshes : function () {
+                this.mdxObject.drawTransparentMeshes(this.placementMatrix, this.diffuseColor);
+            },
+            drawNonTransparentMeshes : function () {
+                this.mdxObject.drawNonTransparentMeshes(this.placementMatrix, this.diffuseColor);
+            },
             draw : function () {
                 this.mdxObject.draw(this.placementMatrix, this.diffuseColor);
             },
@@ -49,6 +55,15 @@
                 this.placementInvertMatrix = placementInvertMatrix;
                 this.placementMatrix = placementMatrix;
             },
+            calcOwnPosition : function () {
+                var position = vec4.fromValues(0,0,0,1 );
+                vec4.transformMat4(position, position, this.placementMatrix);
+
+                this.position = position;
+            },
+            calcDistance : function (position) {
+                return vec4.distance(position, this.position);
+            },
             load : function (doodad, wmoPlacementMatrix, useLocalColor){
                 var self = this;
 
@@ -60,6 +75,8 @@
                     self.diffuseColor = 0xffffffff;
                 }
                 self.createPlacementMatrix(doodad, wmoPlacementMatrix);
+                self.calcOwnPosition();
+
                 return self.mdxObject.load(doodad.modelName, 0);
             }
         };

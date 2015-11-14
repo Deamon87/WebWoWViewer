@@ -15,6 +15,8 @@
             wmoObjects : [],
             adtObjects : [],
             skyDom : null,
+            currentTime : 0,
+            lastTimeSort : 0,
             addAdtM2Object : function (doodad){
                 var adtM2 = new adtM2ObjectFactory(this.sceneApi);
                 adtM2.load(doodad, false);
@@ -37,6 +39,9 @@
                 var adtObject = new adtObjectFactory(this.sceneApi);
                 adtObject.load(fileName);
                 this.adtObjects.push(adtObject);
+            },
+            setCameraPos : function (position) {
+                this.position = position;
             },
             collectMeshes : function() {
                 var meshesList = [];
@@ -84,9 +89,19 @@
                     this.wmoObjects[i].update(deltaTime);
                 }
 
+                //Sort every 300 ms
+                if (this.currentTime + deltaTime - this.lastTimeSort  > 500) {
+                    var self = this;
+                    this.m2Objects.sort(function (a, b) {
+                        return b.calcDistance(self.position) - a.calcDistance(self.position);
+                    });
+                }
+
 
                 //N. Collect non transparent and transparent meshes
-                this.collectMeshes();
+                //this.collectMeshes();
+
+                this.currentTime = this.currentTime + deltaTime;
             },
             draw : function () {
                 //1. Draw ADT
@@ -96,6 +111,10 @@
                 }
 
                 //2. Draw WMO
+                this.sceneApi.shaders.activateWMOShader();
+                for (var i = 0; i < this.wmoObjects.length; i++) {
+                    this.wmoObjects[i].draw();
+                }
 
                 //3. Draw background WDL
 
@@ -105,9 +124,15 @@
                 }
 
                 //5. Draw nontransparent meshes of m2
+                this.sceneApi.shaders.activateWMOShader();
+                for (var i = 0; i < this.m2Objects.length; i++) {
+                    this.m2Objects[i].drawNonTransparentMeshes();
+                }
 
                 //6. Draw transparent meshes of m2
-
+                for (var i = 0; i < this.m2Objects.length; i++) {
+                    this.m2Objects[i].drawTransparentMeshes();
+                }
             }
         };
 
