@@ -89,7 +89,7 @@
                     this.wmoObjects[i].update(deltaTime);
                 }
 
-                //Sort every 300 ms
+                //Sort every 500 ms
                 if (this.currentTime + deltaTime - this.lastTimeSort  > 500) {
                     var self = this;
                     this.m2Objects.sort(function (a, b) {
