@@ -60,6 +60,7 @@
                     for (var i = 0; i < submeshArray.length; i++) {
                         submeshArray[i] = {
                             isRendered: false,
+                            isTransparent : false,
                             textureTexUnit1: null,
                             textureTexUnit2: null,
                             textureTexUnit3: null
@@ -71,9 +72,14 @@
                         var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
                         var mdxTextureDefinition = mdxObject.m2File.textureDefinition[mdxTextureIndex];
 
+                        var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
+                        var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend > 0;
+
+
                         var submeshData = submeshArray[skinTextureDefinition.submeshIndex];
 
                         submeshData.isRendered = true;
+                        submeshData.isTransparent = isTransparent;
 
                         /* 2.2. Assign and load textures */
                         if (mdxTextureDefinition.texType === 0) {
@@ -123,11 +129,78 @@
                     return null;
                 }
             },
+            getMeshesToRender : function() {
+                var meshesToRender = [];
+                if (this.submeshArray) {
+                    for (var i = 0; i < this.submeshArray.length; i++) {
+                        if (!this.submeshArray[i].isRendered) continue;
+                        if (this.submeshArray[i].texUnit1TexIndex === undefined) continue;
+
+                        var colorIndex = this.skinGeom.skinFile.header.texs[this.submeshArray[i].texUnit1TexIndex].colorIndex;
+                        var renderFlagIndex = this.skinGeom.skinFile.header.texs[this.submeshArray[i].texUnit1TexIndex].renderFlagIndex;
+                        var isTransparent = this.m2Geom.m2File.renderFlags[renderFlagIndex].blend > 0;
+                        var meshColor = (colorIndex > -1 && this.subMeshColors) ? this.subMeshColors[colorIndex] : null;
+
+                        var mesh = {
+                            m2Object: this,
+                            skin: this.skinGeom,
+                            meshIndex: i,
+                            color: meshColor,
+                            transparency: 0,
+                            isTransparent: isTransparent,
+                            animationMatrix: null
+                        };
+
+                        meshesToRender.push(mesh);
+                    }
+                }
+
+                return meshesToRender;
+            },
             update : function(deltaTime) {
+                if (!this.m2Geom) return;
+
                 var subMeshColors = this.getSubMeshColor(deltaTime);
                 this.subMeshColors = subMeshColors;
             },
-            draw : function (deltaTime, placementMatrix, color){
+
+            drawNonTransparentMeshes : function (placementMatrix, color) {
+                if (!this.m2Geom) return;
+
+                this.m2Geom.setupAttributes(this.skinGeom);
+                this.m2Geom.setupUniforms(placementMatrix);
+
+                var colorVector = [color&0xff, (color>> 8)&0xff,
+                    (color>>16)&0xff, (color>> 24)&0xff];
+                colorVector[0] /= 255.0; colorVector[1] /= 255.0;
+                colorVector[2] /= 255.0; colorVector[3] /= 255.0;
+
+                for (var i = 0; i < this.submeshArray.length; i++) {
+                    var subMeshData = this.submeshArray[i];
+                    if (subMeshData.isTransparent) continue;
+
+                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector)
+                }
+            },
+            drawTransparentMeshes : function (placementMatrix, color) {
+                if (!this.m2Geom) return;
+
+                this.m2Geom.setupAttributes(this.skinGeom);
+                this.m2Geom.setupUniforms(placementMatrix);
+
+                var colorVector = [color&0xff, (color>> 8)&0xff,
+                    (color>>16)&0xff, (color>> 24)&0xff];
+                colorVector[0] /= 255.0; colorVector[1] /= 255.0;
+                colorVector[2] /= 255.0; colorVector[3] /= 255.0;
+
+                for (var i = 0; i < this.submeshArray.length; i++) {
+                    var subMeshData = this.submeshArray[i];
+                    if (!subMeshData.isTransparent) continue;
+
+                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector)
+                }
+            },
+            draw : function (placementMatrix, color){
                 var colorVector = [color&0xff, (color>> 8)&0xff,
                     (color>>16)&0xff, (color>> 24)&0xff];
                 colorVector[0] /= 255.0; colorVector[1] /= 255.0;

@@ -13,11 +13,24 @@
             sceneApi : null,
             mdxObject : null,
 
+            getMeshesToRender : function () {
+                if (!this.mdxObject) return null;
+                return this.mdxObject.getMeshesToRender();
+            },
             drawBB : function (){
 
             },
-            draw : function (deltaTime) {
-                this.mdxObject.draw(deltaTime, this.placementMatrix, 0xffffffff);
+            drawTransparentMeshes : function () {
+                this.mdxObject.drawTransparentMeshes(this.placementMatrix, 0xffffffff);
+            },
+            drawNonTransparentMeshes : function () {
+                this.mdxObject.drawNonTransparentMeshes(this.placementMatrix, 0xffffffff);
+            },
+            draw : function () {
+                this.mdxObject.draw(this.placementMatrix, 0xffffffff);
+            },
+            update : function(deltaTime) {
+                this.mdxObject.update(deltaTime);
             },
             createPlacementMatrix : function(mddf){
                 var TILESIZE = 533.333333333;
@@ -50,12 +63,22 @@
                 this.placementInvertMatrix = placementInvertMatrix;
                 this.placementMatrix = placementMatrix;
             },
+            calcOwnPosition : function () {
+                var position = vec4.fromValues(0,0,0,1);
+                vec4.transformMat4(position, position, this.placementMatrix);
+
+                this.position = position;
+            },
+            calcDistance : function (position) {
+                return vec4.distance(position, this.position);
+            },
             load : function (mddf){
                 var self = this;
 
                 self.mddf = mddf;
 
                 self.createPlacementMatrix(mddf);
+                self.calcOwnPosition();
                 return self.mdxObject.load(mddf.fileName, 0);
             }
         };
