@@ -20,6 +20,8 @@
                 var m2Promise = this.sceneApi.resources.loadM2Geom(modelFileName);
                 var skinPromise = this.sceneApi.resources.loadSkinGeom(skinFileName);
 
+                this.fileIdent = modelFileName + " " +skinFileName;
+
                 return $q.all([m2Promise,skinPromise]).then(function(result){
                     var m2Geom = result[0];
                     var skinGeom = result[1];

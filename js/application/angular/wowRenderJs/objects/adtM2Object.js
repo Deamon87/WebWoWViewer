@@ -13,6 +13,9 @@
             sceneApi : null,
             mdxObject : null,
 
+            getFileNameIdent : function (){
+                return this.mdxObject.fileIdent;
+            },
             getMeshesToRender : function () {
                 if (!this.mdxObject) return null;
                 return this.mdxObject.getMeshesToRender();
