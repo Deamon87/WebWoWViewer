@@ -268,6 +268,7 @@
                         var shaderText = result.data;
                         var shader = self.compileShader(shaderText, shaderText);
                         self.wmoShader = shader;
+
                         var instancingShader = self.compileShader("#define INSTANCED 1\r\n "+shaderText, "#define INSTANCED 1\r\n "+shaderText);
                         self.wmoInstancingShader = instancingShader;
                     },function error(){
@@ -331,6 +332,9 @@
                         },
                         activateWMOInstancingShader : function (){
                             self.activateWMOInstancingShader();
+                        },
+                        deactivateWMOInstancingShader : function (){
+                            self.deactivateWMOInstancingShader();
                         },
                         getShaderUniforms: function () {
                             return self.currentShaderProgram.shaderUniforms;
@@ -450,6 +454,8 @@
                 this.currentShaderProgram = this.adtShader;
                 if (this.currentShaderProgram) {
                     var gl = this.gl;
+                    var instExt = this.sceneApi.extensions.getInstancingExt();
+
                     gl.useProgram(this.currentShaderProgram.program);
 
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
@@ -484,14 +490,41 @@
                 this.currentShaderProgram = this.wmoInstancingShader;
                 if (this.currentShaderProgram) {
                     var gl = this.gl;
+                    var instExt = this.sceneApi.extensions.getInstancingExt();
+                    var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
                     gl.useProgram(this.currentShaderProgram.program);
 
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
 
                     gl.activeTexture(gl.TEXTURE0);
+
+                    gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 0);
+                    gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 1);
+                    gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 2);
+                    gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 3);
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 1);
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 1);
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 1);
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 1);
                 }
 
+            },
+            deactivateWMOInstancingShader : function () {
+                var gl = this.gl;
+                var instExt = this.sceneApi.extensions.getInstancingExt();
+                var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 0);
+                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 0);
+                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 0);
+                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 0);
+
+                gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 0);
+                gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 1);
+                gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 2);
+                gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 3);
 
             },
             activateBoundingBoxShader : function () {

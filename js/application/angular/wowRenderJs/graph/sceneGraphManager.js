@@ -243,8 +243,10 @@
                     var instanceManager = this.instanceList[fileIdent];
                     instanceManager.drawInstancedNonTransparentMeshes();
                 }
+                this.sceneApi.shaders.deactivateWMOInstancingShader();
 
                 //6. Draw transparent meshes of m2
+                this.sceneApi.shaders.activateWMOShader();
                 for (var i = 0; i < this.m2Objects.length; i++) {
                     if (this.m2Objects[i].instanceManager) continue;
                     this.m2Objects[i].drawTransparentMeshes();
@@ -256,6 +258,7 @@
                     var instanceManager = this.instanceList[fileIdent];
                     instanceManager.drawInstancedTransparentMeshes();
                 }
+                this.sceneApi.shaders.deactivateWMOInstancingShader();
 
             }
         };
