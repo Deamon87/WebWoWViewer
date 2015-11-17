@@ -268,6 +268,8 @@
                         var shaderText = result.data;
                         var shader = self.compileShader(shaderText, shaderText);
                         self.wmoShader = shader;
+                        var instancingShader = self.compileShader("#define INSTANCED 1\r\n "+shaderText, "#define INSTANCED 1\r\n "+shaderText);
+                        self.wmoInstancingShader = instancingShader;
                     },function error(){
                         throw 'could not load shader'
                     });
@@ -326,6 +328,9 @@
                         },
                         activateWMOShader : function () {
                             self.activateWMOShader()
+                        },
+                        activateWMOInstancingShader : function (){
+                            self.activateWMOInstancingShader();
                         },
                         getShaderUniforms: function () {
                             return self.currentShaderProgram.shaderUniforms;
@@ -474,6 +479,20 @@
 
                     gl.activeTexture(gl.TEXTURE0);
                 }
+            },
+            activateWMOInstancingShader : function () {
+                this.currentShaderProgram = this.wmoInstancingShader;
+                if (this.currentShaderProgram) {
+                    var gl = this.gl;
+                    gl.useProgram(this.currentShaderProgram.program);
+
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
+
+                    gl.activeTexture(gl.TEXTURE0);
+                }
+
+
             },
             activateBoundingBoxShader : function () {
                 this.currentShaderProgram = this.bbShader;

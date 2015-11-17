@@ -18,7 +18,12 @@ attribute vec4 aColor;
 
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
+
+#ifdef INSTANCED
+attribute mat4 uPlacementMat;
+#else
 uniform mat4 uPlacementMat;
+#endif
 
 varying vec2 vTexCoord;
 varying vec4 vColor;

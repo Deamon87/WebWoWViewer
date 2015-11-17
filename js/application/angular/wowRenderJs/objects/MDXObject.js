@@ -165,7 +165,44 @@
                 var subMeshColors = this.getSubMeshColor(deltaTime);
                 this.subMeshColors = subMeshColors;
             },
+            drawInstancedNonTransparentMeshes : function (instanceCount, placementVBO, color) {
+                if (!this.m2Geom) return;
 
+                this.m2Geom.setupAttributes(this.skinGeom);
+                //this.m2Geom.setupUniforms(placementMatrix);
+                this.m2Geom.setupPlacementAttribute(placementVBO);
+
+                var colorVector = [color&0xff, (color>> 8)&0xff,
+                    (color>>16)&0xff, (color>> 24)&0xff];
+                colorVector[0] /= 255.0; colorVector[1] /= 255.0;
+                colorVector[2] /= 255.0; colorVector[3] /= 255.0;
+
+                for (var i = 0; i < this.submeshArray.length; i++) {
+                    var subMeshData = this.submeshArray[i];
+                    if (subMeshData.isTransparent) continue;
+
+                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, instanceCount)
+                }
+            },
+            drawInstancedTransparentMeshes : function (instanceCount, placementVBO, color) {
+                if (!this.m2Geom) return;
+
+                this.m2Geom.setupAttributes(this.skinGeom);
+                //this.m2Geom.setupUniforms(placementMatrix);
+                this.m2Geom.setupPlacementAttribute(placementVBO);
+
+                var colorVector = [color&0xff, (color>> 8)&0xff,
+                    (color>>16)&0xff, (color>> 24)&0xff];
+                colorVector[0] /= 255.0; colorVector[1] /= 255.0;
+                colorVector[2] /= 255.0; colorVector[3] /= 255.0;
+
+                for (var i = 0; i < this.submeshArray.length; i++) {
+                    var subMeshData = this.submeshArray[i];
+                    if (!subMeshData.isTransparent) continue;
+
+                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, instanceCount)
+                }
+            },
             drawNonTransparentMeshes : function (placementMatrix, color) {
                 if (!this.m2Geom) return;
 

@@ -9,32 +9,57 @@
 
         function InstanceManager(sceneApi){
             this.sceneApi = sceneApi;
+            this.mdxObjectList = [];
+            this.sceneObjNumMap = {};
+            this.lastUpdatedNumber = 0;
         }
         InstanceManager.prototype = {
-            mdxObjectList : [],
-            sceneObjNumMap : {},
             addMDXObject : function (MDXObject){
                 if (this.sceneObjNumMap[MDXObject.sceneNumber]) return; // The object has already been added to this manager
 
                 this.sceneObjNumMap[MDXObject.sceneNumber] = MDXObject;
                 this.mdxObjectList.push(MDXObject);
             },
-            createParamsVBO : function (){
+            updatePlacementVBO : function (){
                 var gl = this.sceneApi.getGlContext();
 
-                var buffer = new Array(this.mdxObjectList.length * 16);
-                var paramsVbo = gl.createBuffer();
+                //var buffer = new Array(this.mdxObjectList.length * 16);
+                var permanentBuffer = this.permanentBuffer;
+                if (!permanentBuffer || permanentBuffer.length != this.mdxObjectList.length * 16) {
+                    permanentBuffer = new Float32Array(this.mdxObjectList.length * 16);
+                    this.permanentBuffer = permanentBuffer;
+                }
+
+                var paramsVbo = this.placementVBO;
+                if (!paramsVbo) {
+                    paramsVbo = gl.createBuffer();
+                }
+
                 for (var i = 0; i < this.mdxObjectList.length; i++) {
                     var mdxObject = this.mdxObjectList[i];
                     var placementMatrix = mdxObject.placementMatrix;
-                    for (var j = 0; j < 16; j++) {
-                        buffer[i*16+j] = placementMatrix[j];
-                    }
+                    //for (var j = 0; j < 16; j++) {
+                    //    buffer[i*16+j] = placementMatrix[j];
+                    //}
+                    //gl.bufferSubData( gl.ARRAY_BUFFER, i*16, placementMatrix);
+                    permanentBuffer.set(placementMatrix,i*16);
+
                 }
 
-                gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(buffer), gl.DYNAMIC_DRAW );
+                gl.bindBuffer( gl.ARRAY_BUFFER, paramsVbo);
+                gl.bufferData( gl.ARRAY_BUFFER, permanentBuffer, gl.DYNAMIC_DRAW );
+                this.placementVBO = paramsVbo;
+                this.lastUpdatedNumber = this.mdxObjectList.length;
+            },
+            drawInstancedNonTransparentMeshes : function () {
+               if (!this.mdxObjectList[0]) return;
 
-                this.paramsVbo = paramsVbo;
+                this.mdxObjectList[0].drawInstancedNonTransparentMeshes(this.lastUpdatedNumber, this.placementVBO, this.dinamycParams);
+            },
+            drawInstancedTransparentMeshes : function () {
+               if (!this.mdxObjectList[0]) return;
+
+                this.mdxObjectList[0].drawInstancedTransparentMeshes(this.lastUpdatedNumber, this.placementVBO, this.dinamycParams);
             }
         };
 
@@ -42,17 +67,17 @@
 
         function GraphManager(sceneApi){
             this.sceneApi = sceneApi;
+            this.m2Objects = [];
+            this.instanceList = {};
+            this.wmoObjects = [];
+            this.adtObjects = [];
+            this.skyDom = null;
+            this.currentTime = 0;
+            this.lastTimeSort = 0;
+            this.globalM2Counter = 0;
         }
 
         GraphManager.prototype = {
-            m2Objects : [],
-            instanceList : {},
-            wmoObjects : [],
-            adtObjects : [],
-            skyDom : null,
-            currentTime : 0,
-            lastTimeSort : 0,
-            globalM2Counter : 0,
             addAdtM2Object : function (doodad){
                 var adtM2 = new adtM2ObjectFactory(this.sceneApi);
                 adtM2.load(doodad, false);
@@ -171,10 +196,14 @@
                     this.m2Objects.sort(function (a, b) {
                         return b.calcDistance(self.position) - a.calcDistance(self.position);
                     });
-
-
                 }
-
+                //Update placement matrix buffers
+                if (this.currentTime + deltaTime - this.lastTimeSort  > 1000) {
+                    for (var fileIdent in this.instanceList) {
+                        var instanceManager = this.instanceList[fileIdent];
+                        instanceManager.updatePlacementVBO();
+                    }
+                }
 
                 //N. Collect non transparent and transparent meshes
                 //this.collectMeshes();
@@ -208,11 +237,26 @@
                     this.m2Objects[i].drawNonTransparentMeshes();
                 }
 
+                //5.1 Draw instanced nontransparent meshes of m2
+                this.sceneApi.shaders.activateWMOInstancingShader();
+                for (var fileIdent in this.instanceList) {
+                    var instanceManager = this.instanceList[fileIdent];
+                    instanceManager.drawInstancedNonTransparentMeshes();
+                }
+
                 //6. Draw transparent meshes of m2
                 for (var i = 0; i < this.m2Objects.length; i++) {
                     if (this.m2Objects[i].instanceManager) continue;
                     this.m2Objects[i].drawTransparentMeshes();
                 }
+
+                //6.1 Draw transparent meshes of m2
+                this.sceneApi.shaders.activateWMOInstancingShader();
+                for (var fileIdent in this.instanceList) {
+                    var instanceManager = this.instanceList[fileIdent];
+                    instanceManager.drawInstancedTransparentMeshes();
+                }
+
             }
         };
 

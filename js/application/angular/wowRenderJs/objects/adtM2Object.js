@@ -10,9 +10,6 @@
             self.mdxObject = new mdxObject(sceneApi);
         }
         AdtM2Object.prototype = {
-            sceneApi : null,
-            mdxObject : null,
-
             getFileNameIdent : function (){
                 return this.mdxObject.fileIdent;
             },
@@ -31,6 +28,12 @@
             },
             draw : function () {
                 this.mdxObject.draw(this.placementMatrix, 0xffffffff);
+            },
+            drawInstancedNonTransparentMeshes : function (instanceCount, placementVBO) {
+                this.mdxObject.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
+            },
+            drawInstancedTransparentMeshes : function (instanceCount, placementVBO) {
+                this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
             },
             update : function(deltaTime) {
                 this.mdxObject.update(deltaTime);

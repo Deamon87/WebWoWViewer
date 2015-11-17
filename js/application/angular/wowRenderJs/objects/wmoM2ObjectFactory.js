@@ -32,6 +32,12 @@
             draw : function () {
                 this.mdxObject.draw(this.placementMatrix, this.diffuseColor);
             },
+            drawInstancedNonTransparentMeshes : function (instanceCount, placementVBO) {
+                this.mdxObject.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, this.diffuseColor);
+            },
+            drawInstancedTransparentMeshes : function (instanceCount, placementVBO) {
+                this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, this.diffuseColor);
+            },
             createPlacementMatrix : function(doodad, wmoPlacementMatrix){
                 var placementMatrix = mat4.create();
                 mat4.identity(placementMatrix);

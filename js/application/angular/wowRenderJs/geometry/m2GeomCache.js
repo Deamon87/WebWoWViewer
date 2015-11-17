@@ -42,6 +42,30 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
             /* Index is taken from skin object */
         },
+        setupPlacementAttribute : function (placementVBO) {
+            var gl = this.gl;
+            var instExt = this.sceneApi.extensions.getInstancingExt();
+            var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, placementVBO);
+
+            //"Official" way to pass mat4 to shader as attribute
+            gl.enableVertexAttribArray(shaderAttributes.uPlacementMat+0);
+            gl.vertexAttribPointer(shaderAttributes.uPlacementMat+0, 4, gl.FLOAT, false, 16*4, 0);  // position
+            instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat+0, 1);
+
+            gl.enableVertexAttribArray(shaderAttributes.uPlacementMat+1);
+            gl.vertexAttribPointer(shaderAttributes.uPlacementMat+1, 4, gl.FLOAT, false, 16*4, 16);  // position
+            instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat+1, 1);
+
+            gl.enableVertexAttribArray(shaderAttributes.uPlacementMat+2);
+            gl.vertexAttribPointer(shaderAttributes.uPlacementMat+2, 4, gl.FLOAT, false, 16*4, 32);  // position
+            instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat+2, 1);
+
+            gl.enableVertexAttribArray(shaderAttributes.uPlacementMat+3);
+            gl.vertexAttribPointer(shaderAttributes.uPlacementMat+3, 4, gl.FLOAT, false, 16*4, 48);  // position
+            instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat+3, 1);
+        },
         setupAttributes : function(skinObject){
             var gl = this.gl;
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
@@ -99,9 +123,10 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             }
             gl.uniform1f(uniforms.uAlphaTest, -1);
         },
-        drawMesh : function (meshIndex, subMeshData, skinObject, subMeshColors, colorVector){
+        drawMesh : function (meshIndex, subMeshData, skinObject, subMeshColors, colorVector, instanceCount){
             var gl = this.gl;
             var m2File = this.m2File;
+            var instExt = this.sceneApi.extensions.getInstancingExt();
 
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
@@ -165,7 +190,11 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     //    debugger;
                     //}
                     gl.bindTexture(gl.TEXTURE_2D, subMeshData.texUnit1Texture.texture);
-                    gl.drawElements(gl.TRIANGLES, skinObject.skinFile.header.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinObject.skinFile.header.subMeshes[meshIndex].idxStart * 2);
+                    if (instanceCount == undefined) {
+                        gl.drawElements(gl.TRIANGLES, skinObject.skinFile.header.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinObject.skinFile.header.subMeshes[meshIndex].idxStart * 2);
+                    } else {
+                        instExt.drawElementsInstancedANGLE(gl.TRIANGLES, skinObject.skinFile.header.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinObject.skinFile.header.subMeshes[meshIndex].idxStart * 2, instanceCount);
+                    }
                 }
             }
         }
