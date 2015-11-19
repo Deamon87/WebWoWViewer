@@ -242,9 +242,6 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.stripVBO);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.combinedVbo);
 
-            gl.enableVertexAttribArray(shaderAttributes.aHeight);
-            gl.enableVertexAttribArray(shaderAttributes.aIndex);
-
             gl.vertexAttribPointer(shaderAttributes.aIndex,  1, gl.FLOAT, false, 0, this.indexOffset*4);
 
             //Draw

@@ -455,8 +455,12 @@
                 if (this.currentShaderProgram) {
                     var gl = this.gl;
                     var instExt = this.sceneApi.extensions.getInstancingExt();
+                    var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
                     gl.useProgram(this.currentShaderProgram.program);
+
+                    gl.enableVertexAttribArray(shaderAttributes.aHeight);
+                    gl.enableVertexAttribArray(shaderAttributes.aIndex);
 
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
@@ -479,6 +483,11 @@
                 if (this.currentShaderProgram) {
                     var gl = this.gl;
                     gl.useProgram(this.currentShaderProgram.program);
+                    var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+                    gl.enableVertexAttribArray(shaderAttributes.aPosition);
+                    //gl.disableVertexAttribArray(shaderAttributes.aNormal);
+                    gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
 
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
