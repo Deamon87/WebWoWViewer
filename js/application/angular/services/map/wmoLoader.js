@@ -211,9 +211,9 @@
                     for (var i = 0; i < wmoObj.nTextures; i++) {
                         var textureData = {};
 
-                        textureData.flags1 = chunk.readInt32(offset);
-                        textureData.flags2 = chunk.readInt32(offset);
-                        textureData.blendMode = chunk.readInt32(offset);
+                        textureData.flags1 = chunk.readUint32(offset);
+                        textureData.flags2 = chunk.readUint32(offset);
+                        textureData.blendMode = chunk.readUint32(offset);
                         textureData.namestart1 = chunk.readInt32(offset);
                         textureData.color1 = chunk.readInt32(offset);
                         textureData.flags_1 = chunk.readInt32(offset);
