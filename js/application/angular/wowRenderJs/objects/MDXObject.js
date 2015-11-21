@@ -75,7 +75,7 @@
                         var mdxTextureDefinition = mdxObject.m2File.textureDefinition[mdxTextureIndex];
 
                         var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
-                        var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend > 0;
+                        var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2;
 
 
                         var submeshData = submeshArray[skinTextureDefinition.submeshIndex];
@@ -158,6 +158,14 @@
                 }
 
                 return meshesToRender;
+            },
+            getBoundingBox : function () {
+                if (!this.m2Geom) return null;
+
+                return {
+                    ab : this.m2Geom.m2File.BoundingCorner1,
+                    cd : this.m2Geom.m2File.BoundingCorner2
+                }
             },
             update : function(deltaTime) {
                 if (!this.m2Geom) return;

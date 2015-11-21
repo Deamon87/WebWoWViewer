@@ -178,7 +178,7 @@
 
                     var lastObject = this.m2Objects[0];
                     var lastInstanced = false;
-                    for (var j = 1; j < this.m2Objects.length-1; j++) {
+                    for (var j = 1; j < this.m2Objects.length; j++) {
 
                         var currentObject = this.m2Objects[j];
                         if (currentObject.getFileNameIdent() == lastObject.getFileNameIdent()) {
@@ -191,10 +191,15 @@
 
                         lastObject = currentObject;
                     }
+                    for (var j = 0; j < this.m2Objects.length; j++) {
+                        this.m2Objects[j].calcDistance(self.position);
+                    }
+
+
 
                     //Sort by distance
                     this.m2Objects.sort(function (a, b) {
-                        return b.calcDistance(self.position) - a.calcDistance(self.position);
+                        return b.getCurrentDistance() - a.getCurrentDistance() > 0 ? -1 : 1;
                     });
                 }
                 //Update placement matrix buffers
@@ -245,13 +250,6 @@
                 }
                 this.sceneApi.shaders.deactivateWMOInstancingShader();
 
-                //6. Draw transparent meshes of m2
-                this.sceneApi.shaders.activateWMOShader();
-                for (var i = 0; i < this.m2Objects.length; i++) {
-                    if (this.m2Objects[i].instanceManager) continue;
-                    this.m2Objects[i].drawTransparentMeshes();
-                }
-
                 //6.1 Draw transparent meshes of m2
                 this.sceneApi.shaders.activateWMOInstancingShader();
                 for (var fileIdent in this.instanceList) {
@@ -259,6 +257,13 @@
                     instanceManager.drawInstancedTransparentMeshes();
                 }
                 this.sceneApi.shaders.deactivateWMOInstancingShader();
+
+                //6. Draw transparent meshes of m2
+                this.sceneApi.shaders.activateWMOShader();
+                for (var i = 0; i < this.m2Objects.length; i++) {
+                    if (this.m2Objects[i].instanceManager) continue;
+                    this.m2Objects[i].drawTransparentMeshes();
+                }
 
             }
         };

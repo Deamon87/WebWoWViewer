@@ -8,6 +8,7 @@
 
             self.sceneApi = sceneApi;
             self.mdxObject = new mdxObject(sceneApi);
+            self.currentDistance = 0;
         }
         AdtM2Object.prototype = {
             getFileNameIdent : function (){
@@ -37,6 +38,23 @@
             },
             update : function(deltaTime) {
                 this.mdxObject.update(deltaTime);
+                if (!this.aabb) {
+                    var bb = this.mdxObject.getBoundingBox();
+                    if (bb) {
+                        var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
+                        var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
+
+                        vec4.transformMat4(a_ab, a_ab, this.placementMatrix);
+                        vec4.transformMat4(a_cd, a_cd, this.placementMatrix);
+
+
+                        var minx = Math.min(a_ab[0], a_cd[0]);    var maxx = Math.max(a_ab[0], a_cd[0]);
+                        var miny = Math.min(a_ab[1], a_cd[1]);    var maxy = Math.max(a_ab[1], a_cd[1]);
+                        var minz = Math.min(a_ab[2], a_cd[2]);    var maxz = Math.max(a_ab[2], a_cd[2]);
+
+                        this.aabb = [[minx, miny, minz], [maxx, maxy, maxz]];
+                    }
+                }
             },
             createPlacementMatrix : function(mddf){
                 var TILESIZE = 533.333333333;
@@ -76,7 +94,19 @@
                 this.position = position;
             },
             calcDistance : function (position) {
-                return vec4.distance(position, this.position);
+                function distance(aabb, p) {
+                    var dx = Math.max(aabb[0][0] - p[0], 0, p[0] - aabb[1][0]);
+                    var dy = Math.max(aabb[0][1] - p[1], 0, p[1] - aabb[1][1]);
+                    var dz = Math.max(aabb[0][2] - p[2], 0, p[2] - aabb[1][2]);
+                    return Math.sqrt(dx*dx + dy*dy + dz*dz);
+                }
+
+                if (this.aabb) {
+                    this.currentDistance = distance(this.aabb, position);
+                }
+            },
+            getCurrentDistance : function (){
+                return this.currentDistance;
             },
             load : function (mddf){
                 var self = this;
