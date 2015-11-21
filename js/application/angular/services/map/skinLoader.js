@@ -102,6 +102,7 @@
 
                     resultSkinObject.header = fileObject.parseSectionDefinition(resultSkinObject, skinDefinition, fileObject, offset);
 
+                    resultSkinObject.fileName = filePath;
                     return resultSkinObject;
                 },
                 function error(errorObj){

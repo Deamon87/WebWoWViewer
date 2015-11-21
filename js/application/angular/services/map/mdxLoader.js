@@ -231,6 +231,7 @@
                         throw e;
                     }
 
+                resultMDXObject.fileName = filePath;
                 return resultMDXObject;
             },
             function error(errorObj){

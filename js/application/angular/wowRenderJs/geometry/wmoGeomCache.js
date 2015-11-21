@@ -86,10 +86,6 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.combinedVBO);
-            gl.enableVertexAttribArray(shaderAttributes.aPosition);
-            //gl.enableVertexAttribArray(shaderAttributes.aNormal);
-            gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
-
 
             gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0); // position
             //gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 0, this.normalOffset*4); // normal
