@@ -78,13 +78,13 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
              {name: "normal",        type : "vector3f"},           20+12 = 32
              {name: "textureX",      type : "float32"},            32+4 = 36
              {name: "textureY",      type : "float32"},            36+4 = 40
-             {name : "unk1",         type : "int32"},              40+4 = 44
-             {name : "unk2",         type : "int32"}               44+4 = 48
+             {name : "textureX2",    type : "float32"},            40+4 = 44
+             {name : "textureY2",    type : "float32"}             44+4 = 48
              */
 
             gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 48, 0);  // position
             //gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 48, 20); // normal
-            gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 48, 32); // texcoord
+            gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 48, 40); // texcoord
         },
         setupUniforms : function (placementMatrix) {
             var gl = this.gl;
@@ -166,7 +166,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                             gl.blendFunc(gl.SRC_COLOR, gl.ONE);
                             break;
                         case 4 : //BM_ADDITIVE_ALPHA
-                            gl.uniform1f(uniforms.uAlphaTest, -1);
+                            gl.uniform1f(uniforms.uAlphaTest, 0.00392157);
                             gl.enable(gl.BLEND);
                             gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
                             break;
@@ -180,7 +180,13 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     //}catch (e) {
                     //    debugger;
                     //}
+                    gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, subMeshData.texUnit1Texture.texture);
+                    if (subMeshData.texUnit2Texture != null) {
+                        gl.activeTexture(gl.TEXTURE1);
+                        gl.bindTexture(gl.TEXTURE_2D, subMeshData.texUnit2Texture.texture);
+                    }
+
                     if (instanceCount == undefined) {
                         gl.drawElements(gl.TRIANGLES, skinObject.skinFile.header.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinObject.skinFile.header.subMeshes[meshIndex].idxStart * 2);
                     } else {

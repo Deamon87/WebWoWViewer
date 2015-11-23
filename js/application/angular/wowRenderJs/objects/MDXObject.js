@@ -73,6 +73,14 @@
                         var skinTextureDefinition = skinObject.skinFile.header.texs[i];
                         var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
                         var mdxTextureDefinition = mdxObject.m2File.textureDefinition[mdxTextureIndex];
+                        var mdxTextureDefinition2 = null;
+                        var mdxTextureDefinition3 = null;
+                        if (skinTextureDefinition.op_count == 2) {
+                            mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex+1];
+                        }
+                        if (skinTextureDefinition.op_count == 3) {
+                            mdxTextureDefinition3 = mdxObject.m2File.textureDefinition[mdxTextureIndex+2];
+                        }
 
                         var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
                         var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2;
@@ -85,7 +93,7 @@
 
                         /* 2.2. Assign and load textures */
                         if (mdxTextureDefinition.texType === 0) {
-                            (function (submeshData, mdxTextureDefinition, textureIndex) {
+                            (function (submeshData, mdxTextureDefinition, mdxTextureDefinition2, mdxTextureDefinition3, textureIndex) {
                                 self.sceneApi.resources.loadTexture(mdxTextureDefinition.textureName)
                                     .then(function success(textObject) {
                                         submeshData.texUnit1Texture = textObject;
@@ -93,7 +101,22 @@
 
                                     }, function error() {
                                     });
-                            })(submeshData, mdxTextureDefinition, i);
+
+                                if (mdxTextureDefinition2) {
+                                    self.sceneApi.resources.loadTexture(mdxTextureDefinition2.textureName)
+                                        .then(function success(textObject) {
+                                            submeshData.texUnit2Texture = textObject;
+                                        }, function error() {
+                                        });
+                                }
+                                if (mdxTextureDefinition3) {
+                                    self.sceneApi.resources.loadTexture(mdxTextureDefinition3.textureName)
+                                        .then(function success(textObject) {
+                                            submeshData.texUnit3Texture = textObject;
+                                        }, function error() {
+                                        });
+                                }
+                            })(submeshData, mdxTextureDefinition, mdxTextureDefinition2, mdxTextureDefinition3, i);
                         }
                     }
                 }
