@@ -67,6 +67,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             gl.enableVertexAttribArray(shaderAttributes.aPosition);
             //gl.enableVertexAttribArray(shaderAttributes.aNormal);
             gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
+            gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
             gl.disableVertexAttribArray(shaderAttributes.aColor);
 
             //gl.vertexAttrib4f(shaderAttributes.aColor, 0.5, 0.5, 0.5, 0.5);
@@ -84,7 +85,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
             gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 48, 0);  // position
             //gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 48, 20); // normal
-            gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 48, 40); // texcoord
+            gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 48, 32); // texcoord
+            gl.vertexAttribPointer(shaderAttributes.aTexCoord2, 2, gl.FLOAT, false, 48, 40); // texcoord
         },
         setupUniforms : function (placementMatrix) {
             var gl = this.gl;
@@ -192,6 +194,12 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     } else {
                         instExt.drawElementsInstancedANGLE(gl.TRIANGLES, skinObject.skinFile.header.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinObject.skinFile.header.subMeshes[meshIndex].idxStart * 2, instanceCount);
                     }
+                    if (subMeshData.texUnit2Texture != null) {
+                        gl.activeTexture(gl.TEXTURE1);
+                        gl.bindTexture(gl.TEXTURE_2D, null);
+                        gl.activeTexture(gl.TEXTURE0);
+                    }
+
                 }
             }
         }

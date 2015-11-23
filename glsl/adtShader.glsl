@@ -10,7 +10,7 @@ uniform mat4 uPMatrix;
 
 varying vec2 vChunkCoords;
 
-const float UNITSIZE = 533.333333336 / 16.0 / 8.0;
+const float UNITSIZE =  533.3433333 / 16.0 / 8.0;
 
 void main() {
 

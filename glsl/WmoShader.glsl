@@ -14,6 +14,8 @@
 attribute vec3 aPosition;
 attribute vec3 aNormal;
 attribute vec2 aTexCoord;
+attribute vec2 aTexCoord2;
+
 attribute vec4 aColor;
 
 uniform mat4 uLookAtMat;
@@ -26,6 +28,7 @@ uniform mat4 uPlacementMat;
 #endif
 
 varying vec2 vTexCoord;
+varying vec2 vTexCoord2;
 varying vec4 vColor;
 
 #ifdef drawBuffersIsSupported
@@ -38,6 +41,7 @@ void main() {
     worldPoint = uPlacementMat * vec4(aPosition, 1);
 
     vTexCoord = aTexCoord;
+    vTexCoord2 = aTexCoord2;
     vColor = aColor;
 
 #ifndef drawBuffersIsSupported
@@ -57,21 +61,28 @@ void main() {
 precision lowp float;
 varying vec3 vNormal;
 varying vec2 vTexCoord;
+varying vec2 vTexCoord2;
 varying vec4 vColor;
 varying vec3 vPosition;
 
 //uniform vec4  uGlobalLighting;
 uniform float uAlphaTest;
 uniform sampler2D uTexture;
+uniform sampler2D uTexture2;
+
 
 void main() {
     vec4 tex = texture2D(uTexture, vTexCoord).rgba;
+    vec4 tex2 = texture2D(uTexture2, vTexCoord2).rgba;
+
 
     vec4 finalColor = vec4(
         (tex.r * vColor.b) ,
         (tex.g * vColor.g) ,
         (tex.b * vColor.r) ,
         tex.a);
+
+    finalColor = finalColor * tex2;
 
     if(finalColor.a < uAlphaTest)
         discard;
