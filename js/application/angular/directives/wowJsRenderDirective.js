@@ -51,7 +51,15 @@
                 //sceneObj.loadMap("Azeroth", 31, 31);
                 //sceneObj.loadMap("Northrend", 29, 22); sceneObj.setCameraPos(4800, 1066, 137);
                 //sceneObj.loadMap("DeathKnightStart", 43, 28); sceneObj.setCameraPos(2033, -5843, 230);
-                sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
+                //sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
+
+                sceneObj.loadM2File({
+                    fileName : "WORLD\\EXPANSION01\\DOODADS\\SHATTRATH\\PASSIVEDOODADS\\CENTRAL_ENERGY_FX\\SHATTRATH_NARRU_ENERGY_FX.m2",
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    scale    : 1024
+                });
 
 
                 //adtLoader('world//maps\\AhnQiraj\\AhnQiraj_26_46.adt');

@@ -653,7 +653,9 @@
             },
 
 
-
+            loadM2File : function (mddf) {
+                this.sceneApi.objects.loadAdtM2Obj(mddf);
+            },
             loadWMOMap : function(filename){
                 var wmoObject = new wmoObjectFactory(this.sceneApi);
                 wmoObject.load(filename, 0);
