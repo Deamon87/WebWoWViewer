@@ -6,6 +6,7 @@
 
         function MDXObject(sceneApi){
             this.sceneApi = sceneApi;
+            this.currentAnimation = 0;
         }
         MDXObject.prototype = {
             sceneApi : null,
@@ -195,6 +196,24 @@
 
                 var subMeshColors = this.getSubMeshColor(deltaTime);
                 this.subMeshColors = subMeshColors;
+            },
+            calcBoneMatrix : function (index, animation, time){
+                animation
+            },
+            calcBones : function (animation, time) {
+                if (!this.m2Geom) return null;
+
+                var m2File = this.m2Geom.m2File;
+                this.bones = new Array(m2File.nBones);
+                for (var i = 0; i < m2File.nBones; i++) {
+                    if (!this.bones) this.bones[i] = {};
+                    this.bones[i].isCalculated = false;
+                }
+
+                for (var i = 0; i < m2File.nBones; i++) {
+                    this.calcBoneMatrix(i, this.bones[i], animation, time)
+                }
+
             },
             drawInstancedNonTransparentMeshes : function (instanceCount, placementVBO, color) {
                 if (!this.m2Geom) return;
