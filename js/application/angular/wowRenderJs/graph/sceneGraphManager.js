@@ -236,30 +236,30 @@
                 }
 
                 //5. Draw nontransparent meshes of m2
-                this.sceneApi.shaders.activateWMOShader();
+                this.sceneApi.shaders.activateM2Shader();
                 for (var i = 0; i < this.m2Objects.length; i++) {
                     if (this.m2Objects[i].instanceManager) continue;
                     this.m2Objects[i].drawNonTransparentMeshes();
                 }
 
                 //5.1 Draw instanced nontransparent meshes of m2
-                this.sceneApi.shaders.activateWMOInstancingShader();
+                this.sceneApi.shaders.activateM2InstancingShader();
                 for (var fileIdent in this.instanceList) {
                     var instanceManager = this.instanceList[fileIdent];
                     instanceManager.drawInstancedNonTransparentMeshes();
                 }
-                this.sceneApi.shaders.deactivateWMOInstancingShader();
+                this.sceneApi.shaders.deactivateM2InstancingShader();
 
                 //6.1 Draw transparent meshes of m2
-                this.sceneApi.shaders.activateWMOInstancingShader();
+                this.sceneApi.shaders.activateM2InstancingShader();
                 for (var fileIdent in this.instanceList) {
                     var instanceManager = this.instanceList[fileIdent];
                     instanceManager.drawInstancedTransparentMeshes();
                 }
-                this.sceneApi.shaders.deactivateWMOInstancingShader();
+                this.sceneApi.shaders.deactivateM2InstancingShader();
 
                 //6. Draw transparent meshes of m2
-                this.sceneApi.shaders.activateWMOShader();
+                this.sceneApi.shaders.activateM2Shader();
                 for (var i = 0; i < this.m2Objects.length; i++) {
                     if (this.m2Objects[i].instanceManager) continue;
                     this.m2Objects[i].drawTransparentMeshes();

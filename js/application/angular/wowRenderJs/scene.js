@@ -57,6 +57,7 @@
             });
             self.initSceneApi();
             self.initSceneGraph();
+            self.createBlackPixelTexture();
 
 
             if (self.enableDeferred) {
@@ -152,6 +153,23 @@
                 shader.shaderUniforms = shaderUniforms;
 
                 return shader;
+            },
+            createBlackPixelTexture : function () {
+                var gl = this.gl;
+                var blackPixelTexture = gl.createTexture();
+
+                gl.bindTexture(gl.TEXTURE_2D, blackPixelTexture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255,255,255,255]));
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+
+                gl.generateMipmap(gl.TEXTURE_2D);
+
+                gl.bindTexture(gl.TEXTURE_2D, null);
+
+                this.blackPixelTexture = blackPixelTexture;
             },
             initGlContext : function (canvas){
                 function throwOnGLError(err, funcName, args) {
@@ -276,6 +294,19 @@
                     });
                 promisesArray.push(promise);
 
+                promise = $http.get("glsl/m2Shader.glsl")
+                    .then(function success(result){
+                        var shaderText = result.data;
+                        var shader = self.compileShader(shaderText, shaderText);
+                        self.m2Shader = shader;
+
+                        var instancingShader = self.compileShader("#define INSTANCED 1\r\n "+shaderText, "#define INSTANCED 1\r\n "+shaderText);
+                        self.m2InstancingShader = instancingShader;
+                    },function error(){
+                        throw 'could not load shader'
+                    });
+                promisesArray.push(promise);
+
                 promise = $http.get("glsl/drawBBShader.glsl")
                     .then(function success(result){
                         var shaderText = result.data;
@@ -318,6 +349,9 @@
                     getCurrentWdt : function (){
                         return self.currentWdt;
                     },
+                    getBlackPixelTexture : function () {
+                        return self.blackPixelTexture;
+                    },
                     extensions : {
                         getInstancingExt : function (){
                             return self.instancing_ext;
@@ -330,11 +364,14 @@
                         activateWMOShader : function () {
                             self.activateWMOShader()
                         },
-                        activateWMOInstancingShader : function (){
-                            self.activateWMOInstancingShader();
+                        activateM2Shader : function () {
+                            self.activateM2Shader()
                         },
-                        deactivateWMOInstancingShader : function (){
-                            self.deactivateWMOInstancingShader();
+                        activateM2InstancingShader : function (){
+                            self.activateM2InstancingShader();
+                        },
+                        deactivateM2InstancingShader : function (){
+                            self.deactivateM2InstancingShader();
                         },
                         getShaderUniforms: function () {
                             return self.currentShaderProgram.shaderUniforms;
@@ -492,11 +529,35 @@
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
 
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
+
                     gl.activeTexture(gl.TEXTURE0);
                 }
             },
-            activateWMOInstancingShader : function () {
-                this.currentShaderProgram = this.wmoInstancingShader;
+            activateM2Shader : function() {
+                this.currentShaderProgram = this.m2Shader;
+                if (this.currentShaderProgram) {
+                    var gl = this.gl;
+                    gl.useProgram(this.currentShaderProgram.program);
+                    var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+                    gl.enableVertexAttribArray(shaderAttributes.aPosition);
+                    //gl.disableVertexAttribArray(shaderAttributes.aNormal);
+                    gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
+
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.isBillboard, 0);
+
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
+
+
+                    gl.activeTexture(gl.TEXTURE0);
+                }
+            },
+            activateM2InstancingShader : function () {
+                this.currentShaderProgram = this.m2InstancingShader;
                 if (this.currentShaderProgram) {
                     var gl = this.gl;
                     var instExt = this.sceneApi.extensions.getInstancingExt();
@@ -520,7 +581,7 @@
                 }
 
             },
-            deactivateWMOInstancingShader : function () {
+            deactivateM2InstancingShader : function () {
                 var gl = this.gl;
                 var instExt = this.sceneApi.extensions.getInstancingExt();
                 var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();

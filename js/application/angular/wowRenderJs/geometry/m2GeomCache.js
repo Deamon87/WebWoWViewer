@@ -120,6 +120,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             var gl = this.gl;
             var m2File = this.m2File;
             var instExt = this.sceneApi.extensions.getInstancingExt();
+            var blackPixelText = this.sceneApi.getBlackPixelTexture();
 
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
@@ -147,7 +148,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     }
 
                     var renderFlagIndex = skinObject.skinFile.header.texs[subMeshData.texUnit1TexIndex].renderFlagIndex;
-                    switch (m2File.renderFlags[renderFlagIndex].blend) {
+                    var renderFlag = m2File.renderFlags[renderFlagIndex];
+                    switch (renderFlag.blend) {
                         case 0 : //BM_OPAQUE
                             gl.disable(gl.BLEND);
                             gl.uniform1f(uniforms.uAlphaTest, -1.0);
@@ -182,11 +184,19 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     //}catch (e) {
                     //    debugger;
                     //}
+                    if ((renderFlag.flags & 0x8) > 0) {
+                        gl.uniform1i(uniforms.isBillboard, 1);
+                    }
+
+
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, subMeshData.texUnit1Texture.texture);
                     if (subMeshData.texUnit2Texture != null) {
                         gl.activeTexture(gl.TEXTURE1);
                         gl.bindTexture(gl.TEXTURE_2D, subMeshData.texUnit2Texture.texture);
+                    } else {
+                        gl.activeTexture(gl.TEXTURE1);
+                        gl.bindTexture(gl.TEXTURE_2D, blackPixelText);
                     }
 
                     if (instanceCount == undefined) {
@@ -198,6 +208,10 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                         gl.activeTexture(gl.TEXTURE1);
                         gl.bindTexture(gl.TEXTURE_2D, null);
                         gl.activeTexture(gl.TEXTURE0);
+                    }
+
+                    if ((renderFlag.flags & 0x8) > 0) {
+                        gl.uniform1i(uniforms.isBillboard, 0);
                     }
 
                 }
