@@ -86,7 +86,7 @@ void main() {
         (finalColor.b + uGlobalLighting.b) ,
         finalColor.a);
   */
-    //finalColor.a = 1.0; //do I really need it now?
+    finalColor.a = 1.0; //do I really need it now?
 
 #ifndef drawBuffersIsSupported
     //Forward rendering without lights

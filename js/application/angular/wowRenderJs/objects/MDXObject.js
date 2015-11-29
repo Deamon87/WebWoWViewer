@@ -74,11 +74,11 @@
                         var skinTextureDefinition = skinObject.skinFile.header.texs[i];
                         var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
                         var mdxTextureDefinition = mdxObject.m2File.textureDefinition[mdxTextureIndex];
-                        var textureUnit = skinTextureDefinition.textureUnitNum;
+                        var textureUnit = mdxObject.m2File.textUnitLookup[skinTextureDefinition.textureUnitNum];
+                        var op_count = skinTextureDefinition.op_count;
 
                         var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
                         var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2;
-
 
                         var submeshData = submeshArray[skinTextureDefinition.submeshIndex];
 
@@ -87,10 +87,27 @@
                         if (textureUnit == 0) {
                             submeshData.texUnit1TexIndex = i;
                             submeshData.textureUnit1TexName = mdxTextureDefinition.textureName;
+                            if (op_count > 1) {
+                                var mdxTextureIndex1 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 1];
+                                var mdxTextureDefinition1 = mdxObject.m2File.textureDefinition[mdxTextureIndex1];
+                                submeshData.textureUnit2TexName = mdxTextureDefinition1.textureName;
+                            }
+                            if (op_count > 2) {
+                                var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 2];
+                                var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex2];
+                                submeshData.textureUnit2TexName = mdxTextureDefinition2.textureName;
+                            }
                         } else if (textureUnit == 1) {
                             submeshData.texUnit2TexIndex = i;
                             submeshData.textureUnit2TexName = mdxTextureDefinition.textureName;
+                            if (op_count > 1) {
+                                $log.log("textureUnit = 1 and op_count > 1 " + this.fileIdent);
+                                var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 1];
+                                var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex2];
+                                submeshData.textureUnit3TexName = mdxTextureDefinition2.textureName;
+                            }
                         } else if (textureUnit == 2) {
+                            $log.log("textureUnit = 2 " + this.fileIdent);
                             submeshData.texUnit3TexIndex = i;
                             submeshData.textureUnit3TexName = mdxTextureDefinition.textureName;
                         }

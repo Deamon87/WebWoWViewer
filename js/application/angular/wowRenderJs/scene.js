@@ -51,6 +51,7 @@
 
             self.initGlContext(canvas);
             self.initArrayInstancedExt();
+            self.initAnisotropicExt();
             self.initShaders().then(function success() {
                 self.isShadersLoaded = true;
             }, function error(){
@@ -195,6 +196,13 @@
                 var instancing_ext = gl.getExtension('ANGLE_instanced_arrays');
                 if (instancing_ext) {
                     this.instancing_ext = instancing_ext;
+                }
+            },
+            initAnisotropicExt : function (){
+                var gl = this.gl;
+                var anisotropic_ext = gl.getExtension('EXT_texture_filter_anisotropic');
+                if (anisotropic_ext) {
+                    this.anisotropic_ext = anisotropic_ext;
                 }
             },
             initDeferredRendering : function (){
@@ -355,6 +363,9 @@
                     extensions : {
                         getInstancingExt : function (){
                             return self.instancing_ext;
+                        },
+                        getAnisotropicExt : function () {
+                            return self.anisotropic_ext;
                         }
                     },
                     shaders : {
@@ -601,10 +612,12 @@
                     gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 1);
                     gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 2);
                     gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 3);
-                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 1);
-                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 1);
-                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 1);
-                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 1);
+                    if (instExt != null) {
+                        instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 1);
+                        instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 1);
+                        instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 1);
+                        instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 1);
+                    }
                 }
 
             },
@@ -620,11 +633,12 @@
                 gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
                 gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
 
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 0);
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 0);
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 0);
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 0);
-
+                if (instExt) {
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 0);
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 0);
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 0);
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 0);
+                }
                 gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 0);
                 gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 1);
                 gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 2);

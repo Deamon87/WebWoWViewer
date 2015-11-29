@@ -7,6 +7,7 @@
 
     function Texture(sceneApi) {
         this.gl = sceneApi.getGlContext();
+        this.anisFilterExt = sceneApi.extensions.getAnisotropicExt();
 
         this.texture = null;
 
@@ -107,6 +108,10 @@
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+            if (this.anisFilterExt) {
+                var max_anisotropy = gl.getParameter(this.anisFilterExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+                gl.texParameterf(gl.TEXTURE_2D, this.anisFilterExt.TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
+            }
 
             /*if (generateMipMaps) {
                 gl.generateMipmap(gl.TEXTURE_2D);

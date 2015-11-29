@@ -59,6 +59,7 @@
 
                 ///sceneObj.loadWMOMap("WORLD/WMO/OUTLAND/TEROKKAR/SHATTRATHCITY.WMO");
                 //sceneObj.loadWMOMap("World/wmo/Northrend/Dalaran/ND_Dalaran.wmo");
+
                 /*
                 sceneObj.loadWMOFile({
                  fileName : "World/wmo/Azeroth/Buildings/Stormwind/Stormwind.wmo",
@@ -67,7 +68,8 @@
                  rotation : {x : 0, y: 0, z : 0},
                  doodadSet: 0
                  });
-                  */
+                */
+
 
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
@@ -104,7 +106,6 @@
                     scale    : 1024
                 });
                 */
-
 
                 /*
                 sceneObj.loadM2File({
