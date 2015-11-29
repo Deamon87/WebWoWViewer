@@ -11,6 +11,7 @@
             loadM2s : function (){
                 var self = this;
                 var m2Positions = this.adtGeom.adtFile.mddf;
+                if (!m2Positions) return;
 
                 this.m2Array = [];
                 for (var i = 0; i < m2Positions.length; i++) {
@@ -29,9 +30,10 @@
             loadWmos : function (){
                 var self = this;
                 var wmoPositions = this.adtGeom.adtFile.wmoObjs;
+                if (!wmoPositions) return;
+
 
                 this.wmoArray = [];
-
                 wmoPositions.forEach(function(wmoDef) {
                     self.sceneApi.objects.loadAdtWmo(wmoDef);
                 });

@@ -367,6 +367,9 @@
                         activateM2Shader : function () {
                             self.activateM2Shader()
                         },
+                        deactivateM2Shader : function () {
+                            self.deactivateM2Shader();
+                        },
                         activateM2InstancingShader : function (){
                             self.activateM2InstancingShader();
                         },
@@ -542,8 +545,12 @@
                     var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
                     gl.enableVertexAttribArray(shaderAttributes.aPosition);
-                    //gl.disableVertexAttribArray(shaderAttributes.aNormal);
+                    if (shaderAttributes.aNormal) {
+                        gl.enableVertexAttribArray(shaderAttributes.aNormal);
+                    }
                     gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
+                    gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
+                    gl.disableVertexAttribArray(shaderAttributes.aColor);
 
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
@@ -555,6 +562,18 @@
 
                     gl.activeTexture(gl.TEXTURE0);
                 }
+            },
+            deactivateM2Shader : function () {
+                var gl = this.gl;
+                var instExt = this.sceneApi.extensions.getInstancingExt();
+                var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+                gl.disableVertexAttribArray(shaderAttributes.aPosition);
+                if (shaderAttributes.aNormal) {
+                    gl.disableVertexAttribArray(shaderAttributes.aNormal);
+                }
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
             },
             activateM2InstancingShader : function () {
                 this.currentShaderProgram = this.m2InstancingShader;
@@ -569,6 +588,14 @@
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
 
                     gl.activeTexture(gl.TEXTURE0);
+
+                    gl.enableVertexAttribArray(shaderAttributes.aPosition);
+                    if (shaderAttributes.aNormal) {
+                        gl.enableVertexAttribArray(shaderAttributes.aNormal);
+                    }
+                    gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
+                    gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
+                    gl.disableVertexAttribArray(shaderAttributes.aColor);
 
                     gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 0);
                     gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 1);
@@ -585,6 +612,13 @@
                 var gl = this.gl;
                 var instExt = this.sceneApi.extensions.getInstancingExt();
                 var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+                gl.disableVertexAttribArray(shaderAttributes.aPosition);
+                if (shaderAttributes.aNormal) {
+                    gl.disableVertexAttribArray(shaderAttributes.aNormal);
+                }
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
 
                 instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 0);
                 instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 0);
@@ -656,11 +690,8 @@
             loadM2File : function (mddf) {
                 this.sceneApi.objects.loadAdtM2Obj(mddf);
             },
-            loadWMOMap : function(filename){
-                var wmoObject = new wmoObjectFactory(this.sceneApi);
-                wmoObject.load(filename, 0);
-
-                this.sceneObjectList = [wmoObject];
+            loadWMOFile : function(modf){
+                this.sceneApi.objects.loadAdtWmo(modf);
             },
             loadMap : function (mapName, x, y){
                 var self = this;

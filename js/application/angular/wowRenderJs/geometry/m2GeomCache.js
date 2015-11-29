@@ -62,14 +62,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
-
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexVBO);
-            gl.enableVertexAttribArray(shaderAttributes.aPosition);
-            //gl.enableVertexAttribArray(shaderAttributes.aNormal);
-            gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
-            gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
-            gl.disableVertexAttribArray(shaderAttributes.aColor);
-
             //gl.vertexAttrib4f(shaderAttributes.aColor, 0.5, 0.5, 0.5, 0.5);
 
             /*
@@ -84,7 +77,9 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
              */
 
             gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 48, 0);  // position
-            //gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 48, 20); // normal
+            if (shaderAttributes.aNormal) {
+                gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 48, 20); // normal
+            }
             gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 48, 32); // texcoord
             gl.vertexAttribPointer(shaderAttributes.aTexCoord2, 2, gl.FLOAT, false, 48, 40); // texcoord
         },
@@ -93,7 +88,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
             gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
         },
-        draw : function (skinObject, submeshArray, placementMatrix, colorVector, subMeshColors, vao, vaoExt) {
+        draw : function (skinObject, submeshArray, placementMatrix, colorVector, subMeshColors, transperencies, vao, vaoExt) {
             var gl = this.gl;
             var m2Object = this.m2File;
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
@@ -111,16 +106,17 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
             if (submeshArray) {
                 for (var i = 0; i < submeshArray.length; i++) {
-                    this.drawMesh(i, submeshArray[i], skinObject, subMeshColors)
+                    this.drawMesh(i, submeshArray[i], skinObject, subMeshColors, transperencies)
                 }
             }
             gl.uniform1f(uniforms.uAlphaTest, -1);
         },
-        drawMesh : function (meshIndex, subMeshData, skinObject, subMeshColors, colorVector, instanceCount){
+        drawMesh : function (meshIndex, subMeshData, skinObject, subMeshColors,  colorVector, transperencies, instanceCount){
             var gl = this.gl;
             var m2File = this.m2File;
             var instExt = this.sceneApi.extensions.getInstancingExt();
             var blackPixelText = this.sceneApi.getBlackPixelTexture();
+            var skinData = skinObject.skinFile.header;
 
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
@@ -128,26 +124,36 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             if (subMeshData.isRendered) {
                 if (subMeshData.texUnit1Texture) {
                     //try {
-                    var colorIndex = skinObject.skinFile.header.texs[subMeshData.texUnit1TexIndex].colorIndex;
-                    if ((colorIndex > 0) && (subMeshColors)) {
-                        var submeshColor = subMeshColors[colorIndex];
-
-                        gl.vertexAttrib4f(shaderAttributes.aColor,
-                            submeshColor[0],
-                            submeshColor[1],
-                            submeshColor[2],
-                            submeshColor[3])
-
-                    } else {
-                        gl.vertexAttrib4f(shaderAttributes.aColor,
-                            colorVector[0],
-                            colorVector[1],
-                            colorVector[2],
-                            colorVector[3]);
-
+                    var colorIndex = skinData.texs[subMeshData.texUnit1TexIndex].colorIndex;
+                    var submeshColor = [colorVector[0], colorVector[1], colorVector[2], colorVector[3]];
+                    if ((colorIndex >= 0) && (subMeshColors)) {
+                        var color = subMeshColors[colorIndex];
+                        submeshColor = [
+                            submeshColor[0] * color[0],
+                            submeshColor[1] * color[1],
+                            submeshColor[2] * color[2],
+                            submeshColor[3] * color[3]
+                        ];
                     }
+                    var transperency = 1.0;
+                    var transpIndex = skinData.texs[subMeshData.texUnit1TexIndex].transpIndex;
+                    if ((transpIndex >= 0) && (transperencies)) {
+                        transperency = transperencies[transpIndex];
+                    }
+                    //submeshColor[0] = submeshColor[0] * transperency;
+                    //submeshColor[1] = submeshColor[1] * transperency;
+                    //submeshColor[2] = submeshColor[2] * transperency;
+                    submeshColor[3] = submeshColor[3] * transperency;
 
-                    var renderFlagIndex = skinObject.skinFile.header.texs[subMeshData.texUnit1TexIndex].renderFlagIndex;
+                    gl.vertexAttrib4f(shaderAttributes.aColor,
+                        submeshColor[0],
+                        submeshColor[1],
+                        submeshColor[2],
+                        submeshColor[3]);
+
+                    gl.depthMask(true);
+
+                    var renderFlagIndex = skinData.texs[subMeshData.texUnit1TexIndex].renderFlagIndex;
                     var renderFlag = m2File.renderFlags[renderFlagIndex];
                     switch (renderFlag.blend) {
                         case 0 : //BM_OPAQUE
@@ -163,16 +169,19 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                             gl.uniform1f(uniforms.uAlphaTest, -1);
                             gl.enable(gl.BLEND);
                             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // default blend func
+                            gl.depthMask(false);
                             break;
                         case 3 : //BM_ADDITIVE
                             gl.uniform1f(uniforms.uAlphaTest, -1);
                             gl.enable(gl.BLEND);
                             gl.blendFunc(gl.SRC_COLOR, gl.ONE);
+                            gl.depthMask(false);
                             break;
                         case 4 : //BM_ADDITIVE_ALPHA
                             gl.uniform1f(uniforms.uAlphaTest, 0.00392157);
                             gl.enable(gl.BLEND);
                             gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                            gl.depthMask(false);
                             break;
                         default :
                             gl.uniform1f(uniforms.uAlphaTest, -1);
@@ -200,9 +209,9 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     }
 
                     if (instanceCount == undefined) {
-                        gl.drawElements(gl.TRIANGLES, skinObject.skinFile.header.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinObject.skinFile.header.subMeshes[meshIndex].idxStart * 2);
+                        gl.drawElements(gl.TRIANGLES, skinData.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].idxStart * 2);
                     } else {
-                        instExt.drawElementsInstancedANGLE(gl.TRIANGLES, skinObject.skinFile.header.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinObject.skinFile.header.subMeshes[meshIndex].idxStart * 2, instanceCount);
+                        instExt.drawElementsInstancedANGLE(gl.TRIANGLES, skinData.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].idxStart * 2, instanceCount);
                     }
                     if (subMeshData.texUnit2Texture != null) {
                         gl.activeTexture(gl.TEXTURE1);
@@ -213,6 +222,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     if ((renderFlag.flags & 0x8) > 0) {
                         gl.uniform1i(uniforms.isBillboard, 0);
                     }
+
+                    gl.depthMask(true)
 
                 }
             }
