@@ -176,6 +176,7 @@
                             (a.getFileNameIdent() > b.getFileNameIdent() ? 1 : 0);
                     });
 
+                    /*
                     var lastObject = this.m2Objects[0];
                     var lastInstanced = false;
                     for (var j = 1; j < this.m2Objects.length; j++) {
@@ -191,6 +192,7 @@
 
                         lastObject = currentObject;
                     }
+                    */
                     for (var j = 0; j < this.m2Objects.length; j++) {
                         this.m2Objects[j].calcDistance(self.position);
                     }
