@@ -50,11 +50,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
             //"Official" way to pass mat4 to shader as attribute
             gl.vertexAttribPointer(shaderAttributes.uPlacementMat+0, 4, gl.FLOAT, false, 16*4, 0);  // position
-
             gl.vertexAttribPointer(shaderAttributes.uPlacementMat+1, 4, gl.FLOAT, false, 16*4, 16);  // position
-
             gl.vertexAttribPointer(shaderAttributes.uPlacementMat+2, 4, gl.FLOAT, false, 16*4, 32);  // position
-
             gl.vertexAttribPointer(shaderAttributes.uPlacementMat+3, 4, gl.FLOAT, false, 16*4, 48);  // position
         },
         setupAttributes : function(skinObject){
@@ -77,16 +74,20 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
              */
 
             gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 48, 0);  // position
+            gl.vertexAttribPointer(shaderAttributes.boneWeights, 4, gl.UNSIGNED_BYTE, true, 48, 12);  // bonesWeight
+            gl.vertexAttribPointer(shaderAttributes.bones, 4, gl.UNSIGNED_BYTE, false, 48, 16);  // position
             if (shaderAttributes.aNormal) {
                 gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 48, 20); // normal
             }
             gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 48, 32); // texcoord
             gl.vertexAttribPointer(shaderAttributes.aTexCoord2, 2, gl.FLOAT, false, 48, 40); // texcoord
         },
-        setupUniforms : function (placementMatrix) {
+        setupUniforms : function (placementMatrix, boneMatrix) {
             var gl = this.gl;
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
             gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
+
+            gl.uniformMatrix4fv(uniforms.uBoneMatrixes, false, boneMatrix);
         },
         draw : function (skinObject, submeshArray, placementMatrix, colorVector, subMeshColors, transperencies, vao, vaoExt) {
             var gl = this.gl;
@@ -193,7 +194,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     //}catch (e) {
                     //    debugger;
                     //}
-                    if ((renderFlag.flags & 0x8) > 0) {
+                    if ((renderFlag.flags & 0x10) > 0) {
                         gl.uniform1i(uniforms.isBillboard, 1);
                     }
 
@@ -219,7 +220,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                         gl.activeTexture(gl.TEXTURE0);
                     }
 
-                    if ((renderFlag.flags & 0x8) > 0) {
+                    if ((renderFlag.flags & 0x10) > 0) {
                         gl.uniform1i(uniforms.isBillboard, 0);
                     }
 

@@ -13,6 +13,8 @@
 /* vertex shader code */
 attribute vec3 aPosition;
 attribute vec3 aNormal;
+attribute vec4 bones;
+attribute vec4 boneWeights;
 attribute vec2 aTexCoord;
 attribute vec2 aTexCoord2;
 
@@ -21,6 +23,7 @@ attribute vec4 aColor;
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 uniform int isBillboard;
+uniform mat4 uBoneMatrixes[64];
 
 #ifdef INSTANCED
 attribute mat4 uPlacementMat;
@@ -55,14 +58,21 @@ mat3 inverse(mat3 m) {
 }
 
 void main() {
-    vec4 worldPoint;
+    vec4 worldPoint = vec4(0,0,0,0);
+    vec4 aPositionVec4 = vec4(aPosition, 1);
+
+    worldPoint += (boneWeights.x ) * (uBoneMatrixes[int(bones.x)] * aPositionVec4);
+    worldPoint += (boneWeights.y ) * (uBoneMatrixes[int(bones.y)] * aPositionVec4);
+    worldPoint += (boneWeights.z ) * (uBoneMatrixes[int(bones.z)] * aPositionVec4);
+    worldPoint += (boneWeights.w ) * (uBoneMatrixes[int(bones.w)] * aPositionVec4);
+
     if (isBillboard == 1) {
         mat3 lookAtRotation = mat3(uLookAtMat);
 
-        worldPoint = uLookAtMat * uPlacementMat * vec4(inverse(lookAtRotation) * aPosition, 1);
+        worldPoint = uLookAtMat * uPlacementMat * vec4(inverse(lookAtRotation) * worldPoint.xyz, 1);
 
     } else {
-        worldPoint = uLookAtMat * uPlacementMat * vec4(aPosition, 1);
+        worldPoint = uLookAtMat * uPlacementMat * vec4(worldPoint.xyz, 1);
     }
 
     vTexCoord = aTexCoord;

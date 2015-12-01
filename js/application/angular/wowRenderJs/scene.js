@@ -52,6 +52,7 @@
             self.initGlContext(canvas);
             self.initArrayInstancedExt();
             self.initAnisotropicExt();
+            self.initCompressedTextureS3tcExt();
             self.initShaders().then(function success() {
                 self.isShadersLoaded = true;
             }, function error(){
@@ -203,6 +204,17 @@
                 var anisotropic_ext = gl.getExtension('EXT_texture_filter_anisotropic');
                 if (anisotropic_ext) {
                     this.anisotropic_ext = anisotropic_ext;
+                }
+            },
+            initCompressedTextureS3tcExt : function () {
+                var gl = this.gl;
+                var ext = (
+                    gl.getExtension("WEBGL_compressed_texture_s3tc") ||
+                    gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc") ||
+                    gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc")
+                );
+                if (ext) {
+                    this.comp_tex_ext = ext;
                 }
             },
             initDeferredRendering : function (){
@@ -366,6 +378,9 @@
                         },
                         getAnisotropicExt : function () {
                             return self.anisotropic_ext;
+                        },
+                        getComprTextExt : function () {
+                            return self.comp_tex_ext;
                         }
                     },
                     shaders : {

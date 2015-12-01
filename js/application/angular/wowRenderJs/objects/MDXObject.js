@@ -7,6 +7,7 @@
         function MDXObject(sceneApi){
             this.sceneApi = sceneApi;
             this.currentAnimation = 0;
+            this.currentTime = 0;
         }
         MDXObject.prototype = {
             sceneApi : null,
@@ -246,24 +247,101 @@
 
                 var transperencies = this.getTransperencies(deltaTime);
                 this.transperencies = transperencies;
+
+                this.calcBones(this.currentAnimation, this.currentTime + deltaTime);
+
+                this.currentTime += deltaTime;
             },
-            calcBoneMatrix : function (index, animation, time){
-                animation
+            calcBoneMatrix : function (index, bone, animation, time){
+                function convertInt16ToFloat(value){
+                    return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
+                }
+                if (bone.isCalculated) return;
+                var boneDefinition = this.m2Geom.m2File.bones[index];
+                var parentBone = boneDefinition.parent_bone;
+
+                var tranformMat = mat4.create();
+                tranformMat = mat4.identity(tranformMat);
+
+                mat4.translate(tranformMat, tranformMat, [
+                    boneDefinition.pivot.x,
+                    boneDefinition.pivot.y,
+                    boneDefinition.pivot.z,
+                    0
+                ]);
+
+
+                if (boneDefinition.translation.valuesPerAnimation.length > 0 &&
+                    boneDefinition.translation.valuesPerAnimation[animation].length > 0) {
+
+                    var transVec = boneDefinition.translation.valuesPerAnimation[animation][0];
+                    if (transVec) {
+                        transVec = mat4.translate(tranformMat, tranformMat, transVec);
+                    }
+                }
+                if (boneDefinition.rotation.valuesPerAnimation.length > 0 &&
+                    boneDefinition.rotation.valuesPerAnimation[animation].length > 0) {
+
+                    var quaternionVec4 = boneDefinition.rotation.valuesPerAnimation[animation][0];
+                    if (quaternionVec4) {
+                        var orientMatrix = mat4.create();
+                        mat4.fromQuat(orientMatrix,
+                            [
+                            convertInt16ToFloat(quaternionVec4[0]),
+                            convertInt16ToFloat(quaternionVec4[1]),
+                            convertInt16ToFloat(quaternionVec4[2]),
+                            convertInt16ToFloat(quaternionVec4[3])]
+                        );
+                        mat4.multiply(tranformMat, tranformMat, orientMatrix);
+                    }
+                }
+
+                if (boneDefinition.scale.valuesPerAnimation.length > 0 &&
+                    boneDefinition.scale.valuesPerAnimation[animation].length > 0) {
+
+                    var scaleVec3 = boneDefinition.scale.valuesPerAnimation[animation][0];
+                    mat4.scale(tranformMat, tranformMat, [scaleVec3[0], scaleVec3[1], scaleVec3[2]]);
+                }
+
+                mat4.translate(tranformMat, tranformMat, [
+                    -boneDefinition.pivot.x,
+                    -boneDefinition.pivot.y,
+                    -boneDefinition.pivot.z,
+                    0
+                ]);
+
+                if (parentBone>=0) {
+                    this.calcBoneMatrix(parentBone, this.bones[parentBone], animation, time);
+                    mat4.multiply(tranformMat, tranformMat, this.bones[parentBone].tranformMat);
+                }
+
+                bone.tranformMat = tranformMat;
+            },
+            combineBoneMatrixes : function() {
+                var combinedMatrix = new Float32Array(this.bones.length * 16);
+                for (var i = 0; i < this.bones.length; i++) {
+                    combinedMatrix.set(this.bones[i].tranformMat, i*16);
+                }
+
+                return combinedMatrix;
             },
             calcBones : function (animation, time) {
                 if (!this.m2Geom) return null;
 
                 var m2File = this.m2Geom.m2File;
-                this.bones = new Array(m2File.nBones);
-                for (var i = 0; i < m2File.nBones; i++) {
-                    if (!this.bones) this.bones[i] = {};
-                    this.bones[i].isCalculated = false;
+                if (!this.bones) {
+                    this.bones = new Array(m2File.nBones);
+                    for (var i = 0; i < m2File.nBones; i++) {
+                        if (!this.bones[i]) this.bones[i] = {};
+                        this.bones[i].isCalculated = false;
+                    }
                 }
 
                 for (var i = 0; i < m2File.nBones; i++) {
                     this.calcBoneMatrix(i, this.bones[i], animation, time)
                 }
 
+                this.boneMatrix = this.combineBoneMatrixes();
             },
             drawInstancedNonTransparentMeshes : function (instanceCount, placementVBO, color) {
                 if (!this.m2Geom) return;
@@ -307,7 +385,8 @@
                 if (!this.m2Geom) return;
 
                 this.m2Geom.setupAttributes(this.skinGeom);
-                this.m2Geom.setupUniforms(placementMatrix);
+                var combinedMatrix = this.boneMatrix;
+                this.m2Geom.setupUniforms(placementMatrix, combinedMatrix);
 
                 var colorVector = [color&0xff, (color>> 8)&0xff,
                     (color>>16)&0xff, (color>> 24)&0xff];
@@ -325,7 +404,8 @@
                 if (!this.m2Geom) return;
 
                 this.m2Geom.setupAttributes(this.skinGeom);
-                this.m2Geom.setupUniforms(placementMatrix);
+                var combinedMatrix = this.boneMatrix;
+                this.m2Geom.setupUniforms(placementMatrix, combinedMatrix);
 
                 var colorVector = [color&0xff, (color>> 8)&0xff,
                     (color>>16)&0xff, (color>> 24)&0xff];
