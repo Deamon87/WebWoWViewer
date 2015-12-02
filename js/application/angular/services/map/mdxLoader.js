@@ -185,7 +185,7 @@
                         {
                             name: "rotation",
                             type: "ablock",
-                            valType: "uint16Array",
+                            valType: "int16Array",
                             len: 4
                         },
                         {

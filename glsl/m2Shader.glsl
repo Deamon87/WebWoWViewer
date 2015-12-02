@@ -23,7 +23,7 @@ attribute vec4 aColor;
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 uniform int isBillboard;
-uniform mat4 uBoneMatrixes[64];
+uniform mat4 uBoneMatrixes[24]; //TODO: investigate maximal number for this
 
 #ifdef INSTANCED
 attribute mat4 uPlacementMat;
@@ -66,14 +66,7 @@ void main() {
     worldPoint += (boneWeights.z ) * (uBoneMatrixes[int(bones.z)] * aPositionVec4);
     worldPoint += (boneWeights.w ) * (uBoneMatrixes[int(bones.w)] * aPositionVec4);
 
-    if (isBillboard == 1) {
-        mat3 lookAtRotation = mat3(uLookAtMat);
-
-        worldPoint = uLookAtMat * uPlacementMat * vec4(inverse(lookAtRotation) * worldPoint.xyz, 1);
-
-    } else {
-        worldPoint = uLookAtMat * uPlacementMat * vec4(worldPoint.xyz, 1);
-    }
+    worldPoint = uLookAtMat * uPlacementMat * vec4(worldPoint.xyz, 1);
 
     vTexCoord = aTexCoord;
     vTexCoord2 = aTexCoord2;

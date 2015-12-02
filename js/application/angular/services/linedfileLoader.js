@@ -49,6 +49,9 @@
                             case "uint16Array" :
                                 result = fileObject.readUint16Array(offset, len);
                                 break;
+                            case "int16Array" :
+                                result = fileObject.readInt16Array(offset, len);
+                                break;
                             case "vector3f" :
                                 result = fileObject.readVector3f(offset);
                                 break;

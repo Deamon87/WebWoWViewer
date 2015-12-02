@@ -256,6 +256,8 @@
                 function convertInt16ToFloat(value){
                     return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
                 }
+
+
                 if (bone.isCalculated) return;
                 var boneDefinition = this.m2Geom.m2File.bones[index];
                 var parentBone = boneDefinition.parent_bone;
@@ -276,7 +278,12 @@
 
                     var transVec = boneDefinition.translation.valuesPerAnimation[animation][0];
                     if (transVec) {
-                        transVec = mat4.translate(tranformMat, tranformMat, transVec);
+                        transVec = mat4.translate(tranformMat, tranformMat, [
+                            transVec.x,
+                            transVec.y,
+                            transVec.z,
+                            0
+                        ]);
                     }
                 }
                 if (boneDefinition.rotation.valuesPerAnimation.length > 0 &&
@@ -300,7 +307,12 @@
                     boneDefinition.scale.valuesPerAnimation[animation].length > 0) {
 
                     var scaleVec3 = boneDefinition.scale.valuesPerAnimation[animation][0];
-                    mat4.scale(tranformMat, tranformMat, [scaleVec3[0], scaleVec3[1], scaleVec3[2]]);
+                    mat4.scale(tranformMat, tranformMat, [
+                        scaleVec3.x,
+                        scaleVec3.y,
+                        scaleVec3.z
+                        ]
+                    );
                 }
 
                 mat4.translate(tranformMat, tranformMat, [
@@ -312,7 +324,7 @@
 
                 if (parentBone>=0) {
                     this.calcBoneMatrix(parentBone, this.bones[parentBone], animation, time);
-                    mat4.multiply(tranformMat, tranformMat, this.bones[parentBone].tranformMat);
+                    mat4.multiply(tranformMat, this.bones[parentBone].tranformMat, tranformMat);
                 }
 
                 bone.tranformMat = tranformMat;

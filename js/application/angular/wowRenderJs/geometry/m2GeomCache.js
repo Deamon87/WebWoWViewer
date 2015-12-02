@@ -194,9 +194,11 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     //}catch (e) {
                     //    debugger;
                     //}
-                    if ((renderFlag.flags & 0x10) > 0) {
+                    /*
+                    if ((renderFlag.flags & 0x8) > 0) {
                         gl.uniform1i(uniforms.isBillboard, 1);
                     }
+                    */
 
 
                     gl.activeTexture(gl.TEXTURE0);
@@ -220,9 +222,11 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                         gl.activeTexture(gl.TEXTURE0);
                     }
 
-                    if ((renderFlag.flags & 0x10) > 0) {
+                    /*
+                    if ((renderFlag.flags & 0x8) > 0) {
                         gl.uniform1i(uniforms.isBillboard, 0);
                     }
+                    */
 
                     gl.depthMask(true)
 

@@ -98,7 +98,7 @@
                                 colorArray.push(b);
                                 colorArray.push(a);
                             } */
-                            var colorArray = chunk.readInt8Array({offs:0}, chunk.chunkLen);
+                            var colorArray = chunk.readUint8Array({offs:0}, chunk.chunkLen);
                             groupWMOObject.colorVerticles = colorArray;
                         },
                         "MOBA": function (groupWMOObject, chunk) {

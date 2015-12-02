@@ -119,6 +119,14 @@
 
                     return vector;
                 },
+                readInt16Array : function (offsetObj, length) {
+                    var vector = [];
+                    for (var i = 0; i < length; i ++) {
+                        vector[i] = this.readInt16(offsetObj);
+                    }
+
+                    return vector;
+                },
                 readInt32Array : function (offsetObj, length) {
                     var vector = [];
                     for (var i = 0; i < length; i ++) {

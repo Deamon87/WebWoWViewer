@@ -179,7 +179,7 @@
                 }
 
                 try {
-                    var gl = canvas.getContext("webgl", {premultipliedAlpha: false}) || canvas.getContext("experimental-webgl", {premultipliedAlpha: false});
+                    var gl = canvas.getContext("webgl", {premultipliedAlpha: false, alpha: false }) || canvas.getContext("experimental-webgl", {premultipliedAlpha: false});
                     gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError);
                 }
                 catch(e) {}
@@ -574,6 +574,8 @@
                     if (shaderAttributes.aNormal) {
                         gl.enableVertexAttribArray(shaderAttributes.aNormal);
                     }
+                    gl.enableVertexAttribArray(shaderAttributes.boneWeights);
+                    gl.enableVertexAttribArray(shaderAttributes.bones);
                     gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
                     gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
                     gl.disableVertexAttribArray(shaderAttributes.aColor);
@@ -598,6 +600,9 @@
                 if (shaderAttributes.aNormal) {
                     gl.disableVertexAttribArray(shaderAttributes.aNormal);
                 }
+                gl.disableVertexAttribArray(shaderAttributes.boneWeights);
+                gl.disableVertexAttribArray(shaderAttributes.bones);
+
                 gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
                 gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
             },
@@ -619,6 +624,8 @@
                     if (shaderAttributes.aNormal) {
                         gl.enableVertexAttribArray(shaderAttributes.aNormal);
                     }
+                    gl.enableVertexAttribArray(shaderAttributes.boneWeights);
+                    gl.enableVertexAttribArray(shaderAttributes.bones);
                     gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
                     gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
                     gl.disableVertexAttribArray(shaderAttributes.aColor);
@@ -645,6 +652,8 @@
                 if (shaderAttributes.aNormal) {
                     gl.disableVertexAttribArray(shaderAttributes.aNormal);
                 }
+                gl.disableVertexAttribArray(shaderAttributes.boneWeights);
+                gl.disableVertexAttribArray(shaderAttributes.bones);
                 gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
                 gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
 
