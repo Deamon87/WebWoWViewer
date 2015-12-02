@@ -160,7 +160,7 @@
                 //1. Update all wmo and m2 objects
                 var i;
                 for (i = 0; i < this.m2Objects.length; i++) {
-                    this.m2Objects[i].update(deltaTime);
+                    this.m2Objects[i].update(deltaTime, this.position);
                 }
 
                 for (i = 0; i < this.wmoObjects.length; i++) {

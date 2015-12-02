@@ -8,6 +8,7 @@
             this.sceneApi = sceneApi;
             this.currentAnimation = 0;
             this.currentTime = 0;
+            this.isAnimated = false;
         }
         MDXObject.prototype = {
             sceneApi : null,
@@ -239,7 +240,7 @@
                     cd : this.m2Geom.m2File.BoundingCorner2
                 }
             },
-            update : function(deltaTime) {
+            update : function(deltaTime, cameraPos, ownPos) {
                 if (!this.m2Geom) return;
 
                 var subMeshColors = this.getSubMeshColor(deltaTime);
@@ -248,15 +249,14 @@
                 var transperencies = this.getTransperencies(deltaTime);
                 this.transperencies = transperencies;
 
-                this.calcBones(this.currentAnimation, this.currentTime + deltaTime);
+                this.calcBones(this.currentAnimation, this.currentTime + deltaTime, cameraPos, ownPos);
 
                 this.currentTime += deltaTime;
             },
-            calcBoneMatrix : function (index, bone, animation, time){
+            calcBoneMatrix : function (index, bone, animation, time, cameraPos, ownPos){
                 function convertInt16ToFloat(value){
                     return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
                 }
-
 
                 if (bone.isCalculated) return;
                 var boneDefinition = this.m2Geom.m2File.bones[index];
@@ -265,13 +265,13 @@
                 var tranformMat = mat4.create();
                 tranformMat = mat4.identity(tranformMat);
 
+
                 mat4.translate(tranformMat, tranformMat, [
                     boneDefinition.pivot.x,
                     boneDefinition.pivot.y,
                     boneDefinition.pivot.z,
                     0
                 ]);
-
 
                 if (boneDefinition.translation.valuesPerAnimation.length > 0 &&
                     boneDefinition.translation.valuesPerAnimation[animation].length > 0) {
@@ -284,9 +284,35 @@
                             transVec.z,
                             0
                         ]);
+                        this.isAnimated = true;
                     }
                 }
-                if (boneDefinition.rotation.valuesPerAnimation.length > 0 &&
+                if ((boneDefinition.flags & 0x8) > 0) {
+                    //From http://gamedev.stackexchange.com/questions/112270/calculating-rotation-matrix-for-an-object-relative-to-a-planets-surface-in-monog
+                    var modelForward = vec3.create();
+                    vec3.subtract(modelForward, ownPos, cameraPos);
+                    vec3.normalize(modelForward, modelForward);
+
+
+                    var modelRight = vec3.create();
+                    vec3.cross(modelRight, modelForward, [0,1,0]);
+                    vec3.normalize(modelRight,modelRight);
+                    var modelUp = vec3.create();
+                    vec3.cross(modelUp, modelRight, modelForward);
+                    vec3.normalize(modelUp, modelUp);
+
+                    tranformMat[0] = modelForward[0];
+                    tranformMat[1] = modelForward[1];
+                    tranformMat[2] = modelForward[2];
+
+                    tranformMat[4] = modelRight[0];
+                    tranformMat[5] = modelRight[1];
+                    tranformMat[6] = modelRight[2];
+
+                    tranformMat[7] = modelUp[0];
+                    tranformMat[8] = modelUp[1];
+                    tranformMat[9] = modelUp[2];
+                } else if (boneDefinition.rotation.valuesPerAnimation.length > 0 &&
                     boneDefinition.rotation.valuesPerAnimation[animation].length > 0) {
 
                     var quaternionVec4 = boneDefinition.rotation.valuesPerAnimation[animation][0];
@@ -300,6 +326,7 @@
                             convertInt16ToFloat(quaternionVec4[3])]
                         );
                         mat4.multiply(tranformMat, tranformMat, orientMatrix);
+                        this.isAnimated = true;
                     }
                 }
 
@@ -313,7 +340,9 @@
                         scaleVec3.z
                         ]
                     );
+                    this.isAnimated = true;
                 }
+
 
                 mat4.translate(tranformMat, tranformMat, [
                     -boneDefinition.pivot.x,
@@ -323,7 +352,7 @@
                 ]);
 
                 if (parentBone>=0) {
-                    this.calcBoneMatrix(parentBone, this.bones[parentBone], animation, time);
+                    this.calcBoneMatrix(parentBone, this.bones[parentBone], animation, time, cameraPos, ownPos);
                     mat4.multiply(tranformMat, this.bones[parentBone].tranformMat, tranformMat);
                 }
 
@@ -337,7 +366,7 @@
 
                 return combinedMatrix;
             },
-            calcBones : function (animation, time) {
+            calcBones : function (animation, time, cameraPos, ownPos) {
                 if (!this.m2Geom) return null;
 
                 var m2File = this.m2Geom.m2File;
@@ -349,8 +378,10 @@
                     }
                 }
 
-                for (var i = 0; i < m2File.nBones; i++) {
-                    this.calcBoneMatrix(i, this.bones[i], animation, time)
+                if (!this.boneMatrix || this.isAnimated) {
+                    for (var i = 0; i < m2File.nBones; i++) {
+                        this.calcBoneMatrix(i, this.bones[i], animation, time, cameraPos, ownPos);
+                    }
                 }
 
                 this.boneMatrix = this.combineBoneMatrixes();

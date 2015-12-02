@@ -73,9 +73,9 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
              {name : "textureY2",    type : "float32"}             44+4 = 48
              */
 
-            gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 48, 0);  // position
+            gl.vertexAttribPointer(shaderAttributes.aPosition,   3, gl.FLOAT, false, 48, 0);  // position
             gl.vertexAttribPointer(shaderAttributes.boneWeights, 4, gl.UNSIGNED_BYTE, true, 48, 12);  // bonesWeight
-            gl.vertexAttribPointer(shaderAttributes.bones, 4, gl.UNSIGNED_BYTE, false, 48, 16);  // position
+            gl.vertexAttribPointer(shaderAttributes.bones,       4, gl.UNSIGNED_BYTE, false, 48, 16);  // bones
             if (shaderAttributes.aNormal) {
                 gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 48, 20); // normal
             }

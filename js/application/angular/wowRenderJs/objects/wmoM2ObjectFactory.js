@@ -21,8 +21,8 @@
                 if (!this.mdxObject) return null;
                 return this.mdxObject.getMeshesToRender();
             },
-            update: function (deltaTime) {
-                this.mdxObject.update(deltaTime);
+            update: function (deltaTime, cameraPos) {
+                this.mdxObject.update(deltaTime, cameraPos, this.position);
                 if (!this.aabb) {
                     var bb = this.mdxObject.getBoundingBox();
                     if (bb) {
