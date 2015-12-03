@@ -262,23 +262,48 @@
                 var boneDefinition = this.m2Geom.m2File.bones[index];
                 var parentBone = boneDefinition.parent_bone;
 
+                //1. Calc parent bone matrix
+                if (parentBone>=0) {
+                    this.calcBoneMatrix(parentBone, this.bones[parentBone], animation, time, cameraPos, ownPos);
+                }
+
+                //2. If not calculated yet - calc default invers transformation matrix
+                if (!bone.defaultInvTransf) {
+                    var defInvTransf = mat4.create();
+                    if (parentBone>=0) {
+                        mat4.multiply(defInvTransf , defInvTransf, this.bones[parentBone].defaultInvTransf);
+                    }
+                    mat4.translate(defInvTransf, defInvTransf, [
+                        -boneDefinition.pivot.x,
+                        -boneDefinition.pivot.y,
+                        -boneDefinition.pivot.z,
+                        0
+                    ]);
+
+                    bone.defaultInvTransf = defInvTransf;
+                }
+
+
+                //3. Calc current transformation matrix
                 var tranformMat = mat4.create();
                 tranformMat = mat4.identity(tranformMat);
 
-
-                mat4.translate(tranformMat, tranformMat, [
-                    boneDefinition.pivot.x,
-                    boneDefinition.pivot.y,
-                    boneDefinition.pivot.z,
-                    0
-                ]);
+                if (parentBone >= 0) {
+                    mat4.multiply(tranformMat, tranformMat, this.bones[parentBone].tranformMat);
+                    mat4.translate(tranformMat, tranformMat, [
+                        this.m2Geom.m2File.bones[index].pivot.x,
+                        this.m2Geom.m2File.bones[index].pivot.y,
+                        this.m2Geom.m2File.bones[index].pivot.z,
+                        0
+                    ]);
+                }
 
                 if (boneDefinition.translation.valuesPerAnimation.length > 0 &&
                     boneDefinition.translation.valuesPerAnimation[animation].length > 0) {
 
                     var transVec = boneDefinition.translation.valuesPerAnimation[animation][0];
                     if (transVec) {
-                        transVec = mat4.translate(tranformMat, tranformMat, [
+                        mat4.translate(tranformMat, tranformMat, [
                             transVec.x,
                             transVec.y,
                             transVec.z,
@@ -301,17 +326,17 @@
                     vec3.cross(modelUp, modelRight, modelForward);
                     vec3.normalize(modelUp, modelUp);
 
-                    tranformMat[0] = modelForward[0];
-                    tranformMat[1] = modelForward[1];
-                    tranformMat[2] = modelForward[2];
+                    tranformMat[0] = 1;
+                    tranformMat[1] = 0;
+                    tranformMat[2] = 0;
 
                     tranformMat[4] = modelRight[0];
                     tranformMat[5] = modelRight[1];
                     tranformMat[6] = modelRight[2];
 
-                    tranformMat[7] = modelUp[0];
-                    tranformMat[8] = modelUp[1];
-                    tranformMat[9] = modelUp[2];
+                    tranformMat[8] = modelUp[0];
+                    tranformMat[9] = modelUp[1];
+                    tranformMat[10] = modelUp[2];
                 } else if (boneDefinition.rotation.valuesPerAnimation.length > 0 &&
                     boneDefinition.rotation.valuesPerAnimation[animation].length > 0) {
 
@@ -343,17 +368,8 @@
                     this.isAnimated = true;
                 }
 
-
-                mat4.translate(tranformMat, tranformMat, [
-                    -boneDefinition.pivot.x,
-                    -boneDefinition.pivot.y,
-                    -boneDefinition.pivot.z,
-                    0
-                ]);
-
-                if (parentBone>=0) {
-                    this.calcBoneMatrix(parentBone, this.bones[parentBone], animation, time, cameraPos, ownPos);
-                    mat4.multiply(tranformMat, this.bones[parentBone].tranformMat, tranformMat);
+                if (parentBone >= 0) {
+                    mat4.multiply(tranformMat, tranformMat, this.bones[parentBone].defaultInvTransf);
                 }
 
                 bone.tranformMat = tranformMat;
