@@ -121,6 +121,9 @@
             setCameraPos : function (position) {
                 this.position = position;
             },
+            setLookAtMat : function (lookAtMat) {
+                this.lookAtMat = lookAtMat;
+            },
             collectMeshes : function() {
                 var meshesList = [];
                 for (var i = 0; i < this.m2Objects.length; i++) {

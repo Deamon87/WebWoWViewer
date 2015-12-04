@@ -716,7 +716,9 @@
                         0
                     )
                 );
+                this.graphManager.setLookAtMat(lookAtMat4);
                 this.graphManager.update(deltaTime);
+
                 this.graphManager.draw();
 
                 this.stats.end();

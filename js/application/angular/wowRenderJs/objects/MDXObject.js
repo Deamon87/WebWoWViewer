@@ -240,7 +240,7 @@
                     cd : this.m2Geom.m2File.BoundingCorner2
                 }
             },
-            update : function(deltaTime, cameraPos, ownPos) {
+            update : function(deltaTime, modelViewMatrix) {
                 if (!this.m2Geom) return;
 
                 var subMeshColors = this.getSubMeshColor(deltaTime);
@@ -249,11 +249,11 @@
                 var transperencies = this.getTransperencies(deltaTime);
                 this.transperencies = transperencies;
 
-                this.calcBones(this.currentAnimation, this.currentTime + deltaTime, cameraPos, ownPos);
+                this.calcBones(this.currentAnimation, this.currentTime + deltaTime, modelViewMatrix);
 
                 this.currentTime += deltaTime;
             },
-            calcBoneMatrix : function (index, bone, animation, time, cameraPos, ownPos){
+            calcBoneMatrix : function (index, bone, animation, time, cameraInlocalPos){
                 function convertInt16ToFloat(value){
                     return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
                 }
@@ -262,48 +262,29 @@
                 var boneDefinition = this.m2Geom.m2File.bones[index];
                 var parentBone = boneDefinition.parent_bone;
 
-                //1. Calc parent bone matrix
-                if (parentBone>=0) {
-                    this.calcBoneMatrix(parentBone, this.bones[parentBone], animation, time, cameraPos, ownPos);
-                }
+                //2. Calc current transformation matrix
 
-                //2. If not calculated yet - calc default invers transformation matrix
-                if (!bone.defaultInvTransf) {
-                    var defInvTransf = mat4.create();
-                    if (parentBone>=0) {
-                        mat4.multiply(defInvTransf , defInvTransf, this.bones[parentBone].defaultInvTransf);
-                    }
-                    mat4.translate(defInvTransf, defInvTransf, [
-                        -boneDefinition.pivot.x,
-                        -boneDefinition.pivot.y,
-                        -boneDefinition.pivot.z,
-                        0
-                    ]);
-
-                    bone.defaultInvTransf = defInvTransf;
-                }
-
-
-                //3. Calc current transformation matrix
                 var tranformMat = mat4.create();
                 tranformMat = mat4.identity(tranformMat);
 
-                if (parentBone >= 0) {
+                if (parentBone>=0) {
+                    this.calcBoneMatrix(parentBone, this.bones[parentBone], animation, time, cameraInlocalPos);
                     mat4.multiply(tranformMat, tranformMat, this.bones[parentBone].tranformMat);
-                    mat4.translate(tranformMat, tranformMat, [
-                        this.m2Geom.m2File.bones[index].pivot.x,
-                        this.m2Geom.m2File.bones[index].pivot.y,
-                        this.m2Geom.m2File.bones[index].pivot.z,
-                        0
-                    ]);
                 }
+
+                mat4.translate(tranformMat, tranformMat, [
+                    boneDefinition.pivot.x,
+                    boneDefinition.pivot.y,
+                    boneDefinition.pivot.z,
+                    0
+                ]);
 
                 if (boneDefinition.translation.valuesPerAnimation.length > 0 &&
                     boneDefinition.translation.valuesPerAnimation[animation].length > 0) {
 
                     var transVec = boneDefinition.translation.valuesPerAnimation[animation][0];
                     if (transVec) {
-                        mat4.translate(tranformMat, tranformMat, [
+                        transVec = mat4.translate(tranformMat, tranformMat, [
                             transVec.x,
                             transVec.y,
                             transVec.z,
@@ -312,12 +293,19 @@
                         this.isAnimated = true;
                     }
                 }
+
                 if ((boneDefinition.flags & 0x8) > 0) {
                     //From http://gamedev.stackexchange.com/questions/112270/calculating-rotation-matrix-for-an-object-relative-to-a-planets-surface-in-monog
                     var modelForward = vec3.create();
-                    vec3.subtract(modelForward, ownPos, cameraPos);
-                    vec3.normalize(modelForward, modelForward);
 
+                    if (parentBone>=0) {
+                        vec3.transformMat4(cameraInlocalPos, cameraInlocalPos, this.bones[parentBone].inverTransforMat);
+                    }
+                    vec3.subtract(modelForward, [
+                        boneDefinition.pivot.x,
+                        boneDefinition.pivot.y,
+                        boneDefinition.pivot.z], cameraInlocalPos);
+                    vec3.normalize(modelForward, modelForward);
 
                     var modelRight = vec3.create();
                     vec3.cross(modelRight, modelForward, [0,1,0]);
@@ -326,9 +314,9 @@
                     vec3.cross(modelUp, modelRight, modelForward);
                     vec3.normalize(modelUp, modelUp);
 
-                    tranformMat[0] = 1;
-                    tranformMat[1] = 0;
-                    tranformMat[2] = 0;
+                    tranformMat[0] = modelForward[0];
+                    tranformMat[1] = modelForward[1];
+                    tranformMat[2] = modelForward[2];
 
                     tranformMat[4] = modelRight[0];
                     tranformMat[5] = modelRight[1];
@@ -337,6 +325,7 @@
                     tranformMat[8] = modelUp[0];
                     tranformMat[9] = modelUp[1];
                     tranformMat[10] = modelUp[2];
+
                 } else if (boneDefinition.rotation.valuesPerAnimation.length > 0 &&
                     boneDefinition.rotation.valuesPerAnimation[animation].length > 0) {
 
@@ -345,10 +334,10 @@
                         var orientMatrix = mat4.create();
                         mat4.fromQuat(orientMatrix,
                             [
-                            convertInt16ToFloat(quaternionVec4[0]),
-                            convertInt16ToFloat(quaternionVec4[1]),
-                            convertInt16ToFloat(quaternionVec4[2]),
-                            convertInt16ToFloat(quaternionVec4[3])]
+                                convertInt16ToFloat(quaternionVec4[0]),
+                                convertInt16ToFloat(quaternionVec4[1]),
+                                convertInt16ToFloat(quaternionVec4[2]),
+                                convertInt16ToFloat(quaternionVec4[3])]
                         );
                         mat4.multiply(tranformMat, tranformMat, orientMatrix);
                         this.isAnimated = true;
@@ -360,19 +349,25 @@
 
                     var scaleVec3 = boneDefinition.scale.valuesPerAnimation[animation][0];
                     mat4.scale(tranformMat, tranformMat, [
-                        scaleVec3.x,
-                        scaleVec3.y,
-                        scaleVec3.z
+                            scaleVec3.x,
+                            scaleVec3.y,
+                            scaleVec3.z
                         ]
                     );
                     this.isAnimated = true;
                 }
 
-                if (parentBone >= 0) {
-                    mat4.multiply(tranformMat, tranformMat, this.bones[parentBone].defaultInvTransf);
-                }
+                mat4.translate(tranformMat, tranformMat, [
+                    -boneDefinition.pivot.x,
+                    -boneDefinition.pivot.y,
+                    -boneDefinition.pivot.z,
+                    0
+                ]);
 
+                var invertTransformMat = mat4.create();
+                mat4.invert(invertTransformMat, tranformMat);
                 bone.tranformMat = tranformMat;
+                bone.inverTransforMat = invertTransformMat;
             },
             combineBoneMatrixes : function() {
                 var combinedMatrix = new Float32Array(this.bones.length * 16);
@@ -382,7 +377,7 @@
 
                 return combinedMatrix;
             },
-            calcBones : function (animation, time, cameraPos, ownPos) {
+            calcBones : function (animation, time, cameraInlocalPos) {
                 if (!this.m2Geom) return null;
 
                 var m2File = this.m2Geom.m2File;
@@ -396,7 +391,7 @@
 
                 if (!this.boneMatrix || this.isAnimated) {
                     for (var i = 0; i < m2File.nBones; i++) {
-                        this.calcBoneMatrix(i, this.bones[i], animation, time, cameraPos, ownPos);
+                        this.calcBoneMatrix(i, this.bones[i], animation, time, cameraInlocalPos);
                     }
                 }
 

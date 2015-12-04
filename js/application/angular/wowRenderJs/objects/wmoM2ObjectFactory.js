@@ -22,7 +22,10 @@
                 return this.mdxObject.getMeshesToRender();
             },
             update: function (deltaTime, cameraPos) {
-                this.mdxObject.update(deltaTime, cameraPos, this.position);
+                var cameraInlocalPos = vec4.create();
+                vec4.transformMat4(cameraInlocalPos, cameraPos, this.placementInvertMatrix);
+
+                this.mdxObject.update(deltaTime, cameraInlocalPos);
                 if (!this.aabb) {
                     var bb = this.mdxObject.getBoundingBox();
                     if (bb) {
