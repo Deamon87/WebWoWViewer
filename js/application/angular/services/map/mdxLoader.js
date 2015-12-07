@@ -111,6 +111,23 @@
                     }
                 },
                 {
+                    name : "vertexesDebug",
+                    offset: "ofsVertexes",
+                    count : "nVertexes",
+
+                    type : "layout",
+                    layout: [
+                        {name: "pos",           type : "vector3f"},
+                        {name: "bonesWeight",   type : "uint8Array", len: 4},
+                        {name: "bones",         type : "uint8Array", len: 4},
+                        {name: "normal",        type : "vector3f"},
+                        {name: "textureX",      type : "float32"},
+                        {name: "textureY",      type : "float32"},
+                        {name : "unk1",         type : "int32"},
+                        {name : "unk2",         type : "int32"}
+                    ]
+                },
+                {
                     name : "textureDefinition",
                     offset : "ofsTextures",
                     count : "nTextures",

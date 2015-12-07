@@ -37,10 +37,7 @@
                 this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
             },
             update : function(deltaTime, cameraPos) {
-                var cameraInlocalPos = vec4.create();
-                vec4.transformMat4(cameraInlocalPos, cameraPos, this.placementInvertMatrix);
-
-                this.mdxObject.update(deltaTime, cameraInlocalPos);
+                this.mdxObject.update(deltaTime, cameraPos, this.placementInvertMatrix);
                 if (!this.aabb) {
                     var bb = this.mdxObject.getBoundingBox();
                     if (bb) {

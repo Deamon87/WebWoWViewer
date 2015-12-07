@@ -240,7 +240,7 @@
                     cd : this.m2Geom.m2File.BoundingCorner2
                 }
             },
-            update : function(deltaTime, modelViewMatrix) {
+            update : function(deltaTime, cameraPos, invPlacementMat) {
                 if (!this.m2Geom) return;
 
                 var subMeshColors = this.getSubMeshColor(deltaTime);
@@ -249,11 +249,11 @@
                 var transperencies = this.getTransperencies(deltaTime);
                 this.transperencies = transperencies;
 
-                this.calcBones(this.currentAnimation, this.currentTime + deltaTime, modelViewMatrix);
+                this.calcBones(this.currentAnimation, this.currentTime + deltaTime, cameraPos, invPlacementMat);
 
                 this.currentTime += deltaTime;
             },
-            calcBoneMatrix : function (index, bone, animation, time, cameraInlocalPos){
+            calcBoneMatrix : function (index, bone, animation, time, cameraPos, invPlacementMat){
                 function convertInt16ToFloat(value){
                     return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
                 }
@@ -268,7 +268,7 @@
                 tranformMat = mat4.identity(tranformMat);
 
                 if (parentBone>=0) {
-                    this.calcBoneMatrix(parentBone, this.bones[parentBone], animation, time, cameraInlocalPos);
+                    this.calcBoneMatrix(parentBone, this.bones[parentBone], animation, time, cameraPos, invPlacementMat);
                     mat4.multiply(tranformMat, tranformMat, this.bones[parentBone].tranformMat);
                 }
 
@@ -297,34 +297,40 @@
                 if ((boneDefinition.flags & 0x8) > 0) {
                     //From http://gamedev.stackexchange.com/questions/112270/calculating-rotation-matrix-for-an-object-relative-to-a-planets-surface-in-monog
                     var modelForward = vec3.create();
+                    var cameraInlocalPos = vec4.create();
+                    var invBoneMat = mat4.create();
+                    mat4.invert(invBoneMat, tranformMat);
+
+                    vec4.copy(cameraInlocalPos, cameraPos);
+                    vec4.transformMat4(cameraInlocalPos, cameraInlocalPos, invPlacementMat);
 
                     if (parentBone>=0) {
-                        vec3.transformMat4(cameraInlocalPos, cameraInlocalPos, this.bones[parentBone].inverTransforMat);
+                        vec4.transformMat4(cameraInlocalPos, cameraInlocalPos, this.bones[parentBone].inverTransforMat);
                     }
-                    vec3.subtract(modelForward, [
+                    vec4.subtract(cameraInlocalPos, cameraInlocalPos, [
                         boneDefinition.pivot.x,
                         boneDefinition.pivot.y,
-                        boneDefinition.pivot.z], cameraInlocalPos);
-                    vec3.normalize(modelForward, modelForward);
+                        boneDefinition.pivot.z,
+                        0
+                    ]);
+
+                    vec3.normalize(modelForward, cameraInlocalPos);
 
                     var modelRight = vec3.create();
-                    vec3.cross(modelRight, modelForward, [0,1,0]);
+                    vec3.cross(modelRight, [0,0,1], modelForward);
                     vec3.normalize(modelRight,modelRight);
+
                     var modelUp = vec3.create();
-                    vec3.cross(modelUp, modelRight, modelForward);
+                    vec3.cross(modelUp, modelForward, modelRight);
                     vec3.normalize(modelUp, modelUp);
 
-                    tranformMat[0] = modelForward[0];
-                    tranformMat[1] = modelForward[1];
-                    tranformMat[2] = modelForward[2];
-
-                    tranformMat[4] = modelRight[0];
-                    tranformMat[5] = modelRight[1];
-                    tranformMat[6] = modelRight[2];
-
-                    tranformMat[8] = modelUp[0];
-                    tranformMat[9] = modelUp[1];
-                    tranformMat[10] = modelUp[2];
+                    mat4.multiply(tranformMat, tranformMat,
+                        [
+                            modelForward[0],modelForward[1],modelForward[2],0,
+                            modelRight[0],modelRight[1],modelRight[2],0,
+                            modelUp[0],modelUp[1],modelUp[2],0,
+                            0,0,0,1
+                        ]);
 
                 } else if (boneDefinition.rotation.valuesPerAnimation.length > 0 &&
                     boneDefinition.rotation.valuesPerAnimation[animation].length > 0) {
@@ -377,7 +383,7 @@
 
                 return combinedMatrix;
             },
-            calcBones : function (animation, time, cameraInlocalPos) {
+            calcBones : function (animation, time, cameraPos, invPlacementMat) {
                 if (!this.m2Geom) return null;
 
                 var m2File = this.m2Geom.m2File;
@@ -391,7 +397,7 @@
 
                 if (!this.boneMatrix || this.isAnimated) {
                     for (var i = 0; i < m2File.nBones; i++) {
-                        this.calcBoneMatrix(i, this.bones[i], animation, time, cameraInlocalPos);
+                        this.calcBoneMatrix(i, this.bones[i], animation, time, cameraPos, invPlacementMat);
                     }
                 }
 

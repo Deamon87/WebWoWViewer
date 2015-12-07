@@ -713,7 +713,7 @@
                         cameraVecs.cameraVec3[0],
                         cameraVecs.cameraVec3[1],
                         cameraVecs.cameraVec3[2],
-                        0
+                        1
                     )
                 );
                 this.graphManager.setLookAtMat(lookAtMat4);
@@ -739,8 +739,13 @@
 
                 wdtLoader(wdtFileName).then(function success(wdtFile){
                     self.currentWdt = wdtFile;
-                    var adtFileName = "world/maps/"+mapName+"/"+mapName+"_"+x+"_"+y+".adt";
-                    self.graphManager.addADTObject(adtFileName);
+                    if (wdtFile.isWMOMap) {
+
+                        self.sceneApi.objects.loadAdtWmo(wdtFile.modfChunk)
+                    } else {
+                        var adtFileName = "world/maps/"+mapName+"/"+mapName+"_"+x+"_"+y+".adt";
+                        self.graphManager.addADTObject(adtFileName);
+                    }
 
                 }, function error(){
                 })
