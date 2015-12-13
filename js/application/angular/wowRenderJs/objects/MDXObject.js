@@ -329,7 +329,7 @@
                             modelUp[0],modelUp[1],modelUp[2],0,
                             0,0,0,1
                         ]);
-
+                    this.isAnimated = true;
                 } else if (boneDefinition.rotation.valuesPerAnimation.length > 0 &&
                     boneDefinition.rotation.valuesPerAnimation[animation].length > 0) {
 
