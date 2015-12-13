@@ -390,6 +390,9 @@
                         activateWMOShader : function () {
                             self.activateWMOShader()
                         },
+                        deactivateWMOShader : function () {
+                            self.deactivateWMOShader()
+                        },
                         activateM2Shader : function () {
                             self.activateM2Shader()
                         },
@@ -559,9 +562,26 @@
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
 
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
 
                     gl.activeTexture(gl.TEXTURE0);
                 }
+            },
+            deactivateWMOShader : function () {
+                var gl = this.gl;
+                var instExt = this.sceneApi.extensions.getInstancingExt();
+                var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+                gl.disableVertexAttribArray(shaderAttributes.aPosition);
+                if (shaderAttributes.aNormal) {
+                    gl.disableVertexAttribArray(shaderAttributes.aNormal);
+                }
+
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
+
+                gl.disableVertexAttribArray(shaderAttributes.aColor);
+                gl.disableVertexAttribArray(shaderAttributes.aColor2);
             },
             activateM2Shader : function() {
                 this.currentShaderProgram = this.m2Shader;

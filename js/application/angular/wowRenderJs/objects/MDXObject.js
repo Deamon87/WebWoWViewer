@@ -298,8 +298,6 @@
                     //From http://gamedev.stackexchange.com/questions/112270/calculating-rotation-matrix-for-an-object-relative-to-a-planets-surface-in-monog
                     var modelForward = vec3.create();
                     var cameraInlocalPos = vec4.create();
-                    var invBoneMat = mat4.create();
-                    mat4.invert(invBoneMat, tranformMat);
 
                     vec4.copy(cameraInlocalPos, cameraPos);
                     vec4.transformMat4(cameraInlocalPos, cameraInlocalPos, invPlacementMat);

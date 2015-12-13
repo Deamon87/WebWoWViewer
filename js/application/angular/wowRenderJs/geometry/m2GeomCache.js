@@ -194,11 +194,11 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     //}catch (e) {
                     //    debugger;
                     //}
-                    /*
+
                     if ((renderFlag.flags & 0x8) > 0) {
-                        gl.uniform1i(uniforms.isBillboard, 1);
+                        //gl.uniform1i(uniforms.isBillboard, 1);
                     }
-                    */
+
 
 
                     gl.activeTexture(gl.TEXTURE0);

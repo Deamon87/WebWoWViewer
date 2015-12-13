@@ -233,6 +233,8 @@
                 for (var i = 0; i < this.wmoObjects.length; i++) {
                     this.wmoObjects[i].draw();
                 }
+                this.sceneApi.shaders.deactivateWMOShader();
+
 
                 //3. Draw background WDL
 
@@ -248,6 +250,7 @@
                     if (this.m2Objects[i].instanceManager) continue;
                     this.m2Objects[i].drawNonTransparentMeshes();
                 }
+                this.sceneApi.shaders.deactivateM2Shader();
 
                 //5.1 Draw instanced nontransparent meshes of m2
                 this.sceneApi.shaders.activateM2InstancingShader();
