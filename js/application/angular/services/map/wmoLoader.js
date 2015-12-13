@@ -163,7 +163,9 @@
                 /* First chunk in file has to be MVER */
 
                 var wmoObj = {
+                    colorVerticles : [],
                     colorVerticles2 : [],
+                    textCoords : [],
                     textCoords2 : []
                 };
                 chunkedFile.setSectionReaders(new BaseGroupWMOLoader());
