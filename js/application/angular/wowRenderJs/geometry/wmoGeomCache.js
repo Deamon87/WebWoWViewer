@@ -91,7 +91,7 @@
             this.textOffset = this.normalOffset + wmoGroupObject.normals.length;
             this.textOffset2 = this.textOffset + wmoGroupObject.textCoords.length;
             this.colorOffset = this.textOffset2 + wmoGroupObject.textCoords2.length;
-            this.colorOffset2 = this.colorOffset  + (wmoGroupObject.colorVerticles.length/4);
+            this.colorOffset2 = this.colorOffset  + (wmoGroupObject.colorVerticles && wmoGroupObject.colorVerticles.length > 0 )? (wmoGroupObject.colorVerticles.length/4) : 0;
 
             this.indexVBO = gl.createBuffer();
             gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO );
@@ -130,7 +130,7 @@
             }
 
             if (shaderAttributes.aColor) {
-                if (isIndoor && (wmoGroupObject.colorVerticles) &&(wmoGroupObject.colorVerticles.length > 0)) {
+                if (isIndoor && (wmoGroupObject.colorVerticles) &&(wmoGroupObject.colorVerticles.length > 1)) {
                     gl.enableVertexAttribArray(shaderAttributes.aColor);
                     gl.vertexAttribPointer(shaderAttributes.aColor, 4, gl.UNSIGNED_BYTE, true, 0, this.colorOffset * 4); // color
                 } else {

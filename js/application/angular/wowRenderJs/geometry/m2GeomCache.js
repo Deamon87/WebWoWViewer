@@ -170,19 +170,16 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                             gl.uniform1f(uniforms.uAlphaTest, -1);
                             gl.enable(gl.BLEND);
                             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // default blend func
-                            gl.depthMask(false);
                             break;
                         case 3 : //BM_ADDITIVE
                             gl.uniform1f(uniforms.uAlphaTest, -1);
                             gl.enable(gl.BLEND);
                             gl.blendFunc(gl.SRC_COLOR, gl.ONE);
-                            gl.depthMask(false);
                             break;
                         case 4 : //BM_ADDITIVE_ALPHA
                             gl.uniform1f(uniforms.uAlphaTest, 0.00392157);
                             gl.enable(gl.BLEND);
                             gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-                            gl.depthMask(false);
                             break;
                         default :
                             gl.uniform1f(uniforms.uAlphaTest, -1);
@@ -199,6 +196,17 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                         //gl.uniform1i(uniforms.isBillboard, 1);
                     }
 
+                    if ((renderFlag.flags & 0x4) > 0) {
+                        gl.disable(gl.CULL_FACE);
+                    } else {
+                        gl.enable(gl.CULL_FACE);
+                    }
+
+                    if ((renderFlag.flags & 0x10) > 0) {
+                        gl.depthMask(false);
+                    } else {
+                        gl.depthMask(true);
+                    }
 
 
                     gl.activeTexture(gl.TEXTURE0);
