@@ -61,24 +61,26 @@
             createPlacementMatrix : function(modf){
                 var TILESIZE = 533.333333333;
 
-                var posx = modf.pos.x-32*TILESIZE;
+                var posx = 32*TILESIZE - modf.pos.x;
                 var posy = modf.pos.y;
-                var posz = modf.pos.z-32*TILESIZE;
+                var posz = 32*TILESIZE - modf.pos.z;
+
 
                 var placementMatrix = mat4.create();
                 mat4.identity(placementMatrix);
 
                 mat4.rotateX(placementMatrix, placementMatrix, glMatrix.toRadian(90));
-                mat4.rotateY(placementMatrix, placementMatrix, glMatrix.toRadian(-90));
+                mat4.rotateY(placementMatrix, placementMatrix, glMatrix.toRadian(90));
 
                 // with FPosition do glTranslatef(x,y,z);
                 mat4.translate(placementMatrix, placementMatrix, [posx, posy, posz]);
 
-                mat4.rotateY(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.y - 90));
-                mat4.rotateZ(placementMatrix, placementMatrix, glMatrix.toRadian(-modf.rotation.x));
+                mat4.rotateY(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.y+90));
                 mat4.rotateX(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.z));
+                mat4.rotateZ(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.x));
 
                 mat4.rotateX(placementMatrix, placementMatrix, glMatrix.toRadian(-90));
+
 
                 var placementInvertMatrix = mat4.create();
                 mat4.invert(placementInvertMatrix, placementMatrix);
