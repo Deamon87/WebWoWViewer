@@ -76,11 +76,8 @@
                 mat4.translate(placementMatrix, placementMatrix, [posx, posy, posz]);
 
                 mat4.rotateY(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.y+90));
-                mat4.rotateX(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.z));
+                mat4.rotateX(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.z-90));
                 mat4.rotateZ(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.x));
-
-                mat4.rotateX(placementMatrix, placementMatrix, glMatrix.toRadian(-90));
-
 
                 var placementInvertMatrix = mat4.create();
                 mat4.invert(placementInvertMatrix, placementMatrix);

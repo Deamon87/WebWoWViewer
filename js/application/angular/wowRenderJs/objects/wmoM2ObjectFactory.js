@@ -61,7 +61,6 @@
                 mat4.identity(placementMatrix);
                 mat4.multiply(placementMatrix, placementMatrix, wmoPlacementMatrix);
 
-                // with FPosition do glTranslatef(x,y,z);
                 mat4.translate(placementMatrix, placementMatrix, [doodad.pos.x,doodad.pos.y,doodad.pos.z]);
 
                 var orientMatrix = mat4.create();
@@ -73,7 +72,6 @@
                 );
                 mat4.multiply(placementMatrix, placementMatrix, orientMatrix);
 
-                //glscalef(Fscale,Fscale,Fscale);
                 mat4.scale(placementMatrix, placementMatrix, [doodad.scale, doodad.scale, doodad.scale]);
 
                 var placementInvertMatrix = mat4.create();
