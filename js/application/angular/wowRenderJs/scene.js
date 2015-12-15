@@ -398,7 +398,7 @@
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.canvas.width, this.canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.canvas.width, this.canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
 
                 var framebuffer = gl.createFramebuffer();
                 gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
@@ -787,6 +787,7 @@
                 var gl = this.gl;
 
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
+                //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
                 var cameraVecs = this.camera.tick(deltaTime);
 
                 var lookAtMat4 = [];
@@ -820,6 +821,7 @@
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
                 //Draw frameBuffer
+
                 this.activateRenderFrameShader();
                 this.glClearScreen(gl);
 

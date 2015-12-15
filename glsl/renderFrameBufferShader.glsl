@@ -10,7 +10,7 @@ void main() {
 
 #ifdef COMPILING_FS
 
-precision lowp float;
+precision mediump float;
 varying vec2 v_texcoord;
 uniform sampler2D u_sampler;
 void main() {

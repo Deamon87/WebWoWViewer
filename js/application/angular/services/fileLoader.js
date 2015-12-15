@@ -65,6 +65,11 @@
         }
 
         function fileLoader(filePath) {
+            //Hack for zero terminated strings with zero being inside string
+            if (filePath[filePath.length-1] == String.fromCharCode(0)) {
+                filePath = filePath.substr(0, filePath.length-1);
+            }
+
             if (configService.getFileReadMethod() == 'http') {
                 var fullPath = configService.getUrlToLoadWoWFile() + filePath;
 

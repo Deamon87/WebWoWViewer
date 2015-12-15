@@ -62,7 +62,7 @@
                 if (buffer4) {
                     tmp.set(new Uint8Array(new Float32Array(buffer4).buffer), nextOffset); nextOffset = nextOffset+buffer4.length*4;
                 }
-                if (buffer5 && buffer5.buffer) {
+                if (buffer5 && buffer5.buffer ) {
                     tmp.set(new Uint8Array(buffer5.buffer), nextOffset); nextOffset = nextOffset + buffer5.length*4;
                 }
                 if (buffer6 && buffer6.buffer) {
