@@ -648,7 +648,7 @@
                 var instExt = this.sceneApi.extensions.getInstancingExt();
                 var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-                gl.disableVertexAttribArray(shaderAttributes.aPosition);
+                //gl.disableVertexAttribArray(shaderAttributes.aPosition);
                 if (shaderAttributes.aNormal) {
                     gl.disableVertexAttribArray(shaderAttributes.aNormal);
                 }
@@ -692,7 +692,7 @@
                 var instExt = this.sceneApi.extensions.getInstancingExt();
                 var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-                gl.disableVertexAttribArray(shaderAttributes.aPosition);
+                //gl.disableVertexAttribArray(shaderAttributes.aPosition);
                 if (shaderAttributes.aNormal) {
                     gl.disableVertexAttribArray(shaderAttributes.aNormal);
                 }
@@ -744,7 +744,7 @@
                 var instExt = this.sceneApi.extensions.getInstancingExt();
                 var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-                gl.disableVertexAttribArray(shaderAttributes.aPosition);
+                //gl.disableVertexAttribArray(shaderAttributes.aPosition);
                 if (shaderAttributes.aNormal) {
                     gl.disableVertexAttribArray(shaderAttributes.aNormal);
                 }
