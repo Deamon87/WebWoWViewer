@@ -51,12 +51,15 @@
 
             self.initGlContext(canvas);
             self.initArrayInstancedExt();
+            self.initDepthTextureExt();
+            self.initRenderBuffers();
             self.initShaders().then(function success() {
                 self.isShadersLoaded = true;
             }, function error(){
             });
             self.initSceneApi();
             self.initSceneGraph();
+
 
 
             if (self.enableDeferred) {
@@ -179,6 +182,14 @@
                     this.instancing_ext = instancing_ext;
                 }
             },
+            initDepthTextureExt : function () {
+                var gl = this.gl;
+
+                var depth_texture_ext = gl.getExtension('WEBGL_depth_texture');
+                if (depth_texture_ext) {
+                    this.depth_texture_ext = depth_texture_ext;
+                }
+            },
             initDeferredRendering : function (){
                 var gl = this.gl;
 
@@ -263,6 +274,16 @@
                 var promisesArray = [];
 
                 /* Get and compile shaders */
+                promise = $http.get("glsl/renderFrameBufferShader.glsl")
+                    .then(function success(result){
+                        var shaderText = result.data;
+                        var shader = self.compileShader(shaderText, shaderText);
+                        self.renderFrameShader = shader;
+                    },function error(){
+                        throw 'could not load shader'
+                    });
+                promisesArray.push(promise);
+
                 promise = $http.get("glsl/WmoShader.glsl")
                     .then(function success(result){
                         var shaderText = result.data;
@@ -305,6 +326,51 @@
                 this.m2GeomCache = new m2GeomCache(this.sceneApi);
                 this.skinGeomCache = new skinGeomCache(this.sceneApi);
                 this.adtGeomCache = new adtGeomCache(this.sceneApi);
+            },
+            initRenderBuffers : function () {
+                var gl = this.gl;
+                if(!this.depth_texture_ext) { return; }
+
+                // Create a color texture
+                var colorTexture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, colorTexture);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+                // Create the depth texture
+                var depthTexture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.canvas.width, this.canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+
+                var framebuffer = gl.createFramebuffer();
+                gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
+
+                this.frameBuffer = framebuffer;
+                this.frameBufferColorTexture = colorTexture;
+
+
+                var verts = [
+                    1,  1,
+                    -1,  1,
+                    -1, -1,
+                    1,  1,
+                    -1, -1,
+                    1, -1,
+                ];
+                var vertBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, vertBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+
+                this.vertBuffer = vertBuffer;
             },
             initSceneGraph : function () {
                 this.graphManager = new graphManager(this.sceneApi);
@@ -495,6 +561,16 @@
                     gl.activeTexture(gl.TEXTURE0);
                 }
             },
+            activateRenderFrameShader : function() {
+                this.currentShaderProgram = this.renderFrameShader;
+                if (this.currentShaderProgram) {
+                    var gl = this.gl;
+                    gl.useProgram(this.currentShaderProgram.program);
+                    var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+                    gl.activeTexture(gl.TEXTURE0);
+                }
+            },
             activateWMOInstancingShader : function () {
                 this.currentShaderProgram = this.wmoInstancingShader;
                 if (this.currentShaderProgram) {
@@ -557,6 +633,7 @@
             draw : function (deltaTime) {
                 var gl = this.gl;
 
+                gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
                 var cameraVecs = this.camera.tick(deltaTime);
 
                 var lookAtMat4 = [];
@@ -585,6 +662,17 @@
                 );
                 this.graphManager.update(deltaTime);
                 this.graphManager.draw();
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+                //Draw frameBuffer
+                this.activateRenderFrameShader();
+                this.glClearScreen(gl);
+
+
+                gl.bindTexture(gl.TEXTURE_2D, this.frameBufferColorTexture);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
+                gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
 
                 this.stats.end();
 
