@@ -6,22 +6,19 @@
 (function (window, $, undefined) {
 
     function Texture(sceneApi) {
-        this.gl = sceneApi.getGlContext();
+        this.sceneApi = sceneApi;
 
         this.texture = null;
 
         this.loadFromMipmaps = function (mipmaps, textureFormat){
-            var gl = this.gl;
+            var gl = this.sceneApi.getGlContext();
+            var anisFilterExt = this.sceneApi.extensions.getAnisotropicExt();
+            var ext = this.sceneApi.extensions.getComprTextExt();
 
             this.texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
-            //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
 
-            var ext = (
-                gl.getExtension("WEBGL_compressed_texture_s3tc") ||
-                gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc") ||
-                gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc")
-            );
+            //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
             var textureGPUFormat = null;
             if (ext) {
                 switch (textureFormat) {
@@ -107,6 +104,10 @@
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+            if (anisFilterExt) {
+                var max_anisotropy = gl.getParameter(anisFilterExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+                gl.texParameterf(gl.TEXTURE_2D, anisFilterExt.TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
+            }
 
             /*if (generateMipMaps) {
                 gl.generateMipmap(gl.TEXTURE_2D);

@@ -10,7 +10,7 @@ uniform mat4 uPMatrix;
 
 varying vec2 vChunkCoords;
 
-const float UNITSIZE = 533.333333336 / 16.0 / 8.0;
+const float UNITSIZE =  533.3433333 / 16.0 / 8.0;
 
 void main() {
 
@@ -149,6 +149,10 @@ float filterFunc(float x) {
     return x;
 }
 
+vec3 mixTextures(vec3 tex0, vec3 tex1, float alpha) {
+    return  (alpha*(tex1.rgb-tex0.rgb)+tex0.rgb);
+}
+
 void main() {
     vec2 vTexCoord = vChunkCoords;
     const float threshold = 1.5;
@@ -177,7 +181,8 @@ void main() {
     if (uNewFormula >= 1) {
         finalColor = vec4(tex1 * (1.0 - (a2 + a3 + a4)) + tex2 * a2 + tex3 * a3 + tex4* a4, 1);
     } else {
-        finalColor = vec4(a4 * tex4 - (a4  - 1.0) * ( (a3 - 1.0)*( tex1 * (a2 - 1.0) - a2*tex2) + a3*tex3), 1);
+        finalColor = vec4(mixTextures(mixTextures(mixTextures(tex1,tex2,a2),tex3, a3), tex4, a4), 1);
+        //finalColor = vec4(a4 * tex4 - (a4  - 1.0) * ( (a3 - 1.0)*( tex1 * (a2 - 1.0) - a2*tex2) + a3*tex3), 1);
     }
 
     finalColor.a = 1.0;

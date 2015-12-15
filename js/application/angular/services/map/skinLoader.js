@@ -68,7 +68,7 @@
                         {name : "colorIndex",          type: "int16"},
                         {name : "renderFlagIndex",     type: "uint16"},
                         {name : "textureUnitNum",      type: "uint16"},
-                        {name : "unk2",                type: "uint16"},
+                        {name : "op_count",            type: "uint16"},
                         {name : "textureIndex",        type: "uint16"},
                         {name : "unk3",                type: "uint16"},
                         {name : "transpIndex",         type: "uint16"},

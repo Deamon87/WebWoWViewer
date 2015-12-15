@@ -103,7 +103,7 @@
                 adtObject.load(fileName);
                 this.adtObjects.push(adtObject);
             },
-            addM2ObjectToInstanceManager : function(m2Object) {
+            addM2ObjectToInstanceManager : function(m2Object, newBucket) {
                 var fileIdent = m2Object.getFileNameIdent();
                 var instanceManager = this.instanceList[fileIdent];
                 //1. Create Instance manager for this type of file if it was not created yet
@@ -113,13 +113,16 @@
                 }
 
                 //2. Add object to instance
-                instanceManager.addMDXObject(m2Object);
+                instanceManager.addMDXObject(m2Object, newBucket);
 
                 //3. Assign instance to object
                 m2Object.instanceManager = instanceManager;
             },
             setCameraPos : function (position) {
                 this.position = position;
+            },
+            setLookAtMat : function (lookAtMat) {
+                this.lookAtMat = lookAtMat;
             },
             collectMeshes : function() {
                 var meshesList = [];
@@ -160,7 +163,7 @@
                 //1. Update all wmo and m2 objects
                 var i;
                 for (i = 0; i < this.m2Objects.length; i++) {
-                    this.m2Objects[i].update(deltaTime);
+                    this.m2Objects[i].update(deltaTime, this.position);
                 }
 
                 for (i = 0; i < this.wmoObjects.length; i++) {
@@ -176,21 +179,24 @@
                             (a.getFileNameIdent() > b.getFileNameIdent() ? 1 : 0);
                     });
 
+                    /*
                     var lastObject = this.m2Objects[0];
                     var lastInstanced = false;
                     for (var j = 1; j < this.m2Objects.length; j++) {
 
                         var currentObject = this.m2Objects[j];
+                        var newBucket = !lastInstanced;
                         if (currentObject.getFileNameIdent() == lastObject.getFileNameIdent()) {
-                            this.addM2ObjectToInstanceManager(lastObject);
+                            this.addM2ObjectToInstanceManager(lastObject, newBucket);
                             lastInstanced = true;
                         } else if (lastInstanced) {
-                            this.addM2ObjectToInstanceManager(lastObject);
+                            this.addM2ObjectToInstanceManager(lastObject, newBucket);
                             lastInstanced = false;
                         }
 
                         lastObject = currentObject;
                     }
+                    */
                     for (var j = 0; j < this.m2Objects.length; j++) {
                         this.m2Objects[j].calcDistance(self.position);
                     }
@@ -199,7 +205,7 @@
 
                     //Sort by distance
                     this.m2Objects.sort(function (a, b) {
-                        return b.getCurrentDistance() - a.getCurrentDistance() > 0 ? -1 : 1;
+                        return b.getCurrentDistance() - a.getCurrentDistance() > 0 ? 1 : -1;
                     });
                 }
                 //Update placement matrix buffers
@@ -227,6 +233,8 @@
                 for (var i = 0; i < this.wmoObjects.length; i++) {
                     this.wmoObjects[i].draw();
                 }
+                this.sceneApi.shaders.deactivateWMOShader();
+
 
                 //3. Draw background WDL
 
@@ -235,35 +243,38 @@
                     this.skyDom.draw();
                 }
 
+
                 //5. Draw nontransparent meshes of m2
-                this.sceneApi.shaders.activateWMOShader();
+                this.sceneApi.shaders.activateM2Shader();
                 for (var i = 0; i < this.m2Objects.length; i++) {
                     if (this.m2Objects[i].instanceManager) continue;
                     this.m2Objects[i].drawNonTransparentMeshes();
                 }
+                this.sceneApi.shaders.deactivateM2Shader();
 
                 //5.1 Draw instanced nontransparent meshes of m2
-                this.sceneApi.shaders.activateWMOInstancingShader();
+                this.sceneApi.shaders.activateM2InstancingShader();
                 for (var fileIdent in this.instanceList) {
                     var instanceManager = this.instanceList[fileIdent];
                     instanceManager.drawInstancedNonTransparentMeshes();
                 }
-                this.sceneApi.shaders.deactivateWMOInstancingShader();
+                this.sceneApi.shaders.deactivateM2InstancingShader();
 
                 //6.1 Draw transparent meshes of m2
-                this.sceneApi.shaders.activateWMOInstancingShader();
+                this.sceneApi.shaders.activateM2InstancingShader();
                 for (var fileIdent in this.instanceList) {
                     var instanceManager = this.instanceList[fileIdent];
                     instanceManager.drawInstancedTransparentMeshes();
                 }
-                this.sceneApi.shaders.deactivateWMOInstancingShader();
+                this.sceneApi.shaders.deactivateM2InstancingShader();
 
                 //6. Draw transparent meshes of m2
-                this.sceneApi.shaders.activateWMOShader();
+                this.sceneApi.shaders.activateM2Shader();
                 for (var i = 0; i < this.m2Objects.length; i++) {
                     if (this.m2Objects[i].instanceManager) continue;
                     this.m2Objects[i].drawTransparentMeshes();
                 }
+                this.sceneApi.shaders.deactivateM2Shader();
 
             }
         };

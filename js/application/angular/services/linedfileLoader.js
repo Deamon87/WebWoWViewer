@@ -49,6 +49,9 @@
                             case "uint16Array" :
                                 result = fileObject.readUint16Array(offset, len);
                                 break;
+                            case "int16Array" :
+                                result = fileObject.readInt16Array(offset, len);
+                                break;
                             case "vector3f" :
                                 result = fileObject.readVector3f(offset);
                                 break;
@@ -69,41 +72,52 @@
                                 result.global_sequence = fileObject.readUint16(offset);
 
                                 /* 1. Timestamps  */
-                                var timeStampAnimationsCnt = fileObject.readUint32(offset);
-                                var timeStampAnimationsOffsets =  fileObject.readInt32Array(offset, timeStampAnimationsCnt );
+                                var timeStampAnimationsCnt = fileObject.readInt32(offset);
+                                var timeStampAnimationsOffset = fileObject.readInt32(offset);
+
+                                timeStampAnimationsCnt = (timeStampAnimationsCnt < 0) ? 0 : timeStampAnimationsCnt;
 
                                 result.timestampsPerAnimation = [];
                                 result.timestampsPerAnimation.length = timeStampAnimationsCnt;
 
+                                var off1 = {offs: timeStampAnimationsOffset};
                                 for (var i = 0; i < timeStampAnimationsCnt; i++) {
                                     result.timestampsPerAnimation[i] = [];
-                                    var offs1 = {offs: timeStampAnimationsOffsets[i]} ;
+                                    var timestampsCnt = fileObject.readUint32(off1);
+                                    var timestampsOff = fileObject.readUint32(off1);
 
-                                    var timestampsCnt = fileObject.readUint32(offs1);
+                                    var offs2 = {offs : timestampsOff};
                                     result.timestampsPerAnimation[i].length = timestampsCnt;
                                     for (var j = 0; j < timestampsCnt; j++) {
-                                        var timeOffset = fileObject.readUint32(offs1);
-                                        result.timestampsPerAnimation[i][j] = fileObject.readUint32({offs : timeOffset});
+                                        result.timestampsPerAnimation[i][j] = fileObject.readUint32(offs2);
                                     }
                                 }
 
                                 /* 2. Values */
-                                var valuesAnimationsCnt = fileObject.readUint32(offset);
-                                var valuesAnimationsOffsets =  fileObject.readInt32Array(offset, valuesAnimationsCnt );
+                                var valuesAnimationsCnt = fileObject.readInt32(offset);
+                                var valuesAnimationsOffset = fileObject.readInt32(offset);
+
+                                valuesAnimationsCnt = (valuesAnimationsCnt <= 0) ? 0 : valuesAnimationsCnt;
 
                                 result.valuesPerAnimation = [];
                                 result.valuesPerAnimation.length = valuesAnimationsCnt;
 
+                                var offs1 = {offs: valuesAnimationsOffset} ;
                                 for (var i = 0; i < valuesAnimationsCnt; i++) {
                                     result.valuesPerAnimation[i] = [];
-                                    var offs1 = {offs: valuesAnimationsOffsets[i]} ;
 
                                     var valuesCnt = fileObject.readUint32(offs1);
+                                    var valuesOffset = fileObject.readUint32(offs1);
                                     result.valuesPerAnimation[i].length = valuesCnt;
 
+                                    var offs2 = {offs : valuesOffset};
                                     for (var j = 0; j < valuesCnt; j++) {
-                                        var valueOffset = fileObject.readUint32(offs1);
-                                        result.valuesPerAnimation[i][j] = self.readType(fileObject, {type : sectionDef.valType}, {offs : valueOffset});
+                                        result.valuesPerAnimation[i][j] = self.readType(
+                                            fileObject,
+                                            {type : sectionDef.valType, len: sectionDef.len},
+                                            offs2,
+                                            sectionDef.len
+                                        );
                                     }
                                 }
 

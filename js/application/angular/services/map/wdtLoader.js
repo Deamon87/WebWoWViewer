@@ -5,7 +5,7 @@
 
     var wdtLoader = angular.module('main.services.map.wdtLoader', ['main.services.chunkedLoader']);
 
-    wdtLoader.factory('wdtLoader', ['chunkedLoader', "$q", "$log", function (chunkedLoader, $q, $log) {
+    wdtLoader.factory('wdtLoader', ['chunkedLoader', 'fileReadHelper', "$q", "$log", function (chunkedLoader, fileReadHelper, $q, $log) {
         return function(wdtFilePath) {
             var deferred = $q.defer();
 
@@ -46,13 +46,23 @@
 
                         case "MWMO":
                             var offset = { offs : 0 };
-                            wdtObj.wmoName = chunk.readString(offset);
+                            var wmoNames = null;
+
+                            if (chunk.chunkLen > 0) {
+                                wmoNames = chunk.readUint8Array(offset, chunk.chunkLen);
+                            }
+
+                            wdtObj.mwmo = wmoNames;
                             break;
 
                         case "MODF":
                             /* Placement information for WMO maps*/
                             var offset = { offs : 0 };
                             var modfChunk = {};
+
+                            var mwmoBuff = fileReadHelper(wdtObj.mwmo.buffer);
+
+
                             modfChunk.nameId = chunk.readInt32(offset);
                             modfChunk.uniqueId = chunk.readInt32(offset);
 
@@ -64,6 +74,9 @@
                             modfChunk.doodadSet = chunk.readUint16(offset);
                             modfChunk.nameSet   = chunk.readUint16(offset);
                             modfChunk.flags     = chunk.readInt32(offset);
+
+                            var nameOffset = modfChunk.nameId;
+                            modfChunk.fileName  = mwmoBuff.readString({offs : nameOffset}, mwmoBuff.getLength() - nameOffset);
 
                             wdtObj.modfChunk = modfChunk;
                             break;

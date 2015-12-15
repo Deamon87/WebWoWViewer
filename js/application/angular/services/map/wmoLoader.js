@@ -20,7 +20,7 @@
 
                         mogp.GroupName       = chunk.readInt32(offset);
                         mogp.dGroupName      = chunk.readInt32(offset);
-                        mogp.Flags           = chunk.readInt32(offset);
+                        mogp.Flags           = chunk.readUint32(offset);
                         mogp.BoundBoxCorner1 = chunk.readVector3f(offset);
                         mogp.BoundBoxCorner2 = chunk.readVector3f(offset);
                         mogp.Index           = chunk.readInt16(offset);
@@ -72,12 +72,19 @@
                             }
                         },
                         "MOTV": function (groupWMOObject, chunk) {
+
                             var textureCoordsLen = chunk.chunkLen / 8;
 
+                            var textCoords;
                             if (loadPlainVertexes) {
-                                groupWMOObject.textCoords = chunk.readFloat32Array({offs: 0}, chunk.chunkLen/4);
+                                textCoords = chunk.readFloat32Array({offs: 0}, chunk.chunkLen/4);
                             } else {
-                                groupWMOObject.textCoords = chunk.readVector2f({offs:0}, textureCoordsLen)
+                                textCoords = chunk.readVector2f({offs:0}, textureCoordsLen)
+                            }
+                            if ( groupWMOObject.textCoords == undefined) {
+                                groupWMOObject.textCoords = textCoords;
+                            } else {
+                                groupWMOObject.textCoords2 = textCoords;
                             }
                         },
                         "MOCV": function (groupWMOObject, chunk) {
@@ -98,8 +105,12 @@
                                 colorArray.push(b);
                                 colorArray.push(a);
                             } */
-                            var colorArray = chunk.readInt8Array({offs:0}, chunk.chunkLen);
-                            groupWMOObject.colorVerticles = colorArray;
+                            var colorArray = chunk.readUint8Array({offs:0}, chunk.chunkLen);
+                            if (groupWMOObject.colorVerticles == undefined) {
+                                groupWMOObject.colorVerticles = colorArray;
+                            } else {
+                                groupWMOObject.colorVerticles2 = colorArray;
+                            }
                         },
                         "MOBA": function (groupWMOObject, chunk) {
                             var offset = {offs : 0};
@@ -151,7 +162,10 @@
             var newPromise = promise.then(function (chunkedFile) {
                 /* First chunk in file has to be MVER */
 
-                var wmoObj = {};
+                var wmoObj = {
+                    colorVerticles2 : [],
+                    textCoords2 : []
+                };
                 chunkedFile.setSectionReaders(new BaseGroupWMOLoader());
                 chunkedFile.processFile(wmoObj);
 
@@ -211,16 +225,16 @@
                     for (var i = 0; i < wmoObj.nTextures; i++) {
                         var textureData = {};
 
-                        textureData.flags1 = chunk.readInt32(offset);
-                        textureData.flags2 = chunk.readInt32(offset);
-                        textureData.blendMode = chunk.readInt32(offset);
+                        textureData.flags1 = chunk.readUint32(offset);
+                        textureData.shader = chunk.readUint32(offset);
+                        textureData.blendMode = chunk.readUint32(offset);
                         textureData.namestart1 = chunk.readInt32(offset);
-                        textureData.color1 = chunk.readInt32(offset);
+                        textureData.color1 = chunk.readUint32(offset);
                         textureData.flags_1 = chunk.readInt32(offset);
                         textureData.namestart2 = chunk.readInt32(offset);
-                        textureData.color2 = chunk.readInt32(offset);
+                        textureData.color2 = chunk.readUint32(offset);
                         textureData.flags_2 = chunk.readInt32(offset);
-                        textureData.color_3 = chunk.readInt32(offset);
+                        textureData.color_3 = chunk.readUint32(offset);
                         textureData.unk = chunk.readInt32(offset);
                         textureData.dx = chunk.readInt32Array(offset, 5);
 

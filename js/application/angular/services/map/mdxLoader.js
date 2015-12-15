@@ -111,6 +111,23 @@
                     }
                 },
                 {
+                    name : "vertexesDebug",
+                    offset: "ofsVertexes",
+                    count : "nVertexes",
+
+                    type : "layout",
+                    layout: [
+                        {name: "pos",           type : "vector3f"},
+                        {name: "bonesWeight",   type : "uint8Array", len: 4},
+                        {name: "bones",         type : "uint8Array", len: 4},
+                        {name: "normal",        type : "vector3f"},
+                        {name: "textureX",      type : "float32"},
+                        {name: "textureY",      type : "float32"},
+                        {name : "unk1",         type : "int32"},
+                        {name : "unk2",         type : "int32"}
+                    ]
+                },
+                {
                     name : "textureDefinition",
                     offset : "ofsTextures",
                     count : "nTextures",
@@ -162,9 +179,41 @@
                             name: "values",
                             type: "ablock",
                             valType: "int16"
-                        },
+                        }
                     ]
                 },
+                {
+                    name : "bones",
+                    offset: "ofsBones",
+                    count : "nBones",
+                    type: "layout",
+                    layout: [
+                        {name: "key_bone_id", type: "int32"},
+                        {name: "flags", type: "uint32"},
+                        {name: "parent_bone", type: "int16"},
+                        {name: "submesh_id", type: "uint16"},
+                        {name: "unk1", type: "uint16"},
+                        {name: "unk2", type: "uint16"},
+                        {
+                            name: "translation",
+                            type: "ablock",
+                            valType: "vector3f"
+                        },
+                        {
+                            name: "rotation",
+                            type: "ablock",
+                            valType: "int16Array",
+                            len: 4
+                        },
+                        {
+                            name: "scale",
+                            type: "ablock",
+                            valType: "vector3f"
+                        },
+                        {name: "pivot", type: "vector3f"}
+                    ]
+                },
+
                 {
                     name : "transLookup",
                     offset: "ofsTransLookup",

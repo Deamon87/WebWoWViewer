@@ -53,12 +53,15 @@
             self.initArrayInstancedExt();
             self.initDepthTextureExt();
             self.initRenderBuffers();
+            self.initAnisotropicExt();
+            self.initCompressedTextureS3tcExt();
             self.initShaders().then(function success() {
                 self.isShadersLoaded = true;
             }, function error(){
             });
             self.initSceneApi();
             self.initSceneGraph();
+            self.createBlackPixelTexture();
 
 
 
@@ -156,13 +159,30 @@
 
                 return shader;
             },
+            createBlackPixelTexture : function () {
+                var gl = this.gl;
+                var blackPixelTexture = gl.createTexture();
+
+                gl.bindTexture(gl.TEXTURE_2D, blackPixelTexture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255,255,255,255]));
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+
+                gl.generateMipmap(gl.TEXTURE_2D);
+
+                gl.bindTexture(gl.TEXTURE_2D, null);
+
+                this.blackPixelTexture = blackPixelTexture;
+            },
             initGlContext : function (canvas){
                 function throwOnGLError(err, funcName, args) {
                     throw WebGLDebugUtils.glEnumToString(err) + " was caused by call to: " + funcName;
                 }
 
                 try {
-                    var gl = canvas.getContext("webgl", {premultipliedAlpha: false}) || canvas.getContext("experimental-webgl", {premultipliedAlpha: false});
+                    var gl = canvas.getContext("webgl", {premultipliedAlpha: false, alpha: false }) || canvas.getContext("experimental-webgl", {premultipliedAlpha: false});
                     gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError);
                 }
                 catch(e) {}
@@ -180,6 +200,24 @@
                 var instancing_ext = gl.getExtension('ANGLE_instanced_arrays');
                 if (instancing_ext) {
                     this.instancing_ext = instancing_ext;
+                }
+            },
+            initAnisotropicExt : function (){
+                var gl = this.gl;
+                var anisotropic_ext = gl.getExtension('EXT_texture_filter_anisotropic');
+                if (anisotropic_ext) {
+                    this.anisotropic_ext = anisotropic_ext;
+                }
+            },
+            initCompressedTextureS3tcExt : function () {
+                var gl = this.gl;
+                var ext = (
+                    gl.getExtension("WEBGL_compressed_texture_s3tc") ||
+                    gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc") ||
+                    gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc")
+                );
+                if (ext) {
+                    this.comp_tex_ext = ext;
                 }
             },
             initDepthTextureExt : function () {
@@ -297,6 +335,19 @@
                     });
                 promisesArray.push(promise);
 
+                promise = $http.get("glsl/m2Shader.glsl")
+                    .then(function success(result){
+                        var shaderText = result.data;
+                        var shader = self.compileShader(shaderText, shaderText);
+                        self.m2Shader = shader;
+
+                        var instancingShader = self.compileShader("#define INSTANCED 1\r\n "+shaderText, "#define INSTANCED 1\r\n "+shaderText);
+                        self.m2InstancingShader = instancingShader;
+                    },function error(){
+                        throw 'could not load shader'
+                    });
+                promisesArray.push(promise);
+
                 promise = $http.get("glsl/drawBBShader.glsl")
                     .then(function success(result){
                         var shaderText = result.data;
@@ -384,9 +435,18 @@
                     getCurrentWdt : function (){
                         return self.currentWdt;
                     },
+                    getBlackPixelTexture : function () {
+                        return self.blackPixelTexture;
+                    },
                     extensions : {
                         getInstancingExt : function (){
                             return self.instancing_ext;
+                        },
+                        getAnisotropicExt : function () {
+                            return self.anisotropic_ext;
+                        },
+                        getComprTextExt : function () {
+                            return self.comp_tex_ext;
                         }
                     },
                     shaders : {
@@ -396,11 +456,20 @@
                         activateWMOShader : function () {
                             self.activateWMOShader()
                         },
-                        activateWMOInstancingShader : function (){
-                            self.activateWMOInstancingShader();
+                        deactivateWMOShader : function () {
+                            self.deactivateWMOShader()
                         },
-                        deactivateWMOInstancingShader : function (){
-                            self.deactivateWMOInstancingShader();
+                        activateM2Shader : function () {
+                            self.activateM2Shader()
+                        },
+                        deactivateM2Shader : function () {
+                            self.deactivateM2Shader();
+                        },
+                        activateM2InstancingShader : function (){
+                            self.activateM2InstancingShader();
+                        },
+                        deactivateM2InstancingShader : function (){
+                            self.deactivateM2InstancingShader();
                         },
                         getShaderUniforms: function () {
                             return self.currentShaderProgram.shaderUniforms;
@@ -515,6 +584,16 @@
                 gl.clearColor(0.6, 0.95, 1.0, 1);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.disable(gl.CULL_FACE);
+            },                  
+            activateRenderFrameShader : function() {
+                this.currentShaderProgram = this.renderFrameShader;
+                if (this.currentShaderProgram) {
+                    var gl = this.gl;
+                    gl.useProgram(this.currentShaderProgram.program);
+                    var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+                    gl.activeTexture(gl.TEXTURE0);
+                }
             },
             activateAdtShader : function(){
                 this.currentShaderProgram = this.adtShader;
@@ -558,21 +637,73 @@
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
 
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
+
                     gl.activeTexture(gl.TEXTURE0);
                 }
             },
-            activateRenderFrameShader : function() {
-                this.currentShaderProgram = this.renderFrameShader;
+            deactivateWMOShader : function () {
+                var gl = this.gl;
+                var instExt = this.sceneApi.extensions.getInstancingExt();
+                var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+                gl.disableVertexAttribArray(shaderAttributes.aPosition);
+                if (shaderAttributes.aNormal) {
+                    gl.disableVertexAttribArray(shaderAttributes.aNormal);
+                }
+
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
+
+                gl.disableVertexAttribArray(shaderAttributes.aColor);
+                gl.disableVertexAttribArray(shaderAttributes.aColor2);
+            },
+            activateM2Shader : function() {
+                this.currentShaderProgram = this.m2Shader;
                 if (this.currentShaderProgram) {
                     var gl = this.gl;
                     gl.useProgram(this.currentShaderProgram.program);
                     var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
+                    gl.enableVertexAttribArray(shaderAttributes.aPosition);
+                    if (shaderAttributes.aNormal) {
+                        gl.enableVertexAttribArray(shaderAttributes.aNormal);
+                    }
+                    gl.enableVertexAttribArray(shaderAttributes.boneWeights);
+                    gl.enableVertexAttribArray(shaderAttributes.bones);
+                    gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
+                    gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
+                    gl.disableVertexAttribArray(shaderAttributes.aColor);
+
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.isBillboard, 0);
+
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
+
+
                     gl.activeTexture(gl.TEXTURE0);
                 }
             },
-            activateWMOInstancingShader : function () {
-                this.currentShaderProgram = this.wmoInstancingShader;
+            deactivateM2Shader : function () {
+                var gl = this.gl;
+                var instExt = this.sceneApi.extensions.getInstancingExt();
+                var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+                gl.disableVertexAttribArray(shaderAttributes.aPosition);
+                if (shaderAttributes.aNormal) {
+                    gl.disableVertexAttribArray(shaderAttributes.aNormal);
+                }
+                gl.disableVertexAttribArray(shaderAttributes.boneWeights);
+                gl.disableVertexAttribArray(shaderAttributes.bones);
+
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
+            },
+            activateM2InstancingShader : function () {
+                this.currentShaderProgram = this.m2InstancingShader;
                 if (this.currentShaderProgram) {
                     var gl = this.gl;
                     var instExt = this.sceneApi.extensions.getInstancingExt();
@@ -585,27 +716,49 @@
 
                     gl.activeTexture(gl.TEXTURE0);
 
+                    gl.enableVertexAttribArray(shaderAttributes.aPosition);
+                    if (shaderAttributes.aNormal) {
+                        gl.enableVertexAttribArray(shaderAttributes.aNormal);
+                    }
+                    gl.enableVertexAttribArray(shaderAttributes.boneWeights);
+                    gl.enableVertexAttribArray(shaderAttributes.bones);
+                    gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
+                    gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
+                    gl.disableVertexAttribArray(shaderAttributes.aColor);
+
                     gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 0);
                     gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 1);
                     gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 2);
                     gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 3);
-                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 1);
-                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 1);
-                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 1);
-                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 1);
+                    if (instExt != null) {
+                        instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 1);
+                        instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 1);
+                        instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 1);
+                        instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 1);
+                    }
                 }
 
             },
-            deactivateWMOInstancingShader : function () {
+            deactivateM2InstancingShader : function () {
                 var gl = this.gl;
                 var instExt = this.sceneApi.extensions.getInstancingExt();
                 var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 0);
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 0);
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 0);
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 0);
+                gl.disableVertexAttribArray(shaderAttributes.aPosition);
+                if (shaderAttributes.aNormal) {
+                    gl.disableVertexAttribArray(shaderAttributes.aNormal);
+                }
+                gl.disableVertexAttribArray(shaderAttributes.boneWeights);
+                gl.disableVertexAttribArray(shaderAttributes.bones);
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
+                gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
 
+                if (instExt) {
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 0);
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 0);
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 0);
+                    instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 0);
+                }
                 gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 0);
                 gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 1);
                 gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 2);
@@ -657,10 +810,12 @@
                         cameraVecs.cameraVec3[0],
                         cameraVecs.cameraVec3[1],
                         cameraVecs.cameraVec3[2],
-                        0
+                        1
                     )
                 );
+                this.graphManager.setLookAtMat(lookAtMat4);
                 this.graphManager.update(deltaTime);
+
                 this.graphManager.draw();
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -680,12 +835,11 @@
             },
 
 
-
-            loadWMOMap : function(filename){
-                var wmoObject = new wmoObjectFactory(this.sceneApi);
-                wmoObject.load(filename, 0);
-
-                this.sceneObjectList = [wmoObject];
+            loadM2File : function (mddf) {
+                this.sceneApi.objects.loadAdtM2Obj(mddf);
+            },
+            loadWMOFile : function(modf){
+                this.sceneApi.objects.loadAdtWmo(modf);
             },
             loadMap : function (mapName, x, y){
                 var self = this;
@@ -693,8 +847,13 @@
 
                 wdtLoader(wdtFileName).then(function success(wdtFile){
                     self.currentWdt = wdtFile;
-                    var adtFileName = "world/maps/"+mapName+"/"+mapName+"_"+x+"_"+y+".adt";
-                    self.graphManager.addADTObject(adtFileName);
+                    if (wdtFile.isWMOMap) {
+
+                        self.sceneApi.objects.loadAdtWmo(wdtFile.modfChunk)
+                    } else {
+                        var adtFileName = "world/maps/"+mapName+"/"+mapName+"_"+x+"_"+y+".adt";
+                        self.graphManager.addADTObject(adtFileName);
+                    }
 
                 }, function error(){
                 })
