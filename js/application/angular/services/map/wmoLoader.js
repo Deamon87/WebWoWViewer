@@ -112,6 +112,13 @@
                                 groupWMOObject.colorVerticles2 = colorArray;
                             }
                         },
+                        "MODR": function (groupWMOObject, chunk) {
+                            var offset = {offs : 0};
+                            var len = chunk.chunkLen / 2;
+                            var doodadRefs = chunk.readUint8Array(offset, len);
+
+                            groupWMOObject.doodadRefs = doodadRefs;
+                        },
                         "MOBA": function (groupWMOObject, chunk) {
                             var offset = {offs : 0};
                             var len = chunk.chunkLen / 24;
