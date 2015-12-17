@@ -35,7 +35,7 @@
     "jquery": "~1.11.1",
     "stats.js" : "r12",
     "text-encoding": "v0.5.1",
-    "gl-matrix": "v2.2.1",
+    "gl-matrix": "#21bd18",
     "decodeDXT": "Deamon87/decodeDXT",
     "q" : "q#1.0.1",
     "hqx-js" : "yjh0502/hqx-js",

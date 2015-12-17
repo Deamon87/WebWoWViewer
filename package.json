@@ -1,14 +1,18 @@
 {
   "name": "web-wow-viewer",
+  "main": "index_debug.html",
   "version": "0.0.1",
   "authors": [
     "Deamon87 <dmitolm@gmail.com>"
   ],
   "description": "Web based map viewer for WoW",
   "license": "GPL",
-  "main": "index.html",
+  "main": "index_debug.html",
   "window": {
     "toolbar": true
+  },
+  "dependencies" : {
+    "simd" : "2.0.0"
   },
   "devDependencies": {
     "grunt-bower-task" : "0.4.0",
