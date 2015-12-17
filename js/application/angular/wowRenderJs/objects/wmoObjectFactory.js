@@ -202,6 +202,10 @@
                 /*for (var i = 0; i < this.doodadsArray.length; i++) {
                     this.doodadsArray[i].setIsRendered(false);
                 } */
+                var combinedMat4 = mat4.create();
+
+                mat4.multiply(combinedMat4, frustrumMatrix, lookAtMat4);
+                mat4.multiply(combinedMat4, combinedMat4, this.placementMatrix);
 
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
                     var groupInfo = this.wmoObj.groupInfos[i];
@@ -211,16 +215,14 @@
                     var bb1vec = vec4.fromValues(bb1.x, bb1.y, bb1.z, 1);
                     var bb2vec = vec4.fromValues(bb2.x, bb2.y, bb2.z, 1);
 
-                    vec4.transformMat4(bb1vec, bb1vec, this.placementMatrix);
-                    vec4.transformMat4(bb2vec, bb2vec, this.placementMatrix);
+                    vec4.transformMat4(bb1vec, bb1vec, combinedMat4);
+                    vec4.transformMat4(bb2vec, bb2vec, combinedMat4);
 
-                    vec4.transformMat4(bb1vec, bb1vec, lookAtMat4);
-                    vec4.transformMat4(bb2vec, bb2vec, lookAtMat4);
+                    //Perspective divide
+                    vec4.scale(bb1vec, bb1vec, 1/bb1vec[3]);
+                    vec4.scale(bb2vec, bb2vec, 1/bb2vec[3]);
 
-                    vec4.transformMat4(bb1vec, bb1vec, frustrumMatrix);
-                    vec4.transformMat4(bb2vec, bb2vec, frustrumMatrix);
-
-                    if (bb1vec[2] > 0 || bb2vec[2] > 0) {
+                    if ((bb1vec[2] >= 0 && bb1vec[2] <= 1) || (bb2vec[2] >= 0 && bb2vec[2] <= 1)){
                         this.setDoodadGroupDrawing(i, true);
                     } else {
                         this.setDoodadGroupDrawing(i, false);
