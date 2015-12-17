@@ -115,7 +115,7 @@
                         "MODR": function (groupWMOObject, chunk) {
                             var offset = {offs : 0};
                             var len = chunk.chunkLen / 2;
-                            var doodadRefs = chunk.readUint8Array(offset, len);
+                            var doodadRefs = chunk.readUint16Array(offset, len);
 
                             groupWMOObject.doodadRefs = doodadRefs;
                         },
@@ -291,32 +291,23 @@
                 "MODD" : function(wmoObj,chunk) {
                     /* Requires loaded MODS chunk. Pure parsing is not possible =(*/
                     var offset = {offs: 0};
-                    var doodadsPerSet = [];
                     var modelNames = wmoObj.modn;
+                    var doodadsNum = chunk.chunkLen / 40;
+                    var doodads = new Array(doodadsNum);
 
-                    for (var i = 0; i < wmoObj.nDoodadSets; i++) {
-                        var doodadSetInfo = wmoObj.mods[i];
-                        var doodadSet = {
-                            name : doodadSetInfo.name,
-                            doodads : []
-                        };
+                    for (var j = 0; j < doodadsNum; j++) {
+                        var doodad = {};
+                        doodad.nameIndex = chunk.readInt32(offset);
+                        doodad.modelName = fileReadHelper(modelNames.buffer).readString({offs : doodad.nameIndex}, modelNames.length - doodad.nameIndex);
+                        doodad.pos       = chunk.readVector3f(offset);
+                        doodad.rotation  = chunk.readQuaternion(offset);
+                        doodad.scale     = chunk.readFloat32(offset);
+                        doodad.color     = chunk.readUint32(offset);
 
-                        for (var j = 0; j < doodadSetInfo.number; j++) {
-                            var doodad = {};
-                            doodad.nameIndex = chunk.readInt32(offset);
-                            doodad.modelName = fileReadHelper(modelNames.buffer).readString({offs : doodad.nameIndex}, modelNames.length - doodad.nameIndex);
-                            doodad.pos       = chunk.readVector3f(offset);
-                            doodad.rotation  = chunk.readQuaternion(offset);
-                            doodad.scale     = chunk.readFloat32(offset);
-                            doodad.color     = chunk.readUint32(offset);
-
-                            doodadSet.doodads.push(doodad);
-                        }
-
-                        doodadsPerSet.push(doodadSet);
+                        doodads[j] = doodad;
                     }
 
-                    wmoObj.modd = doodadsPerSet;
+                    wmoObj.modd = doodads;
                 }
             };
 

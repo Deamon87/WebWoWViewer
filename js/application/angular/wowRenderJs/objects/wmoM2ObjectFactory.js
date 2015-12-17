@@ -9,6 +9,7 @@
             self.sceneApi = sceneApi;
             self.mdxObject = new mdxObject(sceneApi);
             self.currentDistance = 0;
+            self.isRendered = true;
         }
         WmoM2Object.prototype = {
             sceneApi : null,
@@ -22,12 +23,11 @@
                 return this.mdxObject.getMeshesToRender();
             },
             update: function (deltaTime, cameraPos) {
-                this.mdxObject.update(deltaTime, cameraPos, this.placementInvertMatrix);
                 if (!this.aabb) {
                     var bb = this.mdxObject.getBoundingBox();
                     if (bb) {
-                            var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
-                            var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
+                        var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
+                        var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
 
                         vec4.transformMat4(a_ab, a_ab, this.placementMatrix);
                         vec4.transformMat4(a_cd, a_cd, this.placementMatrix);
@@ -40,6 +40,9 @@
                         this.aabb = [[minx, miny, minz], [maxx, maxy, maxz]];
                     }
                 }
+                if (!this.getIsRendered()) return;
+                this.mdxObject.update(deltaTime, cameraPos, this.placementInvertMatrix);
+
             },
             drawTransparentMeshes : function () {
                 this.mdxObject.drawTransparentMeshes(this.placementMatrix, this.diffuseColor);
@@ -100,6 +103,12 @@
             },
             getCurrentDistance : function (){
                 return this.currentDistance;
+            },
+            setIsRendered : function (value) {
+                this.isRendered = value;
+            },
+            getIsRendered : function () {
+                return this.isRendered;
             },
             load : function (doodad, wmoPlacementMatrix, useLocalColor){
                 var self = this;

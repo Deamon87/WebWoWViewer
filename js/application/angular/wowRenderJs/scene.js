@@ -794,7 +794,7 @@
                 mat4.lookAt(lookAtMat4, cameraVecs.cameraVec3, cameraVecs.lookAtVec3, [0,0,1]);
 
                 var perspectiveMatrix = [];
-                mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000  );
+                mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000);
 
                 this.perspectiveMatrix = perspectiveMatrix;
                 this.lookAtMat4 = lookAtMat4;
@@ -805,6 +805,8 @@
                 gl.activeTexture(gl.TEXTURE0);
 
                 this.stats.begin();
+
+                this.graphManager.checkAgainstFrustrum(perspectiveMatrix, lookAtMat4);
 
                 this.graphManager.setCameraPos(
                     vec4.fromValues(
@@ -832,6 +834,8 @@
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
 
                 this.stats.end();
+
+
 
                 return cameraVecs;
             },

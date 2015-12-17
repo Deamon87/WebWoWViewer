@@ -9,6 +9,7 @@
             self.sceneApi = sceneApi;
             self.mdxObject = new mdxObject(sceneApi);
             self.currentDistance = 0;
+            self.isRendered = true;
         }
         AdtM2Object.prototype = {
             getFileNameIdent : function (){
@@ -37,7 +38,6 @@
                 this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
             },
             update : function(deltaTime, cameraPos) {
-                this.mdxObject.update(deltaTime, cameraPos, this.placementInvertMatrix);
                 if (!this.aabb) {
                     var bb = this.mdxObject.getBoundingBox();
                     if (bb) {
@@ -55,6 +55,8 @@
                         this.aabb = [[minx, miny, minz], [maxx, maxy, maxz]];
                     }
                 }
+                if (!this.getIsRendered()) return;
+                this.mdxObject.update(deltaTime, cameraPos, this.placementInvertMatrix);
             },
             createPlacementMatrix : function(mddf){
                 var TILESIZE = 533.333333333;
@@ -103,6 +105,12 @@
             },
             getCurrentDistance : function (){
                 return this.currentDistance;
+            },
+            setIsRendered : function (value) {
+                this.isRendered = value;
+            },
+            getIsRendered : function () {
+                return this.isRendered;
             },
             load : function (mddf){
                 var self = this;

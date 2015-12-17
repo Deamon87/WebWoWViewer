@@ -158,7 +158,18 @@
                 this.nonTransparentM = nonTrasparentMeshes;
                 this.transparentM = transparentMeshes;
             },
+            checkAgainstFrustrum : function (frustrumMat, lookAtMat4) {
+                /* 1. First check wmo's */
+                /* Checking group wmo will significatly decrease the amount of m2wmo */
+                for (var i = 0; i < this.wmoObjects.length; i++) {
+                    this.wmoObjects[i].checkFrustrumCulling(frustrumMat, lookAtMat4);
+                }
 
+                /* 2. If m2Object is renderable after prev phase - check it against frustrum */
+                for (var j = 0; j < this.m2Objects.length; j++) {
+                    //this.m2Objects[j].checkFrustrumCulling(frustrumMat);
+                }
+            },
             update : function(deltaTime) {
                 //1. Update all wmo and m2 objects
                 var i;
@@ -248,6 +259,8 @@
                 this.sceneApi.shaders.activateM2Shader();
                 for (var i = 0; i < this.m2Objects.length; i++) {
                     if (this.m2Objects[i].instanceManager) continue;
+                    if (!this.m2Objects[i].getIsRendered()) continue;
+
                     this.m2Objects[i].drawNonTransparentMeshes();
                 }
                 this.sceneApi.shaders.deactivateM2Shader();
@@ -272,6 +285,8 @@
                 this.sceneApi.shaders.activateM2Shader();
                 for (var i = 0; i < this.m2Objects.length; i++) {
                     if (this.m2Objects[i].instanceManager) continue;
+                    if (!this.m2Objects[i].getIsRendered()) continue;
+
                     this.m2Objects[i].drawTransparentMeshes();
                 }
                 this.sceneApi.shaders.deactivateM2Shader();

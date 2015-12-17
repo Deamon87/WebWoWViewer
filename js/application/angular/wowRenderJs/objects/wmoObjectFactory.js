@@ -11,6 +11,7 @@
 
             self.wmoGroupArray = [];
             self.doodadsArray = [];
+            self.drawGroup = [];
         }
         WmoObject.prototype = {
             loadGeom : function (num, filename){
@@ -90,12 +91,15 @@
                 if (!self.wmoObj.modd) {
                     return;
                 }
-                var doodadsSet = self.wmoObj.modd[doodadsInd];
+                self.currentDoodadSet = self.wmoObj.mods[doodadsInd];
 
-                this.doodadsArray = [];
-                for (var i = 0; i < doodadsSet.doodads.length; i++) {
+                var doodadsSet = self.wmoObj.mods[doodadsInd];
+                var doodadDefArray = self.wmoObj.modd;
+
+                this.doodadsArray =  new Array(doodadsSet.number);
+                for (var i = 0; i < doodadsSet.number; i++) {
                 //for (var i = 0; i < (doodadsSet.doodads.length > 10) ? 10 : doodadsSet.doodads.length; i++) {
-                    var doodad = doodadsSet.doodads[i];
+                    var doodad = doodadDefArray[doodadsSet.index + i];
                     this.loadDoodad(i, doodad);
                 }
             },
@@ -103,7 +107,8 @@
                 var self = this;
 
                 var useLocalLighting = self.checkIfUseLocalLighting(doodad.pos);
-                return self.sceneApi.objects.loadWmoM2Obj(doodad, self.placementMatrix, useLocalLighting);
+                this.doodadsArray[index] = self.sceneApi.objects.loadWmoM2Obj(doodad, self.placementMatrix, useLocalLighting);
+                return this.doodadsArray[index];
             },
             load : function (modf){
                 var deferred = $q.defer();
@@ -118,8 +123,7 @@
                 var wmoMailPromise = self.sceneApi.resources.loadWmoMain(filename);
                 wmoMailPromise.then(function success(wmoObj){
                     self.wmoObj = wmoObj;
-                    self.wmoGroupArray = [];
-                    self.wmoGroupArray.length  = wmoObj.nGroups;
+                    self.wmoGroupArray = new Array(wmoObj.nGroups);
 
                     /* 1. Load wmo group files */
                     var template = filename.substr(0, filename.lastIndexOf("."));
@@ -170,6 +174,59 @@
                 }
 
             },
+            setDoodadGroupDrawing : function (index, doDraw) {
+                var groupInfo = this.wmoObj.groupInfos[index];
+                var doodadsSet = this.currentDoodadSet;
+
+                if (doodadsSet && this.wmoGroupArray[index]) {
+                    var doodadRefs = this.wmoGroupArray[index].wmoGroupFile.doodadRefs;
+
+                    if (doodadRefs) {
+                        for (var i = 0; i < doodadRefs.length; i++) {
+                            var doodadIndex = doodadRefs[i];
+                            if (
+                                (doodadIndex - doodadsSet.index < 0) ||
+                                (doodadIndex > doodadsSet.index + doodadsSet.number - 1)
+                            ) continue;
+
+                            var mdxObject = this.doodadsArray[doodadIndex - doodadsSet.index];
+                            //mdxObject.setIsRendered(mdxObject.getIsRendered() || doDraw);
+                            mdxObject.setIsRendered(doDraw);
+                        }
+                    }
+                }
+
+                this.drawGroup[index] = doDraw;
+            },
+            checkFrustrumCulling : function (frustrumMatrix, lookAtMat4) {
+                /*for (var i = 0; i < this.doodadsArray.length; i++) {
+                    this.doodadsArray[i].setIsRendered(false);
+                } */
+
+                for (var i = 0; i < this.wmoGroupArray.length; i++) {
+                    var groupInfo = this.wmoObj.groupInfos[i];
+                    var bb1 = groupInfo.bb1,
+                        bb2 = groupInfo.bb2;
+
+                    var bb1vec = vec4.fromValues(bb1.x, bb1.y, bb1.z, 1);
+                    var bb2vec = vec4.fromValues(bb2.x, bb2.y, bb2.z, 1);
+
+                    vec4.transformMat4(bb1vec, bb1vec, this.placementMatrix);
+                    vec4.transformMat4(bb2vec, bb2vec, this.placementMatrix);
+
+                    vec4.transformMat4(bb1vec, bb1vec, lookAtMat4);
+                    vec4.transformMat4(bb2vec, bb2vec, lookAtMat4);
+
+                    vec4.transformMat4(bb1vec, bb1vec, frustrumMatrix);
+                    vec4.transformMat4(bb2vec, bb2vec, frustrumMatrix);
+
+                    if (bb1vec[2] > 0 || bb2vec[2] > 0) {
+                        this.setDoodadGroupDrawing(i, true);
+                    } else {
+                        this.setDoodadGroupDrawing(i, false);
+                    }
+                }
+            },
             update : function () {
 
             },
@@ -183,7 +240,7 @@
                 }
 
                 for (var i = 0; i < this.wmoGroupArray.length; i++){
-                    if (this.wmoGroupArray[i]){
+                    if (this.wmoGroupArray[i] && this.drawGroup[i]){
                         this.wmoGroupArray[i].draw();
                     }
                 }
