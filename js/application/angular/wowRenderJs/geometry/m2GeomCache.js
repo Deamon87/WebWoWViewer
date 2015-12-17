@@ -85,9 +85,13 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
         setupUniforms : function (placementMatrix, boneMatrix) {
             var gl = this.gl;
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
-            gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
+            if (placementMatrix) {
+                gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
+            }
 
-            gl.uniformMatrix4fv(uniforms.uBoneMatrixes, false, boneMatrix);
+            if (boneMatrix) {
+                gl.uniformMatrix4fv(uniforms.uBoneMatrixes, false, boneMatrix);
+            }
         },
         draw : function (skinObject, submeshArray, placementMatrix, colorVector, subMeshColors, transperencies, vao, vaoExt) {
             var gl = this.gl;

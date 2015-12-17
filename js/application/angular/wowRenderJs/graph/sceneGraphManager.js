@@ -185,12 +185,14 @@
                 if (this.currentTime + deltaTime - this.lastTimeSort  > 500) {
                     var self = this;
                     //Sort by m2 and skin files and collect it into instances
+
+                    /*
                     this.m2Objects.sort(function (a, b) {
                         return a.getFileNameIdent() < b.getFileNameIdent() ? -1 :
                             (a.getFileNameIdent() > b.getFileNameIdent() ? 1 : 0);
                     });
 
-                    /*
+
                     var lastObject = this.m2Objects[0];
                     var lastInstanced = false;
                     for (var j = 1; j < this.m2Objects.length; j++) {
@@ -208,11 +210,10 @@
                         lastObject = currentObject;
                     }
                     */
+
                     for (var j = 0; j < this.m2Objects.length; j++) {
                         this.m2Objects[j].calcDistance(self.position);
                     }
-
-
 
                     //Sort by distance
                     this.m2Objects.sort(function (a, b) {
@@ -220,12 +221,14 @@
                     });
                 }
                 //Update placement matrix buffers
+
                 if (this.currentTime + deltaTime - this.lastTimeSort  > 1000) {
                     for (var fileIdent in this.instanceList) {
                         var instanceManager = this.instanceList[fileIdent];
                         instanceManager.updatePlacementVBO();
                     }
                 }
+
 
                 //N. Collect non transparent and transparent meshes
                 //this.collectMeshes();
@@ -265,6 +268,7 @@
                 }
                 this.sceneApi.shaders.deactivateM2Shader();
 
+                /*
                 //5.1 Draw instanced nontransparent meshes of m2
                 this.sceneApi.shaders.activateM2InstancingShader();
                 for (var fileIdent in this.instanceList) {
@@ -280,6 +284,7 @@
                     instanceManager.drawInstancedTransparentMeshes();
                 }
                 this.sceneApi.shaders.deactivateM2InstancingShader();
+                */
 
                 //6. Draw transparent meshes of m2
                 this.sceneApi.shaders.activateM2Shader();

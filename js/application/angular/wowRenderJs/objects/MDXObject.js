@@ -405,7 +405,8 @@
                 if (!this.m2Geom) return;
 
                 this.m2Geom.setupAttributes(this.skinGeom);
-                //this.m2Geom.setupUniforms(placementMatrix);
+                var combinedMatrix = this.boneMatrix;
+                this.m2Geom.setupUniforms(null, combinedMatrix);
                 this.m2Geom.setupPlacementAttribute(placementVBO);
 
                 var colorVector = [color&0xff, (color>> 8)&0xff,
@@ -424,7 +425,8 @@
                 if (!this.m2Geom) return;
 
                 this.m2Geom.setupAttributes(this.skinGeom);
-                //this.m2Geom.setupUniforms(placementMatrix);
+                var combinedMatrix = this.boneMatrix;
+                this.m2Geom.setupUniforms(null, combinedMatrix);
                 this.m2Geom.setupPlacementAttribute(placementVBO);
 
                 var colorVector = [color&0xff, (color>> 8)&0xff,
