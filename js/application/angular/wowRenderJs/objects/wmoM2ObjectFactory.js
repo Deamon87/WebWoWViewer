@@ -22,6 +22,9 @@
                 if (!this.mdxObject) return null;
                 return this.mdxObject.getMeshesToRender();
             },
+                checkFrustrumCulling : function (frustrumMatrix, lookAtMat4) {
+                this.setIsRendered(this.getIsRendered() && this.mdxObject.checkFrustrumCulling(frustrumMatrix, lookAtMat4, this.placementMatrix));
+            },
             update: function (deltaTime, cameraPos) {
                 if (!this.aabb) {
                     var bb = this.mdxObject.getBoundingBox();

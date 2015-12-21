@@ -37,6 +37,9 @@
             drawInstancedTransparentMeshes : function (instanceCount, placementVBO) {
                 this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
             },
+            checkFrustrumCulling : function (frustrumMatrix, lookAtMat4) {
+                this.setIsRendered(this.getIsRendered() && this.mdxObject.checkFrustrumCulling(frustrumMatrix, lookAtMat4, this.placementMatrix));
+            },
             update : function(deltaTime, cameraPos) {
                 if (!this.aabb) {
                     var bb = this.mdxObject.getBoundingBox();
@@ -73,9 +76,9 @@
 
                 mat4.translate(placementMatrix, placementMatrix, [posx, posy, posz]);
 
-                mat4.rotateY(placementMatrix, placementMatrix, glMatrix.toRadian(mddf.rotation.y + 90));
+                mat4.rotateY(placementMatrix, placementMatrix, glMatrix.toRadian(mddf.rotation.y -270));
+                mat4.rotateZ(placementMatrix, placementMatrix, glMatrix.toRadian(-mddf.rotation.x));
                 mat4.rotateX(placementMatrix, placementMatrix, glMatrix.toRadian(mddf.rotation.z-90));
-                mat4.rotateZ(placementMatrix, placementMatrix, glMatrix.toRadian(mddf.rotation.x));
 
                 mat4.scale(placementMatrix, placementMatrix, [mddf.scale / 1024, mddf.scale / 1024, mddf.scale / 1024]);
 

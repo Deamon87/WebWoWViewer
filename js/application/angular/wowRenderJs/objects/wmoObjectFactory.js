@@ -76,9 +76,10 @@
                 // with FPosition do glTranslatef(x,y,z);
                 mat4.translate(placementMatrix, placementMatrix, [posx, posy, posz]);
 
-                mat4.rotateY(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.y+90));
+                mat4.rotateY(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.y-270));
+                mat4.rotateZ(placementMatrix, placementMatrix, glMatrix.toRadian(-modf.rotation.x));
                 mat4.rotateX(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.z-90));
-                mat4.rotateZ(placementMatrix, placementMatrix, glMatrix.toRadian(modf.rotation.x));
+
 
                 var placementInvertMatrix = mat4.create();
                 mat4.invert(placementInvertMatrix, placementMatrix);
@@ -207,6 +208,7 @@
                 mat4.multiply(combinedMat4, frustrumMatrix, lookAtMat4);
                 mat4.multiply(combinedMat4, combinedMat4, this.placementMatrix);
 
+                var isDrawn = [];
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
                     var groupInfo = this.wmoObj.groupInfos[i];
                     var bb1 = groupInfo.bb1,
@@ -222,12 +224,16 @@
                     vec4.scale(bb1vec, bb1vec, 1/bb1vec[3]);
                     vec4.scale(bb2vec, bb2vec, 1/bb2vec[3]);
 
-                    if ((bb1vec[2] >= 0 && bb1vec[2] <= 1) || (bb2vec[2] >= 0 && bb2vec[2] <= 1)){
-                        this.setDoodadGroupDrawing(i, true);
+                    if ((bb1vec[2] >= 0 && bb1vec[2] <= 1) || (bb2vec[2] >= 0 && bb2vec[2] <= 1) || (bb1vec[2]*bb2vec[2] < 0)){
+                        isDrawn.push(true);//this.setDoodadGroupDrawing(i, true);
                     } else {
-                        this.setDoodadGroupDrawing(i, false);
+                        isDrawn.push(false);//this.setDoodadGroupDrawing(i, false);
                     }
                 }
+                for (var i = 0; i < this.wmoGroupArray.length; i++) {
+                    this.setDoodadGroupDrawing(i, isDrawn[i]);
+                }
+
             },
             update : function () {
 

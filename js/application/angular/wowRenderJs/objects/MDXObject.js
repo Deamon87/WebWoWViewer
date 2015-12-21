@@ -149,6 +149,34 @@
 
                 this.submeshArray = submeshArray;
             },
+            checkFrustrumCulling : function (frustrumMatrix, lookAtMat4, placementMatrix) {
+                var bb = this.getBoundingBox();
+                if (!bb) return false;
+
+                var combinedMat4 = mat4.create();
+
+                mat4.multiply(combinedMat4, frustrumMatrix, lookAtMat4);
+                mat4.multiply(combinedMat4, combinedMat4, placementMatrix);
+
+                var bb1 = bb.ab,
+                    bb2 = bb.cd;
+
+                var bb1vec = vec4.fromValues(bb1.x, bb1.y, bb1.z, 1);
+                var bb2vec = vec4.fromValues(bb2.x, bb2.y, bb2.z, 1);
+
+                vec4.transformMat4(bb1vec, bb1vec, combinedMat4);
+                vec4.transformMat4(bb2vec, bb2vec, combinedMat4);
+
+                //Perspective divide
+                vec4.scale(bb1vec, bb1vec, 1/bb1vec[3]);
+                vec4.scale(bb2vec, bb2vec, 1/bb2vec[3]);
+
+                if ((bb1vec[2] >= 0 && bb1vec[2] <= 1) || (bb2vec[2] >= 0 && bb2vec[2] <= 1) || (bb1vec[2]*bb2vec[2] < 0)){
+                    return true;
+                } else {
+                    return false;
+                }
+            },
             createVAO: function (gl, m2Geom, skinObject){
                 var ext = gl.getExtension("OES_vertex_array_object"); // Vendor prefixes may apply!
                 if (ext) {

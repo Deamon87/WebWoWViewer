@@ -159,6 +159,10 @@
                 this.transparentM = transparentMeshes;
             },
             checkAgainstFrustrum : function (frustrumMat, lookAtMat4) {
+                for (var j = 0; j < this.m2Objects.length; j++) {
+                    this.m2Objects[j].setIsRendered(true);
+                }
+
                 /* 1. First check wmo's */
                 /* Checking group wmo will significatly decrease the amount of m2wmo */
                 for (var i = 0; i < this.wmoObjects.length; i++) {
@@ -167,7 +171,9 @@
 
                 /* 2. If m2Object is renderable after prev phase - check it against frustrum */
                 for (var j = 0; j < this.m2Objects.length; j++) {
-                    //this.m2Objects[j].checkFrustrumCulling(frustrumMat);
+                    if (this.m2Objects[j].getIsRendered()) {
+                        this.m2Objects[j].checkFrustrumCulling(frustrumMat, lookAtMat4);
+                    }
                 }
             },
             update : function(deltaTime) {
