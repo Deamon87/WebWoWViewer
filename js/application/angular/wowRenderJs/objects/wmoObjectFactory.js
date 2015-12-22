@@ -14,6 +14,9 @@
             self.drawGroup = [];
         }
         WmoObject.prototype = {
+            getFileNameIdent : function () {
+                return this.fileName;
+            },
             loadGeom : function (num, filename){
                 var self = this;
                 self.sceneApi.resources.loadWmoGeom(filename).then(
@@ -118,6 +121,8 @@
                 var filename = modf.fileName;
                 var doodadsInd = modf.doodadSet;
 
+                this.fileName = filename;
+
                 /* 1. Create matrix */
                 self.createPlacementMatrix(modf);
 
@@ -199,7 +204,7 @@
 
                 this.drawGroup[index] = doDraw;
             },
-            checkFrustrumCulling : function (frustrumMatrix, lookAtMat4) {
+            checkFrustumCulling : function (frustrumMatrix, lookAtMat4) {
                 /*for (var i = 0; i < this.doodadsArray.length; i++) {
                     this.doodadsArray[i].setIsRendered(false);
                 } */

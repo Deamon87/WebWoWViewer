@@ -8,6 +8,7 @@ firstPersonCamera.factory('firstPersonCamera', ['$log', function ($log) {
             /* Handlers for elem */
             var camera = [0, 0, 0];
             var MDDepth = 0, MDHorizontal = 0, MDVertical = 0;
+            var staticCamera = false;
 
             var mleft_pressed = 0;
             var m_x = 0, m_y = 0;
@@ -30,6 +31,10 @@ firstPersonCamera.factory('firstPersonCamera', ['$log', function ($log) {
                         break;
                     case 'Q':
                         MDVertical = 1;
+                        break;
+
+                    case 'K' :
+                        staticCamera = !staticCamera;
                         break;
 
                     case 'E':
@@ -185,7 +190,8 @@ firstPersonCamera.factory('firstPersonCamera', ['$log', function ($log) {
 
                     return {
                         lookAtVec3: lookat,
-                        cameraVec3: camera
+                        cameraVec3: camera,
+                        staticCamera : staticCamera
                     }
                 },
                 setCameraPos : function (x, y, z) {

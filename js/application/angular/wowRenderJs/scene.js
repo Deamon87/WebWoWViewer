@@ -625,8 +625,6 @@
                     gl.useProgram(this.currentShaderProgram.program);
                     var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-
-                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.u_sampler, 0);
                     gl.activeTexture(gl.TEXTURE0);
                 }
             },
@@ -862,7 +860,12 @@
 
             draw : function (deltaTime) {
                 var gl = this.gl;
+                if (!this.depthBuffer) {
+                    var depthBuffer = new Uint8Array(this.canvas.width*this.canvas.height*4);
+                    this.depthBuffer = depthBuffer;
+                }
 
+                this.stats.begin();
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
                 //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
                 var cameraVecs = this.camera.tick(deltaTime);
@@ -871,28 +874,35 @@
                 mat4.lookAt(lookAtMat4, cameraVecs.cameraVec3, cameraVecs.lookAtVec3, [0,0,1]);
 
                 //Static camera for tests
-                /*var staticLookAtMat = [];
+                var staticLookAtMat = [];
                 mat4.lookAt(staticLookAtMat,
                     [-1873.050857362244, 5083.140737452966, 574.1095576120073 ],
                     [-1872.9643854413891, 5083.406870660209, 573.1495077576213],
                     [0,0,1]);
-                  */
+
                 var perspectiveMatrix = [];
                 mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000);
                 //mat4.ortho(perspectiveMatrix, -100, 100, -100, 100, -100, 100);
 
+
+                this.graphManager.checkAgainstFrustum(perspectiveMatrix, lookAtMat4);
+                //Matrixes from previous frame
+                if (this.perspectiveMatrix && this.lookAtMat4) {
+                    this.graphManager.checkAgainstDepthBuffer(this.perspectiveMatrix, this.lookAtMat4, this.depthBuffer, this.canvas.width, this.canvas.height);
+                }
+
                 this.perspectiveMatrix = perspectiveMatrix;
-                this.lookAtMat4 = lookAtMat4;
-                //this.lookAtMat4 = staticLookAtMat;
+                if (cameraVecs.staticCamera) {
+                    this.lookAtMat4 = staticLookAtMat;
+                } else {
+                    this.lookAtMat4 = lookAtMat4;
+                }
+
 
                 if (!this.isShadersLoaded) return;
 
                 this.glClearScreen(gl);
                 gl.activeTexture(gl.TEXTURE0);
-
-                this.stats.begin();
-
-                this.graphManager.checkAgainstFrustrum(perspectiveMatrix, lookAtMat4);
 
                 this.graphManager.setCameraPos(
                     vec4.fromValues(
@@ -912,19 +922,26 @@
                 this.glClearScreen(gl);
 
 
-                //save depthBuffer for
-
-                  /*
+                //save depthBuffer for occlusion culling next frame
                 this.activateReadDepthBuffer();
                 gl.disable(gl.DEPTH_TEST);
-                var depthBuffer = new Uint8Array(this.canvas.width*this.canvas.height*4);
-                gl.bindTexture(gl.TEXTURE_2D, this.frameBufferDepthTexture);
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
-                gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-                gl.drawArrays(gl.TRIANGLES, 0, 6);
-                gl.readPixels(0,0,this.canvas.width,this.canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, depthBuffer);
+
+                if( this.quadVertBuffer) {
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.quadVertBuffer);
+
+                    gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.position);
+                    gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.texture);
+                    gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.position, 2, gl.FLOAT, false, 16, 0);
+                    gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.texture, 2, gl.FLOAT, false, 16, 8);
+
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.diffuse, 0);
+
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
+                    gl.readPixels(0,0,this.canvas.width,this.canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, this.depthBuffer);
+                }
+
                 gl.enable(gl.DEPTH_TEST);
-                */
 
                 //Draw frameBuffer
                 this.activateRenderFrameShader();

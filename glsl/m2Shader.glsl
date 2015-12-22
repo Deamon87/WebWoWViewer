@@ -23,7 +23,7 @@ attribute vec4 aColor;
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 uniform int isBillboard;
-uniform mat4 uBoneMatrixes[100]; //TODO: investigate maximal number for this
+uniform mat4 uBoneMatrixes[10]; //TODO: investigate maximal number for this
 
 #ifdef INSTANCED
 attribute mat4 uPlacementMat;

@@ -12,6 +12,8 @@
             self.isRendered = true;
         }
         AdtM2Object.prototype = {
+
+
             getFileNameIdent : function (){
                 return this.mdxObject.fileIdent;
             },
@@ -37,8 +39,11 @@
             drawInstancedTransparentMeshes : function (instanceCount, placementVBO) {
                 this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
             },
-            checkFrustrumCulling : function (frustrumMatrix, lookAtMat4) {
-                this.setIsRendered(this.getIsRendered() && this.mdxObject.checkFrustrumCulling(frustrumMatrix, lookAtMat4, this.placementMatrix));
+            checkFrustumCulling : function (frustrumMatrix, lookAtMat4) {
+                this.setIsRendered(this.getIsRendered() && this.mdxObject.checkFrustumCulling(frustrumMatrix, lookAtMat4, this.placementMatrix));
+            },
+            checkAgainstDepthBuffer: function (frustrumMatrix, lookAtMat4, getDepth) {
+                this.setIsRendered(this.getIsRendered() && this.mdxObject.checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, this.placementMatrix, getDepth));
             },
             update : function(deltaTime, cameraPos) {
                 if (!this.aabb) {

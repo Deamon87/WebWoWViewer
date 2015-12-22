@@ -158,7 +158,7 @@
                 this.nonTransparentM = nonTrasparentMeshes;
                 this.transparentM = transparentMeshes;
             },
-            checkAgainstFrustrum : function (frustrumMat, lookAtMat4) {
+            checkAgainstFrustum : function (frustrumMat, lookAtMat4) {
                 for (var j = 0; j < this.m2Objects.length; j++) {
                     this.m2Objects[j].setIsRendered(true);
                 }
@@ -166,13 +166,84 @@
                 /* 1. First check wmo's */
                 /* Checking group wmo will significatly decrease the amount of m2wmo */
                 for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].checkFrustrumCulling(frustrumMat, lookAtMat4);
+                    this.wmoObjects[i].checkFrustumCulling(frustrumMat, lookAtMat4);
                 }
 
                 /* 2. If m2Object is renderable after prev phase - check it against frustrum */
                 for (var j = 0; j < this.m2Objects.length; j++) {
                     if (this.m2Objects[j].getIsRendered()) {
-                        this.m2Objects[j].checkFrustrumCulling(frustrumMat, lookAtMat4);
+                        this.m2Objects[j].checkFrustumCulling(frustrumMat, lookAtMat4);
+                    }
+                }
+            },
+            checkAgainstDepthBuffer : function (frustrumMat, lookAtMat4, depth, width, height) {
+                //CompressDepthBuffer 8 times
+                function getDepth(x, y) {
+                    var index = (y * width + x) * 3;
+                    var depth_val = 1.0 - ((depth[index + 0] * 255.0 + depth[index + 1]) / 65536.0);
+                    return depth_val;
+                }
+
+                var comp_w = Math.floor(width / 8);
+                var comp_h = Math.floor(height / 8);
+                var compressedDepth = new Float32Array(comp_w * comp_h);
+
+                for (var x = 0; x < comp_w; x++) {
+                    var min_x1 = x * 8;
+                    var max_x1 = Math.min((x + 1) * 8, width);
+
+                    for (var y = 0; y < comp_h; y++) {
+                        var max_depth = 1.0;
+
+                        var min_y1 = y * 8;
+                        var max_y1 = Math.min((y + 1) * 8, height);
+
+                        for (var x1 = min_x1; x1 < max_x1; x1++) {
+                            for (var y1 = min_y1; y1 < max_y1; y1++) {
+                                max_depth = Math.min(getDepth(x1,y1), max_depth);
+                            }
+                        }
+
+                        compressedDepth[x * comp_w + y] = max_depth;
+                    }
+                }
+
+                function getDepthComp(x, y) {
+                    var index = x * comp_w + y;
+                    var depth_val = compressedDepth[index];
+                    return depth_val;
+                }
+
+                function checkDepth(min_x, max_x, min_y, max_y, depth) {
+                    if (depth < 0)
+                        return false;
+
+                    min_x = (min_x + 1)/2; max_x = (max_x + 1) / 2;
+                    min_y = (min_y + 1)/2; max_y = (max_y + 1) / 2;
+
+                    min_x = Math.floor(min_x * comp_w);
+                    max_x = Math.floor(max_x * comp_w);
+
+                    min_y = Math.floor(min_y * comp_h);
+                    max_y = Math.floor(max_y * comp_h);
+
+                    var isInScreen = false;
+                    for (var x = min_x; x < max_x; x++) {
+                        for (var y = min_y; y < max_y; y++) {
+                            if (getDepthComp(x,y) < depth) {
+                                isInScreen = true;
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
+                }
+
+                /* 1. If m2Object is renderable after frustrum culling - check it against depth checking*/
+                for (var j = 0; j < this.m2Objects.length; j++) {
+                    if (this.m2Objects[j].getIsRendered()) {
+                        this.m2Objects[j].checkAgainstDepthBuffer(frustrumMat, lookAtMat4, checkDepth);
                     }
                 }
             },
