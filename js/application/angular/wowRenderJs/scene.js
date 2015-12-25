@@ -184,7 +184,7 @@
                 try {
                     var gl = canvas.getContext("webgl", {premultipliedAlpha: false, alpha: false }) || canvas.getContext("experimental-webgl", {premultipliedAlpha: false});
                     gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError);
-                }
+                  }
                 catch(e) {}
 
                 if (!gl) {
@@ -192,7 +192,9 @@
                     gl = null;
                 }
 
+
                 this.gl = gl;
+                this.st = gl.getExtension('OES_standard_derivatives');
                 this.canvas = canvas;
             },
             initArrayInstancedExt : function (){
@@ -664,14 +666,23 @@
                     var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
                     gl.enableVertexAttribArray(shaderAttributes.aPosition);
-                    //gl.disableVertexAttribArray(shaderAttributes.aNormal);
+                    if (shaderAttributes.aNormal != undefined) {
+                        gl.enableVertexAttribArray(shaderAttributes.aNormal);
+                    }
                     gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
 
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uInvLookAtMat, false, this.invLookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
 
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
+
+                    gl.uniform3f(this.currentShaderProgram.shaderUniforms.AmbientMaterial, 0.04, 0.04, 0.04);
+                    gl.uniform3f(this.currentShaderProgram.shaderUniforms.SpecularMaterial, 0.5, 0.5, 0.5);
+                    gl.uniform1f(this.currentShaderProgram.shaderUniforms.Shininess, 50);
+
+                    gl.uniform3fv(this.currentShaderProgram.shaderUniforms.LightPosition, new Float32Array([0.25, 0.25, 1]));
 
                     gl.activeTexture(gl.TEXTURE0);
                 }
@@ -682,7 +693,7 @@
                 var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
                 //gl.disableVertexAttribArray(shaderAttributes.aPosition);
-                if (shaderAttributes.aNormal) {
+                if (shaderAttributes.aNormal != undefined) {
                     gl.disableVertexAttribArray(shaderAttributes.aNormal);
                 }
 
@@ -716,6 +727,11 @@
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
 
+                    gl.uniform3f(this.currentShaderProgram.shaderUniforms.AmbientMaterial, 0.04, 0.04, 0.04);
+                    gl.uniform3f(this.currentShaderProgram.shaderUniforms.SpecularMaterial, 0.5, 0.5, 0.5);
+                    gl.uniform1f(this.currentShaderProgram.shaderUniforms.Shininess, 50);
+
+                    gl.uniform3fv(this.currentShaderProgram.shaderUniforms.LightPosition, new Float32Array([0.25, 0.25, 1]));
 
                     gl.activeTexture(gl.TEXTURE0);
                 }
@@ -871,7 +887,9 @@
                 var cameraVecs = this.camera.tick(deltaTime);
 
                 var lookAtMat4 = [];
+                var invLookAtMat4 = [];
                 mat4.lookAt(lookAtMat4, cameraVecs.cameraVec3, cameraVecs.lookAtVec3, [0,0,1]);
+                mat4.invert(invLookAtMat4, lookAtMat4);
 
                 //Static camera for tests
                 var staticLookAtMat = [];
@@ -888,7 +906,7 @@
                 this.graphManager.checkAgainstFrustum(perspectiveMatrix, lookAtMat4);
                 //Matrixes from previous frame
                 if (this.perspectiveMatrix && this.lookAtMat4) {
-                    this.graphManager.checkAgainstDepthBuffer(this.perspectiveMatrix, this.lookAtMat4, this.depthBuffer, this.canvas.width, this.canvas.height);
+                    //this.graphManager.checkAgainstDepthBuffer(this.perspectiveMatrix, this.lookAtMat4, this.depthBuffer, this.canvas.width, this.canvas.height);
                 }
 
                 this.perspectiveMatrix = perspectiveMatrix;
@@ -896,6 +914,7 @@
                     this.lookAtMat4 = staticLookAtMat;
                 } else {
                     this.lookAtMat4 = lookAtMat4;
+                    this.invLookAtMat4 = invLookAtMat4;
                 }
 
 

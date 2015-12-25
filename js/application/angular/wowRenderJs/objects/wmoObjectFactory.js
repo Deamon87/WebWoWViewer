@@ -250,6 +250,7 @@
 
                 if (this.placementMatrix) {
                     gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
+                    gl.uniformMatrix4fv(uniforms.uInvPlacementMat, false, this.placementInvertMatrix);
                 }
 
                 for (var i = 0; i < this.wmoGroupArray.length; i++){

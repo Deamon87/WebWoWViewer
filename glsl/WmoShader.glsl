@@ -8,6 +8,7 @@
     #define drawBuffersIsSupported 1
 #endif
 #endif
+#extension GL_OES_standard_derivatives : enable
 
 #ifdef COMPILING_VS
 /* vertex shader code */
@@ -20,6 +21,9 @@ attribute vec4 aColor2;
 
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
+uniform mat4 uInvPlacementMat;
+uniform mat4 uInvLookAtMat;
+
 
 #ifdef INSTANCED
 attribute mat4 uPlacementMat;
@@ -32,26 +36,44 @@ varying vec2 vTexCoord2;
 varying vec4 vColor;
 varying vec4 vColor2;
 
-#ifdef drawBuffersIsSupported
 varying vec3 vNormal;
+#ifdef drawBuffersIsSupported
 varying vec3 vPosition;
 #endif
 
+highp mat4 transpose(highp mat4 inMatrix) {
+highp vec4 i0 = inMatrix[0];
+highp vec4 i1 = inMatrix[1];
+highp vec4 i2 = inMatrix[2];
+highp vec4 i3 = inMatrix[3];
+
+highp mat4 outMatrix = mat4(
+                 vec4(i0.x, i1.x, i2.x, i3.x),
+                 vec4(i0.y, i1.y, i2.y, i3.y),
+                 vec4(i0.z, i1.z, i2.z, i3.z),
+                 vec4(i0.w, i1.w, i2.w, i3.w)
+                 );
+return outMatrix;
+}
+
 void main() {
-    vec4 worldPoint = vec4(normalize(aNormal),0);
-    worldPoint = uPlacementMat * vec4(aPosition, 1);
+    mat4 modelViewMat = uLookAtMat * uPlacementMat;
+    mat4 normalMatrix = transpose(uInvPlacementMat*uInvLookAtMat);
+
+    vec4 worldPoint = vec4(aPosition, 1);
 
     vTexCoord = aTexCoord;
     vTexCoord2 = aTexCoord2;
     vColor = aColor;
     vColor2 = aColor2;
 
+    vNormal = normalize((normalMatrix * vec4(aNormal, 0)).xyz);
 #ifndef drawBuffersIsSupported
-    gl_Position = uPMatrix * uLookAtMat * worldPoint;
+    gl_Position = uPMatrix * modelViewMat * worldPoint;
 #else
     gl_Position = worldPoint;
 
-    vNormal = normalize((uPlacementMat * vec4(aNormal, 0)).xyz);
+
     vPosition = worldPoint.xyz;
 #endif //drawBuffersIsSupported
 
@@ -73,6 +95,15 @@ uniform float uAlphaTest;
 uniform sampler2D uTexture;
 uniform sampler2D uTexture2;
 
+uniform vec3 LightPosition;
+uniform vec3 AmbientMaterial;
+uniform vec3 SpecularMaterial;
+uniform float Shininess;
+
+float stepmix(float edge0, float edge1, float E, float x){
+    float T = clamp(0.5 * (x - edge0 + E) / E, 0.0, 1.0);
+    return mix(edge0, edge1, T);
+}
 
 void main() {
     vec4 tex = texture2D(uTexture, vTexCoord).rgba;
@@ -87,6 +118,42 @@ void main() {
     if(finalColor.a < uAlphaTest)
         discard;
 
+    vec3 N = normalize(vNormal);
+    vec3 L = normalize(LightPosition);
+    vec3 Eye = vec3(0, 0, 1);
+    vec3 H = normalize(L + Eye);
+
+    float df = max(0.0, dot(N, L));
+    float sf = max(0.0, dot(N, H));
+    sf = pow(sf, Shininess);
+
+    const float A = 0.1;
+    const float B = 0.3;
+    const float C = 0.6;
+    const float D = 1.0;
+    float E = fwidth(df);
+
+    if      (df > A - E && df < A + E) df = stepmix(A, B, E, df);
+    else if (df > B - E && df < B + E) df = stepmix(B, C, E, df);
+    else if (df > C - E && df < C + E) df = stepmix(C, D, E, df);
+    else if (df < A) df = 0.0;
+    else if (df < B) df = B;
+    else if (df < C) df = C;
+    else df = D;
+
+    E = fwidth(sf);
+    if (sf > 0.5 - E && sf < 0.5 + E)
+    {
+        sf = smoothstep(0.5 - E, 0.5 + E, sf);
+    }
+    else
+    {
+        sf = step(0.5, sf);
+    }
+
+    vec3 color = AmbientMaterial + df * finalColor.rgb + sf * SpecularMaterial;
+    gl_FragColor = vec4(color, 1.0);
+
     //Apply global lighting
 /*
     finalColor = vec4(
@@ -99,7 +166,7 @@ void main() {
 
 #ifndef drawBuffersIsSupported
     //Forward rendering without lights
-    gl_FragColor = finalColor;
+    //gl_FragColor = finalColor;
 #else
     //Deferred rendering
     gl_FragData[0] = finalColor;

@@ -113,9 +113,9 @@
 
             gl.enableVertexAttribArray(shaderAttributes.aPosition);
             gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0); // position
-            if (shaderAttributes.aNormal !== undefined) {
+            //if (shaderAttributes.aNormal !== undefined) {
                 gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 0, this.normalOffset*4); // normal
-            }
+            //}
             gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 0, this.textOffset*4); // texcoord
 
 
