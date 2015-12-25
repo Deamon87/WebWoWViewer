@@ -888,7 +888,7 @@
                 this.graphManager.checkAgainstFrustum(perspectiveMatrix, lookAtMat4);
                 //Matrixes from previous frame
                 if (this.perspectiveMatrix && this.lookAtMat4) {
-                    this.graphManager.checkAgainstDepthBuffer(this.perspectiveMatrix, this.lookAtMat4, this.depthBuffer, this.canvas.width, this.canvas.height);
+                    //this.graphManager.checkAgainstDepthBuffer(this.perspectiveMatrix, this.lookAtMat4, this.depthBuffer, this.canvas.width, this.canvas.height);
                 }
 
                 this.perspectiveMatrix = perspectiveMatrix;

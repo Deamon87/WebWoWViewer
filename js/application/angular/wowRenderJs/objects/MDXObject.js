@@ -177,15 +177,29 @@
                 var min_y = Math.min(bb1vec[1], bb2vec[1]);
                 var max_y = Math.max(bb1vec[1], bb2vec[1]);
 
-                if( ((bb1vec[2] >= -1 && bb1vec[2] <= 1) || (bb2vec[2] >= -1 && bb2vec[2] <= 1))
-                    &&
-                    (max_x>=-1 && min_x <= 1 && max_y >= -1 && min_y <= 1)
-                   )
-                {
-                    return true;
-                } else {
-                    return false;
-                }
+                /* Check 8 points against frustum */
+                var isInFrustum = false;
+                //isInFrustum = isInFrustum || ((min_x >= -1) && (min_x <= 1) && (min_y >= -1) && (min_y <= 1) );
+                //isInFrustum = isInFrustum || ((min_x >= -1) && (min_x <= 1) && (min_y >= -1) && (min_y <= 1) );
+                //isInFrustum = isInFrustum || ((min_x >= -1) && (min_x <= 1) && (max_y >= -1) && (max_y <= 1) );
+                //isInFrustum = isInFrustum || ((min_x >= -1) && (min_x <= 1) && (max_y >= -1) && (max_y <= 1) );
+                //isInFrustum = isInFrustum || ((max_x >= -1) && (max_x <= 1) && (min_y >= -1) && (min_y <= 1) );
+                //isInFrustum = isInFrustum || ((max_x >= -1) && (max_x <= 1) && (min_y >= -1) && (min_y <= 1) );
+                //isInFrustum = isInFrustum || ((max_x >= -1) && (max_x <= 1) && (max_y >= -1) && (max_y <= 1) );
+                //isInFrustum = isInFrustum || ((max_x >= -1) && (max_x <= 1) && (max_y >= -1) && (max_y <= 1) );
+                var xIsInScreen = ((bb1vec[0] >= -1) && (bb1vec[0] <= 1)) ||
+                    ((bb2vec[0] >= -1) && (bb2vec[0] <= 1)) ||
+                    ((bb1vec[0]*bb2vec[0] < 0));
+                var yIsInScreen = ((bb1vec[1] >= -1) && (bb1vec[1] <= 1)) ||
+                    ((bb2vec[1] >= -1) && (bb2vec[1] <= 1)) ||
+                    ((bb1vec[1]*bb2vec[1] < 0));
+                var zIsInScreen = ((bb1vec[2] >= 0) && (bb1vec[2] <= 1)) ||
+                    ((bb2vec[2] >= 0) && (bb2vec[2] <= 1)) ||
+                    ((bb1vec[2]*bb2vec[2] < 0));
+
+                isInFrustum = zIsInScreen && yIsInScreen && xIsInScreen;
+
+                return isInFrustum;
             },
             checkAgainstDepthBuffer: function (frustumMatrix, lookAtMat4, placementMatrix, checkDepth) {
                 var bb = this.getBoundingBox();
@@ -209,11 +223,7 @@
                 vec4.scale(bb1vec, bb1vec, 1/bb1vec[3]);
                 vec4.scale(bb2vec, bb2vec, 1/bb2vec[3]);
 
-                var depth = Math.min(bb1vec[2], bb2vec[2]);
-                if (bb1vec[2] * bb2vec[2] < 0) {
-                    return true;
-                }
-
+                var depth = Math.max(0, Math.min(bb1vec[2], bb2vec[2]));
 
                 var min_x = Math.min(bb1vec[0], bb2vec[0]); min_x = Math.max(min_x, -1.0);
                 var max_x = Math.max(bb1vec[0], bb2vec[0]); max_x = Math.min(max_x, 1.0);

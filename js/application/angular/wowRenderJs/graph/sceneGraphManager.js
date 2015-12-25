@@ -228,8 +228,8 @@
                     max_y = Math.floor(max_y * comp_h);
 
                     var isInScreen = false;
-                    for (var x = min_x; x < max_x; x++) {
-                        for (var y = min_y; y < max_y; y++) {
+                    for (var x = min_x; x <= max_x; x++) {
+                        for (var y = min_y; y <= max_y; y++) {
                             if (getDepthComp(x,y) < depth) {
                                 isInScreen = true;
                                 return true;

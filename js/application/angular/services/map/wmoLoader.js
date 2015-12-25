@@ -225,6 +225,31 @@
 
                     wmoObj.groupInfos = groupInfos;
                 },
+                "MOLT": function (wmoObj, chunk) {
+                    var offset = {offs: 0};
+                    var recordLen = chunk.chunkLen / wmoObj.nLights;
+                    var lightsArr = [];
+                    for (var i = 0; i < wmoObj.nLights; i++) {
+                        var lightRecord = {};
+                        lightRecord.lightType = chunk.readUint8(offset);
+                        lightRecord.type      = chunk.readUint8(offset);
+                        lightRecord.useAtten  = chunk.readUint8(offset);
+                        lightRecord.pad       = chunk.readUint8(offset);
+                        lightRecord.color     = chunk.readUint32(offset);    // Color (B,G,R,A)
+                        lightRecord.position  = chunk.readVector3f(offset);  // Position (X,Z,-Y)
+                        lightRecord.intensity = chunk.readFloat32(offset);
+                        lightRecord.attenStart = chunk.readFloat32(offset);
+                        lightRecord.attenEnd = chunk.readFloat32(offset);
+                        lightRecord.unk1 = chunk.readFloat32(offset);
+                        lightRecord.unk2 = chunk.readFloat32(offset);
+                        lightRecord.unk3 = chunk.readFloat32(offset);
+                        lightRecord.unk4 = chunk.readFloat32(offset);
+
+                        lightsArr.push(lightRecord);
+                    }
+
+                    wmoObj.lights = lightsArr;
+                },
                 "MOMT": function (wmoObj, chunk) {
                     var offset = {offs: 0};
                     var textures = [];
