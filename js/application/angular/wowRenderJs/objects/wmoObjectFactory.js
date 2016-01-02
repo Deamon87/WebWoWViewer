@@ -253,7 +253,9 @@
                 }
 
                 for (var i = 0; i < this.wmoGroupArray.length; i++){
-                    if (this.wmoGroupArray[i] && this.drawGroup[i]){
+                    if (this.wmoGroupArray[i]){
+                        if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
+
                         this.wmoGroupArray[i].draw();
                     }
                 }

@@ -285,6 +285,7 @@
                     var mcnkObj = adtObj.mcnkObjs[i];
                     var mtex = adtObj.mtex;
 
+                    if (!mcnkObj.textureLayers) continue;
                     for (var j = 0; j < mcnkObj.textureLayers.length; j++) {
                         var textIndex = mcnkObj.textureLayers[j].textureID;
                         var textureName = mtex[textIndex];

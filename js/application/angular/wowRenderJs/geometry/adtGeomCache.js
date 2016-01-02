@@ -17,6 +17,7 @@ adtGeomCache.factory("adtGeomCache", ['adtLoader', 'cacheTemplate', '$q', functi
             var currentLayer = new Array(((64*4) * 64));
             megaTexture.push(currentLayer);
 
+            if (!layers) continue;
             for (var j = 0; j < layers.length; j++ ) {
                 var alphaOffs = layers[j].alphaMap;
                 var offO = (64 * j);

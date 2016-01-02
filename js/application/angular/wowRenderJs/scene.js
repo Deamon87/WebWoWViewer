@@ -43,7 +43,7 @@
             this.stats = stats;
 
             var self = this;
-            self.enableDeferred = false;
+            self.enableDeferred = true;
 
             self.sceneObjectList = [];
             self.sceneAdts = [];
@@ -52,6 +52,9 @@
             self.initGlContext(canvas);
             self.initArrayInstancedExt();
             self.initDepthTextureExt();
+            if (self.enableDeferred) {
+                self.initDeferredRendering();
+            }
             self.initRenderBuffers();
             self.initAnisotropicExt();
             self.initCompressedTextureS3tcExt();
@@ -63,12 +66,6 @@
             self.initSceneGraph();
             self.createBlackPixelTexture();
 
-
-
-            if (self.enableDeferred) {
-                self.initDeferredRendering();
-            }
-
             self.initBoxVBO();
             self.initCaches();
             self.initCamera(canvas, document);
@@ -76,12 +73,17 @@
         }
         Scene.prototype = {
             instancing_ext : null,
-            compileShader : function(vectShaderString, fragmentShaderString) {
+            compileShader : function(vertShaderString, fragmentShaderString) {
                 var gl = this.gl;
+
+                if (this.enableDeferred) {
+                    vertShaderString = "#define ENABLE_DEFERRED 1\r\n"+vertShaderString;
+                    fragmentShaderString = "#define ENABLE_DEFERRED 1\r\n"+fragmentShaderString;
+                }
 
                 /* 1.1 Compile vertex shader */
                 var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-                gl.shaderSource(vertexShader, "#define COMPILING_VS 1\r\n "+vectShaderString);
+                gl.shaderSource(vertexShader, "#define COMPILING_VS 1\r\n "+vertShaderString);
                 gl.compileShader(vertexShader);
 
                 // Check if it compiled
@@ -233,77 +235,9 @@
 
                 var wdb_ext = gl.getExtension('WEBGL_draw_buffers');
                 if (wdb_ext) {
-                    gl.getExtension("WEBGL_depth_texture");
-                    gl.getExtension("OES_texture_float");
-                    gl.getExtension("OES_texture_float_linear");
-                    // We can use deferred shading
-                    this.deferredRendering = true;
-
-                    // Taken from https://hacks.mozilla.org/2014/01/webgl-deferred-shading/
-                    // And https://github.com/YuqinShao/Tile_Based_WebGL_DeferredShader/blob/master/deferredshading/deferred.js
-
-                    var depthTexture = gl.createTexture();
-                    var normalTexture = gl.createTexture();
-                    var positionTexture = gl.createTexture();
-                    var colorTexture = gl.createTexture();
-                    var depthRGBTexture = gl.createTexture();
-
-                    gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.canvas.width, this.canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
-
-
-                    gl.bindTexture(gl.TEXTURE_2D, normalTexture);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
-
-
-                    gl.bindTexture(gl.TEXTURE_2D, positionTexture);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
-
-
-                    gl.bindTexture(gl.TEXTURE_2D, colorTexture);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
-
-
-                    gl.bindTexture(gl.TEXTURE_2D, depthRGBTexture);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
-
-                    var fbo = gl.createFramebuffer();
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-                    var bufs = [];
-                    bufs[0] = wdb_ext.COLOR_ATTACHMENT0_WEBGL;
-                    bufs[1] = wdb_ext.COLOR_ATTACHMENT1_WEBGL;
-                    bufs[2] = wdb_ext.COLOR_ATTACHMENT2_WEBGL;
-                    bufs[3] = wdb_ext.COLOR_ATTACHMENT3_WEBGL;
-                    wdb_ext.drawBuffersWEBGL(bufs);
-
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[0], gl.TEXTURE_2D, depthRGBTexture, 0);
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[1], gl.TEXTURE_2D, normalTexture, 0);
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[2], gl.TEXTURE_2D, positionTexture, 0);
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[3], gl.TEXTURE_2D, colorTexture, 0);
-
-
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                    this.wdb_ext = wdb_ext;
+                } else {
+                    this.enableDeferred = false;
                 }
             },
             initShaders : function (){
@@ -399,6 +333,70 @@
                 this.skinGeomCache = new skinGeomCache(this.sceneApi);
                 this.adtGeomCache = new adtGeomCache(this.sceneApi);
             },
+            initDrawBuffers : function (frameBuffer) {
+                var gl = this.gl;
+                var wdb_ext = this.wdb_ext;
+                // Taken from https://hacks.mozilla.org/2014/01/webgl-deferred-shading/
+                // And https://github.com/YuqinShao/Tile_Based_WebGL_DeferredShader/blob/master/deferredshading/deferred.js
+
+                this.texture_floatExt = gl.getExtension("OES_texture_float");
+                this.texture_floatLinExt = gl.getExtension("OES_texture_float_linear");
+
+                var normalTexture = gl.createTexture();
+                var positionTexture = gl.createTexture();
+                var colorTexture = gl.createTexture();
+                var depthRGBTexture = gl.createTexture();
+
+                gl.bindTexture(gl.TEXTURE_2D, normalTexture);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
+
+
+                gl.bindTexture(gl.TEXTURE_2D, positionTexture);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
+
+
+                gl.bindTexture(gl.TEXTURE_2D, colorTexture);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
+
+
+                gl.bindTexture(gl.TEXTURE_2D, depthRGBTexture);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.FLOAT, null);
+
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+                var bufs = [];
+                bufs[0] = wdb_ext.COLOR_ATTACHMENT0_WEBGL;
+                bufs[1] = wdb_ext.COLOR_ATTACHMENT1_WEBGL;
+                bufs[2] = wdb_ext.COLOR_ATTACHMENT2_WEBGL;
+                bufs[3] = wdb_ext.COLOR_ATTACHMENT3_WEBGL;
+                wdb_ext.drawBuffersWEBGL(bufs);
+
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[0], gl.TEXTURE_2D, depthRGBTexture, 0);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[1], gl.TEXTURE_2D, normalTexture, 0);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[2], gl.TEXTURE_2D, positionTexture, 0);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, bufs[3], gl.TEXTURE_2D, colorTexture, 0);
+
+                this.depthRGBTexture = depthRGBTexture;
+                this.normalTexture = normalTexture;
+                this.positionTexture = positionTexture;
+                this.colorTexture = colorTexture;
+            },
             initRenderBuffers : function () {
                 var gl = this.gl;
                 if(!this.depth_texture_ext) { return; }
@@ -422,15 +420,19 @@
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.canvas.width, this.canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
 
                 var framebuffer = gl.createFramebuffer();
+                if (this.enableDeferred) {
+                    this.initDrawBuffers(framebuffer)
+                }
                 gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
+
+                if (!this.enableDeferred) {
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
+                }
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
 
                 this.frameBuffer = framebuffer;
                 this.frameBufferColorTexture = colorTexture;
                 this.frameBufferDepthTexture = depthTexture;
-
-
 
                 var verts = [
                     1,  1,
@@ -618,6 +620,9 @@
                     gl.activeTexture(gl.TEXTURE0);
                 }
             },
+            activateRenderDepthShader : function () {
+
+            },
             activateReadDepthBuffer : function() {
                 this.currentShaderProgram = this.readDepthBuffer;
                 if (this.currentShaderProgram) {
@@ -664,8 +669,13 @@
                     var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
                     gl.enableVertexAttribArray(shaderAttributes.aPosition);
-                    //gl.disableVertexAttribArray(shaderAttributes.aNormal);
+                    if (shaderAttributes.aNormal) {
+                        gl.enableVertexAttribArray(shaderAttributes.aNormal);
+                    }
                     gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
+                    gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
+                    gl.enableVertexAttribArray(shaderAttributes.aColor);
+                    gl.enableVertexAttribArray(shaderAttributes.aColor2);
 
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
@@ -857,7 +867,19 @@
                 gl.enable(gl.DEPTH_TEST);
                 //gl.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
             },
+            drawFrameBuffer : function () {
+                var gl = this.gl;
 
+                if (this.enableDeferred){
+                    gl.bindTexture(gl.TEXTURE_2D, this.colorTexture);
+                } else {
+                    gl.bindTexture(gl.TEXTURE_2D, this.frameBufferColorTexture);
+                }
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
+                gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+            },
             draw : function (deltaTime) {
                 var gl = this.gl;
                 if (!this.depthBuffer) {
@@ -898,7 +920,6 @@
                     this.lookAtMat4 = lookAtMat4;
                 }
 
-
                 if (!this.isShadersLoaded) return;
 
                 this.glClearScreen(gl);
@@ -921,11 +942,11 @@
 
                 this.glClearScreen(gl);
 
-
                 //save depthBuffer for occlusion culling next frame
                 this.activateReadDepthBuffer();
                 gl.disable(gl.DEPTH_TEST);
 
+                //Render depth buffer into array into js
                 if( this.quadVertBuffer) {
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.quadVertBuffer);
 
@@ -941,30 +962,20 @@
                     gl.readPixels(0,0,this.canvas.width,this.canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, this.depthBuffer);
                 }
 
-                gl.enable(gl.DEPTH_TEST);
-
-                //Draw frameBuffer
+                //Render framebuffer texture into screen
                 this.activateRenderFrameShader();
+                this.drawFrameBuffer();
 
 
-                gl.bindTexture(gl.TEXTURE_2D, this.frameBufferColorTexture);
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
-                gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-                gl.drawArrays(gl.TRIANGLES, 0, 6);
-
+                //Draw frameBuffer depth texture into screen
                 this.drawTexturedQuad(gl, this.frameBufferDepthTexture, this.canvas.width * 0.75, 0, this.canvas.width * 0.25, this.canvas.width * 0.25);
                 gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-
-
+                gl.enable(gl.DEPTH_TEST);
 
                 this.stats.end();
 
-
-
                 return cameraVecs;
             },
-
-
             loadM2File : function (mddf) {
                 this.sceneApi.objects.loadAdtM2Obj(mddf);
             },

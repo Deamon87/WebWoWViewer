@@ -38,6 +38,7 @@ varying vec4 vColor;
 #ifdef drawBuffersIsSupported
 varying vec3 vNormal;
 varying vec3 vPosition;
+varying float fs_Depth;
 #endif
 
 
@@ -58,27 +59,28 @@ mat3 inverse(mat3 m) {
 }
 
 void main() {
-    vec4 worldPoint = vec4(0,0,0,0);
+    vec4 modelPoint = vec4(0,0,0,0);
     vec4 aPositionVec4 = vec4(aPosition, 1);
 
-    worldPoint += (boneWeights.x ) * (uBoneMatrixes[int(bones.x)] * aPositionVec4);
-    worldPoint += (boneWeights.y ) * (uBoneMatrixes[int(bones.y)] * aPositionVec4);
-    worldPoint += (boneWeights.z ) * (uBoneMatrixes[int(bones.z)] * aPositionVec4);
-    worldPoint += (boneWeights.w ) * (uBoneMatrixes[int(bones.w)] * aPositionVec4);
+    modelPoint += (boneWeights.x ) * (uBoneMatrixes[int(bones.x)] * aPositionVec4);
+    modelPoint += (boneWeights.y ) * (uBoneMatrixes[int(bones.y)] * aPositionVec4);
+    modelPoint += (boneWeights.z ) * (uBoneMatrixes[int(bones.z)] * aPositionVec4);
+    modelPoint += (boneWeights.w ) * (uBoneMatrixes[int(bones.w)] * aPositionVec4);
 
-    worldPoint = uLookAtMat * uPlacementMat * vec4(worldPoint.xyz, 1);
+    vec4 cameraPoint = uLookAtMat * uPlacementMat * vec4(modelPoint.xyz, 1);
 
     vTexCoord = aTexCoord;
     vTexCoord2 = aTexCoord2;
     vColor = aColor;
 
 #ifndef drawBuffersIsSupported
-    gl_Position = uPMatrix * worldPoint;
+    gl_Position = uPMatrix * cameraPoint;
 #else
-    gl_Position = worldPoint;
+    gl_Position = uPMatrix * cameraPoint;
+    fs_Depth = gl_Position.z / gl_Position.w;
 
     vNormal = normalize((uPlacementMat * vec4(aNormal, 0)).xyz);
-    vPosition = worldPoint.xyz;
+    vPosition = cameraPoint.xyz;
 #endif //drawBuffersIsSupported
 
 }
@@ -98,6 +100,9 @@ uniform float uAlphaTest;
 uniform sampler2D uTexture;
 uniform sampler2D uTexture2;
 
+#ifdef drawBuffersIsSupported
+varying float fs_Depth;
+#endif
 
 void main() {
     vec4 tex = texture2D(uTexture, vTexCoord).rgba;
@@ -129,9 +134,11 @@ void main() {
     gl_FragColor = finalColor;
 #else
     //Deferred rendering
-    gl_FragData[0] = finalColor;
+    //gl_FragColor = finalColor;
+    gl_FragData[0] = vec4(vec3(fs_Depth), 1.0);
     gl_FragData[1] = vec4(vPosition.xyz,0);
     gl_FragData[2] = vec4(vNormal.xyz,0);
+    gl_FragData[3] = finalColor;
 #endif //drawBuffersIsSupported
 }
 

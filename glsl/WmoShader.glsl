@@ -35,11 +35,13 @@ varying vec4 vColor2;
 #ifdef drawBuffersIsSupported
 varying vec3 vNormal;
 varying vec3 vPosition;
+varying float fs_Depth;
 #endif
 
 void main() {
-    vec4 worldPoint = vec4(normalize(aNormal),0);
-    worldPoint = uPlacementMat * vec4(aPosition, 1);
+    vec4 worldPoint = uPlacementMat * vec4(aPosition, 1);
+
+    vec4 cameraPoint = uLookAtMat * worldPoint;
 
     vTexCoord = aTexCoord;
     vTexCoord2 = aTexCoord2;
@@ -47,12 +49,13 @@ void main() {
     vColor2 = aColor2;
 
 #ifndef drawBuffersIsSupported
-    gl_Position = uPMatrix * uLookAtMat * worldPoint;
+    gl_Position = uPMatrix * cameraPoint;
 #else
-    gl_Position = worldPoint;
+    gl_Position = uPMatrix * cameraPoint;
+    fs_Depth = gl_Position.z / gl_Position.w;
 
     vNormal = normalize((uPlacementMat * vec4(aNormal, 0)).xyz);
-    vPosition = worldPoint.xyz;
+    vPosition = cameraPoint.xyz;
 #endif //drawBuffersIsSupported
 
 }
@@ -73,6 +76,9 @@ uniform float uAlphaTest;
 uniform sampler2D uTexture;
 uniform sampler2D uTexture2;
 
+#ifdef drawBuffersIsSupported
+varying float fs_Depth;
+#endif
 
 void main() {
     vec4 tex = texture2D(uTexture, vTexCoord).rgba;
@@ -102,9 +108,11 @@ void main() {
     gl_FragColor = finalColor;
 #else
     //Deferred rendering
-    gl_FragData[0] = finalColor;
+    //gl_FragColor = finalColor;
+    gl_FragData[0] = vec4(vec3(fs_Depth), 1.0);
     gl_FragData[1] = vec4(vPosition.xyz,0);
     gl_FragData[2] = vec4(vNormal.xyz,0);
+    gl_FragData[3] = finalColor;
 #endif //drawBuffersIsSupported
 }
 
