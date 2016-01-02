@@ -621,7 +621,14 @@
                 }
             },
             activateRenderDepthShader : function () {
+                this.currentShaderProgram = this.drawDepthBuffer;
+                if (this.currentShaderProgram) {
+                    var gl = this.gl;
+                    gl.useProgram(this.currentShaderProgram.program);
+                    var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
+                    gl.activeTexture(gl.TEXTURE0);
+                }
             },
             activateReadDepthBuffer : function() {
                 this.currentShaderProgram = this.readDepthBuffer;
@@ -631,6 +638,11 @@
                     var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
                     gl.activeTexture(gl.TEXTURE0);
+
+                    gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.position);
+                    gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.texture);
+
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.diffuse, 0);
                 }
             },
             activateAdtShader : function(){
@@ -825,7 +837,7 @@
                 }
             },
 
-            drawTexturedQuad: function(gl, texture, x, y, width, height) {
+            drawTexturedQuad: function(gl, texture, x, y, width, height, canv_width, canv_height) {
                 if(!this.quadShader) {
                     // Set up the verticies and indices
                     var quadVerts = [
@@ -842,30 +854,23 @@
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.quadVertBuffer);
                     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(quadVerts), gl.STATIC_DRAW);
                 }
-
-                // This is a terrible way to do this, use a transform matrix instead
-                var viewport = gl.getParameter(gl.VIEWPORT);
-                gl.viewport(x, y, width, height);
-
                 gl.disable(gl.DEPTH_TEST);
-
-                gl.useProgram(this.drawDepthBuffer.program);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.quadVertBuffer);
 
-                gl.enableVertexAttribArray(this.drawDepthBuffer.shaderAttributes.position);
-                gl.enableVertexAttribArray(this.drawDepthBuffer.shaderAttributes.texture);
                 gl.vertexAttribPointer(this.drawDepthBuffer.shaderAttributes.position, 2, gl.FLOAT, false, 16, 0);
                 gl.vertexAttribPointer(this.drawDepthBuffer.shaderAttributes.texture, 2, gl.FLOAT, false, 16, 8);
 
-                gl.activeTexture(gl.TEXTURE0);
-                gl.uniform1i(this.drawDepthBuffer.shaderUniforms.diffuse, 0);
+                gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uWidth, width/canv_width);
+                gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uHeight, height/canv_height);
+                gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uX, x/canv_width);
+                gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uY, y/canv_height);
+
                 gl.bindTexture(gl.TEXTURE_2D, texture);
 
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
 
                 gl.enable(gl.DEPTH_TEST);
-                //gl.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
             },
             drawFrameBuffer : function () {
                 var gl = this.gl;
@@ -950,13 +955,8 @@
                 if( this.quadVertBuffer) {
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.quadVertBuffer);
 
-                    gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.position);
-                    gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.texture);
                     gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.position, 2, gl.FLOAT, false, 16, 0);
                     gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.texture, 2, gl.FLOAT, false, 16, 8);
-
-                    gl.activeTexture(gl.TEXTURE0);
-                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.diffuse, 0);
 
                     gl.drawArrays(gl.TRIANGLES, 0, 6);
                     gl.readPixels(0,0,this.canvas.width,this.canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, this.depthBuffer);
@@ -968,8 +968,11 @@
 
 
                 //Draw frameBuffer depth texture into screen
-                this.drawTexturedQuad(gl, this.frameBufferDepthTexture, this.canvas.width * 0.75, 0, this.canvas.width * 0.25, this.canvas.width * 0.25);
-                gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+                this.activateRenderDepthShader();
+                this.drawTexturedQuad(gl, this.frameBufferDepthTexture,
+                    this.canvas.width * 0.75, 0,
+                    this.canvas.width * 0.25, this.canvas.height * 0.25,
+                    this.canvas.width, this.canvas.height);
                 gl.enable(gl.DEPTH_TEST);
 
                 this.stats.end();
