@@ -1,8 +1,8 @@
 'use strict';
 
 (function (window, $, undefined) {
-    var mdxObject = angular.module('js.wow.render.mdxObject', []);
-    mdxObject.factory("mdxObject", ['$q', '$timeout', '$log', function($q, $timeout, $log) {
+    var mdxObject = angular.module('js.wow.render.mdxObject', ['js.wow.math.mathHelper']);
+    mdxObject.factory("mdxObject", ['$q', '$timeout', '$log', 'mathHelper', function($q, $timeout, $log, mathHelper) {
 
         function MDXObject(sceneApi){
             this.sceneApi = sceneApi;
@@ -149,57 +149,9 @@
 
                 this.submeshArray = submeshArray;
             },
-            checkFrustumCulling : function (frustumMatrix, lookAtMat4, placementMatrix) {
-                var bb = this.getBoundingBox();
-                if (!bb) return false;
-
-                var combinedMat4 = mat4.create();
-
-                mat4.multiply(combinedMat4, frustumMatrix, lookAtMat4);
-                mat4.multiply(combinedMat4, combinedMat4, placementMatrix);
-
-                var bb1 = bb.ab,
-                    bb2 = bb.cd;
-
-                var bb1vec = vec4.fromValues(bb1.x, bb1.y, bb1.z, 1);
-                var bb2vec = vec4.fromValues(bb2.x, bb2.y, bb2.z, 1);
-
-                vec4.transformMat4(bb1vec, bb1vec, combinedMat4);
-                vec4.transformMat4(bb2vec, bb2vec, combinedMat4);
-
-                //Perspective divide
-                vec4.scale(bb1vec, bb1vec, 1/bb1vec[3]);
-                vec4.scale(bb2vec, bb2vec, 1/bb2vec[3]);
-
-                var min_x = Math.min(bb1vec[0], bb2vec[0]);
-                var max_x = Math.max(bb1vec[0], bb2vec[0]);
-
-                var min_y = Math.min(bb1vec[1], bb2vec[1]);
-                var max_y = Math.max(bb1vec[1], bb2vec[1]);
-
-                /* Check 8 points against frustum */
-                var isInFrustum = false;
-                //isInFrustum = isInFrustum || ((min_x >= -1) && (min_x <= 1) && (min_y >= -1) && (min_y <= 1) );
-                //isInFrustum = isInFrustum || ((min_x >= -1) && (min_x <= 1) && (min_y >= -1) && (min_y <= 1) );
-                //isInFrustum = isInFrustum || ((min_x >= -1) && (min_x <= 1) && (max_y >= -1) && (max_y <= 1) );
-                //isInFrustum = isInFrustum || ((min_x >= -1) && (min_x <= 1) && (max_y >= -1) && (max_y <= 1) );
-                //isInFrustum = isInFrustum || ((max_x >= -1) && (max_x <= 1) && (min_y >= -1) && (min_y <= 1) );
-                //isInFrustum = isInFrustum || ((max_x >= -1) && (max_x <= 1) && (min_y >= -1) && (min_y <= 1) );
-                //isInFrustum = isInFrustum || ((max_x >= -1) && (max_x <= 1) && (max_y >= -1) && (max_y <= 1) );
-                //isInFrustum = isInFrustum || ((max_x >= -1) && (max_x <= 1) && (max_y >= -1) && (max_y <= 1) );
-                var xIsInScreen = ((bb1vec[0] >= -1) && (bb1vec[0] <= 1)) ||
-                    ((bb2vec[0] >= -1) && (bb2vec[0] <= 1)) ||
-                    ((bb1vec[0]*bb2vec[0] < 0));
-                var yIsInScreen = ((bb1vec[1] >= -1) && (bb1vec[1] <= 1)) ||
-                    ((bb2vec[1] >= -1) && (bb2vec[1] <= 1)) ||
-                    ((bb1vec[1]*bb2vec[1] < 0));
-                var zIsInScreen = ((bb1vec[2] >= 0) && (bb1vec[2] <= 1)) ||
-                    ((bb2vec[2] >= 0) && (bb2vec[2] <= 1)) ||
-                    ((bb1vec[2]*bb2vec[2] < 0));
-
-                isInFrustum = zIsInScreen && yIsInScreen && xIsInScreen;
-
-                return isInFrustum;
+            checkFrustumCulling : function (frustumPlanes, aabb) {
+                var result = mathHelper.checkFrustum(frustumPlanes, aabb);
+                return result;
             },
             checkAgainstDepthBuffer: function (frustumMatrix, lookAtMat4, placementMatrix, checkDepth) {
                 var bb = this.getBoundingBox();

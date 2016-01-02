@@ -22,8 +22,10 @@
                 if (!this.mdxObject) return null;
                 return this.mdxObject.getMeshesToRender();
             },
-            checkFrustumCulling : function (frustumMatrix, lookAtMat4) {
-                this.setIsRendered(this.getIsRendered() && this.mdxObject.checkFrustumCulling(frustumMatrix, lookAtMat4, this.placementMatrix));
+            checkFrustumCulling : function (frustumPlanes) {
+                var inFrustum = this.aabb && this.mdxObject.checkFrustumCulling(frustumPlanes, this.aabb)
+
+                this.setIsRendered(this.getIsRendered() && inFrustum);
             },
             checkAgainstDepthBuffer: function (frustumMatrix, lookAtMat4, getDepth) {
                 this.setIsRendered(this.getIsRendered() && this.mdxObject.checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, this.placementMatrix, getDepth));

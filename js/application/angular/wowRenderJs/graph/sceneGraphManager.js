@@ -1,10 +1,10 @@
 'use strict';
 
 (function (window, $, undefined) {
-    var sceneGraph = angular.module('js.wow.render.scene.graph', []);
+    var sceneGraph = angular.module('js.wow.render.scene.graph', ['js.wow.math.mathHelper']);
     sceneGraph.factory("graphManager", ['$q',
-        'adtObjectFactory', 'adtM2ObjectFactory', 'wmoM2ObjectFactory', 'wmoObjectFactory',
-        function($q, adtObjectFactory, adtM2ObjectFactory, wmoM2ObjectFactory, wmoObjectFactory ){
+        'adtObjectFactory', 'adtM2ObjectFactory', 'wmoM2ObjectFactory', 'wmoObjectFactory', 'mathHelper',
+        function($q, adtObjectFactory, adtM2ObjectFactory, wmoM2ObjectFactory, wmoObjectFactory, mathHelper){
 
 
         function InstanceManager(sceneApi){
@@ -158,21 +158,25 @@
                 this.nonTransparentM = nonTrasparentMeshes;
                 this.transparentM = transparentMeshes;
             },
-            checkAgainstFrustum : function (frustrumMat, lookAtMat4) {
+            checkAgainstFrustum : function (frustumMat, lookAtMat4) {
                 for (var j = 0; j < this.m2Objects.length; j++) {
                     this.m2Objects[j].setIsRendered(true);
                 }
+                /*1. Extract planes */
+                var combinedMat4 = mat4.create();
+                mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
+                var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
 
                 /* 1. First check wmo's */
                 /* Checking group wmo will significatly decrease the amount of m2wmo */
                 for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].checkFrustumCulling(frustrumMat, lookAtMat4);
+                    this.wmoObjects[i].checkFrustumCulling(frustumPlanes);
                 }
 
                 /* 2. If m2Object is renderable after prev phase - check it against frustrum */
                 for (var j = 0; j < this.m2Objects.length; j++) {
                     if (this.m2Objects[j].getIsRendered()) {
-                        this.m2Objects[j].checkFrustumCulling(frustrumMat, lookAtMat4);
+                        this.m2Objects[j].checkFrustumCulling(frustumPlanes);
                     }
                 }
             },

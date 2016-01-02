@@ -39,8 +39,10 @@
             drawInstancedTransparentMeshes : function (instanceCount, placementVBO) {
                 this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
             },
-            checkFrustumCulling : function (frustrumMatrix, lookAtMat4) {
-                this.setIsRendered(this.getIsRendered() && this.mdxObject.checkFrustumCulling(frustrumMatrix, lookAtMat4, this.placementMatrix));
+            checkFrustumCulling : function (frustumPlanes) {
+                var inFrustum = this.aabb && this.mdxObject.checkFrustumCulling(frustumPlanes, this.aabb);
+
+                this.setIsRendered(this.getIsRendered() && inFrustum);
             },
             checkAgainstDepthBuffer: function (frustrumMatrix, lookAtMat4, getDepth) {
                 this.setIsRendered(this.getIsRendered() && this.mdxObject.checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, this.placementMatrix, getDepth));

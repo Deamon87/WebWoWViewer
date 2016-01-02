@@ -2,8 +2,11 @@
 
 
 (function (window, $, undefined) {
-    var cacheTemplate = angular.module('js.wow.render.wmoObjectFactory', ['js.wow.render.wmoM2ObjectFactory']);
-    cacheTemplate.factory("wmoObjectFactory", ['$q', '$timeout', 'wmoM2ObjectFactory', function($q, $timeout, wmoM2ObjectFactory) {
+    var cacheTemplate = angular.module('js.wow.render.wmoObjectFactory', [
+        'js.wow.render.wmoM2ObjectFactory'
+    ]);
+    cacheTemplate.factory("wmoObjectFactory", ['$q', '$timeout', 'wmoM2ObjectFactory', 'mathHelper',
+        function($q, $timeout, wmoM2ObjectFactory, mathHelper) {
 
         function WmoObject(sceneApi){
             var self = this;
@@ -61,6 +64,33 @@
                 } else {
                     return false;
                 }
+            },
+            createWorldGroupBB : function () {
+                var worldGroupBorders = new Array(this.wmoGroupArray.length);
+                for (var i = 0; i < this.wmoGroupArray.length; i++) {
+                    var groupInfo = this.wmoObj.groupInfos[i];
+                    var bb1 = groupInfo.bb1,
+                        bb2 = groupInfo.bb2;
+
+
+                    var bb1vec = vec4.fromValues(bb1.x, bb1.y, bb1.z, 1);
+                    var bb2vec = vec4.fromValues(bb2.x, bb2.y, bb2.z, 1);
+
+                    vec4.transformMat4(bb1vec, bb1vec, this.placementMatrix);
+                    vec4.transformMat4(bb2vec, bb2vec, this.placementMatrix);
+
+                    var min_x = Math.min(bb1vec[0], bb2vec[0]); var max_x = Math.max(bb1vec[0], bb2vec[0]);
+                    var min_y = Math.min(bb1vec[1], bb2vec[1]); var max_y = Math.max(bb1vec[1], bb2vec[1]);
+                    var min_z = Math.min(bb1vec[2], bb2vec[2]); var max_z = Math.max(bb1vec[2], bb2vec[2]);
+
+                    var worldAABB = new Array(2);
+                    worldAABB[0] = vec4.fromValues(min_x, min_y, min_z, 1.0);
+                    worldAABB[1] = vec4.fromValues(max_x, max_y, max_z, 1.0);
+
+                    worldGroupBorders[i] = worldAABB;
+                }
+
+                this.worldGroupBorders = worldGroupBorders;
             },
             createPlacementMatrix : function(modf){
                 var TILESIZE = 533.333333333;
@@ -146,6 +176,8 @@
                     /* 2. Load doodads */
                     self.loadDoodads(doodadsInd);
 
+                    self.createWorldGroupBB();
+
                     deferred.resolve(self);
                 }, function error (){
                 });
@@ -204,41 +236,18 @@
 
                 this.drawGroup[index] = doDraw;
             },
-            checkFrustumCulling : function (frustrumMatrix, lookAtMat4) {
-                /*for (var i = 0; i < this.doodadsArray.length; i++) {
-                    this.doodadsArray[i].setIsRendered(false);
-                } */
-                var combinedMat4 = mat4.create();
-
-                mat4.multiply(combinedMat4, frustrumMatrix, lookAtMat4);
-                mat4.multiply(combinedMat4, combinedMat4, this.placementMatrix);
-
+            checkFrustumCulling : function (frustumPlanes) {
                 var isDrawn = [];
+                if (!this.worldGroupBorders) return;
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
-                    var groupInfo = this.wmoObj.groupInfos[i];
-                    var bb1 = groupInfo.bb1,
-                        bb2 = groupInfo.bb2;
+                    var bbArray = this.worldGroupBorders[i];
 
-                    var bb1vec = vec4.fromValues(bb1.x, bb1.y, bb1.z, 1);
-                    var bb2vec = vec4.fromValues(bb2.x, bb2.y, bb2.z, 1);
-
-                    vec4.transformMat4(bb1vec, bb1vec, combinedMat4);
-                    vec4.transformMat4(bb2vec, bb2vec, combinedMat4);
-
-                    //Perspective divide
-                    vec4.scale(bb1vec, bb1vec, 1/bb1vec[3]);
-                    vec4.scale(bb2vec, bb2vec, 1/bb2vec[3]);
-
-                    if ((bb1vec[2] >= 0 && bb1vec[2] <= 1) || (bb2vec[2] >= 0 && bb2vec[2] <= 1) || (bb1vec[2]*bb2vec[2] < 0)){
-                        isDrawn.push(true);//this.setDoodadGroupDrawing(i, true);
-                    } else {
-                        isDrawn.push(false);//this.setDoodadGroupDrawing(i, false);
-                    }
+                    var result = mathHelper.checkFrustum(frustumPlanes,bbArray);
+                    isDrawn.push(result);//this.setDoodadGroupDrawing(i, true);
                 }
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
                     this.setDoodadGroupDrawing(i, isDrawn[i]);
                 }
-
             },
             update : function () {
 
