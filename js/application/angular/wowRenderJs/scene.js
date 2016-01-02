@@ -417,7 +417,7 @@
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.canvas.width, this.canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.canvas.width, this.canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
 
                 var framebuffer = gl.createFramebuffer();
                 if (this.enableDeferred) {
@@ -903,7 +903,7 @@
                 //Static camera for tests
                 var staticLookAtMat = [];
                 mat4.lookAt(staticLookAtMat,
-                    [-1873.050857362244, 5083.140737452966, 574.1095576120073 ],
+                    [-1873.050857362244,  5083.140737452966, 574.1095576120073 ],
                     [-1872.9643854413891, 5083.406870660209, 573.1495077576213],
                     [0,0,1]);
 
@@ -915,7 +915,7 @@
                 this.graphManager.checkAgainstFrustum(perspectiveMatrix, lookAtMat4);
                 //Matrixes from previous frame
                 if (this.perspectiveMatrix && this.lookAtMat4) {
-                    //this.graphManager.checkAgainstDepthBuffer(this.perspectiveMatrix, this.lookAtMat4, this.depthBuffer, this.canvas.width, this.canvas.height);
+                    //this.graphManager.checkAgainstDepthBuffer(this.perspectiveMatrix, this.lookAtMat4, this.floatDepthBuffer, this.canvas.width, this.canvas.height);
                 }
 
                 this.perspectiveMatrix = perspectiveMatrix;
@@ -952,6 +952,7 @@
                 gl.disable(gl.DEPTH_TEST);
 
                 //Render depth buffer into array into js
+                /*
                 if( this.quadVertBuffer) {
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.quadVertBuffer);
 
@@ -959,8 +960,15 @@
                     gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.texture, 2, gl.FLOAT, false, 16, 8);
 
                     gl.drawArrays(gl.TRIANGLES, 0, 6);
-                    gl.readPixels(0,0,this.canvas.width,this.canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, this.depthBuffer);
+                    gl.readPixels(0,0,this.canvas.width, this.canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, this.depthBuffer);
+                    //Normalize depthBuffer
+                    var floatDepth = new Array(this.canvas.width*this.canvas.height);
+                    for (var i = 0; i < this.canvas.width*this.canvas.height; i++) {
+                        floatDepth[i] = (this.depthBuffer[4*index + 0] * 255.0 + this.depthBuffer[4*index + 1]) / 65536.0
+                    }
+                    this.floatDepthBuffer = floatDepth;
                 }
+                */
 
                 //Render framebuffer texture into screen
                 this.activateRenderFrameShader();

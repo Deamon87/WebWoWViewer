@@ -179,12 +179,20 @@
                         this.m2Objects[j].checkFrustumCulling(frustumPlanes);
                     }
                 }
+
+                /* 3. Additionally check if distance to object is more than 100 time of it's diameter */
+                for (var j = 0; j < this.m2Objects.length; j++) {
+                    var currentObj = this.m2Objects[j];
+                    if (currentObj.getIsRendered()) {
+                        currentObj.setIsRendered(currentObj.getDiameter()*100 > currentObj.getCurrentDistance());
+                    }
+                }
             },
             checkAgainstDepthBuffer : function (frustrumMat, lookAtMat4, depth, width, height) {
                 //CompressDepthBuffer 8 times
                 function getDepth(x, y) {
-                    var index = (y * width + x) * 3;
-                    var depth_val = 1.0 - ((depth[index + 0] * 255.0 + depth[index + 1]) / 65536.0);
+                    var index = (y * width + x);
+                    var depth_val = 1.0 - (depth[index]);
                     return depth_val;
                 }
 

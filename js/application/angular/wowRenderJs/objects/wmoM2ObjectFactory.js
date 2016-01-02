@@ -45,6 +45,7 @@
                         var miny = Math.min(a_ab[1], a_cd[1]);    var maxy = Math.max(a_ab[1], a_cd[1]);
                         var minz = Math.min(a_ab[2], a_cd[2]);    var maxz = Math.max(a_ab[2], a_cd[2]);
 
+                        this.diameter = vec3.distance([minx, miny, minz], [maxx, maxy, maxz]);
                         this.aabb = [[minx, miny, minz], [maxx, maxy, maxz]];
                     }
                 }
@@ -111,6 +112,9 @@
             },
             getCurrentDistance : function (){
                 return this.currentDistance;
+            },
+            getDiameter : function () {
+                return this.diameter;
             },
             setIsRendered : function (value) {
                 this.isRendered = value;
