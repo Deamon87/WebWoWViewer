@@ -22,7 +22,34 @@
                 return this.mdxObject.getMeshesToRender();
             },
             drawBB : function (){
+                var gl = this.sceneApi.getGlContext();
+                var uniforms = this.sceneApi.shaders.getShaderUniforms();
 
+                var bb = this.mdxObject.getBoundingBox();
+
+                if (bb) {
+                    var bb1 = bb.ab,
+                        bb2 = bb.cd;
+
+                    var center = [
+                        (bb1.x + bb2.x) / 2,
+                        (bb1.y + bb2.y) / 2,
+                        (bb1.z + bb2.z) / 2
+                    ];
+
+                    var scale = [
+                        bb2.x - center[0],
+                        bb2.y - center[1],
+                        bb2.z - center[2]
+                    ];
+
+                    gl.uniform3fv(uniforms.uBBScale, new Float32Array(scale));
+                    gl.uniform3fv(uniforms.uBBCenter, new Float32Array(center));
+                    gl.uniform3fv(uniforms.uColor, new Float32Array([0.819607843, 0.058, 0.058])); //red
+                    gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
+
+                    gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
+                }
             },
             drawTransparentMeshes : function () {
                 this.mdxObject.drawTransparentMeshes(this.placementMatrix, 0xffffffff);

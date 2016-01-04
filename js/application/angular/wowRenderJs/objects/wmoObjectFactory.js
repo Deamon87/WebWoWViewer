@@ -188,7 +188,7 @@
                 var gl = this.sceneApi.getGlContext();
                 var uniforms = this.sceneApi.shaders.getShaderUniforms();
 
-                for (var i = 0; i < this.wmoGroupArray.length; i++){
+                /*for (var i = 0; i < this.wmoGroupArray.length; i++){
                     var groupInfo = this.wmoObj.groupInfos[i];
                     var bb1 = groupInfo.bb1,
                         bb2 = groupInfo.bb2;
@@ -207,9 +207,42 @@
 
                     gl.uniform3fv(uniforms.uBBScale, new Float32Array(scale));
                     gl.uniform3fv(uniforms.uBBCenter, new Float32Array(center));
+                    gl.uniform3fv(uniforms.uColor, new Float32Array([0.027, 0.643, 0.075])); //green
+                    gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
+
+                    gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
+                } */
+
+                for (var i = 0; i < this.wmoGroupArray.length; i++) {
+                    if (!this.wmoGroupArray[i] || !this.wmoGroupArray[i].wmoGroupFile) continue;
+                    if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
+
+
+                    var mogp = this.wmoGroupArray[i].wmoGroupFile.mogp;
+                    var bb1 = mogp.BoundBoxCorner1,
+                        bb2 = mogp.BoundBoxCorner2;
+
+                    var center = [
+                        (bb1.x + bb2.x)/2,
+                        (bb1.y + bb2.y)/2,
+                        (bb1.z + bb2.z)/2
+                    ];
+
+                    var scale = [
+                        bb2.x - center[0],
+                        bb2.y - center[1],
+                        bb2.z - center[2]
+                    ];
+
+                    gl.uniform3fv(uniforms.uBBScale, new Float32Array(scale));
+                    gl.uniform3fv(uniforms.uBBCenter, new Float32Array(center));
+                    gl.uniform3fv(uniforms.uColor, new Float32Array([0.058, 0.058, 0.819607843])); //blue
+
+                    gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
 
                     gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
                 }
+
 
             },
             setDoodadGroupDrawing : function (index, doDraw) {

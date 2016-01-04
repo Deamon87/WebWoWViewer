@@ -7,6 +7,7 @@ uniform vec3 uBBCenter;
 
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
+uniform mat4 uPlacementMat;
 
 void main() {
     vec4 worldPoint = vec4(
@@ -15,15 +16,17 @@ void main() {
         aPosition.z*uBBScale.z + uBBCenter.z,
     1);
 
-    gl_Position = uPMatrix * uLookAtMat * worldPoint;
+    gl_Position = uPMatrix * uLookAtMat * uPlacementMat * worldPoint;
 }
 #endif //COMPILING_VS
 
 #ifdef COMPILING_FS
-
 precision lowp float;
+
+uniform vec3 uColor;
+
 void main() {
-    vec4 finalColor = vec4(0.027, 0.643, 0.075, 1.0);
+    vec4 finalColor = vec4(uColor, 1.0);
 
     finalColor.a = 1.0; //do I really need it now?
     gl_FragColor = finalColor;

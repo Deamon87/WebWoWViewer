@@ -44,7 +44,7 @@ module.exports = function(grunt) {
             }
         },
         concat: {
-            dist: {
+            deflateWorker: {
                 options: {
                     // Replace all 'use strict' statements in the code with a single one at the top
                     stripBanners : true,
@@ -73,6 +73,11 @@ module.exports = function(grunt) {
                 },
                 files: {
                     'js/temp/worker-inflater.js': ['js/lib/bower/zip.js/WebContent/z-worker.js', 'js/lib/bower/zip.js/WebContent/inflate.js']
+                }
+            },
+            requestWorker : {
+                options: {
+
                 }
             }
         },
