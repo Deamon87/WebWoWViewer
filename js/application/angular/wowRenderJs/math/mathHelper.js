@@ -34,7 +34,9 @@ MathHelper.prototype = {
             mat[15]+mat[14]);
 
         for(var i = 0; i < 6; i++ ) {
-            vec4.normalize(planes[i], planes[i]);
+            //Hand made normalize
+            var invVecLength = 1/vec3.length(planes[i]);
+            vec4.scale(planes[i], planes[i], invVecLength);
         }
 
         return planes;
