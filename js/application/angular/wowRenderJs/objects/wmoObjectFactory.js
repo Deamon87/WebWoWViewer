@@ -188,7 +188,7 @@
                 var gl = this.sceneApi.getGlContext();
                 var uniforms = this.sceneApi.shaders.getShaderUniforms();
 
-                for (var i = 0; i < this.wmoGroupArray.length; i++){
+                /*for (var i = 0; i < this.wmoGroupArray.length; i++){
                     var groupInfo = this.wmoObj.groupInfos[i];
                     var bb1 = groupInfo.bb1,
                         bb2 = groupInfo.bb2;
@@ -211,10 +211,13 @@
                     gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
 
                     gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
-                }
+                } */
 
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
                     if (!this.wmoGroupArray[i] || !this.wmoGroupArray[i].wmoGroupFile) continue;
+                    if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
+
+
                     var mogp = this.wmoGroupArray[i].wmoGroupFile.mogp;
                     var bb1 = mogp.BoundBoxCorner1,
                         bb2 = mogp.BoundBoxCorner2;
