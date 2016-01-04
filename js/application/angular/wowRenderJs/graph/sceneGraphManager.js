@@ -377,6 +377,19 @@
                 }
                 this.sceneApi.shaders.deactivateM2Shader();
 
+
+                //7. Draw BBs
+                this.sceneApi.shaders.activateBoundingBoxShader();
+                //7.1 Draw M2 BBs
+                for (var i = 0; i < this.m2Objects.length; i++) {
+                    if (!this.m2Objects[i].getIsRendered()) continue;
+
+                    this.m2Objects[i].drawBB();
+                }
+                //7.1 Draw WMO BBs
+                for (var i = 0; i < this.wmoObjects.length; i++) {
+                    this.wmoObjects[i].drawBB();
+                }
             }
         };
 

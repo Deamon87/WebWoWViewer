@@ -147,8 +147,8 @@
                 //sceneObj.loadMap("Northrend", 29, 22); sceneObj.setCameraPos(4800, 1066, 137);
                 //sceneObj.loadMap("PVPZone04", 29, 29); sceneObj.setCameraPos(1400, 1044, 509);
                 //sceneObj.loadMap("DeathKnightStart", 43, 28); sceneObj.setCameraPos(2033, -5843, 230);
-                //sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
-                sceneObj.loadMap("HallsOfReflection", 28, 21); sceneObj.setCameraPos(5245, 2025, 733);
+                sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
+                //sceneObj.loadMap("HallsOfReflection", 28, 21); sceneObj.setCameraPos(5245, 2025, 733);
                 //sceneObj.loadMap("HallsOfReflection", 30, 21); sceneObj.setCameraPos(5641, 963, 733);
                 //sceneObj.loadMap("DeeprunTram", 30, 21); sceneObj.setCameraPos(17066.666666656, 17066.666666656, 0);
                 //sceneObj.loadMap("Karazahn", 35, 52); sceneObj.setCameraPos(-10666.666666656, -1600, 170);

@@ -475,6 +475,12 @@
                         }
                     },
                     shaders : {
+                        activateBoundingBoxShader : function () {
+                            self.activateBoundingBoxShader();
+                        },
+                        deativateBoundingBoxShader : function() {
+                            self.deactivateBoundingBoxShader();
+                        },
                         activateAdtShader : function () {
                             self.activateAdtShader();
                         },
@@ -829,7 +835,7 @@
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bbBoxVars.ibo_elements);
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.bbBoxVars.vbo_vertices);
 
-                    gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.aPosition);
+                    //gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.aPosition);
                     gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0);  // position
 
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
