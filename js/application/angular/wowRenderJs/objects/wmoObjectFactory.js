@@ -293,8 +293,8 @@
 
                     var isInside = (
                         cameraVec4[0] > bbArray[0][0] && cameraVec4[0] < bbArray[1][0] &&
-                        cameraVec4[1] > bbArray[0][1] && cameraVec4[0] < bbArray[1][1] &&
-                        cameraVec4[2] > bbArray[0][2] && cameraVec4[0] < bbArray[1][2]
+                        cameraVec4[1] > bbArray[0][1] && cameraVec4[1] < bbArray[1][1] &&
+                        cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
                     );
 
                     var result = isInside || mathHelper.checkFrustum(frustumPlanes,bbArray);
