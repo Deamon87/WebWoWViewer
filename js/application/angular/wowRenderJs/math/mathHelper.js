@@ -68,6 +68,52 @@ MathHelper.prototype = {
 */
 
         return true;
+    },
+    transformAABBWithMat4 : function (mat4,aabb) {
+        //Adapted from http://dev.theomader.com/transform-bounding-boxes/
+        var xa = vec4.create();
+        var xb = vec4.create();
+        vec4.scale(xa, vec4.fromValues(mat4[0],mat4[1],mat4[2],mat4[3]), aabb[0][0]);
+        vec4.scale(xb, vec4.fromValues(mat4[0],mat4[1],mat4[2],mat4[3]), aabb[1][0]);
+
+        var ya = vec4.create();
+        var yb = vec4.create();
+        vec4.scale(ya, vec4.fromValues(mat4[4],mat4[5],mat4[6],mat4[7]), aabb[0][1]);
+        vec4.scale(yb, vec4.fromValues(mat4[4],mat4[5],mat4[6],mat4[7]), aabb[1][1]);
+
+        var za = vec4.create();
+        var zb = vec4.create();
+        vec4.scale(za, vec4.fromValues(mat4[8],mat4[9],mat4[10],mat4[11]), aabb[0][2]);
+        vec4.scale(zb, vec4.fromValues(mat4[8],mat4[9],mat4[10],mat4[11]), aabb[1][2]);
+
+        var vecx_min = vec4.create();
+        var vecy_min = vec4.create();
+        var vecz_min = vec4.create();
+        var vecx_max = vec4.create();
+        var vecy_max = vec4.create();
+        var vecz_max = vec4.create();
+
+        vec3.min(vecx_min, xa, xb); vec3.max(vecx_max, xa, xb);
+        vec3.min(vecy_min, ya, yb); vec3.max(vecy_max, ya, yb);
+        vec3.min(vecz_min, za, zb); vec3.max(vecz_max, za, zb);
+
+        var translation = vec4.fromValues(mat4[12],mat4[13],mat4[14],0);
+
+        var bb_min = vec4.create();
+        var bb_max = vec4.create();
+
+        vec4.add(bb_min, vecx_min, vecy_min);
+        vec4.add(bb_min, bb_min, vecz_min);
+        vec4.add(bb_min, bb_min, translation);
+
+        vec4.add(bb_max, vecx_max, vecy_max);
+        vec4.add(bb_max, bb_max, vecz_max);
+        vec4.add(bb_max, bb_max, translation);
+
+        return [
+            bb_min,
+            bb_max
+        ];
     }
 };
 

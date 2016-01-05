@@ -72,20 +72,10 @@
                     var bb1 = groupInfo.bb1,
                         bb2 = groupInfo.bb2;
 
-
                     var bb1vec = vec4.fromValues(bb1.x, bb1.y, bb1.z, 1);
                     var bb2vec = vec4.fromValues(bb2.x, bb2.y, bb2.z, 1);
 
-                    vec4.transformMat4(bb1vec, bb1vec, this.placementMatrix);
-                    vec4.transformMat4(bb2vec, bb2vec, this.placementMatrix);
-
-                    var min_x = Math.min(bb1vec[0], bb2vec[0]); var max_x = Math.max(bb1vec[0], bb2vec[0]);
-                    var min_y = Math.min(bb1vec[1], bb2vec[1]); var max_y = Math.max(bb1vec[1], bb2vec[1]);
-                    var min_z = Math.min(bb1vec[2], bb2vec[2]); var max_z = Math.max(bb1vec[2], bb2vec[2]);
-
-                    var worldAABB = new Array(2);
-                    worldAABB[0] = vec4.fromValues(min_x, min_y, min_z, 1.0);
-                    worldAABB[1] = vec4.fromValues(max_x, max_y, max_z, 1.0);
+                    var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [bb1vec, bb2vec]);
 
                     worldGroupBorders[i] = worldAABB;
                 }
@@ -201,6 +191,9 @@
             drawBB : function () {
                 var gl = this.sceneApi.getGlContext();
                 var uniforms = this.sceneApi.shaders.getShaderUniforms();
+                var mat4_ident = mat4.create();
+                mat4.identity(mat4_ident);
+                gl.uniformMatrix4fv(uniforms.uPlacementMat, false, new Float32Array(mat4_ident));
 
                 /*for (var i = 0; i < this.wmoGroupArray.length; i++){
                     var groupInfo = this.wmoObj.groupInfos[i];
@@ -231,28 +224,28 @@
                     if (!this.wmoGroupArray[i] || !this.wmoGroupArray[i].wmoGroupFile) continue;
                     if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
 
-
+                     /*
                     var mogp = this.wmoGroupArray[i].wmoGroupFile.mogp;
-                    var bb1 = mogp.BoundBoxCorner1,
-                        bb2 = mogp.BoundBoxCorner2;
+                    */
+
+                    var bb1 = this.worldGroupBorders[i][0],
+                        bb2 = this.worldGroupBorders[i][1];
 
                     var center = [
-                        (bb1.x + bb2.x)/2,
-                        (bb1.y + bb2.y)/2,
-                        (bb1.z + bb2.z)/2
+                        (bb1[0] + bb2[0])/2,
+                        (bb1[1] + bb2[1])/2,
+                        (bb1[2] + bb2[2])/2
                     ];
 
                     var scale = [
-                        bb2.x - center[0],
-                        bb2.y - center[1],
-                        bb2.z - center[2]
+                        bb2[0] - center[0],
+                        bb2[1] - center[1],
+                        bb2[2] - center[2]
                     ];
 
                     gl.uniform3fv(uniforms.uBBScale, new Float32Array(scale));
                     gl.uniform3fv(uniforms.uBBCenter, new Float32Array(center));
                     gl.uniform3fv(uniforms.uColor, new Float32Array([0.058, 0.058, 0.819607843])); //blue
-
-                    gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
 
                     gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
                 }

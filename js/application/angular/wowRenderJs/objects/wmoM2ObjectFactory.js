@@ -2,7 +2,7 @@
 
 (function (window, $, undefined) {
     var cacheTemplate = angular.module('js.wow.render.wmoM2ObjectFactory', ['js.wow.render.mdxObject']);
-    cacheTemplate.factory("wmoM2ObjectFactory", ['mdxObject', '$q', '$timeout', function(mdxObject, $q, $timeout) {
+    cacheTemplate.factory("wmoM2ObjectFactory", ['mdxObject', '$q', '$timeout', 'mathHelper', function(mdxObject, $q, $timeout, mathHelper) {
         function WmoM2Object(sceneApi){
             var self = this;
 
@@ -37,18 +37,13 @@
                         var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
                         var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
 
-                        vec4.transformMat4(a_ab, a_ab, this.placementMatrix);
-                        vec4.transformMat4(a_cd, a_cd, this.placementMatrix);
+                        var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [a_ab, a_cd]);
 
-
-                        var minx = Math.min(a_ab[0], a_cd[0]);    var maxx = Math.max(a_ab[0], a_cd[0]);
-                        var miny = Math.min(a_ab[1], a_cd[1]);    var maxy = Math.max(a_ab[1], a_cd[1]);
-                        var minz = Math.min(a_ab[2], a_cd[2]);    var maxz = Math.max(a_ab[2], a_cd[2]);
-
-                        this.diameter = vec3.distance([minx, miny, minz], [maxx, maxy, maxz]);
-                        this.aabb = [[minx, miny, minz], [maxx, maxy, maxz]];
+                        this.diameter = vec3.distance(worldAABB[0], worldAABB[1]);
+                        this.aabb = worldAABB;
                     }
                 }
+
                 if (!this.getIsRendered()) return;
                 this.mdxObject.update(deltaTime, cameraPos, this.placementInvertMatrix);
 
