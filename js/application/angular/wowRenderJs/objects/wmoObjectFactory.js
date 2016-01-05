@@ -92,6 +92,9 @@
 
                 this.worldGroupBorders = worldGroupBorders;
             },
+            updateWorldGroupBBWithM2 : function () {
+
+            },
             createPlacementMatrix : function(modf){
                 var TILESIZE = 533.333333333;
 
@@ -130,19 +133,30 @@
                 var doodadsSet = self.wmoObj.mods[doodadsInd];
                 var doodadDefArray = self.wmoObj.modd;
 
+                this.doodadsPromiseArray =  new Array(doodadsSet.number);
                 this.doodadsArray =  new Array(doodadsSet.number);
                 for (var i = 0; i < doodadsSet.number; i++) {
                 //for (var i = 0; i < (doodadsSet.doodads.length > 10) ? 10 : doodadsSet.doodads.length; i++) {
                     var doodad = doodadDefArray[doodadsSet.index + i];
                     this.loadDoodad(i, doodad);
                 }
+
+                $q.all(self.doodadsPromiseArray).then(function success(arrayOfDoodads){
+                    for (var i = 0; i < self.doodadsArray.length; i++){
+                        self.doodadsArray[i] = arrayOfDoodads[i];
+                    }
+
+                    //credits to schlumpf for help
+                    //Recalculate the group wmo bounding boxes here
+
+                },function error(){});
             },
             loadDoodad : function (index, doodad) {
                 var self = this;
 
                 var useLocalLighting = self.checkIfUseLocalLighting(doodad.pos);
-                this.doodadsArray[index] = self.sceneApi.objects.loadWmoM2Obj(doodad, self.placementMatrix, useLocalLighting);
-                return this.doodadsArray[index];
+                this.doodadsPromiseArray[index] = self.sceneApi.objects.loadWmoM2Obj(doodad, self.placementMatrix, useLocalLighting);
+                return this.doodadsPromiseArray[index];
             },
             load : function (modf){
                 var deferred = $q.defer();
@@ -262,16 +276,25 @@
 
                             var mdxObject = this.doodadsArray[doodadIndex - doodadsSet.index];
                             //mdxObject.setIsRendered(mdxObject.getIsRendered() || doDraw);
-                            mdxObject.setIsRendered(doDraw);
+                            if (mdxObject){
+                                mdxObject.setIsRendered(doDraw);
+                            }
                         }
                     }
                 }
-
-                this.drawGroup[index] = doDraw;
             },
             checkFrustumCulling : function (frustumPlanes) {
                 var isDrawn = [];
                 if (!this.worldGroupBorders) return;
+                //1. Set Doodads drawing to false. Doodad should be rendered if at least one WMO Group it belongs is visible(rendered)
+                //It's so, because two group wmo can reference same doodad
+                for ( var i = 0; i < this.doodadsArray.length; i++) {
+                    if (this.doodadsArray[i]) {
+                        this.doodadsArray[i].setIsRendered(false);
+                    }
+                }
+
+                //2. Calculate frustum
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
                     var bbArray = this.worldGroupBorders[i];
 
@@ -279,7 +302,12 @@
                     isDrawn.push(result);//this.setDoodadGroupDrawing(i, true);
                 }
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
-                    this.setDoodadGroupDrawing(i, isDrawn[i]);
+                    //Change state only if it's from false to true. According to rule from part 1
+                    if (isDrawn[i]) {
+                        this.setDoodadGroupDrawing(i, isDrawn[i]);
+                    }
+
+                    this.drawGroup[i] = isDrawn[i];
                 }
             },
             update : function () {

@@ -118,7 +118,7 @@
                 });
                 */
 
-
+                /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
                     uniqueId : 0,
@@ -126,6 +126,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
+                */
 
 
 
@@ -145,7 +146,7 @@
                 //sceneObj.loadMap("Azeroth", 28, 28); sceneObj.setCameraPos(2000, 1600, 137);
 
                 //sceneObj.loadMap("Northrend", 29, 22); sceneObj.setCameraPos(4800, 1066, 137);
-                //sceneObj.loadMap("PVPZone04", 29, 29); sceneObj.setCameraPos(1400, 1044, 509);
+                sceneObj.loadMap("PVPZone04", 29 ,30); sceneObj.setCameraPos(1400, 1044, 509);
                 //sceneObj.loadMap("DeathKnightStart", 43, 28); sceneObj.setCameraPos(2033, -5843, 230);
                 sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
                 //sceneObj.loadMap("HallsOfReflection", 28, 21); sceneObj.setCameraPos(5245, 2025, 733);

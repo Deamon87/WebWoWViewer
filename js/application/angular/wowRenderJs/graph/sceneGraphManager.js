@@ -6,7 +6,6 @@
         'adtObjectFactory', 'adtM2ObjectFactory', 'wmoM2ObjectFactory', 'wmoObjectFactory', 'mathHelper',
         function($q, adtObjectFactory, adtM2ObjectFactory, wmoM2ObjectFactory, wmoObjectFactory, mathHelper){
 
-
         function InstanceManager(sceneApi){
             this.sceneApi = sceneApi;
             this.mdxObjectList = [];
@@ -87,10 +86,12 @@
             },
             addWmoM2Object : function (doodadDef, placementMatrix, useLocalLighting){
                 var wmoM2Object = new wmoM2ObjectFactory(this.sceneApi);
-                wmoM2Object.load(doodadDef, placementMatrix, useLocalLighting);
+                var promise = wmoM2Object.load(doodadDef, placementMatrix, useLocalLighting);
                 wmoM2Object.sceneNumber = this.globalM2Counter++;
                 this.m2Objects.push(wmoM2Object);
-                return wmoM2Object;
+                return promise.then(function success(){
+                   return wmoM2Object;
+                }, function error(){});
             },
             addWmoObject : function (wmoDef){
                 var wmoObject = new wmoObjectFactory(this.sceneApi);
@@ -131,23 +132,23 @@
                     meshesList = meshesList.concat(meshes);
                 }
 
-                //Filter transparent and non tranparent meshes
-                var nonTrasparentMeshes = meshesList.filter(function(a){
+                //Filter transparent and non transparent meshes
+                var nonTransparentMeshes = meshesList.filter(function(a){
                     return a && !a.isTransparent;
                 });
                 var transparentMeshes = meshesList.filter(function (a){
                     return a && a.isTransparent;
                 });
 
-                //TODO: figure out how instancing and mesh sorting shall meet the "from farthest to nearest" requirement for tranparent meshes
+                //TODO: figure out how instancing and mesh sorting shall meet the "from farthest to nearest" requirement for transparent meshes
                 //Sort meshes
-                nonTrasparentMeshes.sort(function(a, b){
+                nonTransparentMeshes.sort(function(a, b){
                     return a.m2Object == b.m2Object ? 0 : 1;
                 });
-                nonTrasparentMeshes.sort(function(a, b){
+                nonTransparentMeshes.sort(function(a, b){
                     return (a.m2Object == b.m2Object && a.skin == b.skin) ? 0 : 1;
                 });
-                nonTrasparentMeshes.sort(function(a, b){
+                nonTransparentMeshes.sort(function(a, b){
                     return (a.m2Object == b.m2Object && a.skin == b.skin && a.meshIndex == b.meshIndex) ? 0 : b.meshIndex- a.meshIndex;
                 });
 
@@ -155,7 +156,7 @@
 
                 });
 
-                this.nonTransparentM = nonTrasparentMeshes;
+                this.nonTransparentM = nonTransparentMeshes;
                 this.transparentM = transparentMeshes;
             },
             checkAgainstFrustum : function (frustumMat, lookAtMat4) {
