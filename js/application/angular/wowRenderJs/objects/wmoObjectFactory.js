@@ -22,7 +22,7 @@
             },
             loadGeom : function (num, filename){
                 var self = this;
-                self.sceneApi.resources.loadWmoGeom(filename).then(
+                return self.sceneApi.resources.loadWmoGeom(filename).then(
                     function success(wmoGeom){
                         self.wmoGroupArray[num] = wmoGeom;
 
@@ -83,7 +83,41 @@
                 this.worldGroupBorders = worldGroupBorders;
             },
             updateWorldGroupBBWithM2 : function () {
+                var doodadsSet = this.currentDoodadSet;
+                if (!doodadsSet) return;
 
+                for (var i = 0; i < this.wmoGroupArray.length; i++) {
+                    if (this.wmoGroupArray[i]) {
+                        var doodadRefs = this.wmoGroupArray[i].wmoGroupFile.doodadRefs;
+                        var groupAABB = this.worldGroupBorders[i];
+
+                        if (doodadRefs) {
+                            for (var j = 0; j < doodadRefs.length; j++) {
+                                var doodadIndex = doodadRefs[j];
+                                if (
+                                    (doodadIndex - doodadsSet.index < 0) ||
+                                    (doodadIndex > doodadsSet.index + doodadsSet.number - 1)
+                                ) continue;
+
+                                var mdxObject = this.doodadsArray[doodadIndex - doodadsSet.index];
+                                //1. Update the mdx
+                                //If at least one exterior WMO group reference the doodad - do not use the diffuse lightning from modd chunk
+                                if ((this.wmoObj.groupInfos[i].flags & 0x8) > 0) {
+                                    mdxObject.setUseLocalLighting(false);
+                                }
+
+                                //2. Update the world group BB
+                                groupAABB[0][0] = Math.min(mdxObject.aabb[0][0],groupAABB[0][0]);
+                                groupAABB[0][1] = Math.min(mdxObject.aabb[0][1],groupAABB[0][1]);
+                                groupAABB[0][2] = Math.min(mdxObject.aabb[0][2],groupAABB[0][2]);
+
+                                groupAABB[1][0] = Math.max(mdxObject.aabb[1][0],groupAABB[1][0]);
+                                groupAABB[1][1] = Math.max(mdxObject.aabb[1][1],groupAABB[1][1]);
+                                groupAABB[1][2] = Math.max(mdxObject.aabb[1][2],groupAABB[1][2]);
+                            }
+                        }
+                    }
+                }
             },
             createPlacementMatrix : function(modf){
                 var TILESIZE = 533.333333333;
@@ -123,30 +157,26 @@
                 var doodadsSet = self.wmoObj.mods[doodadsInd];
                 var doodadDefArray = self.wmoObj.modd;
 
-                this.doodadsPromiseArray =  new Array(doodadsSet.number);
+                var doodadsPromiseArray =  new Array(doodadsSet.number);
                 this.doodadsArray =  new Array(doodadsSet.number);
                 for (var i = 0; i < doodadsSet.number; i++) {
                 //for (var i = 0; i < (doodadsSet.doodads.length > 10) ? 10 : doodadsSet.doodads.length; i++) {
                     var doodad = doodadDefArray[doodadsSet.index + i];
-                    this.loadDoodad(i, doodad);
+                    doodadsPromiseArray[i] = this.loadDoodad(i, doodad);
                 }
 
-                $q.all(self.doodadsPromiseArray).then(function success(arrayOfDoodads){
+                return $q.all(doodadsPromiseArray).then(function success(arrayOfDoodads){
                     for (var i = 0; i < self.doodadsArray.length; i++){
                         self.doodadsArray[i] = arrayOfDoodads[i];
                     }
-
-                    //credits to schlumpf for help
-                    //Recalculate the group wmo bounding boxes here
-
                 },function error(){});
             },
             loadDoodad : function (index, doodad) {
                 var self = this;
 
-                var useLocalLighting = self.checkIfUseLocalLighting(doodad.pos);
-                this.doodadsPromiseArray[index] = self.sceneApi.objects.loadWmoM2Obj(doodad, self.placementMatrix, useLocalLighting);
-                return this.doodadsPromiseArray[index];
+                //var useLocalLighting = self.checkIfUseLocalLighting(doodad.pos);
+                var promise = self.sceneApi.objects.loadWmoM2Obj(doodad, self.placementMatrix, false);
+                return promise;
             },
             load : function (modf){
                 var deferred = $q.defer();
@@ -165,6 +195,8 @@
                     self.wmoObj = wmoObj;
                     self.wmoGroupArray = new Array(wmoObj.nGroups);
 
+
+                    var groupPromises = new Array(wmoObj.nGroups);
                     /* 1. Load wmo group files */
                     var template = filename.substr(0, filename.lastIndexOf("."));
                     for (var i = 0; i < wmoObj.nGroups; i++) {
@@ -174,13 +206,21 @@
                             num = '0' + num;
                         }
 
-                        self.loadGeom(i, template + "_" + num + ".wmo");
+                        groupPromises[i] = self.loadGeom(i, template + "_" + num + ".wmo");
                     }
 
                     /* 2. Load doodads */
-                    self.loadDoodads(doodadsInd);
+                    var m2_loaded_promise = self.loadDoodads(doodadsInd);
 
+                    /* 3. Create AABB for group WMO from MOGI chunk */
                     self.createWorldGroupBB();
+
+                    /* 4. Update group WMO AABB when all m2 and group WMO are loaded */
+                    //credits to schlumpf for idea
+                    $q.all(groupPromises.concat([m2_loaded_promise])).then(function success(){
+                       self.updateWorldGroupBBWithM2();
+                    }, function error(){
+                    });
 
                     deferred.resolve(self);
                 }, function error (){

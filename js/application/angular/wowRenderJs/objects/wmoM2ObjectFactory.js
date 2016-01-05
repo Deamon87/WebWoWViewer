@@ -10,6 +10,7 @@
             self.mdxObject = new mdxObject(sceneApi);
             self.currentDistance = 0;
             self.isRendered = true;
+            self.useLocalLighting = true;
         }
         WmoM2Object.prototype = {
             sceneApi : null,
@@ -30,32 +31,41 @@
             checkAgainstDepthBuffer: function (frustumMatrix, lookAtMat4, getDepth) {
                 this.setIsRendered(this.getIsRendered() && this.mdxObject.checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, this.placementMatrix, getDepth));
             },
-            update: function (deltaTime, cameraPos) {
-                if (!this.aabb) {
-                    var bb = this.mdxObject.getBoundingBox();
-                    if (bb) {
-                        var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
-                        var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
+            updateAABB : function (){
+                var bb = this.mdxObject.getBoundingBox();
+                if (bb) {
+                    var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
+                    var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
 
-                        var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [a_ab, a_cd]);
+                    var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [a_ab, a_cd]);
 
-                        this.diameter = vec3.distance(worldAABB[0], worldAABB[1]);
-                        this.aabb = worldAABB;
-                    }
+                    this.diameter = vec3.distance(worldAABB[0], worldAABB[1]);
+                    this.aabb = worldAABB;
                 }
-
+            },
+            update: function (deltaTime, cameraPos) {
                 if (!this.getIsRendered()) return;
                 this.mdxObject.update(deltaTime, cameraPos, this.placementInvertMatrix);
-
             },
             drawTransparentMeshes : function () {
-                this.mdxObject.drawTransparentMeshes(this.placementMatrix, this.diffuseColor);
+                var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
+                this.mdxObject.drawTransparentMeshes(this.placementMatrix, diffuseColor);
             },
             drawNonTransparentMeshes : function () {
-                this.mdxObject.drawNonTransparentMeshes(this.placementMatrix, this.diffuseColor);
+                var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
+                this.mdxObject.drawNonTransparentMeshes(this.placementMatrix, diffuseColor);
             },
             draw : function () {
-                this.mdxObject.draw(this.placementMatrix, this.diffuseColor);
+                var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
+                this.mdxObject.draw(this.placementMatrix, diffuseColor);
+            },
+            drawInstancedNonTransparentMeshes : function (instanceCount, placementVBO) {
+                var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
+                this.mdxObject.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, diffuseColor);
+            },
+            drawInstancedTransparentMeshes : function (instanceCount, placementVBO) {
+                var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
+                this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, diffuseColor);
             },
             drawBB : function () {
                 var gl = this.sceneApi.getGlContext();
@@ -87,12 +97,7 @@
                     gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
                 }
             },
-            drawInstancedNonTransparentMeshes : function (instanceCount, placementVBO) {
-                this.mdxObject.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, this.diffuseColor);
-            },
-            drawInstancedTransparentMeshes : function (instanceCount, placementVBO) {
-                this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, this.diffuseColor);
-            },
+
             createPlacementMatrix : function(doodad, wmoPlacementMatrix){
                 var placementMatrix = mat4.create();
                 mat4.identity(placementMatrix);
@@ -135,6 +140,9 @@
                     this.currentDistance = distance(this.aabb, position);
                 }
             },
+            setUseLocalLighting: function (value) {
+                this.useLocalLighting = value;
+            },
             getCurrentDistance : function (){
                 return this.currentDistance;
             },
@@ -151,16 +159,14 @@
                 var self = this;
 
                 self.doodad = doodad;
+                self.diffuseColor = doodad.color;
 
-                if (useLocalColor) {
-                    self.diffuseColor = doodad.color;
-                } else {
-                    self.diffuseColor = 0xffffffff;
-                }
                 self.createPlacementMatrix(doodad, wmoPlacementMatrix);
                 self.calcOwnPosition();
 
-                return self.mdxObject.load(doodad.modelName, 0);
+                return self.mdxObject.load(doodad.modelName, 0).then(function success(){
+                    self.updateAABB();
+                }, function error(){});
             }
         };
 
