@@ -66,8 +66,8 @@
             drawInstancedTransparentMeshes : function (instanceCount, placementVBO) {
                 this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
             },
-            checkFrustumCulling : function (frustumPlanes) {
-                var inFrustum = this.aabb && this.mdxObject.checkFrustumCulling(frustumPlanes, this.aabb);
+            checkFrustumCulling : function (cameraVec4, frustumPlanes) {
+                var inFrustum = this.aabb && this.mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb);
 
                 this.setIsRendered(this.getIsRendered() && inFrustum);
             },

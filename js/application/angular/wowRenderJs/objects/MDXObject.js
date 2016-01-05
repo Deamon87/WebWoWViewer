@@ -149,7 +149,15 @@
 
                 this.submeshArray = submeshArray;
             },
-            checkFrustumCulling : function (frustumPlanes, aabb) {
+            checkFrustumCulling : function (cameraVec4, frustumPlanes, aabb) {
+                //1. Check if camera inside frustum
+                if (
+                    cameraVec4[0] > aabb[0][0] && cameraVec4[0] < aabb[1][0] &&
+                    cameraVec4[1] > aabb[0][1] && cameraVec4[0] < aabb[1][1] &&
+                    cameraVec4[2] > aabb[0][2] && cameraVec4[0] < aabb[1][2]
+                ) return true;
+
+                //2. Check frustum if camera on inside aabb
                 var result = mathHelper.checkFrustum(frustumPlanes, aabb);
                 return result;
             },

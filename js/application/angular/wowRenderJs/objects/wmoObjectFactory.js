@@ -283,7 +283,7 @@
                     }
                 }
             },
-            checkFrustumCulling : function (frustumPlanes) {
+            checkFrustumCulling : function (cameraVec4, frustumPlanes) {
                 var isDrawn = [];
                 if (!this.worldGroupBorders) return;
                 //1. Set Doodads drawing to false. Doodad should be rendered if at least one WMO Group it belongs is visible(rendered)
@@ -298,7 +298,13 @@
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
                     var bbArray = this.worldGroupBorders[i];
 
-                    var result = mathHelper.checkFrustum(frustumPlanes,bbArray);
+                    var isInside = (
+                        cameraVec4[0] > bbArray[0][0] && cameraVec4[0] < bbArray[1][0] &&
+                        cameraVec4[1] > bbArray[0][1] && cameraVec4[0] < bbArray[1][1] &&
+                        cameraVec4[2] > bbArray[0][2] && cameraVec4[0] < bbArray[1][2]
+                    );
+
+                    var result = isInside || mathHelper.checkFrustum(frustumPlanes,bbArray);
                     isDrawn.push(result);//this.setDoodadGroupDrawing(i, true);
                 }
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
