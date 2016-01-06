@@ -23,7 +23,7 @@ attribute vec4 aColor;
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 uniform int isBillboard;
-uniform mat4 uBoneMatrixes[60]; //Max 60 for ANGLE implementation and 100 for Wotlk client
+uniform mat4 uBoneMatrixes[59]; //Max 59 for ANGLE implementation and max 100 bones in Wotlk client
 
 #ifdef INSTANCED
 attribute mat4 uPlacementMat;
@@ -100,13 +100,20 @@ uniform float uAlphaTest;
 uniform sampler2D uTexture;
 uniform sampler2D uTexture2;
 
+uniform mat4 uTextMat;
+
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;
 #endif
 
 void main() {
-    vec4 tex = texture2D(uTexture, vTexCoord).rgba;
-    vec4 tex2 = texture2D(uTexture2, vTexCoord2).rgba;
+    /* Animation support */
+    vec2 texCoord =  (uTextMat * vec4(vTexCoord, 0, 1)).xy;
+    vec2 texCoord2 = (uTextMat * vec4(vTexCoord2, 0, 1)).xy;
+
+    /* Get color from texture */
+    vec4 tex = texture2D(uTexture, texCoord).rgba;
+    vec4 tex2 = texture2D(uTexture2, texCoord2).rgba;
 
     vec4 finalColor = vec4(
         (tex.r * vColor.b) ,

@@ -218,7 +218,7 @@
                     name : "texAnimLookup",
                     offset: "ofsTexAnimLookup",
                     count: "nTexAnimLookup",
-                    type: "uint16"
+                    type: "int16"
                 },
                 {
                     name : "texAnims",

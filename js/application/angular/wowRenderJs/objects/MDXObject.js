@@ -294,6 +294,7 @@
                 this.transperencies = transperencies;
 
                 this.calcBones(this.currentAnimation, this.currentTime + deltaTime, cameraPos, invPlacementMat);
+                this.calcAnimMatrixes(this.currentTime + deltaTime);
 
                 this.currentTime += deltaTime;
             },
@@ -364,6 +365,7 @@
                     this.textAnimMatrix = textAnimMatrix;
                 }
 
+                var animation = this.currentAnimation;
                 for (var i = 0; i < this.m2Geom.m2File.texAnims.length; i++) {
                     var animBlock = this.m2Geom.m2File.texAnims[i];
 
@@ -595,11 +597,14 @@
                     var subMeshData = this.submeshArray[i];
                     if (subMeshData.isTransparent) continue;
 
-                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, instanceCount)
+                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix, instanceCount)
                 }
             },
             drawInstancedTransparentMeshes : function (instanceCount, placementVBO, color) {
                 if (!this.m2Geom) return;
+
+                var identMat = mat4.create();
+                mat4.identity(identMat);
 
                 this.m2Geom.setupAttributes(this.skinGeom);
                 var combinedMatrix = this.boneMatrix;
@@ -615,11 +620,28 @@
                     var subMeshData = this.submeshArray[i];
                     if (!subMeshData.isTransparent) continue;
 
-                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, instanceCount)
+                    /* Get right texture animation matrix */
+                    var textureMatrix;
+                    var skinData = this.skinGeom.skinFile.header;
+
+                    if (subMeshData.texUnit1TexIndex >= 0 && skinData.texs[subMeshData.texUnit1TexIndex]) {
+                        var textureAnim = skinData.texs[subMeshData.texUnit1TexIndex].textureAnim;
+                        var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
+                        if (textureMatIndex >= 0) {
+                            textureMatrix = this.textAnimMatrix[textureMatIndex];
+                        } else {
+                            textureMatrix = identMat;
+                        }
+                    }
+
+                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix, instanceCount)
                 }
             },
             drawNonTransparentMeshes : function (placementMatrix, color) {
-                if (!this.m2Geom) return;
+                if (!this.m2Geom || !this.skinGeom) return;
+
+                var identMat = mat4.create();
+                mat4.identity(identMat);
 
                 this.m2Geom.setupAttributes(this.skinGeom);
                 var combinedMatrix = this.boneMatrix;
@@ -634,11 +656,27 @@
                     var subMeshData = this.submeshArray[i];
                     if (subMeshData.isTransparent) continue;
 
-                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies)
+                    /* Get right texture animation matrix */
+                    var textureMatrix;
+                    var skinData = this.skinGeom.skinFile.header;
+                    if (subMeshData.texUnit1TexIndex >= 0 && skinData.texs[subMeshData.texUnit1TexIndex]) {
+                        var textureAnim = skinData.texs[subMeshData.texUnit1TexIndex].textureAnim;
+                        var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
+                        if (textureMatIndex >= 0) {
+                            textureMatrix = this.textAnimMatrix[textureMatIndex];
+                        } else {
+                            textureMatrix = identMat;
+                        }
+                    }
+
+                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix)
                 }
             },
             drawTransparentMeshes : function (placementMatrix, color) {
-                if (!this.m2Geom) return;
+                if (!this.m2Geom || !this.skinGeom) return;
+
+                var identMat = mat4.create();
+                mat4.identity(identMat);
 
                 this.m2Geom.setupAttributes(this.skinGeom);
                 var combinedMatrix = this.boneMatrix;
@@ -653,7 +691,20 @@
                     var subMeshData = this.submeshArray[i];
                     if (!subMeshData.isTransparent) continue;
 
-                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies)
+                    /* Get right texture animation matrix */
+                    var textureMatrix;
+                    var skinData = this.skinGeom.skinFile.header;
+                    if (subMeshData.texUnit1TexIndex >= 0 && skinData.texs[subMeshData.texUnit1TexIndex]) {
+                        var textureAnim = skinData.texs[subMeshData.texUnit1TexIndex].textureAnim;
+                        var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
+                        if (textureMatIndex >= 0) {
+                            textureMatrix = this.textAnimMatrix[textureMatIndex];
+                        } else {
+                            textureMatrix = identMat;
+                        }
+                    }
+
+                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix)
                 }
             },
             draw : function (placementMatrix, color){

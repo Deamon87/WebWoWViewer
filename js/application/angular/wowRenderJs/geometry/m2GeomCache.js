@@ -116,7 +116,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             }
             gl.uniform1f(uniforms.uAlphaTest, -1);
         },
-        drawMesh : function (meshIndex, subMeshData, skinObject, subMeshColors,  colorVector, transperencies, instanceCount){
+        drawMesh : function (meshIndex, subMeshData, skinObject, subMeshColors,  colorVector, transperencies, textureMatrix, instanceCount){
             var gl = this.gl;
             var m2File = this.m2File;
             var instExt = this.sceneApi.extensions.getInstancingExt();
@@ -125,6 +125,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+            gl.uniformMatrix4fv(uniforms.uTextMat, false, textureMatrix);
 
             if (subMeshData.isRendered) {
                 if (subMeshData.texUnit1Texture) {
@@ -211,6 +213,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     } else {
                         gl.depthMask(true);
                     }
+
+                    /* Set up texture animation */
 
 
                     gl.activeTexture(gl.TEXTURE0);
