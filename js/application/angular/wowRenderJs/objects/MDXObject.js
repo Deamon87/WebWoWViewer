@@ -692,15 +692,13 @@
                     if (!subMeshData.isTransparent) continue;
 
                     /* Get right texture animation matrix */
-                    var textureMatrix;
+                    var textureMatrix = identMat;
                     var skinData = this.skinGeom.skinFile.header;
                     if (subMeshData.texUnit1TexIndex >= 0 && skinData.texs[subMeshData.texUnit1TexIndex]) {
                         var textureAnim = skinData.texs[subMeshData.texUnit1TexIndex].textureAnim;
                         var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
-                        if (textureMatIndex >= 0) {
+                        if (textureMatIndex !== undefined && textureMatIndex >= 0) {
                             textureMatrix = this.textAnimMatrix[textureMatIndex];
-                        } else {
-                            textureMatrix = identMat;
                         }
                     }
 
