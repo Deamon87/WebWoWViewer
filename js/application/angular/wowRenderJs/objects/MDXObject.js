@@ -354,9 +354,77 @@
 
                 return result;
             },
+            calcAnimMatrixes : function (time) {
+                if (!this.textAnimMatrix) {
+                    var textAnimMatrix = new Array(this.m2Geom.m2File.texAnims.length);
+                    for (var i = 0; i < textAnimMatrix.length; i++) {
+                        textAnimMatrix[i] = mat4.create();
+                    }
+
+                    this.textAnimMatrix = textAnimMatrix;
+                }
+
+                for (var i = 0; i < this.m2Geom.m2File.texAnims.length; i++) {
+                    var animBlock = this.m2Geom.m2File.texAnims[i];
+
+                    var tranformMat = mat4.identity(this.textAnimMatrix[i]);
+
+                    if (animBlock.translation.valuesPerAnimation.length > 0 && animBlock.translation.valuesPerAnimation[animation].length > 0) {
+                        var transVec = this.getTimedValue(
+                            0,
+                            time,
+                            animBlock.translation.interpolation_type,
+                            animBlock.translation.timestampsPerAnimation[animation],
+                            animBlock.translation.valuesPerAnimation[animation]);
+
+                        if (transVec) {
+                            transVec = mat4.translate(tranformMat, tranformMat, [
+                                transVec[0],
+                                transVec[1],
+                                transVec[2],
+                                0
+                            ]);
+                        }
+                    }
+                    if (animBlock.rotation.valuesPerAnimation.length > 0 &&
+                        animBlock.rotation.valuesPerAnimation[animation].length > 0) {
+
+                        var quaternionVec4 = this.getTimedValue(
+                            1,
+                            time,
+                            animBlock.rotation.interpolation_type,
+                            animBlock.rotation.timestampsPerAnimation[animation],
+                            animBlock.rotation.valuesPerAnimation[animation]);
+
+                        if (quaternionVec4) {
+                            var orientMatrix = mat4.create();
+                            mat4.fromQuat(orientMatrix, quaternionVec4 );
+                            mat4.multiply(tranformMat, tranformMat, orientMatrix);
+                        }
+                    }
+
+                    if (animBlock.scale.valuesPerAnimation.length > 0 &&
+                        animBlock.scale.valuesPerAnimation[animation].length > 0) {
+
+                        var scaleVec3 = this.getTimedValue(
+                            0,
+                            time,
+                            animBlock.scale.interpolation_type,
+                            animBlock.scale.timestampsPerAnimation[animation],
+                            animBlock.scale.valuesPerAnimation[animation]);
+
+                        mat4.scale(tranformMat, tranformMat, [
+                                scaleVec3[0],
+                                scaleVec3[1],
+                                scaleVec3[2]
+                            ]
+                        );
+                    }
+
+                    this.textAnimMatrix[i] = tranformMat;
+                }
+            },
             calcBoneMatrix : function (index, bone, animation, time, cameraPos, invPlacementMat){
-
-
                 if (bone.isCalculated) return;
                 var boneDefinition = this.m2Geom.m2File.bones[index];
                 var parentBone = boneDefinition.parent_bone;

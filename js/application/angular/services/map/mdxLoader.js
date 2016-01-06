@@ -213,7 +213,37 @@
                         {name: "pivot", type: "vector3f"}
                     ]
                 },
-
+                /* Animated textures */
+                {
+                    name : "texAnimLookup",
+                    offset: "ofsTexAnimLookup",
+                    count: "nTexAnimLookup",
+                    type: "uint16"
+                },
+                {
+                    name : "texAnims",
+                    offset : "ofsTexAnims",
+                    count : "nTexAnims",
+                    type: "layout",
+                    layout: [
+                        {
+                            name: "translation",
+                            type: "ablock",
+                            valType: "vector3f"
+                        },
+                        {
+                            name: "rotation",
+                            type: "ablock",
+                            valType: "int16Array",
+                            len: 4
+                        },
+                        {
+                            name: "scale",
+                            type: "ablock",
+                            valType: "vector3f"
+                        }
+                    ]
+                },
                 {
                     name : "transLookup",
                     offset: "ofsTransLookup",
