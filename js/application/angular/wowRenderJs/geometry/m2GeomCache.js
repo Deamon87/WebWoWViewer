@@ -116,7 +116,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             }
             gl.uniform1f(uniforms.uAlphaTest, -1);
         },
-        drawMesh : function (meshIndex, subMeshData, skinObject, subMeshColors,  colorVector, transperencies, textureMatrix, instanceCount){
+        drawMesh : function (meshIndex, subMeshData, skinObject, subMeshColors,  colorVector, transperencies, textureMatrix1, textureMatrix2, instanceCount){
             var gl = this.gl;
             var m2File = this.m2File;
             var instExt = this.sceneApi.extensions.getInstancingExt();
@@ -126,7 +126,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-            gl.uniformMatrix4fv(uniforms.uTextMat, false, textureMatrix);
+            gl.uniformMatrix4fv(uniforms.uTextMat1, false, textureMatrix1);
+            gl.uniformMatrix4fv(uniforms.uTextMat2, false, textureMatrix2);
 
             if (subMeshData.isRendered) {
                 if (subMeshData.texUnit1Texture) {

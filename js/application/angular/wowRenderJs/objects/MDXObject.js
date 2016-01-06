@@ -92,11 +92,13 @@
                             if (op_count > 1) {
                                 var mdxTextureIndex1 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 1];
                                 var mdxTextureDefinition1 = mdxObject.m2File.textureDefinition[mdxTextureIndex1];
+                                submeshData.texUnit2TexIndex = i;
                                 submeshData.textureUnit2TexName = mdxTextureDefinition1.textureName;
                             }
                             if (op_count > 2) {
                                 var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 2];
                                 var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex2];
+                                submeshData.texUnit2TexIndex = i;
                                 submeshData.textureUnit2TexName = mdxTextureDefinition2.textureName;
                             }
                         } else if (textureUnit == 1) {
@@ -657,19 +659,26 @@
                     if (subMeshData.isTransparent) continue;
 
                     /* Get right texture animation matrix */
-                    var textureMatrix;
+                    var textureMatrix1 = identMat;
+                    var textureMatrix2 = identMat;
                     var skinData = this.skinGeom.skinFile.header;
                     if (subMeshData.texUnit1TexIndex >= 0 && skinData.texs[subMeshData.texUnit1TexIndex]) {
                         var textureAnim = skinData.texs[subMeshData.texUnit1TexIndex].textureAnim;
                         var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
-                        if (textureMatIndex >= 0) {
-                            textureMatrix = this.textAnimMatrix[textureMatIndex];
-                        } else {
-                            textureMatrix = identMat;
+                        if (textureMatIndex !== undefined && textureMatIndex >= 0) {
+                            textureMatrix1 = this.textAnimMatrix[textureMatIndex];
                         }
                     }
 
-                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix)
+                    if (subMeshData.texUnit2TexIndex >= 0 && skinData.texs[subMeshData.texUnit2TexIndex]) {
+                        var textureAnim = skinData.texs[subMeshData.texUnit2TexIndex].textureAnim;
+                        var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
+                        if (textureMatIndex !== undefined && textureMatIndex >= 0) {
+                            textureMatrix2 = this.textAnimMatrix[textureMatIndex];
+                        }
+                    }
+
+                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2)
                 }
             },
             drawTransparentMeshes : function (placementMatrix, color) {
@@ -692,17 +701,26 @@
                     if (!subMeshData.isTransparent) continue;
 
                     /* Get right texture animation matrix */
-                    var textureMatrix = identMat;
+                    var textureMatrix1 = identMat;
+                    var textureMatrix2 = identMat;
                     var skinData = this.skinGeom.skinFile.header;
                     if (subMeshData.texUnit1TexIndex >= 0 && skinData.texs[subMeshData.texUnit1TexIndex]) {
                         var textureAnim = skinData.texs[subMeshData.texUnit1TexIndex].textureAnim;
                         var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
                         if (textureMatIndex !== undefined && textureMatIndex >= 0) {
-                            textureMatrix = this.textAnimMatrix[textureMatIndex];
+                            textureMatrix1 = this.textAnimMatrix[textureMatIndex];
                         }
                     }
 
-                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix)
+                    if (subMeshData.texUnit2TexIndex >= 0 && skinData.texs[subMeshData.texUnit2TexIndex]) {
+                        var textureAnim = skinData.texs[subMeshData.texUnit2TexIndex].textureAnim;
+                        var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
+                        if (textureMatIndex !== undefined && textureMatIndex >= 0) {
+                            textureMatrix2 = this.textAnimMatrix[textureMatIndex];
+                        }
+                    }
+
+                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2)
                 }
             },
             draw : function (placementMatrix, color){

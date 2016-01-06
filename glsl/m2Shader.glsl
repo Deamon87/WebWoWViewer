@@ -100,7 +100,8 @@ uniform float uAlphaTest;
 uniform sampler2D uTexture;
 uniform sampler2D uTexture2;
 
-uniform mat4 uTextMat;
+uniform mat4 uTextMat1;
+uniform mat4 uTextMat2;
 
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;
@@ -108,8 +109,8 @@ varying float fs_Depth;
 
 void main() {
     /* Animation support */
-    vec2 texCoord =  (uTextMat * vec4(vTexCoord, 0, 1)).xy;
-    vec2 texCoord2 = (uTextMat * vec4(vTexCoord2, 0, 1)).xy;
+    vec2 texCoord =  (uTextMat1 * vec4(vTexCoord, 0, 1)).xy;
+    vec2 texCoord2 = (uTextMat2 * vec4(vTexCoord2, 0, 1)).xy;
 
     /* Get color from texture */
     vec4 tex = texture2D(uTexture, texCoord).rgba;
