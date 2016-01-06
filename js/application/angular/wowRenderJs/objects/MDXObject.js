@@ -150,14 +150,14 @@
                 this.submeshArray = submeshArray;
             },
             checkFrustumCulling : function (cameraVec4, frustumPlanes, aabb) {
-                //1. Check if camera inside frustum
+                //1. Check if camera position is inside frustum
                 if (
                     cameraVec4[0] > aabb[0][0] && cameraVec4[0] < aabb[1][0] &&
                     cameraVec4[1] > aabb[0][1] && cameraVec4[1] < aabb[1][1] &&
                     cameraVec4[2] > aabb[0][2] && cameraVec4[2] < aabb[1][2]
                 ) return true;
 
-                //2. Check frustum if camera on inside aabb
+                //2. Check aabb is inside camera frustum
                 var result = mathHelper.checkFrustum(frustumPlanes, aabb);
                 return result;
             },
@@ -297,10 +297,65 @@
 
                 this.currentTime += deltaTime;
             },
-            calcBoneMatrix : function (index, bone, animation, time, cameraPos, invPlacementMat){
+            interpolateValues : function (currentTime, interpolType, time1, time2, value1, value2){
+                //Support and use only linear interpolation for now
+                if (interpolType >= 1) {
+                    var diff = vec4.create();
+                    vec4.subtract(diff, value2, value1);
+                    vec4.scale(diff, diff, (currentTime - time1)/(time2 - time1));
+                    var result = vec4.create();
+                    vec4.add(result, value1, diff);
+
+                    return result;
+                }
+            },
+            getTimedValue : function (value_type, currTime, interpolType, times, values) {
                 function convertInt16ToFloat(value){
                     return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
                 }
+
+                var times_len = times.length;
+                var result;
+                if (times_len > 1) {
+                    var maxTime = times[times_len-1];
+                    var animTime = currTime % maxTime;
+
+                    for (var i = 0; i < times_len; i++) {
+                        if (times[i] > animTime) {
+                            var value1 = values[i-1];
+                            var value2 = values[i];
+
+                            var time1 = times[i-1];
+                            var time2 = times[i];
+
+                            if (value_type == 0) {
+                                value1 = [value1.x, value1.y, value1.z, 0];
+                                value2 = [value2.x, value2.y, value2.z, 0];
+                            } else if (value_type == 1) {
+                                value1 = [convertInt16ToFloat(value1[0]),
+                                    convertInt16ToFloat(value1[1]),
+                                    convertInt16ToFloat(value1[2]),
+                                    convertInt16ToFloat(value1[3])];
+
+                                value2 = [convertInt16ToFloat(value2[0]),
+                                    convertInt16ToFloat(value2[1]),
+                                    convertInt16ToFloat(value2[2]),
+                                    convertInt16ToFloat(value2[3])];
+                            }
+                            result = this.interpolateValues(animTime,
+                                interpolType, time1, time2, value1, value2);
+
+                            break;
+                        }
+                    }
+                } else {
+                    result = values[0];
+                }
+
+                return result;
+            },
+            calcBoneMatrix : function (index, bone, animation, time, cameraPos, invPlacementMat){
+
 
                 if (bone.isCalculated) return;
                 var boneDefinition = this.m2Geom.m2File.bones[index];
@@ -323,15 +378,19 @@
                     0
                 ]);
 
-                if (boneDefinition.translation.valuesPerAnimation.length > 0 &&
-                    boneDefinition.translation.valuesPerAnimation[animation].length > 0) {
+                if (boneDefinition.translation.valuesPerAnimation.length > 0 && boneDefinition.translation.valuesPerAnimation[animation].length > 0) {
+                    var transVec = this.getTimedValue(
+                        0,
+                        time,
+                        boneDefinition.translation.interpolation_type,
+                        boneDefinition.translation.timestampsPerAnimation[animation],
+                        boneDefinition.translation.valuesPerAnimation[animation]);
 
-                    var transVec = boneDefinition.translation.valuesPerAnimation[animation][0];
                     if (transVec) {
                         transVec = mat4.translate(tranformMat, tranformMat, [
-                            transVec.x,
-                            transVec.y,
-                            transVec.z,
+                            transVec[0],
+                            transVec[1],
+                            transVec[2],
                             0
                         ]);
                         this.isAnimated = true;
@@ -377,16 +436,16 @@
                 } else if (boneDefinition.rotation.valuesPerAnimation.length > 0 &&
                     boneDefinition.rotation.valuesPerAnimation[animation].length > 0) {
 
-                    var quaternionVec4 = boneDefinition.rotation.valuesPerAnimation[animation][0];
+                    var quaternionVec4 = this.getTimedValue(
+                        1,
+                        time,
+                        boneDefinition.rotation.interpolation_type,
+                        boneDefinition.rotation.timestampsPerAnimation[animation],
+                        boneDefinition.rotation.valuesPerAnimation[animation]);
+
                     if (quaternionVec4) {
                         var orientMatrix = mat4.create();
-                        mat4.fromQuat(orientMatrix,
-                            [
-                                convertInt16ToFloat(quaternionVec4[0]),
-                                convertInt16ToFloat(quaternionVec4[1]),
-                                convertInt16ToFloat(quaternionVec4[2]),
-                                convertInt16ToFloat(quaternionVec4[3])]
-                        );
+                        mat4.fromQuat(orientMatrix, quaternionVec4 );
                         mat4.multiply(tranformMat, tranformMat, orientMatrix);
                         this.isAnimated = true;
                     }
@@ -395,11 +454,17 @@
                 if (boneDefinition.scale.valuesPerAnimation.length > 0 &&
                     boneDefinition.scale.valuesPerAnimation[animation].length > 0) {
 
-                    var scaleVec3 = boneDefinition.scale.valuesPerAnimation[animation][0];
+                    var scaleVec3 = this.getTimedValue(
+                        0,
+                        time,
+                        boneDefinition.scale.interpolation_type,
+                        boneDefinition.scale.timestampsPerAnimation[animation],
+                        boneDefinition.scale.valuesPerAnimation[animation]);
+
                     mat4.scale(tranformMat, tranformMat, [
-                            scaleVec3.x,
-                            scaleVec3.y,
-                            scaleVec3.z
+                            scaleVec3[0],
+                            scaleVec3[1],
+                            scaleVec3[2]
                         ]
                     );
                     this.isAnimated = true;
