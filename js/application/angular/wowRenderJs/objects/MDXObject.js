@@ -208,8 +208,9 @@
 
                 return {vao : vao, ext : ext};
             },
-            getSubMeshColor : function (deltaTime) {
+            getSubMeshColor : function (time) {
                 var colors = this.m2Geom.m2File.colors;
+                var animation = this.currentAnimation;
                 if (colors.length > 0) {
 
                     var result = this.subMeshColors;
@@ -218,10 +219,20 @@
                     }
 
                     for (var i = 0; i < colors.length; i++) {
-                        var vector = colors[i].color.valuesPerAnimation[0][0];
-                        var alpha = colors[i].alpha.valuesPerAnimation[0][0];
+                        var colorVec = this.getTimedValue(
+                            0,
+                            time,
+                            colors[i].color.interpolation_type,
+                            colors[i].color.timestampsPerAnimation[animation],
+                            colors[i].color.valuesPerAnimation[animation]);
+                        var alpha = this.getTimedValue(
+                            2,
+                            time,
+                            colors[i].alpha.interpolation_type,
+                            colors[i].alpha.timestampsPerAnimation[animation],
+                            colors[i].alpha.valuesPerAnimation[animation]);
 
-                        result[i] = [vector.x, vector.y, vector.z, alpha/32767];
+                        result[i] = [colorVec[0], colorVec[1], colorVec[2], alpha[0]];
                     }
 
                     return result;
@@ -230,8 +241,9 @@
                     return null;
                 }
             },
-            getTransperencies : function (deltaTime) {
+            getTransperencies : function (time) {
                 var transparencies = this.m2Geom.m2File.transparencies;
+                var animation = this.currentAnimation;
                 if (transparencies.length > 0) {
 
                     var result = this.transperencies;
@@ -240,8 +252,14 @@
                     }
 
                     for (var i = 0; i < transparencies.length; i++) {
-                        var transparency = transparencies[i].values.valuesPerAnimation[0][0];
-                        result[i] = transparency/32767;
+                        var transparency = this.getTimedValue(
+                            2,
+                            time,
+                            transparencies[i].values.interpolation_type,
+                            transparencies[i].values.timestampsPerAnimation[animation],
+                            transparencies[i].values.valuesPerAnimation[animation]);
+
+                        result[i] = transparency[0];
                     }
 
                     return result;
@@ -289,10 +307,10 @@
             update : function(deltaTime, cameraPos, invPlacementMat) {
                 if (!this.m2Geom) return;
 
-                var subMeshColors = this.getSubMeshColor(deltaTime);
+                var subMeshColors = this.getSubMeshColor(this.currentTime + deltaTime);
                 this.subMeshColors = subMeshColors;
 
-                var transperencies = this.getTransperencies(deltaTime);
+                var transperencies = this.getTransperencies(this.currentTime + deltaTime);
                 this.transperencies = transperencies;
 
                 this.calcBones(this.currentAnimation, this.currentTime + deltaTime, cameraPos, invPlacementMat);
@@ -324,12 +342,14 @@
                             convertInt16ToFloat(value[1]),
                             convertInt16ToFloat(value[2]),
                             convertInt16ToFloat(value[3])];
+                    } else if (type == 2) {
+                        return [value/32767,value/32767, value/32767, value/32767];
                     }
                 }
 
                 var times_len = times.length;
                 var result;
-                if (times_len > 1) {
+                if (times_len > 1 && interpolType > 0) {
                     var maxTime = times[times_len-1];
                     var animTime = currTime % maxTime;
 
