@@ -316,6 +316,16 @@
                 function convertInt16ToFloat(value){
                     return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
                 }
+                function convertValueTypeToVec4(value, type){
+                    if (type == 0) {
+                        return [value.x, value.y, value.z, 0];
+                    } else if (type == 1) {
+                        return [convertInt16ToFloat(value[0]),
+                            convertInt16ToFloat(value[1]),
+                            convertInt16ToFloat(value[2]),
+                            convertInt16ToFloat(value[3])];
+                    }
+                }
 
                 var times_len = times.length;
                 var result;
@@ -331,28 +341,21 @@
                             var time1 = times[i-1];
                             var time2 = times[i];
 
-                            if (value_type == 0) {
-                                value1 = [value1.x, value1.y, value1.z, 0];
-                                value2 = [value2.x, value2.y, value2.z, 0];
-                            } else if (value_type == 1) {
-                                value1 = [convertInt16ToFloat(value1[0]),
-                                    convertInt16ToFloat(value1[1]),
-                                    convertInt16ToFloat(value1[2]),
-                                    convertInt16ToFloat(value1[3])];
+                            value1 = convertValueTypeToVec4(value1, value_type);
+                            value2 = convertValueTypeToVec4(value2, value_type);
 
-                                value2 = [convertInt16ToFloat(value2[0]),
-                                    convertInt16ToFloat(value2[1]),
-                                    convertInt16ToFloat(value2[2]),
-                                    convertInt16ToFloat(value2[3])];
-                            }
                             result = this.interpolateValues(animTime,
                                 interpolType, time1, time2, value1, value2);
+
+                            if (value_type == 1) {
+                                vec4.normalize(result,result); //quaternion has to be normalized after lerp operation
+                            }
 
                             break;
                         }
                     }
                 } else {
-                    result = values[0];
+                    result = convertValueTypeToVec4(values[0], value_type);
                 }
 
                 return result;
@@ -668,13 +671,11 @@
                         if (textureMatIndex !== undefined && textureMatIndex >= 0) {
                             textureMatrix1 = this.textAnimMatrix[textureMatIndex];
                         }
-                    }
-
-                    if (subMeshData.texUnit2TexIndex >= 0 && skinData.texs[subMeshData.texUnit2TexIndex]) {
-                        var textureAnim = skinData.texs[subMeshData.texUnit2TexIndex].textureAnim;
-                        var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
-                        if (textureMatIndex !== undefined && textureMatIndex >= 0) {
-                            textureMatrix2 = this.textAnimMatrix[textureMatIndex];
+                        if (subMeshData.texUnit2TexIndex >= 0) {
+                            var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim+1];
+                            if (textureMatIndex !== undefined && textureMatIndex >= 0) {
+                                textureMatrix2 = this.textAnimMatrix[textureMatIndex];
+                            }
                         }
                     }
 
@@ -710,16 +711,13 @@
                         if (textureMatIndex !== undefined && textureMatIndex >= 0) {
                             textureMatrix1 = this.textAnimMatrix[textureMatIndex];
                         }
-                    }
-
-                    if (subMeshData.texUnit2TexIndex >= 0 && skinData.texs[subMeshData.texUnit2TexIndex]) {
-                        var textureAnim = skinData.texs[subMeshData.texUnit2TexIndex].textureAnim;
-                        var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
-                        if (textureMatIndex !== undefined && textureMatIndex >= 0) {
-                            textureMatrix2 = this.textAnimMatrix[textureMatIndex];
+                        if (subMeshData.texUnit2TexIndex >= 0) {
+                            var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim+1];
+                            if (textureMatIndex !== undefined && textureMatIndex >= 0) {
+                                textureMatrix2 = this.textAnimMatrix[textureMatIndex];
+                            }
                         }
                     }
-
                     this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2)
                 }
             },
