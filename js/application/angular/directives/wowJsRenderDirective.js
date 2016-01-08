@@ -66,8 +66,16 @@
                 });
                 */
 
+                     /*
+                sceneObj.loadWMOFile({
+                 fileName : "WORLD/WMO/OUTLAND/TEROKKAR/SHATTRATHCITY.WMO",
+                 uniqueId : 0,
+                 pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                 rotation : {x : 0, y: 0, z : 0},
+                 doodadSet: 0
+                 });
+                   */
 
-                ///sceneObj.loadWMOMap("WORLD/WMO/OUTLAND/TEROKKAR/SHATTRATHCITY.WMO");
                 /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Northrend/Dalaran/ND_Dalaran.wmo",
@@ -76,8 +84,8 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-                  */
-                    /*
+                */
+
                 sceneObj.loadWMOFile({
                  fileName : "World/wmo/Azeroth/Buildings/Stormwind/Stormwind.wmo",
                  uniqueId : 0,
@@ -85,7 +93,7 @@
                  rotation : {x : 0, y: 0, z : 0},
                  doodadSet: 0
                  });
-                  */
+
 
                 /*
                 sceneObj.loadWMOFile({
@@ -165,6 +173,15 @@
                     scale    : 1024
                 });
                 */
+                /*
+                sceneObj.loadM2File({
+                    fileName : "WORLD\\KHAZMODAN\\IRONFORGE\\PASSIVEDOODADS\\GARAGEMACHINE\\GARAGEMACHINE.m2",
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    scale    : 1024
+                });
+                */
                  /*
                 sceneObj.loadM2File({
                     fileName : "WORLD\\AZEROTH\\KARAZAHN\\PASSIVEDOODADS\\CHANDELIERS\\KARAZANCHANDELIER_02.m2",
@@ -175,6 +192,7 @@
                 });
                */
 
+                /*
                 sceneObj.loadM2File({
                     fileName : "WORLD\\GENERIC\\HUMAN\\PASSIVE DOODADS\\GRYPHONROOST\\GRYPHONROOST01.m2",
                     uniqueId : 0,
@@ -182,7 +200,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     scale    : 1024
                 });
-
+                */
 
                   /*
                 sceneObj.loadM2File({

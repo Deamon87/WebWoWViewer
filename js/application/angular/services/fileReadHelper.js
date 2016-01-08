@@ -68,6 +68,16 @@
                     var result = dataView.getFloat64(offsetObj.offs, isLittleEndian); offsetObj.offs += 8;
                     return result;
                 },
+                readVector4f : function (offsetObj) {
+                    var vector3f = {};
+
+                    vector3f.x = this.readFloat32(offsetObj);
+                    vector3f.y = this.readFloat32(offsetObj);
+                    vector3f.z = this.readFloat32(offsetObj);
+                    vector3f.w = this.readFloat32(offsetObj);
+
+                    return vector3f;
+                },
                 readVector3f : function (offsetObj) {
                     var vector3f = {};
 

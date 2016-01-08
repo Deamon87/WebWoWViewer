@@ -225,6 +225,44 @@
 
                     wmoObj.groupInfos = groupInfos;
                 },
+                "MOPV": function (wmoObj, chunk) {
+                    var offset = {offs: 0};
+                    var arrayLen = chunk.chunkLen/4;
+
+                    wmoObj.portalVerticles = chunk.readFloat32Array({offs: 0}, arrayLen)
+                },
+                "MOPT" : function (wmoObj, chunk) {
+                    var offset = {offs: 0};
+                    var recordCount = chunk.chunkLen / 20;
+                    var portalInfos = new Array(recordCount);
+
+                    for (var i = 0; i < recordCount; i++) {
+                        var portalInfo = {};
+                        portalInfo.base_index = chunk.readUint16(offset);
+                        portalInfo.index_count = chunk.readUint16(offset);
+                        portalInfo.plane = chunk.readVector4f(offset);
+
+                        portalInfos[i] = portalInfo;
+                    }
+
+                    wmoObj.portalInfos = portalInfos;
+                },
+                "MOPR" : function (wmoObj, chunk) {
+                    var offset = {offs: 0};
+                    var recordCount = chunk.chunkLen / 8;
+                    var portalRelations = new Array(recordCount);
+                    for (var i = 0; i < recordCount; i++) {
+                        var portalRelation = {};
+                        portalRelation.portal_index = chunk.readUint16(offset);  // into MOPR
+                        portalRelation.group_index = chunk.readUint16(offset);   // the other one
+                        portalRelation.side = chunk.readInt16(offset);          // positive or negative.
+                        portalRelation.unk = chunk.readInt16(offset);
+
+                        portalRelations[i] = portalRelation;
+                    }
+
+                    wmoObj.portalRelations = portalRelations;
+                },
                 "MOLT": function (wmoObj, chunk) {
                     var offset = {offs: 0};
                     var recordLen = chunk.chunkLen / wmoObj.nLights;
@@ -236,7 +274,7 @@
                         lightRecord.useAtten  = chunk.readUint8(offset);
                         lightRecord.pad       = chunk.readUint8(offset);
                         lightRecord.color     = chunk.readUint32(offset);    // Color (B,G,R,A)
-                        lightRecord.position  = chunk.readVector3f(offset);  // Position (X,Z,-Y)
+                        lightRecord.position  = chunk.readVector3f(offset);  // Position (X,Y,Z)
                         lightRecord.intensity = chunk.readFloat32(offset);
                         lightRecord.attenStart = chunk.readFloat32(offset);
                         lightRecord.attenEnd = chunk.readFloat32(offset);

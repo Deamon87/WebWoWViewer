@@ -400,6 +400,12 @@
                 for (var i = 0; i < this.wmoObjects.length; i++) {
                     this.wmoObjects[i].drawBB();
                 } */
+
+                //8. Draw WMO portals
+                this.sceneApi.shaders.activateDrawPortalShader();
+                for (var i = 0; i < this.wmoObjects.length; i++) {
+                    this.wmoObjects[i].drawPortals();
+                }
             }
         };
 

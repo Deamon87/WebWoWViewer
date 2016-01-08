@@ -322,6 +322,16 @@
                     });
                 promisesArray.push(promise);
 
+                promise = $http.get("glsl/drawPortalShader.glsl")
+                    .then(function success(result){
+                        var shaderText = result.data;
+                        var shader = self.compileShader(shaderText, shaderText);
+                        self.drawPortalShader = shader;
+                    },function error(){
+                        throw 'could not load shader'
+                    });
+                promisesArray.push(promise);
+
 
                 return $q.all(promisesArray)
             },
@@ -484,6 +494,10 @@
                         activateAdtShader : function () {
                             self.activateAdtShader();
                         },
+                        activateDrawPortalShader : function () {
+                            self.activateDrawPortalShader();
+                        },
+
                         activateWMOShader : function () {
                             self.activateWMOShader()
                         },
@@ -842,7 +856,16 @@
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
                 }
             },
+            activateDrawPortalShader : function () {
+                this.currentShaderProgram = this.drawPortalShader;
+                if (this.currentShaderProgram) {
+                    var gl = this.gl;
+                    gl.useProgram(this.currentShaderProgram.program);
 
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
+                    gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
+                }
+            },
             drawTexturedQuad: function(gl, texture, x, y, width, height, canv_width, canv_height) {
                 if(!this.quadShader) {
                     // Set up the verticies and indices

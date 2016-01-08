@@ -195,6 +195,7 @@
                     self.wmoObj = wmoObj;
                     self.wmoGroupArray = new Array(wmoObj.nGroups);
 
+                    self.createPortalsVBO();
 
                     var groupPromises = new Array(wmoObj.nGroups);
                     /* 1. Load wmo group files */
@@ -368,6 +369,58 @@
                         this.wmoGroupArray[i].draw();
                     }
                 }
+            },
+            createPortalsVBO : function () {
+                var gl = this.sceneApi.getGlContext();
+                this.vertexVBO = gl.createBuffer();
+                gl.bindBuffer( gl.ARRAY_BUFFER, this.vertexVBO);
+                gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(this.wmoObj.portalVerticles), gl.STATIC_DRAW );
+                gl.bindBuffer( gl.ARRAY_BUFFER, null);
+
+                var indiciesArray = [];
+                for (var i = 0; i < this.wmoObj.portalInfos.length; i++) {
+                    var portalInfo = this.wmoObj.portalInfos[i];
+                    if (portalInfo.index_count != 4) throw new Error("portalInfo.index_count != 4");
+                    var base_index = portalInfo.base_index;
+                    indiciesArray.push(base_index+0);
+                    indiciesArray.push(base_index+1);
+                    indiciesArray.push(base_index+2);
+                    indiciesArray.push(base_index+0);
+                    indiciesArray.push(base_index+2);
+                    indiciesArray.push(base_index+3);
+                }
+                this.indexVBO = gl.createBuffer();
+                gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
+                gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indiciesArray), gl.STATIC_DRAW);
+                gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null);
+            },
+            drawPortals : function () {
+                if (!this.wmoObj) return;
+
+                var gl = this.sceneApi.getGlContext();
+                var uniforms = this.sceneApi.shaders.getShaderUniforms();
+                var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+                gl.bindBuffer( gl.ARRAY_BUFFER, this.vertexVBO);
+                gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
+
+                gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0);  // position
+
+                gl.uniform3fv(uniforms.uColor, new Float32Array([0.058, 0.058, 0.819607843])); //blue
+
+                if (this.placementMatrix) {
+                    gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
+                }
+
+                gl.disable(gl.CULL_FACE);
+                gl.disable(gl.BLEND);
+
+                for (var i = 0; i < this.wmoObj.portalInfos.length; i++) {
+                    var portalInfo = this.wmoObj.portalInfos[i];
+                    gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, (i*6) * 2);
+                    gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, (i*6+3) * 2);
+                }
+
             }
         };
 
