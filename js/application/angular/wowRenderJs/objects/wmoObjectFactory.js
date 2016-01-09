@@ -67,6 +67,7 @@
             },
             createWorldGroupBB : function () {
                 var worldGroupBorders = new Array(this.wmoGroupArray.length);
+                var volumeWorldGroupBorders = new Array(this.wmoGroupArray.length);
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
                     var groupInfo = this.wmoObj.groupInfos[i];
                     var bb1 = groupInfo.bb1,
@@ -77,15 +78,20 @@
 
                     var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [bb1vec, bb2vec]);
 
+
                     worldGroupBorders[i] = worldAABB;
+                    volumeWorldGroupBorders[i] = worldAABB.slice(0);
                 }
 
                 this.worldGroupBorders = worldGroupBorders;
+                this.volumeWorldGroupBorders = volumeWorldGroupBorders;
             },
             updateWorldGroupBBWithM2 : function () {
                 var doodadsSet = this.currentDoodadSet;
                 if (!doodadsSet) return;
 
+                //After this opertaions these BB should not be used for detecting if object is inside the group wmo or not
+                //Those should be used only to detect if group wmo is visible or not
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
                     if (this.wmoGroupArray[i]) {
                         var doodadRefs = this.wmoGroupArray[i].wmoGroupFile.doodadRefs;
@@ -107,13 +113,13 @@
                                 }
 
                                 //2. Update the world group BB
-                                groupAABB[0][0] = Math.min(mdxObject.aabb[0][0],groupAABB[0][0]);
-                                groupAABB[0][1] = Math.min(mdxObject.aabb[0][1],groupAABB[0][1]);
-                                groupAABB[0][2] = Math.min(mdxObject.aabb[0][2],groupAABB[0][2]);
+                                groupAABB[0] = vec3.fromValues(Math.min(mdxObject.aabb[0][0],groupAABB[0][0]),
+                                    Math.min(mdxObject.aabb[0][1],groupAABB[0][1]),
+                                    Math.min(mdxObject.aabb[0][2],groupAABB[0][2]));
 
-                                groupAABB[1][0] = Math.max(mdxObject.aabb[1][0],groupAABB[1][0]);
-                                groupAABB[1][1] = Math.max(mdxObject.aabb[1][1],groupAABB[1][1]);
-                                groupAABB[1][2] = Math.max(mdxObject.aabb[1][2],groupAABB[1][2]);
+                                groupAABB[1] = vec3.fromValues(Math.max(mdxObject.aabb[1][0],groupAABB[1][0]),
+                                    Math.max(mdxObject.aabb[1][1],groupAABB[1][1]),
+                                    Math.max(mdxObject.aabb[1][2],groupAABB[1][2]));
                             }
                         }
                     }
@@ -290,8 +296,6 @@
 
                     gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
                 }
-
-
             },
             setDoodadGroupDrawing : function (index, doDraw) {
                 var groupInfo = this.wmoObj.groupInfos[index];
@@ -316,6 +320,82 @@
                         }
                     }
                 }
+            },
+            isInsideInterior : function (cameraVec4) {
+                if (!this.wmoGroupArray || this.wmoGroupArray.length ==0) return -1;
+
+                //debug
+                if (!this.wmoObj.portalInfos) return -1;
+                for (var i = 0; i < this.wmoObj.portalInfos.length; i++){
+                    var portalInfo = this.wmoObj.portalInfos[i];
+                    portalInfo.isFalse = false;
+                }
+
+                //--debug
+
+                var cameraLocal = vec4.create();
+                for (var i = 0; i < this.wmoGroupArray.length; i++) {
+                    if (!this.wmoGroupArray[i]) continue;
+                    var bbArray = this.volumeWorldGroupBorders[i];
+                    var groupInfo = this.wmoObj.groupInfos[i];
+
+                    //1. Check if group wmo is interior wmo
+                    if ((groupInfo.flags & 0x2000) == 0) continue;
+
+                    //2. Check if inside volume AABB
+                    var isInsideAABB = (
+                        cameraVec4[0] > bbArray[0][0] && cameraVec4[0] < bbArray[1][0] &&
+                        cameraVec4[1] > bbArray[0][1] && cameraVec4[1] < bbArray[1][1] &&
+                        cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
+                    );
+                    if (!isInsideAABB) continue;
+
+                    //3. Check if inside BB
+                    //Transform camera into local coordinates
+
+                    //3. Check if inside portals
+                    var isInsidePortals = true;
+                    var moprIndex = this.wmoGroupArray[i].wmoGroupFile.mogp.moprIndex;
+                    var numItems = this.wmoGroupArray[i].wmoGroupFile.mogp.numItems;
+                    //var isInsidePortalArr = []; //debug
+
+                    for (var j = moprIndex; j < moprIndex+numItems; j++) {
+                        var relation = this.wmoObj.portalRelations[j];
+                        var portalInfo = this.wmoObj.portalInfos[relation.portal_index];
+
+                        var plane = portalInfo.plane;
+                        //var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, -plane.z, plane.w), cameraVec4)); //flip z :(
+                        var dotResult3 = (vec3.dot(vec3.fromValues(plane.x, plane.y, -plane.z), cameraVec4));
+                        var isInsidePortalThis = (relation.side < 0) ? ((-dotResult3) < (-plane.w)) : ((-dotResult3) > (-plane.w));
+                        isInsidePortals = isInsidePortals && isInsidePortalThis;
+                        /*
+                        isInsidePortalArr.push({
+                            inside: isInsidePortalThis,
+                            dotResult4 : dotResult,
+                            dotResult3 : dotResult3,
+                            w: plane.w,
+                            side: relation.side}); //debug
+                        */
+                        if (!isInsidePortalThis) {
+                            portalInfo.isFalse = true;
+                        }
+                    }
+                     /*
+                    var debugText = "<br/><br/>";
+                    for (var k = 0; k < isInsidePortalArr.length; k++) {
+                        debugText += "["+k+"] dotResult4 : "+isInsidePortalArr[k].dotResult4+"<br/>";
+                        debugText += "["+k+"] dotResult3 : "+isInsidePortalArr[k].dotResult3+"<br/>";
+                        debugText += "["+k+"] inside : "+isInsidePortalArr[k].inside+"<br/>";
+                        debugText += "["+k+"] side : "+isInsidePortalArr[k].side+"<br/>";
+                        debugText += "["+k+"] -w : "+(-isInsidePortalArr[k].w)+"<br/>";
+                    }
+                    $("#debugInfo").html(debugText);
+                    */
+                    if (isInsidePortals) return i;
+                }
+
+
+                return -1;
             },
             checkFrustumCulling : function (cameraVec4, frustumPlanes) {
                 var isDrawn = [];
@@ -372,7 +452,10 @@
             },
             createPortalsVBO : function () {
                 var gl = this.sceneApi.getGlContext();
+                if (this.wmoObj.nPortals == 0) return;
+
                 this.vertexVBO = gl.createBuffer();
+
                 gl.bindBuffer( gl.ARRAY_BUFFER, this.vertexVBO);
                 gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(this.wmoObj.portalVerticles), gl.STATIC_DRAW );
                 gl.bindBuffer( gl.ARRAY_BUFFER, null);
@@ -380,14 +463,13 @@
                 var indiciesArray = [];
                 for (var i = 0; i < this.wmoObj.portalInfos.length; i++) {
                     var portalInfo = this.wmoObj.portalInfos[i];
-                    if (portalInfo.index_count != 4) throw new Error("portalInfo.index_count != 4");
+                    //if (portalInfo.index_count != 4) throw new Error("portalInfo.index_count != 4");
                     var base_index = portalInfo.base_index;
-                    indiciesArray.push(base_index+0);
-                    indiciesArray.push(base_index+1);
-                    indiciesArray.push(base_index+2);
-                    indiciesArray.push(base_index+0);
-                    indiciesArray.push(base_index+2);
-                    indiciesArray.push(base_index+3);
+                    for (var j =0; j < portalInfo.index_count-2; j++) {
+                        indiciesArray.push(base_index+0);
+                        indiciesArray.push(base_index+j+1);
+                        indiciesArray.push(base_index+j+2);
+                    }
                 }
                 this.indexVBO = gl.createBuffer();
                 gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
@@ -396,6 +478,7 @@
             },
             drawPortals : function () {
                 if (!this.wmoObj) return;
+                if (this.wmoObj.nPortals == 0) return;
 
                 var gl = this.sceneApi.getGlContext();
                 var uniforms = this.sceneApi.shaders.getShaderUniforms();
@@ -415,10 +498,19 @@
                 gl.disable(gl.CULL_FACE);
                 gl.disable(gl.BLEND);
 
+                var offset = 0;
                 for (var i = 0; i < this.wmoObj.portalInfos.length; i++) {
                     var portalInfo = this.wmoObj.portalInfos[i];
-                    gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, (i*6) * 2);
-                    gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, (i*6+3) * 2);
+
+                    if (portalInfo.isFalse) {
+                        gl.uniform3fv(uniforms.uColor, new Float32Array([0.819607843, 0.058, 0.058])); //red
+                    } else {
+                        gl.uniform3fv(uniforms.uColor, new Float32Array([0.058, 0.058, 0.819607843])); //blue
+                    }
+
+                    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, (offset) * 2);
+
+                    offset+=(portalInfo.index_count-2)*3
                 }
 
             }

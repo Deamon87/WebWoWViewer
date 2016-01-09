@@ -323,7 +323,18 @@
                 //N. Collect non transparent and transparent meshes
                 //this.collectMeshes();
 
+                //Check what WMO instance we're in
+                var interiorGroupNum = -1;
+                for (var i = 0; i < this.wmoObjects.length; i++) {
+                    var interiorGroupNum = this.wmoObjects[i].isInsideInterior(this.position);
+                    if (interiorGroupNum >=0) {
+                        break;
+                    }
+                }
+
+
                 this.currentTime = this.currentTime + deltaTime;
+                return {interiorGroupNum : interiorGroupNum};
             },
             draw : function () {
                 //1. Draw ADT
@@ -387,7 +398,7 @@
                 this.sceneApi.shaders.deactivateM2Shader();
 
 
-                /*
+
                 //7. Draw BBs
                 this.sceneApi.shaders.activateBoundingBoxShader();
                 //7.1 Draw M2 BBs
@@ -399,7 +410,7 @@
                 //7.1 Draw WMO BBs
                 for (var i = 0; i < this.wmoObjects.length; i++) {
                     this.wmoObjects[i].drawBB();
-                } */
+                }
 
                 //8. Draw WMO portals
                 this.sceneApi.shaders.activateDrawPortalShader();

@@ -968,7 +968,7 @@
                     )
                 );
                 this.graphManager.setLookAtMat(lookAtMat4);
-                this.graphManager.update(deltaTime);
+                var updateRes = this.graphManager.update(deltaTime);
 
                 gl.depthMask(true);
                 this.graphManager.draw();
@@ -1014,7 +1014,7 @@
 
                 this.stats.end();
 
-                return cameraVecs;
+                return {cameraVecs : cameraVecs, updateResult : updateRes};
             },
             loadM2File : function (mddf) {
                 this.sceneApi.objects.loadAdtM2Obj(mddf);

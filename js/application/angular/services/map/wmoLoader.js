@@ -23,7 +23,7 @@
                         mogp.Flags           = chunk.readUint32(offset);
                         mogp.BoundBoxCorner1 = chunk.readVector3f(offset);
                         mogp.BoundBoxCorner2 = chunk.readVector3f(offset);
-                        mogp.Index           = chunk.readInt16(offset);
+                        mogp.moprIndex       = chunk.readInt16(offset);
                         mogp.numItems        = chunk.readInt16(offset);
                         mogp.numBatchesA     = chunk.readInt16(offset);
                         mogp.numBatchesB     = chunk.readInt16(offset);

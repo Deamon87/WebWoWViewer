@@ -81,6 +81,7 @@
 
     </head>
     <body ng-app="main.app" ng-controller="UrlChooserCtrl" style="background: black">
+        <p id="debugInfo"></p>
         <div style="margin: auto;position: absolute; top: 0; left: 0; bottom: 0; right: 0;">
             <div ng-if="!isReadyForStart" style="width: 652px; height: 345px; overflow: hidden; margin: auto; position: absolute; top: 0; left: 0; bottom: 0; right: 0; ">
                 <input type="text" ng-model="params.urlForLoading" style="width: 215px"/>

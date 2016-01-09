@@ -11,6 +11,7 @@
                 '<div class=""><canvas width = "1024" height = "768" ></canvas>' +
                 '<div>camera = ( {{cameraVecs.cameraVec3[0]}}, {{cameraVecs.cameraVec3[1]}}, {{cameraVecs.cameraVec3[2]}} )</div>' +
                 '<div>lookAt = ( {{cameraVecs.lookAtVec3[0]}}, {{cameraVecs.lookAtVec3[1]}}, {{cameraVecs.lookAtVec3[2]}} )</div>' +
+                '<div>Group number = {{updateResult.interiorGroupNum}}</div>'+
                 '</div>',
             link: function postLink(scope, element, attrs) {
                 var canvas = element.find('canvas')[0];
@@ -27,8 +28,11 @@
                     }
                     lastTimeStamp = currentTimeStamp;
 
-                    var cameraVecs = sceneObj.draw(timeDelta);
+                    var result = sceneObj.draw(timeDelta);
+                    var cameraVecs = result.cameraVecs;
+                    var updateResult = result.updateResult;
                     scope.cameraVecs = cameraVecs;
+                    scope.updateResult = updateResult;
 
                     //scope.$digest();
 
@@ -46,6 +50,7 @@
                 //sceneObj.loadWMOMap("World/wmo/Azeroth/Buildings/Stormwind/Stormwind.wmo");
                 //sceneObj.loadWMOMap("World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo");
                 //sceneObj.loadWMOMap("World/wmo/Dungeon/MD_DiamondMt/DiamondMountain.wmo");
+
 
                 /*
                 sceneObj.loadWMOFile({
@@ -66,15 +71,23 @@
                 });
                 */
 
-                     /*
+
                 sceneObj.loadWMOFile({
-                 fileName : "WORLD/WMO/OUTLAND/TEROKKAR/SHATTRATHCITY.WMO",
-                 uniqueId : 0,
-                 pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
-                 rotation : {x : 0, y: 0, z : 0},
-                 doodadSet: 0
-                 });
-                   */
+                    fileName : "WORLD/WMO/OUTLAND/TEROKKAR/SHATTRATHCITY.WMO",
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    doodadSet: 0
+                });
+                /*
+                sceneObj.loadWMOFile({
+                    fileName : "world/wmo/azeroth/buildings/stormwind/stormwindharbor.wmo",
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    doodadSet: 0
+                });
+                */
 
                 /*
                 sceneObj.loadWMOFile({
@@ -86,6 +99,7 @@
                 });
                 */
 
+                /*
                 sceneObj.loadWMOFile({
                  fileName : "World/wmo/Azeroth/Buildings/Stormwind/Stormwind.wmo",
                  uniqueId : 0,
@@ -93,7 +107,7 @@
                  rotation : {x : 0, y: 0, z : 0},
                  doodadSet: 0
                  });
-
+                    */
 
                 /*
                 sceneObj.loadWMOFile({
@@ -182,6 +196,7 @@
                     scale    : 1024
                 });
                 */
+
                  /*
                 sceneObj.loadM2File({
                     fileName : "WORLD\\AZEROTH\\KARAZAHN\\PASSIVEDOODADS\\CHANDELIERS\\KARAZANCHANDELIER_02.m2",
@@ -192,7 +207,7 @@
                 });
                */
 
-                /*
+               /*
                 sceneObj.loadM2File({
                     fileName : "WORLD\\GENERIC\\HUMAN\\PASSIVE DOODADS\\GRYPHONROOST\\GRYPHONROOST01.m2",
                     uniqueId : 0,
@@ -200,7 +215,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     scale    : 1024
                 });
-                */
+                 */
 
                   /*
                 sceneObj.loadM2File({
