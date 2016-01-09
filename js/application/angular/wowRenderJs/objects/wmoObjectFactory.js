@@ -324,16 +324,6 @@
             isInsideInterior : function (cameraVec4) {
                 if (!this.wmoGroupArray || this.wmoGroupArray.length ==0) return -1;
 
-                //debug
-                if (!this.wmoObj.portalInfos) return -1;
-                for (var i = 0; i < this.wmoObj.portalInfos.length; i++){
-                    var portalInfo = this.wmoObj.portalInfos[i];
-                    portalInfo.isFalse = false;
-                }
-
-                //--debug
-
-                var cameraLocal = vec4.create();
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
                     if (!this.wmoGroupArray[i]) continue;
                     var bbArray = this.volumeWorldGroupBorders[i];
@@ -350,9 +340,6 @@
                     );
                     if (!isInsideAABB) continue;
 
-                    //3. Check if inside BB
-                    //Transform camera into local coordinates
-
                     //3. Check if inside portals
                     var isInsidePortals = true;
                     var moprIndex = this.wmoGroupArray[i].wmoGroupFile.mogp.moprIndex;
@@ -366,14 +353,10 @@
                         var dotResult3 = (vec3.dot(vec3.fromValues(plane.x, plane.y, -plane.z), cameraVec4));
                         var isInsidePortalThis = (relation.side < 0) ? ((-dotResult3) < (-plane.w)) : ((-dotResult3) > (-plane.w));
                         isInsidePortals = isInsidePortals && isInsidePortalThis;
-                        if (!isInsidePortalThis) {
-                            portalInfo.isFalse = true;
-                        }
                     }
 
                     if (isInsidePortals) return i;
                 }
-
 
                 return -1;
             },
