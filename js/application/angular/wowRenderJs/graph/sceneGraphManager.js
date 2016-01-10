@@ -328,10 +328,10 @@
                 for (var i = 0; i < this.wmoObjects.length; i++) {
                     var interiorGroupNum = this.wmoObjects[i].isInsideInterior(this.position);
                     if (interiorGroupNum >=0) {
-                        break;
+                        this.currentWMO = this.wmoObjects[i];
+                        this.currentInteriorGroup = interiorGroupNum;
                     }
                 }
-
 
                 this.currentTime = this.currentTime + deltaTime;
                 return {interiorGroupNum : interiorGroupNum};

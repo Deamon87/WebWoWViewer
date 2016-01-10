@@ -71,7 +71,7 @@
                 });
                 */
 
-
+                /*
                 sceneObj.loadWMOFile({
                     fileName : "WORLD/WMO/OUTLAND/TEROKKAR/SHATTRATHCITY.WMO",
                     uniqueId : 0,
@@ -79,6 +79,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
+                */
                 /*
                 sceneObj.loadWMOFile({
                     fileName : "world/wmo/azeroth/buildings/stormwind/stormwindharbor.wmo",
@@ -89,7 +90,7 @@
                 });
                 */
 
-                /*
+
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Northrend/Dalaran/ND_Dalaran.wmo",
                     uniqueId : 0,
@@ -97,7 +98,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-                */
+
 
                 /*
                 sceneObj.loadWMOFile({
@@ -166,12 +167,14 @@
                 //sceneObj.loadMap("Kalimdor", 32, 32);
                 //sceneObj.loadMap("Azeroth", 31, 31);
                 //sceneObj.loadMap("Azeroth", 28, 28); sceneObj.setCameraPos(2000, 1600, 137);
+                //sceneObj.loadMap("Azeroth", 34, 51); sceneObj.setCameraPos(-10000, -1200, 76);
 
                 //sceneObj.loadMap("Northrend", 29, 22); sceneObj.setCameraPos(4800, 1066, 137);
                 //sceneObj.loadMap("PVPZone04", 29 ,30); sceneObj.setCameraPos(1400, 1044, 509);
                 //sceneObj.loadMap("DeathKnightStart", 43, 28); sceneObj.setCameraPos(2033, -5843, 230);
                 //sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
                 //sceneObj.loadMap("HallsOfReflection", 28, 21); sceneObj.setCameraPos(5245, 2025, 733);
+                //sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
                 //sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
                 //sceneObj.loadMap("HallsOfReflection", 28, 21); sceneObj.setCameraPos(5245, 2025, 733);
                 //sceneObj.loadMap("HallsOfReflection", 30, 21); sceneObj.setCameraPos(5641, 963, 733);

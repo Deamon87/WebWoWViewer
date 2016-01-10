@@ -275,8 +275,8 @@
                     var mogp = this.wmoGroupArray[i].wmoGroupFile.mogp;
                     */
 
-                    var bb1 = this.worldGroupBorders[i][0],
-                        bb2 = this.worldGroupBorders[i][1];
+                    var bb1 = this.volumeWorldGroupBorders[i][0],
+                        bb2 = this.volumeWorldGroupBorders[i][1];
 
                     var center = [
                         (bb1[0] + bb2[0])/2,
@@ -323,17 +323,22 @@
             },
             isInsideInterior : function (cameraVec4) {
                 if (!this.wmoGroupArray || this.wmoGroupArray.length ==0) return -1;
-
-                //debug
-                if (!this.wmoObj.portalInfos) return -1;
-                for (var i = 0; i < this.wmoObj.portalInfos.length; i++){
-                    var portalInfo = this.wmoObj.portalInfos[i];
-                    portalInfo.isFalse = false;
-                }
-
-                //--debug
-
+                //Transform camera into local coordinates
+                var debugText = "";
                 var cameraLocal = vec4.create();
+                vec4.transformMat4(cameraLocal, cameraVec4, this.placementInvertMatrix);
+                //Check if camera inside wmo
+                var isInsideWMOBB = (
+                    cameraLocal[0] > this.wmoObj.BoundBoxCorner1.x && cameraLocal[0] < this.wmoObj.BoundBoxCorner2.x &&
+                    cameraLocal[1] > this.wmoObj.BoundBoxCorner1.y && cameraLocal[1] < this.wmoObj.BoundBoxCorner2.y &&
+                    cameraLocal[2] > this.wmoObj.BoundBoxCorner1.z && cameraLocal[2] < this.wmoObj.BoundBoxCorner2.z
+                );
+
+                if (!isInsideWMOBB) return -1;
+                //Loop
+                var wmoGroupsInside = 0;
+                var interiorGroups = 0;
+                var lastWmoGroupInside = -1;
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
                     if (!this.wmoGroupArray[i]) continue;
                     var bbArray = this.volumeWorldGroupBorders[i];
@@ -341,6 +346,7 @@
 
                     //1. Check if group wmo is interior wmo
                     if ((groupInfo.flags & 0x2000) == 0) continue;
+                    interiorGroups++;
 
                     //2. Check if inside volume AABB
                     var isInsideAABB = (
@@ -349,51 +355,29 @@
                         cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
                     );
                     if (!isInsideAABB) continue;
-
-                    //3. Check if inside BB
-                    //Transform camera into local coordinates
+                    wmoGroupsInside++;
+                    lastWmoGroupInside = i;
 
                     //3. Check if inside portals
                     var isInsidePortals = true;
                     var moprIndex = this.wmoGroupArray[i].wmoGroupFile.mogp.moprIndex;
                     var numItems = this.wmoGroupArray[i].wmoGroupFile.mogp.numItems;
-                    //var isInsidePortalArr = []; //debug
+                    var isInsidePortalArr = []; //debug
 
                     for (var j = moprIndex; j < moprIndex+numItems; j++) {
                         var relation = this.wmoObj.portalRelations[j];
                         var portalInfo = this.wmoObj.portalInfos[relation.portal_index];
 
                         var plane = portalInfo.plane;
-                        //var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, -plane.z, plane.w), cameraVec4)); //flip z :(
-                        var dotResult3 = (vec3.dot(vec3.fromValues(plane.x, plane.y, -plane.z), cameraVec4));
-                        var isInsidePortalThis = (relation.side < 0) ? ((-dotResult3) < (-plane.w)) : ((-dotResult3) > (-plane.w));
+                        var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal)); //flip z :(
+                        var isInsidePortalThis = (relation.side < 0) ? (dotResult < 0) : (dotResult > 0);
                         isInsidePortals = isInsidePortals && isInsidePortalThis;
-                        /*
-                        isInsidePortalArr.push({
-                            inside: isInsidePortalThis,
-                            dotResult4 : dotResult,
-                            dotResult3 : dotResult3,
-                            w: plane.w,
-                            side: relation.side}); //debug
-                        */
-                        if (!isInsidePortalThis) {
-                            portalInfo.isFalse = true;
-                        }
                     }
-                     /*
-                    var debugText = "<br/><br/>";
-                    for (var k = 0; k < isInsidePortalArr.length; k++) {
-                        debugText += "["+k+"] dotResult4 : "+isInsidePortalArr[k].dotResult4+"<br/>";
-                        debugText += "["+k+"] dotResult3 : "+isInsidePortalArr[k].dotResult3+"<br/>";
-                        debugText += "["+k+"] inside : "+isInsidePortalArr[k].inside+"<br/>";
-                        debugText += "["+k+"] side : "+isInsidePortalArr[k].side+"<br/>";
-                        debugText += "["+k+"] -w : "+(-isInsidePortalArr[k].w)+"<br/>";
-                    }
-                    $("#debugInfo").html(debugText);
-                    */
+
                     if (isInsidePortals) return i;
                 }
 
+                if (wmoGroupsInside == 1 && interiorGroups > 1) return lastWmoGroupInside;
 
                 return -1;
             },
