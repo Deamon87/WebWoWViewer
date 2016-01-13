@@ -159,10 +159,30 @@
                 this.nonTransparentM = nonTransparentMeshes;
                 this.transparentM = transparentMeshes;
             },
-            checkAgainstFrustum : function (frustumMat, lookAtMat4) {
+            checkCulling : function (frustumMat, lookAtMat4) {
                 for (var j = 0; j < this.m2Objects.length; j++) {
                     this.m2Objects[j].setIsRendered(true);
                 }
+
+                if (this.currentInteriorGroup >= 0) {
+                    for (var j = 0; j < this.m2Objects.length; j++) {
+                        this.m2Objects[j].setIsRendered(false);
+                    }
+                    for (var i = 0; i < this.wmoObjects.length; i++) {
+                        this.wmoObjects[i].resetDrawnForAllGroups(false);
+                    }
+                    //TODO: set not render for adt too
+
+                    //Begin construction of portals...
+
+                    //1.
+                    this.checkNormalFrustumCulling(frustumMat, lookAtMat4)
+                } else {
+                    this.checkNormalFrustumCulling(frustumMat, lookAtMat4)
+                }
+
+            },
+            checkNormalFrustumCulling : function (frustumMat, lookAtMat4) {
                 /*1. Extract planes */
                 var combinedMat4 = mat4.create();
                 mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
@@ -171,7 +191,9 @@
                 /* 1. First check wmo's */
                 /* Checking group wmo will significatly decrease the amount of m2wmo */
                 for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].checkFrustumCulling(this.position, frustumPlanes);
+                    this.wmoObjects[i].resetDrawnForAllGroups(true);
+                    this.wmoObjects[i].checkFrustumCulling(this.position,frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
+                    this.wmoObjects[i].setIsRenderedForDoodads();
                 }
 
                 /* 2. If m2Object is renderable after prev phase - check it against frustrum */
@@ -324,17 +346,24 @@
                 //this.collectMeshes();
 
                 //Check what WMO instance we're in
-                var interiorGroupNum = -1;
+                this.currentInteriorGroup = -1;
+                this.currentWMO = null;
+                var bspNodeId = -1;
+                var interiorGroupNum = -1
                 for (var i = 0; i < this.wmoObjects.length; i++) {
-                    var interiorGroupNum = this.wmoObjects[i].isInsideInterior(this.position);
+                    var result = this.wmoObjects[i].isInsideInterior(this.position);
+                    interiorGroupNum = result.groupId;
+
                     if (interiorGroupNum >=0) {
                         this.currentWMO = this.wmoObjects[i];
                         this.currentInteriorGroup = interiorGroupNum;
+                        bspNodeId = result.nodeId
+                        break;
                     }
                 }
 
                 this.currentTime = this.currentTime + deltaTime;
-                return {interiorGroupNum : interiorGroupNum};
+                return {interiorGroupNum : interiorGroupNum, nodeId : bspNodeId};
             },
             draw : function () {
                 //1. Draw ADT
@@ -424,3 +453,5 @@
     }]);
 
 })(window, jQuery);
+
+

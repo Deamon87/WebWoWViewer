@@ -96,6 +96,20 @@
             this.indexVBO = gl.createBuffer();
             gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO );
             gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(wmoGroupObject.indicies), gl.STATIC_DRAW );
+
+            if (wmoGroupObject.mobr) {
+                this.mobrVBO = gl.createBuffer();
+                gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.mobrVBO);
+                var bpsIndicies = new Array(wmoGroupObject.mobr.length*3);
+                for (var i = 0; i < wmoGroupObject.mobr.length; i++) {
+                    bpsIndicies[i*3 + 0] = wmoGroupObject.indicies[3*wmoGroupObject.mobr[i]+0];
+                    bpsIndicies[i*3 + 1] = wmoGroupObject.indicies[3*wmoGroupObject.mobr[i]+1];
+                    bpsIndicies[i*3 + 2] = wmoGroupObject.indicies[3*wmoGroupObject.mobr[i]+2];
+                }
+
+                gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(bpsIndicies), gl.STATIC_DRAW);
+                gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null);
+            }
         };
 
         this.draw = function(){

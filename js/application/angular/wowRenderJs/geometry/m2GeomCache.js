@@ -153,6 +153,10 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     //submeshColor[2] = submeshColor[2] * transperency;
                     submeshColor[3] = submeshColor[3] * transperency;
 
+                    if (transperency == 0) {
+                        return;
+                    }
+
                     gl.vertexAttrib4f(shaderAttributes.aColor,
                         submeshColor[0],
                         submeshColor[1],

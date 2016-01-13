@@ -15,6 +15,7 @@
             self.wmoGroupArray = [];
             self.doodadsArray = [];
             self.drawGroup = [];
+            self.drawDoodads = [];
         }
         WmoObject.prototype = {
             getFileNameIdent : function () {
@@ -323,18 +324,19 @@
             },
             isInsideInterior : function (cameraVec4) {
                 if (!this.wmoGroupArray || this.wmoGroupArray.length ==0) return -1;
+
                 //Transform camera into local coordinates
-                var debugText = "";
                 var cameraLocal = vec4.create();
                 vec4.transformMat4(cameraLocal, cameraVec4, this.placementInvertMatrix);
+
                 //Check if camera inside wmo
                 var isInsideWMOBB = (
                     cameraLocal[0] > this.wmoObj.BoundBoxCorner1.x && cameraLocal[0] < this.wmoObj.BoundBoxCorner2.x &&
                     cameraLocal[1] > this.wmoObj.BoundBoxCorner1.y && cameraLocal[1] < this.wmoObj.BoundBoxCorner2.y &&
                     cameraLocal[2] > this.wmoObj.BoundBoxCorner1.z && cameraLocal[2] < this.wmoObj.BoundBoxCorner2.z
                 );
-
                 if (!isInsideWMOBB) return -1;
+
                 //Loop
                 var wmoGroupsInside = 0;
                 var interiorGroups = 0;
@@ -363,7 +365,6 @@
                     var isInsidePortals = true;
                     var moprIndex = this.wmoGroupArray[i].wmoGroupFile.mogp.moprIndex;
                     var numItems = this.wmoGroupArray[i].wmoGroupFile.mogp.numItems;
-                    var isInsidePortalArr = []; //debug
 
                     for (var j = moprIndex; j < moprIndex+numItems; j++) {
                         var relation = this.wmoObj.portalRelations[j];
@@ -373,38 +374,73 @@
                         var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal)); //flip z :(
                         var isInsidePortalThis = (relation.side < 0) ? (dotResult < 0) : (dotResult > 0);
                         isInsidePortals = isInsidePortals && isInsidePortalThis;
-                        /*
-                        isInsidePortalArr.push({
-                            inside: isInsidePortalThis,
-                            dotResult4 : dotResult,
-                            dotResult3 : dotResult3,
-                            w: plane.w,
-                            side: relation.side}); //debug
-                        */
+
                         if (!isInsidePortalThis) {
                             portalInfo.isFalse = true;
                         }
                     }
-                     /*
-                    var debugText = "<br/><br/>";
-                    for (var k = 0; k < isInsidePortalArr.length; k++) {
-                        debugText += "["+k+"] dotResult4 : "+isInsidePortalArr[k].dotResult4+"<br/>";
-                        debugText += "["+k+"] dotResult3 : "+isInsidePortalArr[k].dotResult3+"<br/>";
-                        debugText += "["+k+"] inside : "+isInsidePortalArr[k].inside+"<br/>";
-                        debugText += "["+k+"] side : "+isInsidePortalArr[k].side+"<br/>";
-                        debugText += "["+k+"] -w : "+(-isInsidePortalArr[k].w)+"<br/>";
+
+                    if (isInsidePortals) {
+                        var nodeId = 0;
+                        var nodes = this.wmoGroupArray[i].wmoGroupFile.nodes;
+                        while (nodeId >=0 && ((nodes[nodeId].planeType&0x4) == 0)){
+                            var prevNodeId = nodeId;
+                            if ((nodes[nodeId].planeType == 0)) {
+                                if (cameraLocal[0] < nodes[nodeId].fDist) {
+                                    nodeId = nodes[nodeId].children1;
+                                } else {
+                                    nodeId = nodes[nodeId].children2;
+                                }
+                            } else if ((nodes[nodeId].planeType == 1)) {
+                                if (cameraLocal[1] < nodes[nodeId].fDist) {
+                                    nodeId = nodes[nodeId].children1;
+                                } else {
+                                    nodeId = nodes[nodeId].children2;
+                                }
+                            } else if ((nodes[nodeId].planeType == 2)) {
+                                if (cameraLocal[2] < nodes[nodeId].fDist) {
+                                    nodeId = nodes[nodeId].children1;
+                                } else {
+                                    nodeId = nodes[nodeId].children2;
+                                }
+                            }
+                        }
+                        this.currentNodeId = nodeId;
+                        this.currentGroupId = i;
+                        //return {nodeId : nodeId, node: nodes[nodeId]};
+                        return { groupId : i, nodeId : nodeId};
                     }
-                    $("#debugInfo").html(debugText);
-                    */
-                    if (isInsidePortals) return i;
+
                 }
 
                 if (wmoGroupsInside == 1 && interiorGroups > 1) return lastWmoGroupInside;
+                this.currentNodeId = -1;
+                this.currentGroupId = -1;
 
-                return -1;
+                return {groupId : -1, nodeId : -1};
             },
-            checkFrustumCulling : function (cameraVec4, frustumPlanes) {
-                var isDrawn = [];
+            resetDrawnForAllGroups : function (value) {
+                for (var i = 0; i < this.wmoGroupArray.length; i++) {
+                    //Change state only if it's from false to true. According to rule from part 1
+                    var groupInfo = this.wmoObj.groupInfos[i];
+
+                    //1. Check if group wmo is interior wmo
+                    if ((groupInfo.flags & 0x2000) != 0 && value) {
+                        this.drawGroup[i] = true; // Interior WMO should be drawn only under "portal rule"
+                    } else {
+                        this.drawGroup[i] = value;
+                    }
+                }
+            },
+            setIsRenderedForDoodads : function () {
+                for (var i = 0; i < this.wmoGroupArray.length; i++) {
+                    //Change state only if it's from false to true. According to rule from part 1
+                    if (this.drawDoodads[i]) {
+                        this.setDoodadGroupDrawing(i, this.drawDoodads[i]);
+                    }
+                }
+            },
+            checkFrustumCulling : function (cameraVec4, perspectiveMat, lookat, frustumPlanes) {
                 if (!this.worldGroupBorders) return;
                 //1. Set Doodads drawing to false. Doodad should be rendered if at least one WMO Group it belongs is visible(rendered)
                 //It's so, because two group wmo can reference same doodad
@@ -414,8 +450,9 @@
                     }
                 }
 
-                //2. Calculate frustum
+                //2. Calculate visibility
                 for (var i = 0; i < this.wmoGroupArray.length; i++) {
+                    if (!this.drawGroup[i]) continue;
                     var bbArray = this.worldGroupBorders[i];
 
                     var isInside = (
@@ -424,16 +461,24 @@
                         cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
                     );
 
-                    var result = isInside || mathHelper.checkFrustum(frustumPlanes,bbArray);
-                    isDrawn.push(result);//this.setDoodadGroupDrawing(i, true);
-                }
-                for (var i = 0; i < this.wmoGroupArray.length; i++) {
-                    //Change state only if it's from false to true. According to rule from part 1
-                    if (isDrawn[i]) {
-                        this.setDoodadGroupDrawing(i, isDrawn[i]);
+                    var drawDoodads = isInside || mathHelper.checkFrustum(frustumPlanes,bbArray);
+
+                    var bbArray = this.volumeWorldGroupBorders[i];
+                    var isInside = (
+                        cameraVec4[0] > bbArray[0][0] && cameraVec4[0] < bbArray[1][0] &&
+                        cameraVec4[1] > bbArray[0][1] && cameraVec4[1] < bbArray[1][1] &&
+                        cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
+                    );
+
+                    var drawGroup = isInside || mathHelper.checkFrustum(frustumPlanes,bbArray);
+
+                    if (drawGroup) {
+                        //this.traverseGroupPortal(cameraVec4, perspectiveMat, lookat, frustumPlanes);
                     }
 
-                    this.drawGroup[i] = isDrawn[i];
+
+                    this.drawGroup[i] = drawGroup;
+                    this.drawDoodads[i] = drawDoodads;
                 }
             },
             update : function () {
@@ -481,6 +526,7 @@
                 gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
                 gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indiciesArray), gl.STATIC_DRAW);
                 gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null);
+
             },
             drawPortals : function () {
                 if (!this.wmoObj) return;
@@ -519,6 +565,23 @@
                     offset+=(portalInfo.index_count-2)*3
                 }
 
+
+                if (this.currentGroupId >= 0 && this.wmoGroupArray[this.currentGroupId]) {
+                    var node = this.wmoGroupArray[this.currentGroupId].wmoGroupFile.nodes[this.currentNodeId];
+
+                    gl.disable(gl.DEPTH_TEST);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.wmoGroupArray[this.currentGroupId].mobrVBO);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.wmoGroupArray[this.currentGroupId].combinedVBO);
+                    gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0); // position
+
+                    gl.uniform3fv(uniforms.uColor, new Float32Array([0.819607843, 0.819607843, 0.058])); //green?
+
+                    if (node) {
+                        gl.drawElements(gl.TRIANGLES, node.numFaces*3, gl.UNSIGNED_SHORT, (node.firstFace*3) * 2);
+                    }
+                    gl.enable(gl.DEPTH_TEST);
+
+                }
             }
         };
 

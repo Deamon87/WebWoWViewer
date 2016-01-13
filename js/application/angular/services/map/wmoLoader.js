@@ -139,6 +139,29 @@
                             }
 
                             groupWMOObject.renderBatches = renderBatches;
+                        },
+                        "MOBN" : function (groupWMOObject, chunk) {
+                            var offset = {offs : 0};
+                            var len = chunk.chunkLen / 16;
+                            var nodes = new Array(len);
+                            for (var i = 0; i < len; i++) {
+                                var node = {};
+
+                                node.planeType = chunk.readUint16(offset);
+                                node.children1 = chunk.readInt16(offset);
+                                node.children2 = chunk.readInt16(offset);
+                                node.numFaces = chunk.readUint16(offset);
+                                node.firstFace = chunk.readUint32(offset);
+                                node.fDist = chunk.readFloat32(offset);
+                                nodes[i] = node;
+                            }
+
+                            groupWMOObject.nodes = nodes;
+                        },
+                        "MOBR" : function (groupWMOObject, chunk) {
+                            var offset = {offs : 0};
+                            var len = chunk.chunkLen / 2;
+                            groupWMOObject.mobr = chunk.readUint16Array(offset, len);
                         }
                     }
                 }

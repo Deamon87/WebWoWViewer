@@ -941,7 +941,7 @@
                 //mat4.ortho(perspectiveMatrix, -100, 100, -100, 100, -100, 100);
 
 
-                this.graphManager.checkAgainstFrustum(perspectiveMatrix, lookAtMat4);
+                this.graphManager.checkCulling(perspectiveMatrix, lookAtMat4);
                 //Matrixes from previous frame
                 if (this.perspectiveMatrix && this.lookAtMat4) {
                     //this.graphManager.checkAgainstDepthBuffer(this.perspectiveMatrix, this.lookAtMat4, this.floatDepthBuffer, this.canvas.width, this.canvas.height);
