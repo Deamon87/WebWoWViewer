@@ -69,6 +69,9 @@
             if (filePath[filePath.length-1] == String.fromCharCode(0)) {
                 filePath = filePath.substr(0, filePath.length-1);
             }
+            if (filePath) {
+                filePath = filePath.toLowerCase();
+            }
 
             if (configService.getFileReadMethod() == 'http') {
                 var fullPath = configService.getUrlToLoadWoWFile() + filePath;
@@ -79,6 +82,9 @@
                 });
 
             } else if (configService.getFileReadMethod() == 'zip') {
+                if (filePath) {
+                    filePath = filePath.replace(/\\/g, "/");
+                }
                 if (!zipEntries) {
                     return initZipEntries().then(function succees(a){
                         zipEntries = a;

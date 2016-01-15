@@ -112,7 +112,7 @@
             }
         };
 
-        this.draw = function(){
+        this.draw = function(bspNode){
             var gl = this.gl;
             var shaderUniforms = this.sceneApi.shaders.getShaderUniforms();
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
@@ -205,7 +205,30 @@
                     gl.bindTexture(gl.TEXTURE_2D, blackPixelText);
                 }
 
-                gl.drawElements(gl.TRIANGLES, renderBatch.count, gl.UNSIGNED_SHORT, renderBatch.startIndex * 2);
+                /* Hack to skip verticles from node */
+                if (bspNode) {
+                    var currentTriangle = renderBatch.startIndex / 3;
+                    var triangleCount = renderBatch.count / 3;
+                    var finalTriangle = currentTriangle+triangleCount;
+
+                    var mobrPiece = this.wmoGroupFile.mobr.slice(bspNode.firstFace, bspNode.firstFace+bspNode.numFaces-1);
+                    mobrPiece = mobrPiece.sort(function (a,b) {return a < b ? -1 : 1})
+                    var mobrIndex = 0;
+                    while (currentTriangle < finalTriangle) {
+                        while (mobrPiece[mobrIndex] < currentTriangle) mobrIndex++;
+                        while (currentTriangle == mobrPiece[mobrIndex]) {currentTriangle++; mobrIndex++};
+
+                        triangleCount = finalTriangle - currentTriangle;
+                        if (currentTriangle < mobrPiece[mobrIndex] && (currentTriangle + triangleCount > mobrPiece[mobrIndex])) {
+                            triangleCount = mobrPiece[mobrIndex] - currentTriangle;
+                        }
+
+                        gl.drawElements(gl.TRIANGLES, triangleCount*3, gl.UNSIGNED_SHORT, currentTriangle*3 * 2);
+                        currentTriangle = currentTriangle + triangleCount;
+                    }
+                } else {
+                    gl.drawElements(gl.TRIANGLES, renderBatch.count, gl.UNSIGNED_SHORT, renderBatch.startIndex * 2);
+                }
 
                 if (textureObject && textureObject[1]) {
                     gl.activeTexture(gl.TEXTURE1);

@@ -2,9 +2,9 @@
  * Created by Deamon on 10/03/2015.
  */
 (function (window, $, undefined) {
-    var wowJsRender = angular.module('main.directives.wowJsRender', ['js.wow.render.scene']);
-    wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window', 'scene', 'adtLoader',
-        function ($log, $timeout, $interval, $window, scene, adtLoader) {
+    var wowJsRender = angular.module('main.directives.wowJsRender', ['js.wow.render.scene', 'main.services.config']);
+    wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window', 'scene', 'adtLoader', 'configService',
+        function ($log, $timeout, $interval, $window, scene, adtLoader, config) {
         return {
             restrict: 'E',
             template:
@@ -12,6 +12,8 @@
                 '<div>camera = ( {{cameraVecs.cameraVec3[0]}}, {{cameraVecs.cameraVec3[1]}}, {{cameraVecs.cameraVec3[2]}} )</div>' +
                 '<div>lookAt = ( {{cameraVecs.lookAtVec3[0]}}, {{cameraVecs.lookAtVec3[1]}}, {{cameraVecs.lookAtVec3[2]}} )</div>' +
                 '<div>Group number = {{updateResult.interiorGroupNum}}</div>'+
+                '<div>BSP Node Id = {{updateResult.nodeId}}</div>'+
+                '<input type="checkbox" ng-model="drawM2" >Draw M2 objects</input>' +
                 '</div>',
             link: function postLink(scope, element, attrs) {
                 var canvas = element.find('canvas')[0];
@@ -19,6 +21,9 @@
                 var sceneObj = new scene(canvas);
                 var lastTimeStamp = undefined;
 
+                scope.$watch('drawM2', function (newValue) {
+                    config.setRenderM2(newValue);
+                });
                 var renderfunc = function(){
 
                     var currentTimeStamp = new Date().getTime();
@@ -61,7 +66,7 @@
                     doodadSet: 0
                 });
                   */
-                /*
+
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo",
                     uniqueId : 0,
@@ -69,7 +74,6 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-                */
 
                 /*
                 sceneObj.loadWMOFile({
@@ -90,7 +94,7 @@
                 });
                 */
 
-
+                /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Northrend/Dalaran/ND_Dalaran.wmo",
                     uniqueId : 0,
@@ -98,6 +102,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
+                */
 
 
                 /*
@@ -148,10 +153,7 @@
                     pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
-                });
-                */
-
-
+                });*/
 
 
                 /*
@@ -222,7 +224,17 @@
 
                   /*
                 sceneObj.loadM2File({
-                    fileName : "WORLD\\GENERIC\\HUMAN\\PASSIVE DOODADS\\THRONE\\STORMWINDTHRONE.MD2",
+                    fileName : "WORLD\\GENERIC\\HUMAN\\PASSIVE DOODADS\\THRONE\\STORMWINDTHRONE.M2",
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    scale    : 1024
+                });
+                */
+
+                /*
+                sceneObj.loadM2File({
+                    fileName : "WORLD\\EXPANSION02\\DOODADS\\ULDUAR\\UL_TITANSTEAM_01.m2",
                     uniqueId : 0,
                     pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
                     rotation : {x : 0, y: 0, z : 0},

@@ -623,7 +623,7 @@
             glClearScreen : function(gl){
                 gl.clearDepth(1.0);
                 gl.enable(gl.DEPTH_TEST);
-                gl.depthFunc(gl.LEQUAL);
+                gl.depthFunc(gl.LESS);
 
                 gl.disable(gl.BLEND);
                 gl.clearColor(0.6, 0.95, 1.0, 1);

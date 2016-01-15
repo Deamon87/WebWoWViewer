@@ -254,7 +254,7 @@
 
                     wmoObj.portalVerticles = chunk.readFloat32Array({offs: 0}, arrayLen)
                 },
-                "MOPT" : function (wmoObj, chunk) {
+                    "MOPT" : function (wmoObj, chunk) {
                     var offset = {offs: 0};
                     var recordCount = chunk.chunkLen / 20;
                     var portalInfos = new Array(recordCount);

@@ -10,7 +10,7 @@
     linedFileLoader.factory('linedFileLoader', ['fileLoader', "fileReadHelper", "$q", '$log', function (fileLoader, fileReadHelper, $q, $log) {
         return function (filePath) {
             return fileLoader(filePath).then(function success(a) {
-                if (typeof a != 'object') {
+                if (typeof a != 'object' || !(a instanceof ArrayBuffer)) {
                     $log.log("Failed to load file = " + filePath);
                     return;
                 }

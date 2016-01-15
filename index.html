@@ -3,7 +3,9 @@
         <title>WebWoWViewer: tech demo</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-
+        <script>
+            Module = {TOTAL_MEMORY:400000000};
+        </script>
         <!----------------->
         <!--  Libraries  -->
         <!----------------->
@@ -19,7 +21,7 @@
     <body ng-app="main.app" ng-controller="UrlChooserCtrl" style="background: black">
     <div style="margin: auto;position: absolute; top: 0; left: 0; bottom: 0; right: 0;">
         <div class="container" ng-if="!isReadyForStart" style="width: 652px; height: 345px; overflow: hidden; margin: auto; position: absolute; top: 0; left: 0; bottom: 0; right: 0; ">
-            <h3 style="margin: 0 25%; color: white;width: 346px;">Web WoW Viewer: tech demo</h3>
+            <h3 style="margin: 0 25%; color: white;width: 346px;">Web WoW Viewer: tech demo for bsp trees</h3>
             <br/><br/><br/>
             <input type="text" ng-model="params.urlForLoading" style="width: 215px; display : none"/>
             <button style="margin-left: 217px; width:200px" class="btn btn-default" ng-click="startApplication()">Start application</button>
@@ -33,7 +35,7 @@
         </div>
 
 
-        <div ng-if="isReadyForStart" style="width: 1054px; height: 855px; overflow: hidden; margin: auto; position: absolute; top: 0; left: 0; bottom: 0; right: 0; color: white">
+        <div ng-if="isReadyForStart" style="width: 1054px; height: 900px; overflow: hidden; margin: auto; position: absolute; top: 0; left: 0; bottom: 0; right: 0; color: white">
             <wow-js-render ></wow-js-render>
             <p>Controls: W - forward, S - backward, A - left, D - right, Q - up, E - down, Mouse - move camera</p>
         </div>

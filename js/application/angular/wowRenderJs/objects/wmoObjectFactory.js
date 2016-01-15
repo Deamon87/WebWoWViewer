@@ -371,13 +371,9 @@
                         var portalInfo = this.wmoObj.portalInfos[relation.portal_index];
 
                         var plane = portalInfo.plane;
-                        var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal)); //flip z :(
+                        var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal));
                         var isInsidePortalThis = (relation.side < 0) ? (dotResult < 0) : (dotResult > 0);
                         isInsidePortals = isInsidePortals && isInsidePortalThis;
-
-                        if (!isInsidePortalThis) {
-                            portalInfo.isFalse = true;
-                        }
                     }
 
                     if (isInsidePortals) {
@@ -497,7 +493,8 @@
                     if (this.wmoGroupArray[i]){
                         if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
 
-                        this.wmoGroupArray[i].draw();
+                        var bpsNode = (this.currentGroupId == i) ? this.wmoGroupArray[i].wmoGroupFile.nodes[this.currentNodeId] : null;
+                        this.wmoGroupArray[i].draw(bpsNode);
                     }
                 }
             },
@@ -539,49 +536,56 @@
                 gl.bindBuffer( gl.ARRAY_BUFFER, this.vertexVBO);
                 gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
 
-                gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0);  // position
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // default blend func
 
-                gl.uniform3fv(uniforms.uColor, new Float32Array([0.058, 0.058, 0.819607843])); //blue
+                gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0);  // position
 
                 if (this.placementMatrix) {
                     gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
                 }
 
                 gl.disable(gl.CULL_FACE);
-                gl.disable(gl.BLEND);
+                gl.depthMask(false);
 
                 var offset = 0;
                 for (var i = 0; i < this.wmoObj.portalInfos.length; i++) {
                     var portalInfo = this.wmoObj.portalInfos[i];
 
                     if (portalInfo.isFalse) {
-                        gl.uniform3fv(uniforms.uColor, new Float32Array([0.819607843, 0.058, 0.058])); //red
+                        gl.uniform4fv(uniforms.uColor, new Float32Array([0.819607843, 0.058, 0.058, 0.3])); //red
                     } else {
-                        gl.uniform3fv(uniforms.uColor, new Float32Array([0.058, 0.058, 0.819607843])); //blue
+                        gl.uniform4fv(uniforms.uColor, new Float32Array([0.058, 0.058, 0.819607843, 0.3])); //blue
                     }
 
                     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, (offset) * 2);
 
                     offset+=(portalInfo.index_count-2)*3
                 }
+                gl.depthMask(true);
+                gl.disable(gl.BLEND);
+            },
+            drawBspVerticles : function () {
+                if (!this.wmoObj) return;
 
+                var gl = this.sceneApi.getGlContext();
+                var uniforms = this.sceneApi.shaders.getShaderUniforms();
+                var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
                 if (this.currentGroupId >= 0 && this.wmoGroupArray[this.currentGroupId]) {
                     var node = this.wmoGroupArray[this.currentGroupId].wmoGroupFile.nodes[this.currentNodeId];
 
-                    gl.disable(gl.DEPTH_TEST);
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.wmoGroupArray[this.currentGroupId].mobrVBO);
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.wmoGroupArray[this.currentGroupId].combinedVBO);
                     gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0); // position
 
-                    gl.uniform3fv(uniforms.uColor, new Float32Array([0.819607843, 0.819607843, 0.058])); //green?
+                    gl.uniform4fv(uniforms.uColor, new Float32Array([0.819607843, 0.819607843, 0.058, 0.0])); //yellow
 
                     if (node) {
                         gl.drawElements(gl.TRIANGLES, node.numFaces*3, gl.UNSIGNED_SHORT, (node.firstFace*3) * 2);
                     }
-                    gl.enable(gl.DEPTH_TEST);
-
                 }
+
             }
         };
 

@@ -3,8 +3,11 @@
     configService.factory('configService', [function() {
         var urlToLoadWoWFile = '/get/';
         var readFileMethod = 'zip';
-        var archiveUrl = 'http://deamon87.github.io/WoWFiles/shattrath.zip';
+        var archiveUrl = 'http://deamon87.github.io/WoWFiles/ironforge.zip';
+
         var archiveFile = null;
+
+        var renderMd2 = true;
 
         var savedUrlForLoading = localStorage.getItem('urlForLoading');
         if (savedUrlForLoading) {
@@ -38,8 +41,13 @@
             },
             setArchiveFile : function(archive) {
                 archiveFile = archive;
+            },
+            getRenderM2 : function () {
+                return renderMd2;
+            },
+            setRenderM2 : function (value) {
+                renderMd2 = value;
             }
-
         }
 
 

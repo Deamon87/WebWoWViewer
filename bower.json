@@ -20,6 +20,9 @@
     },
     "hqx-js" : {
       "js" : "src/hqx.js"
+    },
+    "zip.js" : {
+      "js" : "WebContent/zip.js"
     }
   },
   "dependencies": {
@@ -38,7 +41,6 @@
     "gl-matrix": "v2.2.1",
     "decodeDXT": "Deamon87/decodeDXT",
     "q" : "q#1.0.1",
-    "hqx-js" : "yjh0502/hqx-js",
     "zip.js" : "gildas-lormeau/zip.js"
   }
 }

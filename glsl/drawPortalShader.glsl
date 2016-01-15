@@ -16,12 +16,11 @@ void main() {
 #ifdef COMPILING_FS
 precision lowp float;
 
-uniform vec3 uColor;
+uniform vec4 uColor;
 
 void main() {
-    vec4 finalColor = vec4(uColor, 1.0);
+    vec4 finalColor = uColor ;
 
-    finalColor.a = 1.0; //do I really need it now?
     gl_FragColor = finalColor;
 }
 

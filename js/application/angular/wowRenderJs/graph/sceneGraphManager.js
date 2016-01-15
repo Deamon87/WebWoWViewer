@@ -3,8 +3,9 @@
 (function (window, $, undefined) {
     var sceneGraph = angular.module('js.wow.render.scene.graph', ['js.wow.math.mathHelper']);
     sceneGraph.factory("graphManager", ['$q',
+        'configService',
         'adtObjectFactory', 'adtM2ObjectFactory', 'wmoM2ObjectFactory', 'wmoObjectFactory', 'mathHelper',
-        function($q, adtObjectFactory, adtM2ObjectFactory, wmoM2ObjectFactory, wmoObjectFactory, mathHelper){
+        function($q, config, adtObjectFactory, adtM2ObjectFactory, wmoM2ObjectFactory, wmoObjectFactory, mathHelper){
 
         function InstanceManager(sceneApi){
             this.sceneApi = sceneApi;
@@ -285,8 +286,10 @@
             update : function(deltaTime) {
                 //1. Update all wmo and m2 objects
                 var i;
-                for (i = 0; i < this.m2Objects.length; i++) {
-                    this.m2Objects[i].update(deltaTime, this.position);
+                if (config.getRenderM2()) {
+                    for (i = 0; i < this.m2Objects.length; i++) {
+                        this.m2Objects[i].update(deltaTime, this.position);
+                    }
                 }
 
                 for (i = 0; i < this.wmoObjects.length; i++) {
@@ -372,6 +375,12 @@
                     this.adtObjects[i].draw();
                 }
 
+                //2.0. Draw WMO bsp highlighted vertices
+                this.sceneApi.shaders.activateDrawPortalShader();
+                for (var i = 0; i < this.wmoObjects.length; i++) {
+                    this.wmoObjects[i].drawBspVerticles();
+                }
+
                 //2. Draw WMO
                 this.sceneApi.shaders.activateWMOShader();
                 for (var i = 0; i < this.wmoObjects.length; i++) {
@@ -389,14 +398,22 @@
 
 
                 //5. Draw nontransparent meshes of m2
-                this.sceneApi.shaders.activateM2Shader();
-                for (var i = 0; i < this.m2Objects.length; i++) {
-                    if (this.m2Objects[i].instanceManager) continue;
-                    if (!this.m2Objects[i].getIsRendered()) continue;
+                if (config.getRenderM2()) {
+                    this.sceneApi.shaders.activateM2Shader();
+                    for (var i = 0; i < this.m2Objects.length; i++) {
+                        if (this.m2Objects[i].instanceManager) continue;
+                        if (!this.m2Objects[i].getIsRendered()) continue;
 
-                    this.m2Objects[i].drawNonTransparentMeshes();
+                        this.m2Objects[i].drawNonTransparentMeshes();
+                    }
+                    this.sceneApi.shaders.deactivateM2Shader();
                 }
-                this.sceneApi.shaders.deactivateM2Shader();
+
+                //6. Draw WMO portals
+                this.sceneApi.shaders.activateDrawPortalShader();
+                for (var i = 0; i < this.wmoObjects.length; i++) {
+                    this.wmoObjects[i].drawPortals();
+                }
 
                 /*
                 //5.1 Draw instanced nontransparent meshes of m2
@@ -417,35 +434,34 @@
                 */
 
                 //6. Draw transparent meshes of m2
-                this.sceneApi.shaders.activateM2Shader();
-                for (var i = 0; i < this.m2Objects.length; i++) {
-                    if (this.m2Objects[i].instanceManager) continue;
-                    if (!this.m2Objects[i].getIsRendered()) continue;
+                if (config.getRenderM2()) {
+                    this.sceneApi.shaders.activateM2Shader();
+                    for (var i = 0; i < this.m2Objects.length; i++) {
+                        if (this.m2Objects[i].instanceManager) continue;
+                        if (!this.m2Objects[i].getIsRendered()) continue;
 
-                    this.m2Objects[i].drawTransparentMeshes();
+                        this.m2Objects[i].drawTransparentMeshes();
+                    }
+                    this.sceneApi.shaders.deactivateM2Shader();
                 }
-                this.sceneApi.shaders.deactivateM2Shader();
-
 
 
                 //7. Draw BBs
                 this.sceneApi.shaders.activateBoundingBoxShader();
                 //7.1 Draw M2 BBs
-                for (var i = 0; i < this.m2Objects.length; i++) {
-                    if (!this.m2Objects[i].getIsRendered()) continue;
+                if (config.getRenderM2()) {
+                    for (var i = 0; i < this.m2Objects.length; i++) {
+                        if (!this.m2Objects[i].getIsRendered()) continue;
 
-                    this.m2Objects[i].drawBB();
+                        this.m2Objects[i].drawBB();
+                    }
                 }
+
                 //7.1 Draw WMO BBs
                 for (var i = 0; i < this.wmoObjects.length; i++) {
                     this.wmoObjects[i].drawBB();
                 }
 
-                //8. Draw WMO portals
-                this.sceneApi.shaders.activateDrawPortalShader();
-                for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].drawPortals();
-                }
             }
         };
 

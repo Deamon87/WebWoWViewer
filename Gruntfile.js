@@ -19,8 +19,7 @@ module.exports = function(grunt) {
                 mainFiles:{
                     'angular':'angular.min.js',
                     'stats.js': 'build/stats.min.js',
-                    'hqx-js' : 'WebContent/zip.js',
-                    'zip.js' : 'src/hqx.js'
+                    'zip.js' : 'WebContent/zip.js'
                 }
             }
         },
@@ -108,7 +107,7 @@ module.exports = function(grunt) {
         },
         watch: {
             files: ['glsl/**.glsl', 'js/application/**/*.js'],
-            tasks: ['ngtemplates','uglify']
+            tasks: ['ngtemplates']
         }
     });
 
