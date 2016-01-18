@@ -153,7 +153,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     //submeshColor[2] = submeshColor[2] * transperency;
                     submeshColor[3] = submeshColor[3] * transperency;
 
-                    if (transperency == 0) {
+                    if (submeshColor[3] == 0) {
                         return;
                     }
 
