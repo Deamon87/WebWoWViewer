@@ -485,16 +485,24 @@
                 var gl = this.sceneApi.getGlContext();
                 var uniforms = this.sceneApi.shaders.getShaderUniforms();
 
+                if (!this.wmoObj) return;
+
                 if (this.placementMatrix) {
                     gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
                 }
+
+
+                var ambientColor = [this.wmoObj.ambColor&0xff, (this.wmoObj.ambColor>> 8)&0xff,
+                    (this.wmoObj.ambColor>>16)&0xff, (this.wmoObj.ambColor>> 24)&0xff];
+                ambientColor[0] /= 255.0; ambientColor[1] /= 255.0;
+                ambientColor[2] /= 255.0; ambientColor[3] /= 255.0;
 
                 for (var i = 0; i < this.wmoGroupArray.length; i++){
                     if (this.wmoGroupArray[i]){
                         if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
 
                         var bpsNode = (this.currentGroupId == i) ? this.wmoGroupArray[i].wmoGroupFile.nodes[this.currentNodeId] : null;
-                        this.wmoGroupArray[i].draw(bpsNode);
+                        this.wmoGroupArray[i].draw(ambientColor, bpsNode);
                     }
                 }
             },

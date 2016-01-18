@@ -112,7 +112,7 @@
             }
         };
 
-        this.draw = function(bspNode){
+        this.draw = function(ambientColor, bspNode){
             var gl = this.gl;
             var shaderUniforms = this.sceneApi.shaders.getShaderUniforms();
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
@@ -171,6 +171,16 @@
                 var renderBatch = wmoGroupObject.renderBatches[j];
 
                 var texIndex = renderBatch.tex;
+
+                var color = this.momt[texIndex].color1;
+                var colorVector = [color&0xff, (color>> 8)&0xff,
+                    (color>>16)&0xff, (color>> 24)&0xff];
+                colorVector[0] /= 255.0; colorVector[1] /= 255.0;
+                colorVector[2] /= 255.0; colorVector[3] /= 255.0;
+
+                ambientColor = [1,1,1,1];
+                gl.uniform4fv(shaderUniforms.uMeshColor1, new Float32Array(ambientColor));
+
 
                 if (this.momt[texIndex].blendMode != 0) {
                     var alphaTestVal = 0.878431;

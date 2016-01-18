@@ -224,7 +224,7 @@
                     wmoObj.nModels = chunk.readInt32(offset);
                     wmoObj.nDoodads = chunk.readInt32(offset);
                     wmoObj.nDoodadSets = chunk.readInt32(offset);
-                    wmoObj.ambColor = chunk.readInt32(offset);
+                    wmoObj.ambColor = chunk.readUint32(offset);
                     wmoObj.unk1 = chunk.readInt32(offset);
 
                     wmoObj.BoundBoxCorner1 = chunk.readVector3f(offset);
@@ -254,7 +254,7 @@
 
                     wmoObj.portalVerticles = chunk.readFloat32Array({offs: 0}, arrayLen)
                 },
-                    "MOPT" : function (wmoObj, chunk) {
+                "MOPT" : function (wmoObj, chunk) {
                     var offset = {offs: 0};
                     var recordCount = chunk.chunkLen / 20;
                     var portalInfos = new Array(recordCount);
