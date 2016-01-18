@@ -211,8 +211,9 @@
             getSubMeshColor : function (time) {
                 var colors = this.m2Geom.m2File.colors;
                 var animation = this.currentAnimation;
-                if (colors.length > 0) {
+                var animationRecord = this.m2Geom.m2File.animations[animation];
 
+                if (colors.length > 0) {
                     var result = this.subMeshColors;
                     if (!result) {
                         result = new Array(colors.length);
@@ -222,12 +223,14 @@
                         var colorVec = this.getTimedValue(
                             0,
                             time,
+                            animationRecord.length,
                             colors[i].color.interpolation_type,
                             colors[i].color.timestampsPerAnimation[animation],
                             colors[i].color.valuesPerAnimation[animation]);
                         var alpha = this.getTimedValue(
                             2,
                             time,
+                            animationRecord.length,
                             colors[i].alpha.interpolation_type,
                             colors[i].alpha.timestampsPerAnimation[animation],
                             colors[i].alpha.valuesPerAnimation[animation]);
@@ -244,6 +247,8 @@
             getTransperencies : function (time) {
                 var transparencies = this.m2Geom.m2File.transparencies;
                 var animation = this.currentAnimation;
+                var animationRecord = this.m2Geom.m2File.animations[animation];
+
                 if (transparencies.length > 0) {
 
                     var result = this.transperencies;
@@ -255,6 +260,7 @@
                         var transparency = this.getTimedValue(
                             2,
                             time,
+                            animationRecord.length,
                             transparencies[i].values.interpolation_type,
                             transparencies[i].values.timestampsPerAnimation[animation],
                             transparencies[i].values.valuesPerAnimation[animation]);
@@ -330,7 +336,7 @@
                     return result;
                 }
             },
-            getTimedValue : function (value_type, currTime, interpolType, times, values) {
+            getTimedValue : function (value_type, currTime, maxTime, interpolType, times, values) {
                 function convertInt16ToFloat(value){
                     return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
                 }
@@ -350,28 +356,32 @@
                 var times_len = times.length;
                 var result;
                 if (times_len > 1 && interpolType > 0) {
-                    var maxTime = times[times_len-1];
+                    //var maxTime = times[times_len-1];
                     var animTime = currTime % maxTime;
 
-                    for (var i = 0; i < times_len; i++) {
-                        if (times[i] > animTime) {
-                            var value1 = values[i-1];
-                            var value2 = values[i];
+                    if (animTime > times[times_len-1] && animTime <= maxTime) {
+                        result = convertValueTypeToVec4(values[0], value_type);
+                    } else {
+                        for (var i = 0; i < times_len; i++) {
+                            if (times[i] > animTime) {
+                                var value1 = values[i - 1];
+                                var value2 = values[i];
 
-                            var time1 = times[i-1];
-                            var time2 = times[i];
+                                var time1 = times[i - 1];
+                                var time2 = times[i];
 
-                            value1 = convertValueTypeToVec4(value1, value_type);
-                            value2 = convertValueTypeToVec4(value2, value_type);
+                                value1 = convertValueTypeToVec4(value1, value_type);
+                                value2 = convertValueTypeToVec4(value2, value_type);
 
-                            result = this.interpolateValues(animTime,
-                                interpolType, time1, time2, value1, value2);
+                                result = this.interpolateValues(animTime,
+                                    interpolType, time1, time2, value1, value2);
 
-                            if (value_type == 1) {
-                                vec4.normalize(result,result); //quaternion has to be normalized after lerp operation
+                                if (value_type == 1) {
+                                    vec4.normalize(result, result); //quaternion has to be normalized after lerp operation
+                                }
+
+                                break;
                             }
-
-                            break;
                         }
                     }
                 } else {
@@ -391,6 +401,7 @@
                 }
 
                 var animation = this.currentAnimation;
+                var animationRecord = this.m2Geom.m2File.animations[animation];
                 for (var i = 0; i < this.m2Geom.m2File.texAnims.length; i++) {
                     var animBlock = this.m2Geom.m2File.texAnims[i];
 
@@ -400,6 +411,7 @@
                         var transVec = this.getTimedValue(
                             0,
                             time,
+                            animationRecord.length,
                             animBlock.translation.interpolation_type,
                             animBlock.translation.timestampsPerAnimation[animation],
                             animBlock.translation.valuesPerAnimation[animation]);
@@ -419,6 +431,7 @@
                         var quaternionVec4 = this.getTimedValue(
                             1,
                             time,
+                            animationRecord.length,
                             animBlock.rotation.interpolation_type,
                             animBlock.rotation.timestampsPerAnimation[animation],
                             animBlock.rotation.valuesPerAnimation[animation]);
@@ -436,6 +449,7 @@
                         var scaleVec3 = this.getTimedValue(
                             0,
                             time,
+                            animationRecord.length,
                             animBlock.scale.interpolation_type,
                             animBlock.scale.timestampsPerAnimation[animation],
                             animBlock.scale.valuesPerAnimation[animation]);
@@ -455,6 +469,7 @@
                 if (bone.isCalculated) return;
                 var boneDefinition = this.m2Geom.m2File.bones[index];
                 var parentBone = boneDefinition.parent_bone;
+                var animationRecord = this.m2Geom.m2File.animations[animation];
 
                 //2. Calc current transformation matrix
 
@@ -477,6 +492,7 @@
                     var transVec = this.getTimedValue(
                         0,
                         time,
+                        animationRecord.length,
                         boneDefinition.translation.interpolation_type,
                         boneDefinition.translation.timestampsPerAnimation[animation],
                         boneDefinition.translation.valuesPerAnimation[animation]);
@@ -534,6 +550,7 @@
                     var quaternionVec4 = this.getTimedValue(
                         1,
                         time,
+                        animationRecord.length,
                         boneDefinition.rotation.interpolation_type,
                         boneDefinition.rotation.timestampsPerAnimation[animation],
                         boneDefinition.rotation.valuesPerAnimation[animation]);
@@ -552,6 +569,7 @@
                     var scaleVec3 = this.getTimedValue(
                         0,
                         time,
+                        animationRecord.length,
                         boneDefinition.scale.interpolation_type,
                         boneDefinition.scale.timestampsPerAnimation[animation],
                         boneDefinition.scale.valuesPerAnimation[animation]);

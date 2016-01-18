@@ -146,6 +146,30 @@
                     ]
                 },
                 {
+                    name : "animations",
+                    offset : "ofsAnimations",
+                    count : "nAnimations",
+                    type: "layout",
+                    layout: [
+                        //Adapted from http://www.pxr.dk/wowdev/wiki/index.php?title=M2/WotLK#Animation_sequences
+                        {name: "animation_id",          type: "uint16"},  // Animation id in AnimationData.dbc
+                        {name: "sub_animation_id",      type: "uint16"},  // Sub-animation id: Which number in a row of animations this one is.
+                        {name: "length",                type: "uint32"},  // The length (timestamps) of the animation. I believe this actually the length of the animation in milliseconds.
+                        {name: "moving_speed",          type: "float32"}, // This is the speed the character moves with in this animation.
+                        {name: "flags",                 type: "uint32"},  // See below.
+                        {name: "probability",           type: "int16"},   // This is used to determine how often the animation is played. For all animations of the same type, this adds up to 0x7FFF (32767).
+                        {name: "_padding",              type: "uint16"},
+                        {name: "minimum_repetitions",   type: "uint32"},  // May both be 0 to not repeat. Client will pick a random number of repetitions within bounds if given.
+                        {name: "maximum_repetitions",   type: "uint32"},
+                        {name: "blend_time",            type: "uint32"},  // The client blends (lerp) animation states between animations where the end and start values differ. This specifies how long that blending takes. Values: 0, 50, 100, 150, 200, 250, 300, 350, 500.
+                        {name: "boundingCorner1",       type: "vector3f"},
+                        {name: "boundingCorner2",       type: "vector3f"},
+                        {name: "bound_radius",          type: "float32"},
+                        {name: "next_animation",        type: "int16"},   // id of the following animation of this AnimationID, points to an Index or is -1 if none.
+                        {name: "aliasNext",             type: "uint16"}   // id in the list of animations. Used to find actual animation if this sequence is an alias (flags & 0x40)
+                    ]
+                },
+                {
                     name : "texLookup",
                     offset: "ofsTexLookup",
                     count : "nTexLookup",
