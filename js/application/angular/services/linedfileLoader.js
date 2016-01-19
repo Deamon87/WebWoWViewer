@@ -73,7 +73,7 @@
 
                                 result = {};
                                 result.interpolation_type = fileObject.readUint16(offset);
-                                result.global_sequence = fileObject.readUint16(offset);
+                                result.global_sequence = fileObject.readInt16(offset);
 
                                 /* 1. Timestamps  */
                                 var timeStampAnimationsCnt = fileObject.readInt32(offset);

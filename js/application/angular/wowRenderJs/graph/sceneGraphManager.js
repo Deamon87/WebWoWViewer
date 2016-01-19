@@ -165,7 +165,7 @@
                     this.m2Objects[j].setIsRendered(true);
                 }
 
-                if (this.currentInteriorGroup >= 0) {
+                if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
                     for (var j = 0; j < this.m2Objects.length; j++) {
                         this.m2Objects[j].setIsRendered(false);
                     }
@@ -173,11 +173,13 @@
                         this.wmoObjects[i].resetDrawnForAllGroups(false);
                     }
                     //TODO: set not render for adt too
+                    //Cull with normal portals
+                    this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
 
-                    //Begin construction of portals...
+                    //Travel through portals
+                    this.currentWMO.transverseInteriorWMO(frustumMat, lookAtMat4)
+                    this.currentWMO.transverseExteriorWMO(frustumMat, lookAtMat4)
 
-                    //1.
-                    this.checkNormalFrustumCulling(frustumMat, lookAtMat4)
                 } else {
                     this.checkNormalFrustumCulling(frustumMat, lookAtMat4)
                 }
@@ -193,7 +195,7 @@
                 /* Checking group wmo will significatly decrease the amount of m2wmo */
                 for (var i = 0; i < this.wmoObjects.length; i++) {
                     this.wmoObjects[i].resetDrawnForAllGroups(true);
-                    this.wmoObjects[i].checkFrustumCulling(this.position,frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
+                    this.wmoObjects[i].checkFrustumCulling(this.position, frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
                     this.wmoObjects[i].setIsRenderedForDoodads();
                 }
 
@@ -376,9 +378,11 @@
                 }
 
                 //2.0. Draw WMO bsp highlighted vertices
-                this.sceneApi.shaders.activateDrawPortalShader();
-                for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].drawBspVerticles();
+                if (config.getRenderBSP()) {
+                    this.sceneApi.shaders.activateDrawPortalShader();
+                    for (var i = 0; i < this.wmoObjects.length; i++) {
+                        this.wmoObjects[i].drawBspVerticles();
+                    }
                 }
 
                 //2. Draw WMO
@@ -410,10 +414,13 @@
                 }
 
                 //6. Draw WMO portals
-                this.sceneApi.shaders.activateDrawPortalShader();
-                for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].drawPortals();
+                if (config.getRenderPortals()) {
+                    this.sceneApi.shaders.activateDrawPortalShader();
+                    for (var i = 0; i < this.wmoObjects.length; i++) {
+                        this.wmoObjects[i].drawPortals();
+                    }
                 }
+
 
                 /*
                 //5.1 Draw instanced nontransparent meshes of m2

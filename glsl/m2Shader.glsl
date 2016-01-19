@@ -23,7 +23,7 @@ attribute vec4 aColor;
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 uniform int isBillboard;
-uniform mat4 uBoneMatrixes[59]; //Max 59 for ANGLE implementation and max 100 bones in Wotlk client
+uniform mat4 uBoneMatrixes[59]; //Max 59 for ANGLE implementation and max 120? bones in Wotlk client
 
 #ifdef INSTANCED
 attribute mat4 uPlacementMat;

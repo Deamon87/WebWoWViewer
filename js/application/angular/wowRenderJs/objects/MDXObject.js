@@ -224,6 +224,7 @@
                             0,
                             time,
                             animationRecord.length,
+                            colors[i].color.global_sequence,
                             colors[i].color.interpolation_type,
                             colors[i].color.timestampsPerAnimation[animation],
                             colors[i].color.valuesPerAnimation[animation]);
@@ -231,6 +232,7 @@
                             2,
                             time,
                             animationRecord.length,
+                            colors[i].alpha.global_sequence,
                             colors[i].alpha.interpolation_type,
                             colors[i].alpha.timestampsPerAnimation[animation],
                             colors[i].alpha.valuesPerAnimation[animation]);
@@ -261,6 +263,7 @@
                             2,
                             time,
                             animationRecord.length,
+                            transparencies[i].values.global_sequence,
                             transparencies[i].values.interpolation_type,
                             transparencies[i].values.timestampsPerAnimation[animation],
                             transparencies[i].values.valuesPerAnimation[animation]);
@@ -326,7 +329,9 @@
             },
             interpolateValues : function (currentTime, interpolType, time1, time2, value1, value2){
                 //Support and use only linear interpolation for now
-                if (interpolType >= 1) {
+                if (interpolType == 0) {
+                    return value1;
+                } else if (interpolType >= 1) {
                     var diff = vec4.create();
                     vec4.subtract(diff, value2, value1);
                     vec4.scale(diff, diff, (currentTime - time1)/(time2 - time1));
@@ -336,7 +341,7 @@
                     return result;
                 }
             },
-            getTimedValue : function (value_type, currTime, maxTime, interpolType, times, values) {
+            getTimedValue : function (value_type, currTime, maxTime, globalSequence, interpolType, times, values) {
                 function convertInt16ToFloat(value){
                     return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
                 }
@@ -352,16 +357,20 @@
                         return [value/32767,value/32767, value/32767, value/32767];
                     }
                 }
+                if (globalSequence >=0) {
+                    maxTime = this.m2Geom.m2File.globalSequences[globalSequence];
+                }
 
                 var times_len = times.length;
                 var result;
-                if (times_len > 1 && interpolType > 0) {
+                if (times_len > 1) {
                     //var maxTime = times[times_len-1];
                     var animTime = currTime % maxTime;
 
                     if (animTime > times[times_len-1] && animTime <= maxTime) {
                         result = convertValueTypeToVec4(values[0], value_type);
                     } else {
+                        result =  convertValueTypeToVec4(times[times_len-1], value_type);
                         for (var i = 0; i < times_len; i++) {
                             if (times[i] > animTime) {
                                 var value1 = values[i - 1];
@@ -412,6 +421,7 @@
                             0,
                             time,
                             animationRecord.length,
+                            animBlock.translation.global_sequence,
                             animBlock.translation.interpolation_type,
                             animBlock.translation.timestampsPerAnimation[animation],
                             animBlock.translation.valuesPerAnimation[animation]);
@@ -432,6 +442,7 @@
                             1,
                             time,
                             animationRecord.length,
+                            animBlock.rotation.global_sequence,
                             animBlock.rotation.interpolation_type,
                             animBlock.rotation.timestampsPerAnimation[animation],
                             animBlock.rotation.valuesPerAnimation[animation]);
@@ -450,6 +461,7 @@
                             0,
                             time,
                             animationRecord.length,
+                            animBlock.scale.global_sequence,
                             animBlock.scale.interpolation_type,
                             animBlock.scale.timestampsPerAnimation[animation],
                             animBlock.scale.valuesPerAnimation[animation]);
@@ -493,6 +505,7 @@
                         0,
                         time,
                         animationRecord.length,
+                        boneDefinition.translation.global_sequence,
                         boneDefinition.translation.interpolation_type,
                         boneDefinition.translation.timestampsPerAnimation[animation],
                         boneDefinition.translation.valuesPerAnimation[animation]);
@@ -551,6 +564,7 @@
                         1,
                         time,
                         animationRecord.length,
+                        boneDefinition.rotation.global_sequence,
                         boneDefinition.rotation.interpolation_type,
                         boneDefinition.rotation.timestampsPerAnimation[animation],
                         boneDefinition.rotation.valuesPerAnimation[animation]);
@@ -570,6 +584,7 @@
                         0,
                         time,
                         animationRecord.length,
+                        boneDefinition.scale.global_sequence,
                         boneDefinition.scale.interpolation_type,
                         boneDefinition.scale.timestampsPerAnimation[animation],
                         boneDefinition.scale.valuesPerAnimation[animation]);

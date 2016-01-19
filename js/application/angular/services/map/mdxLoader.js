@@ -146,6 +146,12 @@
                     ]
                 },
                 {
+                    name : "globalSequences",
+                    offset : "ofsGlobalSequences",
+                    count : "nGlobalSequences",
+                    type: "uint32"
+                },
+                {
                     name : "animations",
                     offset : "ofsAnimations",
                     count : "nAnimations",

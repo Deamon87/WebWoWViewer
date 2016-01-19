@@ -3,10 +3,10 @@
 
 (function (window, $, undefined) {
     var cacheTemplate = angular.module('js.wow.render.wmoObjectFactory', [
-        'js.wow.render.wmoM2ObjectFactory'
+        'js.wow.render.wmoM2ObjectFactory', 'main.services.config'
     ]);
-    cacheTemplate.factory("wmoObjectFactory", ['$q', '$timeout', 'wmoM2ObjectFactory', 'mathHelper',
-        function($q, $timeout, wmoM2ObjectFactory, mathHelper) {
+    cacheTemplate.factory("wmoObjectFactory", ['$q', '$timeout', 'configService', 'wmoM2ObjectFactory', 'mathHelper',
+        function($q, $timeout, config, wmoM2ObjectFactory, mathHelper) {
 
         function WmoObject(sceneApi){
             var self = this;
@@ -436,6 +436,9 @@
                     }
                 }
             },
+            transverseInteriorWMO : function (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
+
+            },
             checkFrustumCulling : function (cameraVec4, perspectiveMat, lookat, frustumPlanes) {
                 if (!this.worldGroupBorders) return;
                 //1. Set Doodads drawing to false. Doodad should be rendered if at least one WMO Group it belongs is visible(rendered)
@@ -468,11 +471,6 @@
 
                     var drawGroup = isInside || mathHelper.checkFrustum(frustumPlanes,bbArray);
 
-                    if (drawGroup) {
-                        //this.traverseGroupPortal(cameraVec4, perspectiveMat, lookat, frustumPlanes);
-                    }
-
-
                     this.drawGroup[i] = drawGroup;
                     this.drawDoodads[i] = drawDoodads;
                 }
@@ -501,7 +499,10 @@
                     if (this.wmoGroupArray[i]){
                         if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
 
-                        var bpsNode = (this.currentGroupId == i) ? this.wmoGroupArray[i].wmoGroupFile.nodes[this.currentNodeId] : null;
+                        var bpsNode = null;
+                        if (config.getRenderBSP()) {
+                            bpsNode = (this.currentGroupId == i) ? this.wmoGroupArray[i].wmoGroupFile.nodes[this.currentNodeId] : null;
+                        }
                         this.wmoGroupArray[i].draw(ambientColor, bpsNode);
                     }
                 }
