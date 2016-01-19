@@ -6,7 +6,10 @@
 
         function MDXObject(sceneApi){
             this.sceneApi = sceneApi;
+
             this.currentAnimation = 0;
+            this.currentAnimationStart = 0;
+
             this.currentTime = 0;
             this.isAnimated = false;
         }
@@ -208,9 +211,8 @@
 
                 return {vao : vao, ext : ext};
             },
-            getSubMeshColor : function (time) {
+            getSubMeshColor : function (animation, time) {
                 var colors = this.m2Geom.m2File.colors;
-                var animation = this.currentAnimation;
                 var animationRecord = this.m2Geom.m2File.animations[animation];
 
                 if (colors.length > 0) {
@@ -246,9 +248,8 @@
                     return null;
                 }
             },
-            getTransperencies : function (time) {
+            getTransperencies : function (animation, time) {
                 var transparencies = this.m2Geom.m2File.transparencies;
-                var animation = this.currentAnimation;
                 var animationRecord = this.m2Geom.m2File.animations[animation];
 
                 if (transparencies.length > 0) {
@@ -259,14 +260,21 @@
                     }
 
                     for (var i = 0; i < transparencies.length; i++) {
+                        /* Hack start */
+                        /* Transparencies can be shorter then total animation count */
+                        var animation_fix = animation;
+                        if (!transparencies[i].values.timestampsPerAnimation[animation_fix])
+                            animation_fix = 0;
+                        /* Hack end */
+
                         var transparency = this.getTimedValue(
                             2,
                             time,
                             animationRecord.length,
                             transparencies[i].values.global_sequence,
                             transparencies[i].values.interpolation_type,
-                            transparencies[i].values.timestampsPerAnimation[animation],
-                            transparencies[i].values.valuesPerAnimation[animation]);
+                            transparencies[i].values.timestampsPerAnimation[animation_fix],
+                            transparencies[i].values.valuesPerAnimation[animation_fix]);
 
                         result[i] = transparency[0];
                     }
@@ -315,17 +323,31 @@
             },
             update : function(deltaTime, cameraPos, invPlacementMat) {
                 if (!this.m2Geom) return;
+                var animation = this.currentAnimation;
 
-                var subMeshColors = this.getSubMeshColor(this.currentTime + deltaTime);
+                animation = this.checkCurrentAnimation(animation, this.currentTime + deltaTime);
+
+                var subMeshColors = this.getSubMeshColor(animation, this.currentTime + deltaTime);
                 this.subMeshColors = subMeshColors;
 
-                var transperencies = this.getTransperencies(this.currentTime + deltaTime);
+                var transperencies = this.getTransperencies(animation, this.currentTime + deltaTime);
                 this.transperencies = transperencies;
 
-                this.calcBones(this.currentAnimation, this.currentTime + deltaTime, cameraPos, invPlacementMat);
-                this.calcAnimMatrixes(this.currentTime + deltaTime);
+                this.calcBones(animation, this.currentTime + deltaTime, cameraPos, invPlacementMat);
+                this.calcAnimMatrixes(animation, this.currentTime + deltaTime);
 
                 this.currentTime += deltaTime;
+            },
+            checkCurrentAnimation : function (animation, currentTime) {
+                var animationRecord = this.m2Geom.m2File.animations[animation];
+
+                if (currentTime > this.currentAnimationStart+animationRecord.length){
+                    if (animationRecord.next_animation > -1) {
+                        this.currentAnimation = animationRecord.next_animation
+                    }
+                    this.currentAnimationStart = currentTime;
+                }
+                return this.currentAnimation;
             },
             interpolateValues : function (currentTime, interpolType, time1, time2, value1, value2){
                 //Support and use only linear interpolation for now
@@ -399,7 +421,7 @@
 
                 return result;
             },
-            calcAnimMatrixes : function (time) {
+            calcAnimMatrixes : function (animation, time) {
                 if (!this.textAnimMatrix) {
                     var textAnimMatrix = new Array(this.m2Geom.m2File.texAnims.length);
                     for (var i = 0; i < textAnimMatrix.length; i++) {
@@ -409,7 +431,6 @@
                     this.textAnimMatrix = textAnimMatrix;
                 }
 
-                var animation = this.currentAnimation;
                 var animationRecord = this.m2Geom.m2File.animations[animation];
                 for (var i = 0; i < this.m2Geom.m2File.texAnims.length; i++) {
                     var animBlock = this.m2Geom.m2File.texAnims[i];
