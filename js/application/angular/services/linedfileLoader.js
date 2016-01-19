@@ -81,17 +81,16 @@
 
                                 timeStampAnimationsCnt = (timeStampAnimationsCnt < 0) ? 0 : timeStampAnimationsCnt;
 
-                                result.timestampsPerAnimation = [];
-                                result.timestampsPerAnimation.length = timeStampAnimationsCnt;
+                                result.timestampsPerAnimation = new Array(timeStampAnimationsCnt);
 
                                 var off1 = {offs: timeStampAnimationsOffset};
                                 for (var i = 0; i < timeStampAnimationsCnt; i++) {
-                                    result.timestampsPerAnimation[i] = [];
                                     var timestampsCnt = fileObject.readUint32(off1);
                                     var timestampsOff = fileObject.readUint32(off1);
 
+                                    result.timestampsPerAnimation[i] = new Array(timestampsCnt);
+
                                     var offs2 = {offs : timestampsOff};
-                                    result.timestampsPerAnimation[i].length = timestampsCnt;
                                     for (var j = 0; j < timestampsCnt; j++) {
                                         result.timestampsPerAnimation[i][j] = fileObject.readUint32(offs2);
                                     }
@@ -103,16 +102,15 @@
 
                                 valuesAnimationsCnt = (valuesAnimationsCnt <= 0) ? 0 : valuesAnimationsCnt;
 
-                                result.valuesPerAnimation = [];
-                                result.valuesPerAnimation.length = valuesAnimationsCnt;
+                                result.valuesPerAnimation = new Array(valuesAnimationsCnt);
 
                                 var offs1 = {offs: valuesAnimationsOffset} ;
                                 for (var i = 0; i < valuesAnimationsCnt; i++) {
-                                    result.valuesPerAnimation[i] = [];
 
                                     var valuesCnt = fileObject.readUint32(offs1);
                                     var valuesOffset = fileObject.readUint32(offs1);
-                                    result.valuesPerAnimation[i].length = valuesCnt;
+
+                                    result.valuesPerAnimation[i] = new Array(valuesCnt);
 
                                     var offs2 = {offs : valuesOffset};
                                     for (var j = 0; j < valuesCnt; j++) {

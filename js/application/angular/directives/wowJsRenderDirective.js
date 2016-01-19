@@ -13,7 +13,7 @@
                 '<div>lookAt = ( {{cameraVecs.lookAtVec3[0]}}, {{cameraVecs.lookAtVec3[1]}}, {{cameraVecs.lookAtVec3[2]}} )</div>' +
                 '<div>Group number = {{updateResult.interiorGroupNum}}</div>'+
                 '<div>BSP Node Id = {{updateResult.nodeId}}</div>'+
-                '<input type="checkbox" ng-model="drawM2" >Draw M2 objects</input>' +
+                '<input type="checkbox" ng-model="drawM2" >Draw M2 objects</input><input type="checkbox" ng-model="drawPortals" >Draw portals</input>' +
                 '</div>',
             link: function postLink(scope, element, attrs) {
                 var canvas = element.find('canvas')[0];
@@ -23,6 +23,9 @@
 
                 scope.$watch('drawM2', function (newValue) {
                     config.setRenderM2(newValue);
+                });
+                scope.$watch('drawPortals', function (newValue) {
+                    config.setRenderPortals(newValue);
                 });
                 var renderfunc = function(){
 
@@ -67,6 +70,7 @@
                 });
                   */
 
+                        /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo",
                     uniqueId : 0,
@@ -74,6 +78,8 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
+                */
+
 
                 /*
                 sceneObj.loadWMOFile({
@@ -115,7 +121,7 @@
                  });
                     */
 
-                /*
+
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
                     uniqueId : 0,
@@ -123,7 +129,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-                */
+
 
 
                 /*
@@ -168,6 +174,7 @@
 
                 //sceneObj.loadMap("Kalimdor", 32, 32);
                 //sceneObj.loadMap("Azeroth", 31, 31);
+                //sceneObj.loadMap("Azeroth", 38, 40); sceneObj.setCameraPos(-4583, -3290, 394);
                 //sceneObj.loadMap("Azeroth", 28, 28); sceneObj.setCameraPos(2000, 1600, 137);
                 //sceneObj.loadMap("Azeroth", 34, 51); sceneObj.setCameraPos(-10000, -1200, 76);
 

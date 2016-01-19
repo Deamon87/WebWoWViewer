@@ -6,6 +6,7 @@
 
         function MDXObject(sceneApi){
             this.sceneApi = sceneApi;
+            this.currentAnimationStart = 0;
             this.currentAnimation = 0;
             this.currentTime = 0;
             this.isAnimated = false;
@@ -208,9 +209,8 @@
 
                 return {vao : vao, ext : ext};
             },
-            getSubMeshColor : function (time) {
+            getSubMeshColor : function (animation, time) {
                 var colors = this.m2Geom.m2File.colors;
-                var animation = this.currentAnimation;
                 var animationRecord = this.m2Geom.m2File.animations[animation];
 
                 if (colors.length > 0) {
@@ -224,20 +224,23 @@
                             0,
                             time,
                             animationRecord.length,
-                            colors[i].color.global_sequence,
-                            colors[i].color.interpolation_type,
-                            colors[i].color.timestampsPerAnimation[animation],
-                            colors[i].color.valuesPerAnimation[animation]);
+                            animation,
+                            colors[i].color);
                         var alpha = this.getTimedValue(
                             2,
                             time,
                             animationRecord.length,
-                            colors[i].alpha.global_sequence,
-                            colors[i].alpha.interpolation_type,
-                            colors[i].alpha.timestampsPerAnimation[animation],
-                            colors[i].alpha.valuesPerAnimation[animation]);
+                            animation,
+                            colors[i].alpha);
 
-                        result[i] = [colorVec[0], colorVec[1], colorVec[2], alpha[0]];
+                        if (colorVec) {
+                            result[i] = [colorVec[0], colorVec[1], colorVec[2],1]
+                        } else {
+                            result[i] = [1.0, 1.0, 1.0, 1.0]
+                        }
+                        if (alpha) {
+                            result[i][3] = alpha[0];
+                        }
                     }
 
                     return result;
@@ -246,9 +249,8 @@
                     return null;
                 }
             },
-            getTransperencies : function (time) {
+            getTransperencies : function (animation, time) {
                 var transparencies = this.m2Geom.m2File.transparencies;
-                var animation = this.currentAnimation;
                 var animationRecord = this.m2Geom.m2File.animations[animation];
 
                 if (transparencies.length > 0) {
@@ -263,10 +265,8 @@
                             2,
                             time,
                             animationRecord.length,
-                            transparencies[i].values.global_sequence,
-                            transparencies[i].values.interpolation_type,
-                            transparencies[i].values.timestampsPerAnimation[animation],
-                            transparencies[i].values.valuesPerAnimation[animation]);
+                            animation,
+                            transparencies[i].values);
 
                         result[i] = transparency[0];
                     }
@@ -316,16 +316,33 @@
             update : function(deltaTime, cameraPos, invPlacementMat) {
                 if (!this.m2Geom) return;
 
-                var subMeshColors = this.getSubMeshColor(this.currentTime + deltaTime);
+                var animation = this.currentAnimation;
+                animation = this.checkCurrentAnimation(animation, this.currentTime + deltaTime);
+
+
+                var subMeshColors = this.getSubMeshColor(animation, this.currentTime + deltaTime);
                 this.subMeshColors = subMeshColors;
 
-                var transperencies = this.getTransperencies(this.currentTime + deltaTime);
+                var transperencies = this.getTransperencies(animation, this.currentTime + deltaTime);
                 this.transperencies = transperencies;
 
-                this.calcBones(this.currentAnimation, this.currentTime + deltaTime, cameraPos, invPlacementMat);
-                this.calcAnimMatrixes(this.currentTime + deltaTime);
+                this.calcBones(animation, this.currentTime + deltaTime, cameraPos, invPlacementMat);
+                this.calcAnimMatrixes(animation, this.currentTime + deltaTime);
 
                 this.currentTime += deltaTime;
+            },
+            checkCurrentAnimation : function(animation, currentTime) {
+                var animationRecord = this.m2Geom.m2File.animations[animation];
+                if (currentTime > this.currentAnimationStart+animationRecord.length) {
+                    var nextAnimation = animationRecord.next_animation;
+                    this.currentAnimationStart = currentTime;
+
+                    if (nextAnimation >= 0) {
+                        this.currentAnimation = nextAnimation;
+                        return nextAnimation
+                    }
+                }
+                return this.currentAnimation;
             },
             interpolateValues : function (currentTime, interpolType, time1, time2, value1, value2){
                 //Support and use only linear interpolation for now
@@ -341,7 +358,7 @@
                     return result;
                 }
             },
-            getTimedValue : function (value_type, currTime, maxTime, globalSequence, interpolType, times, values) {
+            getTimedValue : function (value_type, currTime, maxTime, animation, animationBlock) {
                 function convertInt16ToFloat(value){
                     return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
                 }
@@ -357,6 +374,23 @@
                         return [value/32767,value/32767, value/32767, value/32767];
                     }
                 }
+
+                var globalSequence = animationBlock.global_sequence;
+                var interpolType = animationBlock.interpolation_type;
+
+                var times = animationBlock.timestampsPerAnimation[animation];
+                var values =  animationBlock.valuesPerAnimation[animation];
+
+                //Hack
+                if (times == undefined) {
+                    animation = 0;
+                    times = animationBlock.timestampsPerAnimation[animation];
+                    values =  animationBlock.valuesPerAnimation[animation];
+                }
+                if (times.length == 0) {
+                    return undefined;
+                }
+
                 if (globalSequence >=0) {
                     maxTime = this.m2Geom.m2File.globalSequences[globalSequence];
                 }
@@ -399,7 +433,7 @@
 
                 return result;
             },
-            calcAnimMatrixes : function (time) {
+            calcAnimMatrixes : function (animation, time) {
                 if (!this.textAnimMatrix) {
                     var textAnimMatrix = new Array(this.m2Geom.m2File.texAnims.length);
                     for (var i = 0; i < textAnimMatrix.length; i++) {
@@ -409,22 +443,19 @@
                     this.textAnimMatrix = textAnimMatrix;
                 }
 
-                var animation = this.currentAnimation;
                 var animationRecord = this.m2Geom.m2File.animations[animation];
                 for (var i = 0; i < this.m2Geom.m2File.texAnims.length; i++) {
                     var animBlock = this.m2Geom.m2File.texAnims[i];
 
                     var tranformMat = mat4.identity(this.textAnimMatrix[i]);
 
-                    if (animBlock.translation.valuesPerAnimation.length > 0 && animBlock.translation.valuesPerAnimation[animation].length > 0) {
+                    if (animBlock.translation.valuesPerAnimation.length > 0) {
                         var transVec = this.getTimedValue(
                             0,
                             time,
                             animationRecord.length,
-                            animBlock.translation.global_sequence,
-                            animBlock.translation.interpolation_type,
-                            animBlock.translation.timestampsPerAnimation[animation],
-                            animBlock.translation.valuesPerAnimation[animation]);
+                            animation,
+                            animBlock.translation);
 
                         if (transVec) {
                             transVec = mat4.translate(tranformMat, tranformMat, [
@@ -435,17 +466,14 @@
                             ]);
                         }
                     }
-                    if (animBlock.rotation.valuesPerAnimation.length > 0 &&
-                        animBlock.rotation.valuesPerAnimation[animation].length > 0) {
+                    if (animBlock.rotation.valuesPerAnimation.length > 0) {
 
                         var quaternionVec4 = this.getTimedValue(
                             1,
                             time,
                             animationRecord.length,
-                            animBlock.rotation.global_sequence,
-                            animBlock.rotation.interpolation_type,
-                            animBlock.rotation.timestampsPerAnimation[animation],
-                            animBlock.rotation.valuesPerAnimation[animation]);
+                            animation,
+                            animBlock.rotation);
 
                         if (quaternionVec4) {
                             var orientMatrix = mat4.create();
@@ -454,24 +482,23 @@
                         }
                     }
 
-                    if (animBlock.scale.valuesPerAnimation.length > 0 &&
-                        animBlock.scale.valuesPerAnimation[animation].length > 0) {
+                    if (animBlock.scale.valuesPerAnimation.length > 0) {
 
                         var scaleVec3 = this.getTimedValue(
                             0,
                             time,
                             animationRecord.length,
-                            animBlock.scale.global_sequence,
-                            animBlock.scale.interpolation_type,
-                            animBlock.scale.timestampsPerAnimation[animation],
-                            animBlock.scale.valuesPerAnimation[animation]);
+                            animation,
+                            animBlock.scale);
 
-                        mat4.scale(tranformMat, tranformMat, [
-                                scaleVec3[0],
-                                scaleVec3[1],
-                                scaleVec3[2]
-                            ]
-                        );
+                        if (scaleVec3) {
+                            mat4.scale(tranformMat, tranformMat, [
+                                    scaleVec3[0],
+                                    scaleVec3[1],
+                                    scaleVec3[2]
+                                ]
+                            );
+                        }
                     }
 
                     this.textAnimMatrix[i] = tranformMat;
@@ -500,15 +527,13 @@
                     0
                 ]);
 
-                if (boneDefinition.translation.valuesPerAnimation.length > 0 && boneDefinition.translation.valuesPerAnimation[animation].length > 0) {
+                if (boneDefinition.translation.valuesPerAnimation.length > 0) {
                     var transVec = this.getTimedValue(
                         0,
                         time,
                         animationRecord.length,
-                        boneDefinition.translation.global_sequence,
-                        boneDefinition.translation.interpolation_type,
-                        boneDefinition.translation.timestampsPerAnimation[animation],
-                        boneDefinition.translation.valuesPerAnimation[animation]);
+                        animation,
+                        boneDefinition.translation);
 
                     if (transVec) {
                         transVec = mat4.translate(tranformMat, tranformMat, [
@@ -557,17 +582,14 @@
                             0,0,0,1
                         ]);
                     this.isAnimated = true;
-                } else if (boneDefinition.rotation.valuesPerAnimation.length > 0 &&
-                    boneDefinition.rotation.valuesPerAnimation[animation].length > 0) {
+                } else if (boneDefinition.rotation.valuesPerAnimation.length > 0) {
 
                     var quaternionVec4 = this.getTimedValue(
                         1,
                         time,
                         animationRecord.length,
-                        boneDefinition.rotation.global_sequence,
-                        boneDefinition.rotation.interpolation_type,
-                        boneDefinition.rotation.timestampsPerAnimation[animation],
-                        boneDefinition.rotation.valuesPerAnimation[animation]);
+                        animation,
+                        boneDefinition.rotation);
 
                     if (quaternionVec4) {
                         var orientMatrix = mat4.create();
@@ -577,24 +599,23 @@
                     }
                 }
 
-                if (boneDefinition.scale.valuesPerAnimation.length > 0 &&
-                    boneDefinition.scale.valuesPerAnimation[animation].length > 0) {
+                if (boneDefinition.scale.valuesPerAnimation.length > 0) {
 
                     var scaleVec3 = this.getTimedValue(
                         0,
                         time,
                         animationRecord.length,
-                        boneDefinition.scale.global_sequence,
-                        boneDefinition.scale.interpolation_type,
-                        boneDefinition.scale.timestampsPerAnimation[animation],
-                        boneDefinition.scale.valuesPerAnimation[animation]);
+                        animation,
+                        boneDefinition.scale);
 
-                    mat4.scale(tranformMat, tranformMat, [
-                            scaleVec3[0],
-                            scaleVec3[1],
-                            scaleVec3[2]
-                        ]
-                    );
+                    if (scaleVec3) {
+                        mat4.scale(tranformMat, tranformMat, [
+                                scaleVec3[0],
+                                scaleVec3[1],
+                                scaleVec3[2]
+                            ]
+                        );
+                    }
                     this.isAnimated = true;
                 }
 
