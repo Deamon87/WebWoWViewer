@@ -85,12 +85,12 @@
 
                                 var off1 = {offs: timeStampAnimationsOffset};
                                 for (var i = 0; i < timeStampAnimationsCnt; i++) {
-                                    result.timestampsPerAnimation[i] = [];
                                     var timestampsCnt = fileObject.readUint32(off1);
                                     var timestampsOff = fileObject.readUint32(off1);
 
+                                    result.timestampsPerAnimation[i] = new Array(timestampsCnt);
+
                                     var offs2 = {offs : timestampsOff};
-                                    result.timestampsPerAnimation[i].length = timestampsCnt;
                                     for (var j = 0; j < timestampsCnt; j++) {
                                         result.timestampsPerAnimation[i][j] = fileObject.readUint32(offs2);
                                     }
@@ -106,6 +106,7 @@
 
                                 var offs1 = {offs: valuesAnimationsOffset} ;
                                 for (var i = 0; i < valuesAnimationsCnt; i++) {
+
                                     var valuesCnt = fileObject.readUint32(offs1);
                                     var valuesOffset = fileObject.readUint32(offs1);
 

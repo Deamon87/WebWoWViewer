@@ -340,6 +340,12 @@
                         throw e;
                     }
 
+                /* Debug
+                if (resultMDXObject.bones.filter((a) => ((a.flags & 0x40) > 0)).length > 0){
+                    $log.info("File "+ filePath + " has cylindric billboarding bones")
+                }
+                */
+
                 resultMDXObject.fileName = filePath;
                 return resultMDXObject;
             },

@@ -13,7 +13,7 @@
                 '<div>lookAt = ( {{cameraVecs.lookAtVec3[0]}}, {{cameraVecs.lookAtVec3[1]}}, {{cameraVecs.lookAtVec3[2]}} )</div>' +
                 '<div>Group number = {{updateResult.interiorGroupNum}}</div>'+
                 '<div>BSP Node Id = {{updateResult.nodeId}}</div>'+
-                '<input type="checkbox" ng-model="drawM2" >Draw M2 objects</input>' +
+                '<input type="checkbox" ng-model="drawM2" >Draw M2 objects</input><input type="checkbox" ng-model="drawPortals" >Draw portals</input>' +
                 '</div>',
             link: function postLink(scope, element, attrs) {
                 var canvas = element.find('canvas')[0];
@@ -23,6 +23,9 @@
 
                 scope.$watch('drawM2', function (newValue) {
                     config.setRenderM2(newValue);
+                });
+                scope.$watch('drawPortals', function (newValue) {
+                    config.setRenderPortals(newValue);
                 });
                 var renderfunc = function(){
 
@@ -67,6 +70,7 @@
                 });
                   */
 
+                        /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo",
                     uniqueId : 0,
@@ -74,8 +78,10 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
+                */
 
-                /*
+
+               /*
                 sceneObj.loadWMOFile({
                     fileName : "WORLD/WMO/OUTLAND/TEROKKAR/SHATTRATHCITY.WMO",
                     uniqueId : 0,
@@ -83,7 +89,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-                */
+               */
                 /*
                 sceneObj.loadWMOFile({
                     fileName : "world/wmo/azeroth/buildings/stormwind/stormwindharbor.wmo",
@@ -115,6 +121,7 @@
                  });
                     */
 
+
                 /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
@@ -124,6 +131,7 @@
                     doodadSet: 0
                 });
                 */
+
 
 
                 /*
@@ -146,7 +154,7 @@
                 });
                 */
 
-                /*
+                     /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
                     uniqueId : 0,
@@ -168,6 +176,7 @@
 
                 //sceneObj.loadMap("Kalimdor", 32, 32);
                 //sceneObj.loadMap("Azeroth", 31, 31);
+                //sceneObj.loadMap("Azeroth", 38, 40); sceneObj.setCameraPos(-4583, -3290, 394);
                 //sceneObj.loadMap("Azeroth", 28, 28); sceneObj.setCameraPos(2000, 1600, 137);
                 //sceneObj.loadMap("Azeroth", 34, 51); sceneObj.setCameraPos(-10000, -1200, 76);
 
@@ -183,6 +192,7 @@
                 //sceneObj.loadMap("DeeprunTram", 30, 21); sceneObj.setCameraPos(17066.666666656, 17066.666666656, 0);
                 //sceneObj.loadMap("Karazahn", 35, 52); sceneObj.setCameraPos(-10666.666666656, -1600, 170);
 
+
                 /*
                 sceneObj.loadM2File({
                     fileName : "WORLD\\EXPANSION01\\DOODADS\\SHATTRATH\\PASSIVEDOODADS\\CENTRAL_ENERGY_FX\\SHATTRATH_NARRU_ENERGY_FX.m2",
@@ -192,6 +202,7 @@
                     scale    : 1024
                 });
                 */
+
                 /*
                 sceneObj.loadM2File({
                     fileName : "WORLD\\KHAZMODAN\\IRONFORGE\\PASSIVEDOODADS\\GARAGEMACHINE\\GARAGEMACHINE.m2",
@@ -279,6 +290,24 @@
                     scale: 1024
                 });
                 */
+                /*
+                sceneObj.loadM2File({
+                    fileName: "WORLD\\EXPANSION02\\DOODADS\\ULDUAR\\UL_BANISTER01.m2",
+                    uniqueId: 0,
+                    pos: {x: 0 + 17066.666666656, y: 0, z: 0 + 17066.666666656},
+                    rotation: {x: 0, y: 0, z: 0},
+                    scale: 1024
+                });
+                  */
+
+                sceneObj.loadM2File({
+                    fileName: "WORLD\\ENVIRONMENT\\DOODAD\\ANQUIRAJ\\LIGHTSHAFT\\HIVE_LIGHTSHAFT01.m2",
+                    uniqueId: 0,
+                    pos: {x: 0 + 17066.666666656, y: 0, z: 0 + 17066.666666656},
+                    rotation: {x: 0, y: 0, z: 0},
+                    scale: 1024
+                });
+
 
 
                 //adtLoader('world//maps\\AhnQiraj\\AhnQiraj_26_46.adt');
