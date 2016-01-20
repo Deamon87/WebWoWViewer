@@ -567,7 +567,7 @@
                     vec3.normalize(modelForward, cameraInlocalPos);
 
                     if ((boneDefinition.flags & 0x40) > 0) {
-                        //Cilindric billboarding
+                        //Cylindrical billboard
 
                         var modelUp = vec3.fromValues(0,0,1);
 
@@ -582,7 +582,7 @@
                         vec3.normalize(modelRight, modelRight);
 
                     } else {
-                        //Spherical billboarding
+                        //Spherical billboard
                         var modelRight = vec3.create();
                         vec3.cross(modelRight, [0, 0, 1], modelForward);
                         vec3.normalize(modelRight, modelRight);
