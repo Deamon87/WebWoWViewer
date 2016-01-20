@@ -546,7 +546,7 @@
                     }
                 }
 
-                if ((boneDefinition.flags & 0x8) > 0) {
+                if (((boneDefinition.flags & 0x8) > 0) || ((boneDefinition.flags & 0x40) > 0)) {
                     //From http://gamedev.stackexchange.com/questions/112270/calculating-rotation-matrix-for-an-object-relative-to-a-planets-surface-in-monog
                     var modelForward = vec3.create();
                     var cameraInlocalPos = vec4.create();
@@ -566,13 +566,32 @@
 
                     vec3.normalize(modelForward, cameraInlocalPos);
 
-                    var modelRight = vec3.create();
-                    vec3.cross(modelRight, [0,0,1], modelForward);
-                    vec3.normalize(modelRight,modelRight);
+                    if ((boneDefinition.flags & 0x40) > 0) {
+                        //Cilindric billboarding
 
-                    var modelUp = vec3.create();
-                    vec3.cross(modelUp, modelForward, modelRight);
-                    vec3.normalize(modelUp, modelUp);
+                        var modelUp = vec3.fromValues(0,0,1);
+
+                        var modelRight = vec3.create();
+                        vec3.cross(modelRight, modelUp, modelForward);
+                        vec3.normalize(modelRight, modelRight);
+
+                        vec3.cross(modelForward, modelRight, modelUp);
+                        vec3.normalize(modelForward, modelForward);
+
+                        vec3.cross(modelRight, modelUp, modelForward);
+                        vec3.normalize(modelRight, modelRight);
+
+                    } else {
+                        //Spherical billboarding
+                        var modelRight = vec3.create();
+                        vec3.cross(modelRight, [0, 0, 1], modelForward);
+                        vec3.normalize(modelRight, modelRight);
+
+                        var modelUp = vec3.create();
+                        vec3.cross(modelUp, modelForward, modelRight);
+                        vec3.normalize(modelUp, modelUp);
+                    }
+
 
                     mat4.multiply(tranformMat, tranformMat,
                         [

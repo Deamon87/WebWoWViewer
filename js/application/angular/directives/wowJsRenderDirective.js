@@ -81,7 +81,7 @@
                 */
 
 
-                /*
+               /*
                 sceneObj.loadWMOFile({
                     fileName : "WORLD/WMO/OUTLAND/TEROKKAR/SHATTRATHCITY.WMO",
                     uniqueId : 0,
@@ -89,7 +89,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-                */
+               */
                 /*
                 sceneObj.loadWMOFile({
                     fileName : "world/wmo/azeroth/buildings/stormwind/stormwindharbor.wmo",
@@ -122,6 +122,7 @@
                     */
 
 
+                /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
                     uniqueId : 0,
@@ -129,6 +130,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
+                */
 
 
 
@@ -152,7 +154,7 @@
                 });
                 */
 
-                /*
+                     /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
                     uniqueId : 0,
@@ -190,6 +192,7 @@
                 //sceneObj.loadMap("DeeprunTram", 30, 21); sceneObj.setCameraPos(17066.666666656, 17066.666666656, 0);
                 //sceneObj.loadMap("Karazahn", 35, 52); sceneObj.setCameraPos(-10666.666666656, -1600, 170);
 
+
                 /*
                 sceneObj.loadM2File({
                     fileName : "WORLD\\EXPANSION01\\DOODADS\\SHATTRATH\\PASSIVEDOODADS\\CENTRAL_ENERGY_FX\\SHATTRATH_NARRU_ENERGY_FX.m2",
@@ -199,6 +202,7 @@
                     scale    : 1024
                 });
                 */
+
                 /*
                 sceneObj.loadM2File({
                     fileName : "WORLD\\KHAZMODAN\\IRONFORGE\\PASSIVEDOODADS\\GARAGEMACHINE\\GARAGEMACHINE.m2",
@@ -286,6 +290,24 @@
                     scale: 1024
                 });
                 */
+                /*
+                sceneObj.loadM2File({
+                    fileName: "WORLD\\EXPANSION02\\DOODADS\\ULDUAR\\UL_BANISTER01.m2",
+                    uniqueId: 0,
+                    pos: {x: 0 + 17066.666666656, y: 0, z: 0 + 17066.666666656},
+                    rotation: {x: 0, y: 0, z: 0},
+                    scale: 1024
+                });
+                  */
+
+                sceneObj.loadM2File({
+                    fileName: "WORLD\\ENVIRONMENT\\DOODAD\\ANQUIRAJ\\LIGHTSHAFT\\HIVE_LIGHTSHAFT01.m2",
+                    uniqueId: 0,
+                    pos: {x: 0 + 17066.666666656, y: 0, z: 0 + 17066.666666656},
+                    rotation: {x: 0, y: 0, z: 0},
+                    scale: 1024
+                });
+
 
 
                 //adtLoader('world//maps\\AhnQiraj\\AhnQiraj_26_46.adt');
