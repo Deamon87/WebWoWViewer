@@ -86,8 +86,10 @@ void main() {
         modelMatrix += (boneWeights.z ) * uBoneMatrixes[int(bones.z)];
         modelMatrix += (boneWeights.w ) * uBoneMatrixes[int(bones.w)];
 
-        mat3 modelMatrixInv = inverse(mat3(modelMatrix));
-        mat3 normalMatrix = transpose(modelMatrixInv);
+        mat4 cameraMatrix = uLookAtMat * uPlacementMat * modelMatrix;
+        mat3 cameraMatrixInv = inverse(mat3(cameraMatrix));
+
+        mat3 normalMatrix = transpose(cameraMatrixInv);
 
 
         vec3 e = normalize( cameraPoint.xyz );
