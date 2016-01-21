@@ -290,7 +290,7 @@
                     name : "textUnitLookup",
                     offset: "ofsTexUnits",
                     count : "nTexUnits",
-                    type: "uint16"
+                    type: "int16"
                 },
                 {
                     name : "renderFlags",

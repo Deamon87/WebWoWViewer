@@ -64,13 +64,13 @@
                         {name : "flags",               type: "uint16"},
                         {name : "renderOrder",         type: "int16"},
                         {name : "submeshIndex",        type: "uint16"},
-                        {name : "unk1",                type: "uint16"},
+                        {name : "submesh_index2",      type: "uint16"},
                         {name : "colorIndex",          type: "int16"},
                         {name : "renderFlagIndex",     type: "uint16"},
                         {name : "textureUnitNum",      type: "uint16"},
                         {name : "op_count",            type: "uint16"},
                         {name : "textureIndex",        type: "uint16"},
-                        {name : "unk3",                type: "uint16"},
+                        {name : "textureUnitNum2",     type: "uint16"},
                         {name : "transpIndex",         type: "uint16"},
                         {name : "textureAnim",         type: "uint16"}
                     ]
