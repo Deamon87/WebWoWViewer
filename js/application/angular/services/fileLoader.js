@@ -37,7 +37,7 @@
 
             var result = null;
             zipEntries.every(function(entry) {
-                if(entry.filename.trim().toLowerCase() == fileName.toLowerCase()) {
+                if(entry.filename.trim().replace(/\\/g, "/").toLowerCase() == fileName.toLowerCase()) {
                     result = entry;
                     return false;
                 }
