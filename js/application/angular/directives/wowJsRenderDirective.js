@@ -154,14 +154,14 @@
                 });
                 */
 
-                     /*
+
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
                     uniqueId : 0,
                     pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
-                });*/
+                });
 
 
                 /*
@@ -300,6 +300,7 @@
                 });
                   */
 
+                /*
                 sceneObj.loadM2File({
                     fileName: "WORLD\\ENVIRONMENT\\DOODAD\\ANQUIRAJ\\LIGHTSHAFT\\HIVE_LIGHTSHAFT01.m2",
                     uniqueId: 0,
@@ -307,7 +308,29 @@
                     rotation: {x: 0, y: 0, z: 0},
                     scale: 1024
                 });
+                */
 
+                //.go 603 1877.65 -1.78 429.76 <- inside Ulduar
+
+                /*
+                sceneObj.loadM2File({
+                    fileName: "WORLD\\EXPANSION02\\DOODADS\\ULDUAR\\UL_SMALLSTATUE_DRUID.m2",
+                    uniqueId: 0,
+                    pos: {x: 0 + 17066.666666656, y: 0, z: 0 + 17066.666666656},
+                    rotation: {x: 0, y: 0, z: 0},
+                    scale: 1024
+                });
+                */
+
+                /*
+                sceneObj.loadM2File({
+                    fileName: "WORLD\\NODXT\\GENERIC\\PASSIVEDOODADS\\VOLUMETRICLIGHTS\\LD_LIGHTSHAFT01.m2",
+                    uniqueId: 0,
+                    pos: {x: 0 + 17066.666666656, y: 0, z: 0 + 17066.666666656},
+                    rotation: {x: 0, y: 0, z: 0},
+                    scale: 1024
+                });
+                */
 
 
                 //adtLoader('world//maps\\AhnQiraj\\AhnQiraj_26_46.adt');
