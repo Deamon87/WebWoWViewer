@@ -58,8 +58,16 @@ mat3 inverse(mat3 m) {
                 b21, (-a21 * a00 + a01 * a20), (a11 * a00 - a01 * a10)) / det;
 }
 
+mat3 transpose(mat3 m) {
+  return mat3(  m[0][0], m[1][0], m[2][0],  // new col 0
+                m[0][1], m[1][1], m[2][1],  // new col 1
+                m[0][2], m[1][2], m[2][2]   // new col 1
+             );
+  }
+
 void main() {
     vec4 modelPoint = vec4(0,0,0,0);
+
     vec4 aPositionVec4 = vec4(aPosition, 1);
 
     modelPoint += (boneWeights.x ) * (uBoneMatrixes[int(bones.x)] * aPositionVec4);
@@ -69,7 +77,33 @@ void main() {
 
     vec4 cameraPoint = uLookAtMat * uPlacementMat * vec4(modelPoint.xyz, 1);
 
-    vTexCoord = aTexCoord;
+    if (aTexCoord.x == 0.0 && aTexCoord.y == 0.0) {
+        vec4 normalPoint = vec4(0,0,0,0);
+        mat4 modelMatrix = mat4(1.0);
+
+        modelMatrix += (boneWeights.x ) * uBoneMatrixes[int(bones.x)];
+        modelMatrix += (boneWeights.y ) * uBoneMatrixes[int(bones.y)];
+        modelMatrix += (boneWeights.z ) * uBoneMatrixes[int(bones.z)];
+        modelMatrix += (boneWeights.w ) * uBoneMatrixes[int(bones.w)];
+
+        mat3 modelMatrixInv = inverse(mat3(modelMatrix));
+        mat3 normalMatrix = transpose(modelMatrixInv);
+
+
+        vec3 e = normalize( cameraPoint.xyz );
+        vec3 n = normalize( normalMatrix * aNormal);
+        vec3 r = reflect( e, n );
+        float m = 2. * sqrt(
+            pow( r.x, 2. ) +
+            pow( r.y, 2. ) +
+            pow( r.z + 1., 2. )
+        );
+        vec2 vN = r.xy / m + .5;
+
+        vTexCoord = vN;
+    }else {
+        vTexCoord = aTexCoord;
+    }
     vTexCoord2 = aTexCoord2;
     vColor = aColor;
 

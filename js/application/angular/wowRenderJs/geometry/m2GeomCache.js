@@ -249,7 +249,8 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                     }
                     */
 
-                    gl.depthMask(true)
+                    gl.depthMask(true);
+                    gl.disable(gl.BLEND);
 
                 }
             }
