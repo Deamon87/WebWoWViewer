@@ -116,7 +116,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             }
             gl.uniform1f(uniforms.uAlphaTest, -1);
         },
-        drawMesh : function (meshIndex, subMeshData, skinObject, subMeshColors,  colorVector, transperencies, textureMatrix1, textureMatrix2, instanceCount){
+        drawMesh : function (meshIndex, materialData, skinObject, subMeshColors,  colorVector, transperencies, textureMatrix1, textureMatrix2, instanceCount){
             var gl = this.gl;
             var m2File = this.m2File;
             var instExt = this.sceneApi.extensions.getInstancingExt();
@@ -129,10 +129,10 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
             gl.uniformMatrix4fv(uniforms.uTextMat1, false, textureMatrix1);
             gl.uniformMatrix4fv(uniforms.uTextMat2, false, textureMatrix2);
 
-            if (subMeshData.isRendered) {
-                if (subMeshData.texUnit1Texture) {
+            if (materialData.isRendered) {
+                if (materialData.texUnit1Texture) {
                     //try {
-                    var colorIndex = skinData.texs[subMeshData.texUnit1TexIndex].colorIndex;
+                    var colorIndex = skinData.texs[materialData.texUnit1TexIndex].colorIndex;
                     var submeshColor = [colorVector[0], colorVector[1], colorVector[2], colorVector[3]];
                     if ((colorIndex >= 0) && (subMeshColors)) {
                         var color = subMeshColors[colorIndex];
@@ -144,7 +144,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                         ];
                     }
                     var transperency = 1.0;
-                    var transpIndex = skinData.texs[subMeshData.texUnit1TexIndex].transpIndex;
+                    var transpIndex = skinData.texs[materialData.texUnit1TexIndex].transpIndex;
                     if ((transpIndex >= 0) && (transperencies)) {
                         transperency = transperencies[transpIndex];
                     }
@@ -165,7 +165,7 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
                     gl.depthMask(true);
 
-                    var renderFlagIndex = skinData.texs[subMeshData.texUnit1TexIndex].renderFlagIndex;
+                    var renderFlagIndex = skinData.texs[materialData.texUnit1TexIndex].renderFlagIndex;
                     var renderFlag = m2File.renderFlags[renderFlagIndex];
                     switch (renderFlag.blend) {
                         case 0 : //BM_OPAQUE
@@ -219,25 +219,30 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                         gl.depthMask(true);
                     }
 
+                    if (materialData.isEnviromentMapping) {
+                        gl.uniform1i(uniforms.isEnviroment, 1);
+                    } else {
+                        gl.uniform1i(uniforms.isEnviroment, 0);
+                    }
+
                     /* Set up texture animation */
-
-
                     gl.activeTexture(gl.TEXTURE0);
-                    gl.bindTexture(gl.TEXTURE_2D, subMeshData.texUnit1Texture.texture);
-                    if (subMeshData.texUnit2Texture != null) {
+                    gl.bindTexture(gl.TEXTURE_2D, materialData.texUnit1Texture.texture);
+                    if (materialData.texUnit2Texture != null) {
                         gl.activeTexture(gl.TEXTURE1);
-                        gl.bindTexture(gl.TEXTURE_2D, subMeshData.texUnit2Texture.texture);
+                        gl.bindTexture(gl.TEXTURE_2D, materialData.texUnit2Texture.texture);
                     } else {
                         gl.activeTexture(gl.TEXTURE1);
                         gl.bindTexture(gl.TEXTURE_2D, blackPixelText);
                     }
 
+                    meshIndex = materialData.meshIndex;
                     if (instanceCount == undefined) {
                         gl.drawElements(gl.TRIANGLES, skinData.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].idxStart * 2);
                     } else {
                         instExt.drawElementsInstancedANGLE(gl.TRIANGLES, skinData.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].idxStart * 2, instanceCount);
                     }
-                    if (subMeshData.texUnit2Texture != null) {
+                    if (materialData.texUnit2Texture != null) {
                         gl.activeTexture(gl.TEXTURE1);
                         gl.bindTexture(gl.TEXTURE_2D, null);
                         gl.activeTexture(gl.TEXTURE0);

@@ -25,6 +25,7 @@ uniform mat4 uPMatrix;
 uniform int isBillboard;
 uniform mat4 uBoneMatrixes[59]; //Max 59 for ANGLE implementation and max 120? bones in Wotlk client
 
+uniform int isEnviroment;
 #ifdef INSTANCED
 attribute mat4 uPlacementMat;
 #else
@@ -69,26 +70,24 @@ void main() {
     vec4 modelPoint = vec4(0,0,0,0);
 
     vec4 aPositionVec4 = vec4(aPosition, 1);
+    mat4 boneTransformMat = mat4(0.0);
 
-    modelPoint += (boneWeights.x ) * (uBoneMatrixes[int(bones.x)] * aPositionVec4);
-    modelPoint += (boneWeights.y ) * (uBoneMatrixes[int(bones.y)] * aPositionVec4);
-    modelPoint += (boneWeights.z ) * (uBoneMatrixes[int(bones.z)] * aPositionVec4);
-    modelPoint += (boneWeights.w ) * (uBoneMatrixes[int(bones.w)] * aPositionVec4);
+    boneTransformMat += (boneWeights.x ) * uBoneMatrixes[int(bones.x)];
+    boneTransformMat += (boneWeights.y ) * uBoneMatrixes[int(bones.y)];
+    boneTransformMat += (boneWeights.z ) * uBoneMatrixes[int(bones.z)];
+    boneTransformMat += (boneWeights.w ) * uBoneMatrixes[int(bones.w)];
+
+    modelPoint = (boneTransformMat * aPositionVec4);
 
     vec4 cameraPoint = uLookAtMat * uPlacementMat * vec4(modelPoint.xyz, 1);
 
-    if (aTexCoord.x == 0.0 && aTexCoord.y == 0.0) {
+    if (isEnviroment == 1) {
         vec4 normalPoint = vec4(0,0,0,0);
-        mat4 modelMatrix = mat4(1.0);
 
-        modelMatrix += (boneWeights.x ) * uBoneMatrixes[int(bones.x)];
-        modelMatrix += (boneWeights.y ) * uBoneMatrixes[int(bones.y)];
-        modelMatrix += (boneWeights.z ) * uBoneMatrixes[int(bones.z)];
-        modelMatrix += (boneWeights.w ) * uBoneMatrixes[int(bones.w)];
+        mat4 cameraMatrix = uLookAtMat * uPlacementMat * boneTransformMat;
+        mat3 cameraMatrixInv = inverse(mat3(cameraMatrix));
 
-        mat3 modelMatrixInv = inverse(mat3(modelMatrix));
-        mat3 normalMatrix = transpose(modelMatrixInv);
-
+        mat3 normalMatrix = transpose(cameraMatrixInv);
 
         vec3 e = normalize( cameraPoint.xyz );
         vec3 n = normalize( normalMatrix * aNormal);

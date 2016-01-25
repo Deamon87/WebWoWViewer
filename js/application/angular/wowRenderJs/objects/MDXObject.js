@@ -41,116 +41,107 @@
                         //self.vao = result.vao;
                         //self.vaoExt = result.ext;
 
-                        self.makeSubmeshArray(m2Geom, skinGeom, submeshRenderData)
+                        self.makeTextureArray(m2Geom, skinGeom, submeshRenderData)
                     }
                 });
             },
-            makeSubmeshArray : function (mdxObject, skinObject, submeshRenderData) {
+            makeTextureArray : function (mdxObject, skinObject, submeshRenderData) {
                 var self = this;
-                var submeshArray = new Array(15);
 
                 /* 1. Free previous subMeshArray */
 
-                /* 2. Fill the meshArrays */
-                if (submeshRenderData) {
-                    submeshRenderData.forEach(function (object, index) {
-                        submeshArray[index] = {
-                            submeshIndex: 0
-                            //texture1: {},
-                            //texture2: {},
-                            //texture3: {}
+                /* 2. Fill the materialArray */
+                var materialArray = new Array(skinObject.skinFile.header.texs.length);
+                for (var i = 0; i < materialArray.length; i++) {
+                    materialArray[i] = {
+                        isRendered: false,
+                        isTransparent : false,
+                        isEnviromentMapping : false,
+                        meshIndex : -1,
+                        textureTexUnit1: null,
+                        textureTexUnit2: null,
+                        textureTexUnit3: null
+                    };
+                }
+
+                for (var i = 0; i < skinObject.skinFile.header.texs.length ; i++) {
+                    var skinTextureDefinition = skinObject.skinFile.header.texs[i];
+                    var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
+
+                    var op_count = skinTextureDefinition.op_count;
+
+                    var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
+                    var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2;
+
+                    var materialData = materialArray[i];
+
+                    materialData.isRendered = true;
+                    materialData.isTransparent = isTransparent;
+                    materialData.meshIndex = skinTextureDefinition.submeshIndex;
+
+                    var textureUnit;
+                    if (skinTextureDefinition.textureUnitNum <= mdxObject.m2File.textUnitLookup.length) {
+                        textureUnit = mdxObject.m2File.textUnitLookup[skinTextureDefinition.textureUnitNum];
+                        if (textureUnit == -1) {
+                            //Enviroment mapping
+                            materialData.isEnviromentMapping = true;
                         }
-                    });
-                } else {
-                    submeshArray.length = skinObject.skinFile.header.subMeshes.length;
-                    for (var i = 0; i < submeshArray.length; i++) {
-                        submeshArray[i] = {
-                            isRendered: false,
-                            isTransparent : false,
-                            textureTexUnit1: null,
-                            textureTexUnit2: null,
-                            textureTexUnit3: null
-                        };
                     }
 
-                    for (var i = 0; i < skinObject.skinFile.header.texs.length ; i++) {
-                        var skinTextureDefinition = skinObject.skinFile.header.texs[i];
+
+                    if (op_count > 0) {
                         var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
                         var mdxTextureDefinition = mdxObject.m2File.textureDefinition[mdxTextureIndex];
-                        var textureUnit = mdxObject.m2File.textUnitLookup[skinTextureDefinition.textureUnitNum];
-                        var op_count = skinTextureDefinition.op_count;
-
-                        var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
-                        var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2;
-
-                        var submeshData = submeshArray[skinTextureDefinition.submeshIndex];
-
-                        submeshData.isRendered = true;
-                        submeshData.isTransparent = isTransparent;
-                        if (textureUnit == 0) {
-                            submeshData.texUnit1TexIndex = i;
-                            submeshData.textureUnit1TexName = mdxTextureDefinition.textureName;
-                            if (op_count > 1) {
-                                var mdxTextureIndex1 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 1];
-                                var mdxTextureDefinition1 = mdxObject.m2File.textureDefinition[mdxTextureIndex1];
-                                submeshData.texUnit2TexIndex = i;
-                                submeshData.textureUnit2TexName = mdxTextureDefinition1.textureName;
-                            }
-                            if (op_count > 2) {
-                                var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 2];
-                                var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex2];
-                                submeshData.texUnit2TexIndex = i;
-                                submeshData.textureUnit2TexName = mdxTextureDefinition2.textureName;
-                            }
-                        } else if (textureUnit == 1) {
-                            submeshData.texUnit2TexIndex = i;
-                            submeshData.textureUnit2TexName = mdxTextureDefinition.textureName;
-                            if (op_count > 1) {
-                                $log.log("textureUnit = 1 and op_count > 1 " + this.fileIdent);
-                                var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 1];
-                                var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex2];
-                                submeshData.textureUnit3TexName = mdxTextureDefinition2.textureName;
-                            }
-                        } else if (textureUnit == 2) {
-                            $log.log("textureUnit = 2 " + this.fileIdent);
-                            submeshData.texUnit3TexIndex = i;
-                            submeshData.textureUnit3TexName = mdxTextureDefinition.textureName;
-                        }
+                        materialData.texUnit1TexIndex = i;
+                        materialData.textureUnit1TexName = mdxTextureDefinition.textureName;
                     }
-
-                    for (var i = 0; i < submeshArray.length; i++) {
-                        var submeshData = submeshArray[i];
-                        if (submeshData.textureUnit1TexName) {
-                            (function (submeshData) {
-                                self.sceneApi.resources.loadTexture(submeshData.textureUnit1TexName)
-                                    .then(function success(textObject) {
-                                        submeshData.texUnit1Texture = textObject;
-                                    }, function error() {
-                                    });
-                            })(submeshData);
-                        }
-                        if (submeshData.textureUnit2TexName) {
-                            (function (submeshData) {
-                                self.sceneApi.resources.loadTexture(submeshData.textureUnit2TexName)
-                                    .then(function success(textObject) {
-                                        submeshData.texUnit2Texture = textObject;
-                                    }, function error() {
-                                    });
-                            })(submeshData);
-                        }
-                        if (submeshData.textureUnit3TexName) {
-                            (function (submeshData) {
-                                self.sceneApi.resources.loadTexture(submeshData.textureUnit3TexName)
-                                    .then(function success(textObject) {
-                                        submeshData.texUnit3Texture = textObject;
-                                    }, function error() {
-                                    });
-                            })(submeshData);
-                        }
+                    if (op_count > 1) {
+                        var mdxTextureIndex1 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 1];
+                        var mdxTextureDefinition1 = mdxObject.m2File.textureDefinition[mdxTextureIndex1];
+                        materialData.texUnit2TexIndex = i;
+                        materialData.textureUnit2TexName = mdxTextureDefinition1.textureName;
+                    }
+                    if (op_count > 2) {
+                        var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 2];
+                        var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex2];
+                        materialData.texUnit2TexIndex = i;
+                        materialData.textureUnit2TexName = mdxTextureDefinition2.textureName;
                     }
                 }
 
-                this.submeshArray = submeshArray;
+                for (var i = 0; i < materialArray.length; i++) {
+                    var materialData = materialArray[i];
+                    if (materialData.textureUnit1TexName) {
+                        (function (materialData) {
+                            self.sceneApi.resources.loadTexture(materialData.textureUnit1TexName)
+                                .then(function success(textObject) {
+                                    materialData.texUnit1Texture = textObject;
+                                }, function error() {
+                                });
+                        })(materialData);
+                    }
+                    if (materialData.textureUnit2TexName) {
+                        (function (materialData) {
+                            self.sceneApi.resources.loadTexture(materialData.textureUnit2TexName)
+                                .then(function success(textObject) {
+                                    materialData.texUnit2Texture = textObject;
+                                }, function error() {
+                                });
+                        })(materialData);
+                    }
+                    if (materialData.textureUnit3TexName) {
+                        (function (materialData) {
+                            self.sceneApi.resources.loadTexture(materialData.textureUnit3TexName)
+                                .then(function success(textObject) {
+                                    materialData.texUnit3Texture = textObject;
+                                }, function error() {
+                                });
+                        })(materialData);
+                    }
+                }
+
+
+                this.materialArray = materialArray;
             },
             checkFrustumCulling : function (cameraVec4, frustumPlanes, aabb) {
                 //1. Check if camera position is inside frustum
@@ -279,13 +270,13 @@
             },
             getMeshesToRender : function() {
                 var meshesToRender = [];
-                if (this.submeshArray) {
-                    for (var i = 0; i < this.submeshArray.length; i++) {
-                        if (!this.submeshArray[i].isRendered) continue;
-                        if (this.submeshArray[i].texUnit1TexIndex === undefined) continue;
+                if (this.materialArray) {
+                    for (var i = 0; i < this.materialArray.length; i++) {
+                        if (!this.materialArray[i].isRendered) continue;
+                        if (this.materialArray[i].texUnit1TexIndex === undefined) continue;
 
-                        var colorIndex = this.skinGeom.skinFile.header.texs[this.submeshArray[i].texUnit1TexIndex].colorIndex;
-                        var renderFlagIndex = this.skinGeom.skinFile.header.texs[this.submeshArray[i].texUnit1TexIndex].renderFlagIndex;
+                        var colorIndex = this.skinGeom.skinFile.header.texs[this.materialArray[i].texUnit1TexIndex].colorIndex;
+                        var renderFlagIndex = this.skinGeom.skinFile.header.texs[this.materialArray[i].texUnit1TexIndex].renderFlagIndex;
                         var isTransparent = this.m2Geom.m2File.renderFlags[renderFlagIndex].blend > 0;
                         var meshColor = (colorIndex > -1 && this.subMeshColors) ? this.subMeshColors[colorIndex] : null;
 
@@ -692,10 +683,10 @@
                 colorVector[2] /= 255.0; colorVector[3] /= 255.0;
 
                 for (var i = 0; i < this.submeshArray.length; i++) {
-                    var subMeshData = this.submeshArray[i];
-                    if (subMeshData.isTransparent) continue;
+                    var materialData = this.submeshArray[i];
+                    if (materialData.isTransparent) continue;
 
-                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix, instanceCount)
+                    this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix, instanceCount)
                 }
             },
             drawInstancedTransparentMeshes : function (instanceCount, placementVBO, color) {
@@ -714,16 +705,16 @@
                 colorVector[0] /= 255.0; colorVector[1] /= 255.0;
                 colorVector[2] /= 255.0; colorVector[3] /= 255.0;
 
-                for (var i = 0; i < this.submeshArray.length; i++) {
-                    var subMeshData = this.submeshArray[i];
-                    if (!subMeshData.isTransparent) continue;
+                for (var i = 0; i < this.materialArray.length; i++) {
+                    var materialData = this.materialArray[i];
+                    if (!materialData.isTransparent) continue;
 
                     /* Get right texture animation matrix */
                     var textureMatrix;
                     var skinData = this.skinGeom.skinFile.header;
 
-                    if (subMeshData.texUnit1TexIndex >= 0 && skinData.texs[subMeshData.texUnit1TexIndex]) {
-                        var textureAnim = skinData.texs[subMeshData.texUnit1TexIndex].textureAnim;
+                    if (materialData.texUnit1TexIndex >= 0 && skinData.texs[materialData.texUnit1TexIndex]) {
+                        var textureAnim = skinData.texs[materialData.texUnit1TexIndex].textureAnim;
                         var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
                         if (textureMatIndex >= 0) {
                             textureMatrix = this.textAnimMatrix[textureMatIndex];
@@ -732,7 +723,7 @@
                         }
                     }
 
-                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix, instanceCount)
+                    this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix, instanceCount)
                 }
             },
             drawNonTransparentMeshes : function (placementMatrix, color) {
@@ -750,21 +741,21 @@
                 colorVector[0] /= 255.0; colorVector[1] /= 255.0;
                 colorVector[2] /= 255.0; colorVector[3] /= 255.0;
 
-                for (var i = 0; i < this.submeshArray.length; i++) {
-                    var subMeshData = this.submeshArray[i];
-                    if (subMeshData.isTransparent) continue;
+                for (var i = 0; i < this.materialArray.length; i++) {
+                    var materialData = this.materialArray[i];
+                    if (materialData.isTransparent) continue;
 
                     /* Get right texture animation matrix */
                     var textureMatrix1 = identMat;
                     var textureMatrix2 = identMat;
                     var skinData = this.skinGeom.skinFile.header;
-                    if (subMeshData.texUnit1TexIndex >= 0 && skinData.texs[subMeshData.texUnit1TexIndex]) {
-                        var textureAnim = skinData.texs[subMeshData.texUnit1TexIndex].textureAnim;
+                    if (materialData.texUnit1TexIndex >= 0 && skinData.texs[materialData.texUnit1TexIndex]) {
+                        var textureAnim = skinData.texs[materialData.texUnit1TexIndex].textureAnim;
                         var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
                         if (textureMatIndex !== undefined && textureMatIndex >= 0) {
                             textureMatrix1 = this.textAnimMatrix[textureMatIndex];
                         }
-                        if (subMeshData.texUnit2TexIndex >= 0) {
+                        if (materialData.texUnit2TexIndex >= 0) {
                             var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim+1];
                             if (textureMatIndex !== undefined && textureMatIndex >= 0) {
                                 textureMatrix2 = this.textAnimMatrix[textureMatIndex];
@@ -772,7 +763,7 @@
                         }
                     }
 
-                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2)
+                    this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2)
                 }
             },
             drawTransparentMeshes : function (placementMatrix, color) {
@@ -790,28 +781,28 @@
                 colorVector[0] /= 255.0; colorVector[1] /= 255.0;
                 colorVector[2] /= 255.0; colorVector[3] /= 255.0;
 
-                for (var i = 0; i < this.submeshArray.length; i++) {
-                    var subMeshData = this.submeshArray[i];
-                    if (!subMeshData.isTransparent) continue;
+                for (var i = 0; i < this.materialArray.length; i++) {
+                    var materialData = this.materialArray[i];
+                    if (!materialData.isTransparent) continue;
 
                     /* Get right texture animation matrix */
                     var textureMatrix1 = identMat;
                     var textureMatrix2 = identMat;
                     var skinData = this.skinGeom.skinFile.header;
-                    if (subMeshData.texUnit1TexIndex >= 0 && skinData.texs[subMeshData.texUnit1TexIndex]) {
-                        var textureAnim = skinData.texs[subMeshData.texUnit1TexIndex].textureAnim;
+                    if (materialData.texUnit1TexIndex >= 0 && skinData.texs[materialData.texUnit1TexIndex]) {
+                        var textureAnim = skinData.texs[materialData.texUnit1TexIndex].textureAnim;
                         var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
                         if (textureMatIndex !== undefined && textureMatIndex >= 0) {
                             textureMatrix1 = this.textAnimMatrix[textureMatIndex];
                         }
-                        if (subMeshData.texUnit2TexIndex >= 0) {
+                        if (materialData.texUnit2TexIndex >= 0) {
                             var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim+1];
                             if (textureMatIndex !== undefined && textureMatIndex >= 0) {
                                 textureMatrix2 = this.textAnimMatrix[textureMatIndex];
                             }
                         }
                     }
-                    this.m2Geom.drawMesh(i, subMeshData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2)
+                    this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2)
                 }
             },
             draw : function (placementMatrix, color){
@@ -821,7 +812,7 @@
                 colorVector[2] /= 255.0; colorVector[3] /= 255.0;
 
                 if ((this.m2Geom) && (this.skinGeom)) {
-                    this.m2Geom.draw(this.skinGeom, this.submeshArray, placementMatrix, colorVector, this.subMeshColors, this.transperencies, this.vao, this.vaoExt);
+                    this.m2Geom.draw(this.skinGeom, this.materialArray, placementMatrix, colorVector, this.subMeshColors, this.transperencies, this.vao, this.vaoExt);
                 }
             }
         };

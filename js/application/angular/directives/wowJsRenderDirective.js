@@ -70,7 +70,8 @@
                 });
                   */
 
-                        /*
+
+                  /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo",
                     uniqueId : 0,
@@ -79,9 +80,20 @@
                     doodadSet: 0
                 });
                 */
+                /*
+                sceneObj.loadWMOFile({
+                    fileName : "world/wmo/dungeon/orgrimmarraid/sw_stormwind_orgrimmar_raid.wmo",
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    doodadSet: 0
+                });
+                  */
 
 
-               /*
+
+
+                 /*
                 sceneObj.loadWMOFile({
                     fileName : "WORLD/WMO/OUTLAND/TEROKKAR/SHATTRATHCITY.WMO",
                     uniqueId : 0,
@@ -89,7 +101,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-               */
+                   */
                 /*
                 sceneObj.loadWMOFile({
                     fileName : "world/wmo/azeroth/buildings/stormwind/stormwindharbor.wmo",
@@ -113,16 +125,26 @@
 
                 /*
                 sceneObj.loadWMOFile({
-                 fileName : "World/wmo/Azeroth/Buildings/Stormwind/Stormwind.wmo",
+                 fileName : "world/wmo/brokenisles/artifacts/7af_artifact_skywall.wmo",
+                 uniqueId : 0,
+                 pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                 rotation : {x : 0, y: 0, z : 0},
+                 doodadSet: 0
+                 })
+                 */
+
+                /*
+                 sceneObj.loadWMOFile({
+                 fileName : "world/wmo/dungeon/az_subway/subway.wmo",
                  uniqueId : 0,
                  pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
                  rotation : {x : 0, y: 0, z : 0},
                  doodadSet: 0
                  });
-                    */
+
+                  */
 
 
-                /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
                     uniqueId : 0,
@@ -130,9 +152,6 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-                */
-
-
 
                 /*
                 sceneObj.loadWMOFile({
@@ -154,7 +173,7 @@
                 });
                 */
 
-
+                         /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
                     uniqueId : 0,
@@ -162,7 +181,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-
+                       */
 
                 /*
                 sceneObj.loadWMOFile({
@@ -181,7 +200,7 @@
                 //sceneObj.loadMap("Azeroth", 34, 51); sceneObj.setCameraPos(-10000, -1200, 76);
 
                 //sceneObj.loadMap("Northrend", 29, 22); sceneObj.setCameraPos(4800, 1066, 137);
-                //sceneObj.loadMap("PVPZone04", 29 ,30); sceneObj.setCameraPos(1400, 1044, 509);
+                //sceneObj.loadMap("PVPZone04", 30 ,30); sceneObj.setCameraPos(1400, 1044, 509);
                 //sceneObj.loadMap("DeathKnightStart", 43, 28); sceneObj.setCameraPos(2033, -5843, 230);
                 //sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
                 //sceneObj.loadMap("HallsOfReflection", 28, 21); sceneObj.setCameraPos(5245, 2025, 733);
@@ -300,37 +319,16 @@
                 });
                   */
 
-                /*
+
+                              /*
                 sceneObj.loadM2File({
-                    fileName: "WORLD\\ENVIRONMENT\\DOODAD\\ANQUIRAJ\\LIGHTSHAFT\\HIVE_LIGHTSHAFT01.m2",
+                    fileName: "WORLD\\EXPANSION02\\DOODADS\\ULDUAR\\UL_Statue_03.m2",
                     uniqueId: 0,
                     pos: {x: 0 + 17066.666666656, y: 0, z: 0 + 17066.666666656},
                     rotation: {x: 0, y: 0, z: 0},
                     scale: 1024
                 });
-                */
-
-                //.go 603 1877.65 -1.78 429.76 <- inside Ulduar
-
-                /*
-                sceneObj.loadM2File({
-                    fileName: "WORLD\\EXPANSION02\\DOODADS\\ULDUAR\\UL_SMALLSTATUE_DRUID.m2",
-                    uniqueId: 0,
-                    pos: {x: 0 + 17066.666666656, y: 0, z: 0 + 17066.666666656},
-                    rotation: {x: 0, y: 0, z: 0},
-                    scale: 1024
-                });
-                */
-
-                /*
-                sceneObj.loadM2File({
-                    fileName: "WORLD\\NODXT\\GENERIC\\PASSIVEDOODADS\\VOLUMETRICLIGHTS\\LD_LIGHTSHAFT01.m2",
-                    uniqueId: 0,
-                    pos: {x: 0 + 17066.666666656, y: 0, z: 0 + 17066.666666656},
-                    rotation: {x: 0, y: 0, z: 0},
-                    scale: 1024
-                });
-                */
+                            */
 
 
                 //adtLoader('world//maps\\AhnQiraj\\AhnQiraj_26_46.adt');
