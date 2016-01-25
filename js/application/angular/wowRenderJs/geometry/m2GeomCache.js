@@ -219,9 +219,13 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                         gl.depthMask(true);
                     }
 
+                    if (materialData.isEnviromentMapping) {
+                        gl.uniform1i(uniforms.isEnviroment, 1);
+                    } else {
+                        gl.uniform1i(uniforms.isEnviroment, 0);
+                    }
+
                     /* Set up texture animation */
-
-
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, materialData.texUnit1Texture.texture);
                     if (materialData.texUnit2Texture != null) {
