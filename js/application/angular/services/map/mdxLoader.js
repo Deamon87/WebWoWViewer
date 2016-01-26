@@ -23,7 +23,7 @@
                 {name: "nBones",                type: "int32"},
                 {name: "ofsBones",              type: "int32"},
                 {name: "nKeyBoneLookup",        type: "int32"},
-                {name: "ofsBones",              type: "int32"},
+                {name: "ofsKeyBoneLookup",      type: "int32"},
                 {name: "nVertexes",             type: "int32"},
                 {name: "ofsVertexes",           type: "int32"},
                 {name: "nViews",                type: "int32"},
