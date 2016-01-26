@@ -439,6 +439,9 @@
             transverseInteriorWMO : function (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
 
             },
+            transverseExteriorWMO : function (frustumMat, lookAtMat4) {
+
+            },
             checkFrustumCulling : function (cameraVec4, perspectiveMat, lookat, frustumPlanes) {
                 if (!this.worldGroupBorders) return;
                 //1. Set Doodads drawing to false. Doodad should be rendered if at least one WMO Group it belongs is visible(rendered)

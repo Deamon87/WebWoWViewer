@@ -167,17 +167,17 @@
 
                 if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
                     for (var j = 0; j < this.m2Objects.length; j++) {
-                        this.m2Objects[j].setIsRendered(false);
+                        this.m2Objects[j].setIsRendered(true);
                     }
                     for (var i = 0; i < this.wmoObjects.length; i++) {
-                        this.wmoObjects[i].resetDrawnForAllGroups(false);
+                        this.wmoObjects[i].resetDrawnForAllGroups(true);
                     }
                     //TODO: set not render for adt too
                     //Cull with normal portals
                     this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
 
                     //Travel through portals
-                    this.currentWMO.transverseInteriorWMO(frustumMat, lookAtMat4)
+                    this.currentWMO.transverseInteriorWMO(frustumMat, lookAtMat4);
                     this.currentWMO.transverseExteriorWMO(frustumMat, lookAtMat4)
 
                 } else {

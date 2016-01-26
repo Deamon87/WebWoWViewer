@@ -14,9 +14,18 @@
 
                 // get all entries from the zip
                 reader.getEntries(function(entries) {
+                    //1. Transform array into map
+                    var map = {};
+                    for (var i=0; i < entries.length; i++) {
+                        var key = entries[i].filename.trim().replace(/\\/g, "/").toLowerCase();
+                        var value = entries[i];
+                        map[key] = value;
+                    }
+
+                    //2. Return map
                     var len = initDefers.length;
                     for (var i = 0; i < len; i++) {
-                        initDefers[i].resolve(entries);
+                        initDefers[i].resolve(map);
                     }
                     initDefers = [];
                 });
@@ -34,8 +43,14 @@
         function readZipFile(fileName){
             var defer = $q.defer();
             fileName = fileName.replace(/\u0000/g, '');
+            fileName = fileName.toLowerCase();
+            fileName = fileName.replace(/\\/g, "/").toLowerCase()
+
 
             var result = null;
+
+            result = zipEntries[fileName];
+            /*
             zipEntries.every(function(entry) {
                 if(entry.filename.trim().replace(/\\/g, "/").toLowerCase() == fileName.toLowerCase()) {
                     result = entry;
@@ -44,6 +59,7 @@
 
                 return true;
             });
+              */
 
             if (result) {
                 result.getData(new zip.BlobWriter(), function(data) {

@@ -43,6 +43,7 @@
 
                         self.makeTextureArray(m2Geom, skinGeom, submeshRenderData)
                     }
+                    return true;
                 });
             },
             makeTextureArray : function (mdxObject, skinObject, submeshRenderData) {

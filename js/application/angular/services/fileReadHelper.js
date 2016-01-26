@@ -61,7 +61,12 @@
                     return result;
                 },
                 readFloat32 : function (offsetObj) {
-                    var result = dataView.getFloat32(offsetObj.offs, isLittleEndian); offsetObj.offs += 4;
+                    try {
+                        var result = dataView.getFloat32(offsetObj.offs, isLittleEndian);
+                        offsetObj.offs += 4;
+                    }catch(e) {
+                        debugger;
+                    }
                     return result;
                 },
                 readFloat64 : function (offsetObj) {

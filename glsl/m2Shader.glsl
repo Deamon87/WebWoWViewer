@@ -81,16 +81,17 @@ void main() {
 
     vec4 cameraPoint = uLookAtMat * uPlacementMat * vec4(modelPoint.xyz, 1);
 
+    mat4 cameraMatrix = uLookAtMat * uPlacementMat * boneTransformMat;
+    mat3 cameraMatrixInv = inverse(mat3(cameraMatrix));
+
+    mat3 normalMatrix = transpose(cameraMatrixInv);
+
+    vec3 e = normalize( cameraPoint.xyz );
+    vec3 n = normalize( normalMatrix * aNormal);
+
     if (isEnviroment == 1) {
         vec4 normalPoint = vec4(0,0,0,0);
 
-        mat4 cameraMatrix = uLookAtMat * uPlacementMat * boneTransformMat;
-        mat3 cameraMatrixInv = inverse(mat3(cameraMatrix));
-
-        mat3 normalMatrix = transpose(cameraMatrixInv);
-
-        vec3 e = normalize( cameraPoint.xyz );
-        vec3 n = normalize( normalMatrix * aNormal);
         vec3 r = reflect( e, n );
         float m = 2. * sqrt(
             pow( r.x, 2. ) +
@@ -108,6 +109,7 @@ void main() {
 
 #ifndef drawBuffersIsSupported
     gl_Position = uPMatrix * cameraPoint;
+    vNormal = n;
 #else
     gl_Position = uPMatrix * cameraPoint;
     fs_Depth = gl_Position.z / gl_Position.w;

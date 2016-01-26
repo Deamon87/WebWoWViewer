@@ -71,7 +71,7 @@
                   */
 
 
-                  /*
+
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo",
                     uniqueId : 0,
@@ -79,7 +79,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-                */
+
                 /*
                 sceneObj.loadWMOFile({
                     fileName : "world/wmo/dungeon/orgrimmarraid/sw_stormwind_orgrimmar_raid.wmo",
@@ -144,7 +144,7 @@
 
                   */
 
-
+                /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
                     uniqueId : 0,
@@ -152,6 +152,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
+                */
 
                 /*
                 sceneObj.loadWMOFile({
