@@ -443,6 +443,7 @@
 
                 var moprIndex = this.wmoGroupArray[groupId].wmoGroupFile.mogp.moprIndex;
                 var numItems = this.wmoGroupArray[groupId].wmoGroupFile.mogp.numItems;
+                var portalVertexes = this.worldPortalVerticles;
 
                 for (var j = moprIndex; j < moprIndex+numItems; j++) {
                     var relation = this.wmoObj.portalRelations[j];
@@ -456,19 +457,11 @@
                     if (portalInfo.index_count < 4) continue;
 
                     //Form 4 new planes(fifth is the camera)
+                    var planeTop =      mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+0], portalVertexes[base_index+1]);
+                    var planeLeft =     mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+1], portalVertexes[base_index+2]);
+                    var planeRight =    mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+2], portalVertexes[base_index+3]);
+                    var planeBottom =   mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+3], portalVertexes[base_index+0]);
 
-                    //
-                    mathHelper.createPlaneFromEyeAndVertexes(vertexA, vertexB);
-
-                    /*
-                     edgeDir = normalize(vertexA-vertexB)
-
-                     viewToPointDir = normalize((vertexA+vertexB*0.5)-viewPos)
-                     planeNorm=cross(viewDir, edgeDir)
-
-                     // одна из плоскостей
-                     Plane fpl(planeNorm, dot(planeNorm, vertexA))
-                     */
 
                 }
             },
@@ -574,18 +567,18 @@
                 var portalVerticles = this.wmoObj.portalVerticles;
                 var worldPortalVerticles = new Array(portalVerticles.length);
                 for (var i = 0; i < worldPortalVerticles.length / 3; i++) {
-                    var vec4 = vec4.fromValues(
+                    var portalVert = vec4.fromValues(
                         portalVerticles[3*i + 0],
                         portalVerticles[3*i + 1],
                         portalVerticles[3*i + 2],
                         0
                     );
 
-                    vec4.transformMat4(vec4, vec4, this.placementMatrix);
+                    vec4.transformMat4(portalVert, portalVert, this.placementMatrix);
 
-                    worldPortalVerticles[3*i + 0] = vec4[0];
-                    worldPortalVerticles[3*i + 1] = vec4[1];
-                    worldPortalVerticles[3*i + 2] = vec4[2];
+                    worldPortalVerticles[3*i + 0] = portalVert[0];
+                    worldPortalVerticles[3*i + 1] = portalVert[1];
+                    worldPortalVerticles[3*i + 2] = portalVert[2];
                 }
 
                 this.worldPortalVerticles = worldPortalVerticles;

@@ -42,7 +42,28 @@ MathHelper.prototype = {
         return planes;
     },
     createPlaneFromEyeAndVertexes : function (eye, vertex1, vertex2 ) {
+        var edgeDir = vec4.create();
 
+        vec4.subtract(edgeDir, vertex1, vertex2);
+        vec4.normalize(edgeDir);
+
+        //viewToPointDir = normalize(((vertexA+vertexB)*0.5)-viewPos)
+        var viewToPointDir = vec4.create();
+        vec4.add(viewToPointDir, vertex1, vertex2);
+        vec4.scale(viewToPointDir, viewToPointDir, 0.5);
+        vec4.subtract(viewToPointDir, viewToPointDir, eye);
+        vec4.normalize(viewToPointDir, viewToPointDir);
+
+        //planeNorm=cross(viewDir, edgeDir)
+        var planeNorm = vec4.create();
+        vec4.cross(planeNorm, viewToPointDir, edgeDir);
+        vec4.normalize(planeNorm, planeNorm);
+
+        //Plane fpl(planeNorm, dot(planeNorm, vertexA))
+        var distToPlane = vec4.dot(planeNorm, vertex1);
+        planeNorm[3] = distToPlane;
+
+        return distToPlane;
     },
     checkFrustum : function (planes, box) {
       // check box outside/inside of frustum
