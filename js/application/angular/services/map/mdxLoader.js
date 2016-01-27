@@ -688,7 +688,7 @@
                 } else {
                     /* Check the version */
                     var deferred = $q.defer();
-                    var promise = defered.promise;
+                    var promise = deferred.promise;
 
                     resultMDXObject = parseOldFile(fileObject);
                 }

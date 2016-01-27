@@ -752,7 +752,7 @@
                     if (materialData.texUnit1TexIndex >= 0 && skinData.texs[materialData.texUnit1TexIndex]) {
                         var textureAnim = skinData.texs[materialData.texUnit1TexIndex].textureAnim;
                         var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
-                        if (textureMatIndex !== undefined && textureMatIndex >= 0 && textureMatIwndex <  this.textAnimMatrix.length) {
+                        if (textureMatIndex !== undefined && textureMatIndex >= 0 && textureMatIndex <  this.textAnimMatrix.length) {
                             textureMatrix1 = this.textAnimMatrix[textureMatIndex];
                         }
                         if (materialData.texUnit2TexIndex >= 0) {
