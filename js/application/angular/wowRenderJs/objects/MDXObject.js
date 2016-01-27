@@ -753,12 +753,12 @@
                     if (materialData.texUnit1TexIndex >= 0 && skinData.texs[materialData.texUnit1TexIndex]) {
                         var textureAnim = skinData.texs[materialData.texUnit1TexIndex].textureAnim;
                         var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
-                        if (textureMatIndex !== undefined && textureMatIndex >= 0) {
+                        if (textureMatIndex !== undefined && textureMatIndex >= 0 && textureMatIndex <  this.textAnimMatrix.length) {
                             textureMatrix1 = this.textAnimMatrix[textureMatIndex];
                         }
                         if (materialData.texUnit2TexIndex >= 0) {
                             var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim+1];
-                            if (textureMatIndex !== undefined && textureMatIndex >= 0) {
+                            if (textureMatIndex !== undefined && textureMatIndex >= 0 && textureMatIndex <  this.textAnimMatrix.length) {
                                 textureMatrix2 = this.textAnimMatrix[textureMatIndex];
                             }
                         }

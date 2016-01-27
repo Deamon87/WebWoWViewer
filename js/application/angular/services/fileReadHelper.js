@@ -33,6 +33,12 @@
                 uint8Array = new Uint8Array(arrayBuffer);
             }
             return {
+                getArrayBuffer : function() {
+                    return arrayBuffer;
+                },
+                sliceArrayBuffer : function(start, end) {
+                    return arrayBuffer.slice(start, end);
+                },
                 getLength : function(){
                     return uint8Array.length;
                 },

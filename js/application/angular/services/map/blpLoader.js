@@ -73,11 +73,14 @@
                                     break;
                                 default :
                                     resultBLPObject.textureFormat = "S3TC_RGBA_DXT3";
+                                    debugger;
                                     break;
                             }
                         }
                         else if (resultBLPObject.encoding == 1) {
                             resultBLPObject.textureFormat = "BGRA";
+                        } else {
+                            debugger;
                         }
 
                         /* Load texture by mipmaps */

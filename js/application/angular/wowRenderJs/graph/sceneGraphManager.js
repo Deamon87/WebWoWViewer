@@ -411,6 +411,7 @@
                     for (var i = 0; i < this.m2Objects.length; i++) {
                         if (this.m2Objects[i].instanceManager) continue;
                         if (!this.m2Objects[i].getIsRendered()) continue;
+                        if (!this.m2Objects[i].aabb) continue;
 
                         this.m2Objects[i].drawNonTransparentMeshes();
                     }
@@ -450,6 +451,7 @@
                     for (var i = 0; i < this.m2Objects.length; i++) {
                         if (this.m2Objects[i].instanceManager) continue;
                         if (!this.m2Objects[i].getIsRendered()) continue;
+                        if (!this.m2Objects[i].aabb) continue;
 
                         this.m2Objects[i].drawTransparentMeshes();
                     }

@@ -113,6 +113,7 @@
                                     mdxObject.setUseLocalLighting(false);
                                 }
 
+                                if (!mdxObject.aabb) continue; //corrupted :(
                                 //2. Update the world group BB
                                 groupAABB[0] = vec3.fromValues(Math.min(mdxObject.aabb[0][0],groupAABB[0][0]),
                                     Math.min(mdxObject.aabb[0][1],groupAABB[0][1]),
