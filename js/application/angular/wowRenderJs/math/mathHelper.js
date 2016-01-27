@@ -41,6 +41,9 @@ MathHelper.prototype = {
 
         return planes;
     },
+    createPlaneFromEyeAndVertexes : function (eye, vertex1, vertex2 ) {
+
+    },
     checkFrustum : function (planes, box) {
       // check box outside/inside of frustum
         for(var i=0; i<6; i++ )

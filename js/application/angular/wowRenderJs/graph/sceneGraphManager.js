@@ -176,8 +176,12 @@
                     //Cull with normal portals
                     this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
 
+                    var combinedMat4 = mat4.create();
+                    mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
+                    var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
+
                     //Travel through portals
-                    this.currentWMO.transverseInteriorWMO(frustumMat, lookAtMat4);
+                    this.currentWMO.transverseInteriorWMO(this.currentInteriorGroup, this.position, frustumMat, lookAtMat4, frustumPlanes);
                     this.currentWMO.transverseExteriorWMO(frustumMat, lookAtMat4)
 
                 } else {

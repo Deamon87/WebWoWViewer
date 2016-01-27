@@ -203,6 +203,7 @@
                     self.wmoGroupArray = new Array(wmoObj.nGroups);
 
                     self.createPortalsVBO();
+                    self.createWorldPortalVerticies();
 
                     var groupPromises = new Array(wmoObj.nGroups);
                     /* 1. Load wmo group files */
@@ -437,7 +438,39 @@
                 }
             },
             transverseInteriorWMO : function (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
+                var currentlyDrawnGroups = this.drawGroup;
+                //1. Loop through portals of current group
 
+                var moprIndex = this.wmoGroupArray[groupId].wmoGroupFile.mogp.moprIndex;
+                var numItems = this.wmoGroupArray[groupId].wmoGroupFile.mogp.numItems;
+
+                for (var j = moprIndex; j < moprIndex+numItems; j++) {
+                    var relation = this.wmoObj.portalRelations[j];
+                    var portalInfo = this.wmoObj.portalInfos[relation.portal_index];
+
+                    var plane = portalInfo.plane;
+
+
+                    var base_index = portalInfo.base_index;
+                    //If portal has less than 4 vertices - skip it(invalid?)
+                    if (portalInfo.index_count < 4) continue;
+
+                    //Form 4 new planes(fifth is the camera)
+
+                    //
+                    mathHelper.createPlaneFromEyeAndVertexes(vertexA, vertexB);
+
+                    /*
+                     edgeDir = normalize(vertexA-vertexB)
+
+                     viewToPointDir = normalize((vertexA+vertexB*0.5)-viewPos)
+                     planeNorm=cross(viewDir, edgeDir)
+
+                     // одна из плоскостей
+                     Plane fpl(planeNorm, dot(planeNorm, vertexA))
+                     */
+
+                }
             },
             transverseExteriorWMO : function (frustumMat, lookAtMat4) {
 
@@ -535,7 +568,27 @@
                 gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
                 gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indiciesArray), gl.STATIC_DRAW);
                 gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null);
+            },
+            createWorldPortalVerticies : function () {
+                //
+                var portalVerticles = this.wmoObj.portalVerticles;
+                var worldPortalVerticles = new Array(portalVerticles.length);
+                for (var i = 0; i < worldPortalVerticles.length / 3; i++) {
+                    var vec4 = vec4.fromValues(
+                        portalVerticles[3*i + 0],
+                        portalVerticles[3*i + 1],
+                        portalVerticles[3*i + 2],
+                        0
+                    );
 
+                    vec4.transformMat4(vec4, vec4, this.placementMatrix);
+
+                    worldPortalVerticles[3*i + 0] = vec4[0];
+                    worldPortalVerticles[3*i + 1] = vec4[1];
+                    worldPortalVerticles[3*i + 2] = vec4[2];
+                }
+
+                this.worldPortalVerticles = worldPortalVerticles;
             },
             drawPortals : function () {
                 if (!this.wmoObj) return;
