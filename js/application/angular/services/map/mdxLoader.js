@@ -5,7 +5,7 @@
 
     var mdxLoader = angular.module('main.services.map.mdxLoader', ['main.services.linedFileLoader']);
 
-    mdxLoader.factory('mdxLoader', ['linedFileLoader', '$log', '$q', function (linedFileLoader, $log, $q){
+    mdxLoader.factory('mdxLoader', ['linedFileLoader', 'chunkedLoader', '$log', '$q', function (linedFileLoader, chunkedLoader, $log, $q){
 
         var mdx_ver264 = {
             name : "header",
@@ -603,8 +603,64 @@
         };
         var mdxTablePerVersion = {
             "264" : mdx_ver264,
+            "272" : mdx_ver264,
             "274" : mdx_ver274
         };
+        function parseOldFile(fileObject){
+            var offset = {offs : 0};
+            var fileIdent =  fileObject.readNZTString(offset, 4);
+            var fileVersion = fileObject.readInt32(offset); //is this really version?
+
+            var mdxDescription = mdxTablePerVersion[fileVersion];
+
+            if (mdxDescription == undefined) {
+                var errorMessage = "Unknown MDX file version = " + fileVersion + ", filepath = " + filePath;
+                $log.error(errorMessage);
+                throw errorMessage;
+            }
+
+            /* Parse the header */
+            var resultMDXObject = {};
+            try {
+                resultMDXObject = fileObject.parseSectionDefinition(resultMDXObject, mdxDescription, fileObject, offset);
+            } catch (e) {
+                throw e;
+            }
+            return resultMDXObject;
+        }
+
+        var mdxChunked = {
+            'DIFA' : function (mdxObj, chunk) {
+
+            },
+            'DIFB' : function (mdxObj, chunk) {
+
+            },
+            'DIFP': function (mdxObj, chunk) {
+                var offset = {offs: 0};
+            },
+            'DIFS': function (mdxObj, chunk) {
+                var offset = {offs: 0};
+            },
+            '12DM': function (mdxObj, chunk) {
+                var offset = {offs: 0};
+                var arrayBuffer = chunk.sliceArrayBuffer(chunk.chunkOffset+8, chunk.chunkOffset+chunk.chunkLen);
+                var fileObj = linedFileLoader("", arrayBuffer);
+                var resultMDXObject = parseOldFile(fileObj);
+
+                $.extend(mdxObj, resultMDXObject);
+            }
+        };
+
+
+        function BaseMdxChunkedLoader(){
+            var handlerTable = mdxChunked;
+
+            this.getHandler = function(sectionName) {
+                return handlerTable[sectionName];
+            }
+        }
+
 
         return function(filePath) {
             var promise = linedFileLoader(filePath);
@@ -613,7 +669,6 @@
                 /* Read the header */
                 var offset = {offs : 0};
                 var fileIdent = fileObject.readNZTString(offset, 4);
-                var fileVersion  = fileObject.readInt32(offset); //is this really version?
 
                 /* Check the ident */
                 if (fileIdent != "MD20" && fileIdent != "MD21"){
@@ -622,22 +677,21 @@
                     throw errorMessage;
                 }
 
-                /* Check the version */
-                var mdxDescription = mdxTablePerVersion[fileVersion];
-                if (mdxDescription == undefined) {
-                    var errorMessage = "Unknown MDX file version = " + fileVersion + ", filepath = " + filePath;
-                    $log.error(errorMessage);
-                    throw errorMessage;
+                var promise;
+                if (fileIdent == 'MD21') {
+                    var resultMDXObject = {};
+                    var chunkedFile = chunkedLoader(filePath, fileObject.getArrayBuffer());
+                    chunkedFile.setSectionReaders( new BaseMdxChunkedLoader());
+                    chunkedFile.processFile(resultMDXObject);
+
+                    return resultMDXObject;
+                } else {
+                    /* Check the version */
+                    var deferred = $q.defer();
+                    var promise = defered.promise;
+
+                    resultMDXObject = parseOldFile(fileObject);
                 }
-
-                /* Parse the header */
-                var resultMDXObject = {};
-                    try {
-                        resultMDXObject = fileObject.parseSectionDefinition(resultMDXObject, mdxDescription, fileObject, offset);
-                    } catch (e) {
-                        throw e;
-                    }
-
                 /* Debug
                 if (resultMDXObject.bones.filter((a) => ((a.flags & 0x40) > 0)).length > 0){
                     $log.info("File "+ filePath + " has cylindric billboarding bones")

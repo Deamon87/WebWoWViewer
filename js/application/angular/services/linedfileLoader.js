@@ -8,12 +8,10 @@
 
 
     linedFileLoader.factory('linedFileLoader', ['fileLoader', "fileReadHelper", "$q", '$log', function (fileLoader, fileReadHelper, $q, $log) {
-        return function (filePath) {
-            return fileLoader(filePath).then(function success(a) {
-                if (typeof a != 'object' || !(a instanceof ArrayBuffer)) {
-                    $log.log("Failed to load file = " + filePath);
-                    return;
-                }
+
+        return function (filePath , arrayBuffer) {
+
+            function parseLinedFileObj(a){
                 var fileReader = fileReadHelper(a);
 
                 function LinedFileObj(){
@@ -200,12 +198,26 @@
                 LinedFileObj.prototype = fileReader;
 
                 var linedFileObj = new LinedFileObj();
-
                 return linedFileObj;
-            }, function error(e) {
-                return e;
-            });
+            }
 
+
+            if (arrayBuffer) {
+                var linedFileObj = parseLinedFileObj(arrayBuffer);
+                return linedFileObj;
+            } else {
+                return fileLoader(filePath).then(function success(a) {
+                    if (typeof a != 'object' || !(a instanceof ArrayBuffer)) {
+                        $log.log("Failed to load file = " + filePath);
+                        return;
+                    }
+                    var linedFileObj = parseLinedFileObj(a);
+
+                    return linedFileObj;
+                }, function error(e) {
+                    return e;
+                });
+            }
         };
 
     }]);

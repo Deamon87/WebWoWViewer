@@ -8,8 +8,9 @@
 
     chunkedLoader.factory('chunkedLoader', ['fileLoader', "fileReadHelper", "$q", '$log', function(fileLoader, fileReadHelper, $q, $log) {
 
-        return function (filePath) {
-            return fileLoader(filePath).then(function success(a) {
+        return function (filePath, arrayBuffer) {
+
+            function parseArrayBuffer(a) {
                 var fileReader = fileReadHelper(a);
 
                 var sectionReaders  = null;
@@ -101,9 +102,17 @@
                 };
 
                 return chunkedFileObj;
-            }, function error(e) {
-                return e;
-            });
+            }
+
+            if (arrayBuffer) {
+                return parseArrayBuffer(arrayBuffer);
+            } else  {
+                return fileLoader(filePath).then(function success(a) {
+                    return parseArrayBuffer(a);
+                }, function error(e) {
+                    return e;
+                });
+            }
         }
     }]);
 

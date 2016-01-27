@@ -384,6 +384,7 @@
                     for (var j = 0; j < doodadsNum; j++) {
                         var doodad = {};
                         doodad.nameIndex = chunk.readInt32(offset);
+                        doodad.nameIndex = doodad.nameIndex & 0xffffff;
                         doodad.modelName = fileReadHelper(modelNames.buffer).readString({offs : doodad.nameIndex}, modelNames.length - doodad.nameIndex);
                         doodad.pos       = chunk.readVector3f(offset);
                         doodad.rotation  = chunk.readQuaternion(offset);
