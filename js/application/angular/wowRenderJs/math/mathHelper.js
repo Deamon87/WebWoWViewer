@@ -3,6 +3,7 @@ function MathHelper(){}
 MathHelper.prototype = {
     getFrustumClipsFromMatrix : function (mat) {
         var planes = new Array(6);
+        // Right clipping plane.
         planes[0] = vec4.fromValues(mat[3]-mat[0],
             mat[7]-mat[4],
             mat[11]-mat[8],

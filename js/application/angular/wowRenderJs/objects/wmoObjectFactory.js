@@ -440,8 +440,10 @@
             },
             transverseInteriorWMO : function (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
                 var currentlyDrawnGroups = this.drawGroup;
-                //1. Loop through portals of current group
+                //1. Check visible wmo doodads against frustum
 
+
+                //2. Loop through portals of current group
                 var moprIndex = this.wmoGroupArray[groupId].wmoGroupFile.mogp.moprIndex;
                 var numItems = this.wmoGroupArray[groupId].wmoGroupFile.mogp.numItems;
                 var portalVertexes = this.worldPortalVerticles;
@@ -450,24 +452,41 @@
                     var relation = this.wmoObj.portalRelations[j];
                     var portalInfo = this.wmoObj.portalInfos[relation.portal_index];
 
+                    var nextGroup = relation.groupId;
                     var plane = portalInfo.plane;
 
-
                     var base_index = portalInfo.base_index;
-                    //If portal has less than 4 vertices - skip it(invalid?)
+
+                    //2.1 If portal has less than 4 vertices - skip it(invalid?)
                     if (portalInfo.index_count < 4) continue;
 
-                    //Form 4 new planes(fifth is the camera)
+                    //2.2 Check if Portal BB made from portal vertexes intersects
+
+
+
+
+                    //2.3 Form 4 new planes(fifth is the portal's plane)
                     var planeTop =      mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+0], portalVertexes[base_index+1]);
                     var planeLeft =     mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+1], portalVertexes[base_index+2]);
                     var planeRight =    mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+2], portalVertexes[base_index+3]);
                     var planeBottom =   mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+3], portalVertexes[base_index+0]);
 
+                    var portalFrustum = frustumPlanes.slice(0,8);
 
+                    portalFrustum[0] = planeRight;
+                    portalFrustum[1] = planeLeft;
+                    portalFrustum[2] = planeBottom;
+                    portalFrustum[3] = planeTop;
+                    portalFrustum[5] = plane;
+                    if (this.wmoObj.groupInfos[nextGroup].flags & 0x2000 > 0) {
+                        this.transverseInteriorWMO(nextGroup, cameraVec4, perspectiveMat, lookat, portalFrustum)
+                    } else {
+                        this.transverseExteriorWMO();
+                    }
                 }
             },
             transverseExteriorWMO : function (frustumMat, lookAtMat4) {
-
+                /*1. Check Adt WMO, check adtm2 */
             },
             checkFrustumCulling : function (cameraVec4, perspectiveMat, lookat, frustumPlanes) {
                 if (!this.worldGroupBorders) return;
