@@ -145,7 +145,7 @@
                 this.materialArray = materialArray;
             },
             checkFrustumCulling : function (cameraVec4, frustumPlanes, aabb) {
-                //1. Check if camera position is inside frustum
+                //1. Check if camera position is inside Bounding Box
                 if (
                     cameraVec4[0] > aabb[0][0] && cameraVec4[0] < aabb[1][0] &&
                     cameraVec4[1] > aabb[0][1] && cameraVec4[1] < aabb[1][1] &&

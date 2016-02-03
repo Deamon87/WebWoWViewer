@@ -23,10 +23,13 @@
                 if (!this.mdxObject) return null;
                 return this.mdxObject.getMeshesToRender();
             },
-            checkFrustumCulling : function (cameraVec4, frustumPlanes) {
-                var inFrustum = this.aabb && this.mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb)
-
+            checkFrustumCullingAndSet : function (cameraVec4, frustumPlanes) {
+                var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes);
                 this.setIsRendered(this.getIsRendered() && inFrustum);
+            },
+            checkFrustumCulling : function (cameraVec4, frustumPlanes) {
+                var inFrustum = this.aabb && this.mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb);
+                return inFrustum;
             },
             checkAgainstDepthBuffer: function (frustumMatrix, lookAtMat4, getDepth) {
                 this.setIsRendered(this.getIsRendered() && this.mdxObject.checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, this.placementMatrix, getDepth));

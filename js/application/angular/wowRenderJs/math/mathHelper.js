@@ -66,6 +66,19 @@ MathHelper.prototype = {
 
         return distToPlane;
     },
+    checkPortalFrustum : function (portalVerticles, planes) {
+        /*
+        for(var i=0; i<6; i++ )
+        {
+            var out = 0;
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[0][1], box[0][2], 1.0) ) < 0.0 )?1:0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], box[0][2], 1.0) ) < 0.0 )?1:0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], box[0][2], 1.0) ) < 0.0 )?1:0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], box[0][2], 1.0) ) < 0.0 )?1:0);
+            if( out==2 ) return false;
+        }
+        */
+    },
     checkFrustum : function (planes, box) {
       // check box outside/inside of frustum
         for(var i=0; i<6; i++ )
