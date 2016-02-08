@@ -35,35 +35,104 @@ uniform mat4 uPlacementMat;
 varying vec2 vTexCoord;
 varying vec2 vTexCoord2;
 varying vec4 vColor;
+varying vec3 vNormal;
 
 #ifdef drawBuffersIsSupported
-varying vec3 vNormal;
 varying vec3 vPosition;
 varying float fs_Depth;
 #endif
 
 
-mat3 inverse(mat3 m) {
-    float a00 = m[0][0], a01 = m[0][1], a02 = m[0][2];
-    float a10 = m[1][0], a11 = m[1][1], a12 = m[1][2];
-    float a20 = m[2][0], a21 = m[2][1], a22 = m[2][2];
-
-    float b01 =  a22 * a11 - a12 * a21;
-    float b11 = -a22 * a10 + a12 * a20;
-    float b21 =  a21 * a10 - a11 * a20;
-
-    float det = a00 * b01 + a01 * b11 + a02 * b21;
-
-    return mat3(b01, (-a22 * a01 + a02 * a21), (a12 * a01 - a02 * a11),
-                b11, (a22 * a00 - a02 * a20), (-a12 * a00 + a02 * a10),
-                b21, (-a21 * a00 + a01 * a20), (a11 * a00 - a01 * a10)) / det;
-}
+// constructors are column major
+mat2 transpose(mat2 m) {
+  return mat2(  m[0][0], m[1][0],   // new col 0
+                m[0][1], m[1][1]    // new col 1
+             );
+  }
 
 mat3 transpose(mat3 m) {
   return mat3(  m[0][0], m[1][0], m[2][0],  // new col 0
                 m[0][1], m[1][1], m[2][1],  // new col 1
                 m[0][2], m[1][2], m[2][2]   // new col 1
              );
+  }
+
+mat4 transpose(mat4 m) {
+  return mat4(  m[0][0], m[1][0], m[2][0], m[3][0],   // new col 0
+                m[0][1], m[1][1], m[2][1], m[3][1],    // new col 1
+                m[0][2], m[1][2], m[2][2], m[3][2],    // new col 1
+                m[0][3], m[1][3], m[2][3], m[3][3]
+             );
+  }
+
+float determinant(mat2 m) {
+  return m[0][0]*m[1][1] - m[1][0]*m[0][1] ;
+  }
+
+float determinant(mat3 m) {
+  return   m[0][0]*( m[1][1]*m[2][2] - m[2][1]*m[1][2])
+         - m[1][0]*( m[0][1]*m[2][2] - m[2][1]*m[0][2])
+         + m[2][0]*( m[0][1]*m[1][2] - m[1][1]*m[0][2]) ;
+  }
+
+// 4x4 determinate inplemented by blocks ..
+//     | A B |
+// det | C D | = det (A) * det(D - CA'B)
+//
+
+float determinant(mat4 m) {
+  mat2 a = mat2(m);
+  mat2 b = mat2(m[2].xy,m[3].xy);
+  mat2 c = mat2(m[0].zw,m[1].zw);
+  mat2 d = mat2(m[2].zw,m[3].zw);
+  float s = determinant(a);
+  return s*determinant(d-(1.0/s)*c*mat2(a[1][1],-a[0][1],-a[1][0],a[0][0])*b);
+  }
+
+mat2 inverse(mat2 m) {
+  float d = 1.0 / determinant(m) ;
+  return d * mat2( m[1][1], -m[0][1], -m[1][0], m[0][0]) ;
+  }
+
+mat3 inverse(mat3 m) {
+  float d = 1.0 / determinant(m) ;
+  return d * mat3( m[2][2]*m[1][1] - m[1][2]*m[2][1],
+                    m[1][2]*m[2][0] - m[2][2]*m[1][0],
+                     m[2][1]*m[1][0] - m[1][1]*m[2][0] ,
+
+                   m[0][2]*m[2][1] - m[2][2]*m[0][1],
+                    m[2][2]*m[0][0] - m[0][2]*m[2][0],
+                     m[0][1]*m[2][0] - m[2][1]*m[0][0],
+
+                   m[1][2]*m[0][1] - m[0][2]*m[1][1],
+                    m[0][2]*m[1][0] - m[1][2]*m[0][0],
+                     m[1][1]*m[0][0] - m[0][1]*m[1][0]
+                 );
+  }
+
+// This implements block wise inverse
+// | e f |   | A B |'    | A'+A'B(D-CA'B)'CA'    -A'B(D-CA'B)'  |
+// | g h | = | C D |   = |  -(D-CA'B)'CA'         (D-CA'B)'     |
+//
+// with
+// a inverted immediately
+// and sub expressions t = CA'
+// noting that h and f are subexpression also
+//
+mat4 inverse(mat4 m) {
+  mat2 a = inverse(mat2(m));
+  mat2 b = mat2(m[2].xy,m[3].xy);
+  mat2 c = mat2(m[0].zw,m[1].zw);
+  mat2 d = mat2(m[2].zw,m[3].zw);
+
+  mat2 t = c*a;
+  mat2 h = inverse(d - t*b);
+  mat2 g = - h*t;
+  mat2 f = - a*b*h;
+  mat2 e = a - f*t;
+
+  return mat4( vec4(e[0],g[0]), vec4(e[1],g[1]),
+                  vec4(f[0],h[0]), vec4(f[1],f[1]) );
   }
 
 void main() {
@@ -77,30 +146,30 @@ void main() {
     boneTransformMat += (boneWeights.z ) * uBoneMatrixes[int(bones.z)];
     boneTransformMat += (boneWeights.w ) * uBoneMatrixes[int(bones.w)];
 
-    modelPoint = (boneTransformMat * aPositionVec4);
-
-    vec4 cameraPoint = uLookAtMat * uPlacementMat * vec4(modelPoint.xyz, 1);
-
     mat4 cameraMatrix = uLookAtMat * uPlacementMat * boneTransformMat;
-    mat3 cameraMatrixInv = inverse(mat3(cameraMatrix));
+    vec4 cameraPoint = cameraMatrix * aPositionVec4;
 
-    mat3 normalMatrix = transpose(cameraMatrixInv);
+    mat4 cameraMatrixInv = inverse(cameraMatrix);
 
-    vec3 e = normalize( cameraPoint.xyz );
-    vec3 n = normalize( normalMatrix * aNormal);
+    mat3 invWorldMat = mat3(
+        uPlacementMat[0].xyz,
+        uPlacementMat[1].xyz,
+        uPlacementMat[2].xyz);
+    vec3 worldNormal = normalize((aNormal * invWorldMat));
+
+    mat3 invCameraMat = mat3(
+      uLookAtMat[0].xyz,
+      uLookAtMat[1].xyz,
+      uLookAtMat[2].xyz);
+
+    vec3 normal = normalize((worldNormal * invCameraMat));
 
     if (isEnviroment == 1) {
-        vec4 normalPoint = vec4(0,0,0,0);
+        vec3 normPos = -(normalize(cameraPoint.xyz));
+        vec3 temp = (normPos - (normal * (2.0 * dot(normPos, normal))));
+        temp.z = (temp.z + 1.0);
 
-        vec3 r = reflect( e, n );
-        float m = 2. * sqrt(
-            pow( r.x, 2. ) +
-            pow( r.y, 2. ) +
-            pow( r.z + 1., 2. )
-        );
-        vec2 vN = r.xy / m + .5;
-
-        vTexCoord = vN;
+        vTexCoord = ((normalize(temp).xy * 0.5) + vec2(0.5));
     }else {
         vTexCoord = aTexCoord;
     }
@@ -109,7 +178,7 @@ void main() {
 
 #ifndef drawBuffersIsSupported
     gl_Position = uPMatrix * cameraPoint;
-    vNormal = n;
+    vNormal = normal;
 #else
     gl_Position = uPMatrix * cameraPoint;
     fs_Depth = gl_Position.z / gl_Position.w;
@@ -186,3 +255,4 @@ void main() {
 }
 
 #endif //COMPILING_FS
+
