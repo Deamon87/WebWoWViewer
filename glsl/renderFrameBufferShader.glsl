@@ -17,7 +17,29 @@ void main() {
 precision mediump float;
 varying vec2 v_texcoord;
 uniform sampler2D u_sampler;
+uniform sampler2D u_depth;
+
+uniform float gauss_offsets[5];
+uniform float gauss_weights[5];
+
 void main() {
+   /*
+    vec4 fragmentColor = texture2D(u_sampler, v_texcoord);
+    float sourceDepth = texture2D(u_depth, v_texcoord).x;
+    vec4 final = (fragmentColor * gauss_weights[0]);
+    for (int i = 1; i < 5; i++) {
+
+        float sampleDepth = texture2D(u_depth, (v_texcoord + vec2(0.0, gauss_offsets[i]))).x;
+        float filterDepth = (((sourceDepth - sampleDepth) > 0.0700000003) ? 1.0 : 0.0);
+        //float filterDepth = 1.0;
+        vec4 t = vec4(filterDepth);
+        final = (final + (gauss_weights[i] * mix(texture2D(u_sampler, (v_texcoord + vec2(0.0, gauss_offsets[i]))), fragmentColor, t)));
+    }
+
+    final.a = 1.0;
+    gl_FragColor = final;   */
+
+
     gl_FragColor = vec4(texture2D(u_sampler, v_texcoord).rgb, 0);
 }
 

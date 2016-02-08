@@ -638,6 +638,9 @@
                     var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
                     gl.activeTexture(gl.TEXTURE0);
+
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.u_sampler, 0);
+                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.u_depth, 1);
                 }
             },
             activateRenderDepthShader : function () {
@@ -907,8 +910,17 @@
                 if (this.enableDeferred){
                     gl.bindTexture(gl.TEXTURE_2D, this.colorTexture);
                 } else {
+                    gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, this.frameBufferColorTexture);
+
+                    gl.activeTexture(gl.TEXTURE1);
+                    gl.bindTexture(gl.TEXTURE_2D, this.frameBufferDepthTexture);
                 }
+                var uniforms = this.currentShaderProgram.shaderUniforms;
+
+
+                gl.uniform1fv(uniforms.gauss_offsets, [0.0/this.canvas.height, 1.0/this.canvas.height, 2.0/this.canvas.height, 3.0/this.canvas.height, 4.0/this.canvas.height]);
+                gl.uniform1fv(uniforms.gauss_weights, [0.2270270270, 0.1945945946, 0.1216216216,0.0540540541, 0.0162162162]);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
                 gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);

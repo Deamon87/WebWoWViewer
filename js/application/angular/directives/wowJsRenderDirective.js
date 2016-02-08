@@ -233,7 +233,7 @@
 
                 //sceneObj.loadMap("Northrend", 29, 22); sceneObj.setCameraPos(4800, 1066, 137);
                 //sceneObj.loadMap("PVPZone04", 30 ,30); sceneObj.setCameraPos(1400, 1044, 509);
-                //sceneObj.loadMap("DeathKnightStart", 43, 28); sceneObj.setCameraPos(2033, -5843, 230);
+                sceneObj.loadMap("DeathKnightStart", 43, 28); sceneObj.setCameraPos(2033, -5843, 230);
                 //sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
                 //sceneObj.loadMap("HallsOfReflection", 28, 21); sceneObj.setCameraPos(5245, 2025, 733);
                 //sceneObj.loadMap("Expansion01", 22, 35); sceneObj.setCameraPos(-1663, 5098, 27);
@@ -254,13 +254,14 @@
                 });
                 */
 
+                /*
                 sceneObj.loadM2File({
                     fileName : "WORLD\\GENERIC\\GNOME\\PASSIVE DOODADS\\GNOMEMACHINE\\GNOMESUBWAYGLASS.m2",
                     uniqueId : 0,
                     pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
                     rotation : {x : 0, y: 0, z : 0},
                     scale    : 1024
-                });
+                });   */
 
 
                 /*
