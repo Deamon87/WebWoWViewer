@@ -2,7 +2,7 @@
     var configService = angular.module('main.services.config', []);
     configService.factory('configService', [function() {
         var urlToLoadWoWFile = '/get/';
-        var readFileMethod = 'zip';
+        var readFileMethod = 'http';
         var archiveUrl = 'http://deamon87.github.io/WoWFiles/ironforge.zip';
 
         var archiveFile = null;

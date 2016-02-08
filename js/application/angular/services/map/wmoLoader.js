@@ -81,10 +81,14 @@
                             } else {
                                 textCoords = chunk.readVector2f({offs:0}, textureCoordsLen)
                             }
-                            if ( groupWMOObject.textCoords == undefined) {
+                            if ( !groupWMOObject.firstMotvLoaded) {
                                 groupWMOObject.textCoords = textCoords;
-                            } else {
+                                groupWMOObject.firstMotvLoaded = true;
+                            } else if (!groupWMOObject.secondMotvLoaded){
                                 groupWMOObject.textCoords2 = textCoords;
+                                groupWMOObject.secondMotvLoaded = true;
+                            } else {
+                                groupWMOObject.textCoords3 = textCoords;
                             }
                         },
                         "MOCV": function (groupWMOObject, chunk) {

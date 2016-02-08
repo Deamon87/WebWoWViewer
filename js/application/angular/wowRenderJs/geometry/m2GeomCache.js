@@ -192,6 +192,12 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
                             gl.enable(gl.BLEND);
                             gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
                             break;
+
+                        case 6:
+                            gl.uniform1f(uniforms.uAlphaTest, 0.903921569);
+                            gl.enable(gl.BLEND);
+                            gl.blendFunc(gl.DST_COLOR, gl.SRC_COLOR);
+                            break;
                         default :
                             gl.uniform1f(uniforms.uAlphaTest, -1);
                             gl.enable(gl.BLEND);

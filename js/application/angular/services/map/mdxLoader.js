@@ -644,7 +644,7 @@
             },
             '12DM': function (mdxObj, chunk) {
                 var offset = {offs: 0};
-                var arrayBuffer = chunk.sliceArrayBuffer(chunk.chunkOffset+8, chunk.chunkOffset+chunk.chunkLen);
+                var arrayBuffer = chunk.sliceArrayBuffer(chunk.chunkOffset+8, chunk.chunkOffset+8+chunk.chunkLen);
                 var fileObj = linedFileLoader("", arrayBuffer);
                 var resultMDXObject = parseOldFile(fileObj);
 

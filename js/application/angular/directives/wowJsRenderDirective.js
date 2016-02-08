@@ -71,7 +71,7 @@
                   */
 
 
-                  /*
+                /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/KhazModan/Cities/Ironforge/ironforge.wmo",
                     uniqueId : 0,
@@ -80,6 +80,26 @@
                     doodadSet: 0
                 });
                 */
+                  /*
+                sceneObj.loadWMOFile({
+                    fileName : "world/wmo/brokenisles/brokenshore/7bs_tombofsargeras.wmo",
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    doodadSet: 0
+                });
+
+                */
+                    /*
+                sceneObj.loadWMOFile({
+                    fileName : "world/wmo/dungeon/orgrimmarraid/sw_stormwind_orgrimmar_raid.wmo",
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    doodadSet: 0
+                });
+                  */
+
                 /*
                 sceneObj.loadWMOFile({
                     fileName : "world/wmo/dungeon/orgrimmarraid/sw_stormwind_orgrimmar_raid.wmo",
@@ -122,6 +142,16 @@
                 });
                 */
 
+                  /*
+                sceneObj.loadWMOFile({
+                 fileName : "world/wmo/brokenisles/dalaran2.wmo",
+                 uniqueId : 0,
+                 pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                 rotation : {x : 0, y: 0, z : 0},
+                 doodadSet: 0
+                });
+                */
+
 
                 /*
                 sceneObj.loadWMOFile({
@@ -131,7 +161,7 @@
                  rotation : {x : 0, y: 0, z : 0},
                  doodadSet: 0
                  })
-                 */
+                */
 
                 /*
                  sceneObj.loadWMOFile({
@@ -143,8 +173,8 @@
                  });
 
                   */
+                                                  /*
 
-                  /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/Ulduar/Ulduar_Raid.wmo",
                     uniqueId : 0,
@@ -152,9 +182,9 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-                */
+                                                */
 
-                /*
+                            /*
                 sceneObj.loadWMOFile({
                     fileName : "World/wmo/Dungeon/MD_DiamondMt/DiamondMountain.wmo",
                     uniqueId : 0,
@@ -162,7 +192,7 @@
                     rotation : {x : 0, y: 0, z : 0},
                     doodadSet: 0
                 });
-                */
+                          */
 
                 /*
                 sceneObj.loadWMOFile({
@@ -199,6 +229,7 @@
                 //sceneObj.loadMap("Azeroth", 38, 40); sceneObj.setCameraPos(-4583, -3290, 394);
                 //sceneObj.loadMap("Azeroth", 28, 28); sceneObj.setCameraPos(2000, 1600, 137);
                 //sceneObj.loadMap("Azeroth", 34, 51); sceneObj.setCameraPos(-10000, -1200, 76);
+                //sceneObj.loadMap("NetherstormBG", 29, 28); sceneObj.setCameraPos(2110, 1489, 1474);
 
                 //sceneObj.loadMap("Northrend", 29, 22); sceneObj.setCameraPos(4800, 1066, 137);
                 //sceneObj.loadMap("PVPZone04", 30 ,30); sceneObj.setCameraPos(1400, 1044, 509);
@@ -223,6 +254,15 @@
                 });
                 */
 
+                sceneObj.loadM2File({
+                    fileName : "WORLD\\GENERIC\\GNOME\\PASSIVE DOODADS\\GNOMEMACHINE\\GNOMESUBWAYGLASS.m2",
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    scale    : 1024
+                });
+
+
                 /*
                 sceneObj.loadM2File({
                     fileName : "WORLD\\KHAZMODAN\\IRONFORGE\\PASSIVEDOODADS\\GARAGEMACHINE\\GARAGEMACHINE.m2",
@@ -242,6 +282,15 @@
                     scale    : 1024
                 });
                */
+                /*
+                sceneObj.loadM2File({
+                    fileName : "WORLD\\EXPANSION06\\DOODADS\\BROKENSHORE\\7BS_TOMBOFSARGERASFX_01.m2",
+                    uniqueId : 0,
+                    pos      : {x : 50 + 17066.666666656, y : 0, z : 50 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    scale    : 1024
+                });
+                */
 
                /*
                 sceneObj.loadM2File({
@@ -334,12 +383,24 @@
                 /*
                 sceneObj.loadM2File({
                     fileName: "character\\naga_\\female\\naga_female.m2",
+                    fileName: "WORLD\\NODXT\\GENERIC\\PASSIVEDOODADS\\VOLUMETRICLIGHTS\\LD_LIGHTSHAFT01.m2",
+                    uniqueId: 0,
+                    pos: {x: 0 + 17066.666666656, y: 0, z: 0 + 17066.666666656},
+                    rotation: {x: 0, y: 0, z: 0},
+                    scale: 1024
+                });
+                */
+
+                    /*
+                sceneObj.loadM2File({
+                    fileName: "WORLD\\EXPANSION06\\DOODADS\\DALARAN\\7DL_DALARAN_CRYSTAL02.m2",
                     uniqueId: 0,
                     pos: {x: 0 + 17066.666666656, y: 0, z: 0 + 17066.666666656},
                     rotation: {x: 0, y: 0, z: 0},
                     scale: 1024
                 });
                   */
+
 
 
                 //adtLoader('world//maps\\AhnQiraj\\AhnQiraj_26_46.adt');

@@ -19,7 +19,14 @@
             this.textureArray.length = this.wmoGroupFile.renderBatches.length;
 
             for (var i = 0; i < this.wmoGroupFile.renderBatches.length ; i++){
-                var textIndex = this.wmoGroupFile.renderBatches[i].tex;
+                var textIndex;
+                var renderBatch = this.wmoGroupFile.renderBatches[i];
+                if ((renderBatch.flags & 0x2) > 0) {
+                    textIndex = renderBatch.unk[11]*256+renderBatch.unk[10]
+                } else {
+                    textIndex = renderBatch.tex;
+                }
+
                 this.loadTexture(i, 0, momt[textIndex].textureName1);
                 this.loadTexture(i, 1, momt[textIndex].textureName2);
             }
@@ -167,10 +174,17 @@
 
             gl.activeTexture(gl.TEXTURE0);
             gl.uniform1f(shaderUniforms.uAlphaTest, -1.0);
+
+            //for (var j = 0; j < wmoGroupObject.mogp.numBatchesA; j++) {
             for (var j = 0; j < wmoGroupObject.renderBatches.length; j++) {
                 var renderBatch = wmoGroupObject.renderBatches[j];
 
-                var texIndex = renderBatch.tex;
+                var texIndex;
+                if ((renderBatch.flags & 0x2) > 0) {
+                    texIndex = renderBatch.unk[11]*256+renderBatch.unk[10];
+                } else {
+                    texIndex = renderBatch.tex;
+                }
 
                 var color = this.momt[texIndex].color1;
                 var colorVector = [color&0xff, (color>> 8)&0xff,
