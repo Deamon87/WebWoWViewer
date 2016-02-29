@@ -224,6 +224,29 @@
                 });
                 */
 
+
+                /*
+                sceneObj.loadWMOFile({
+                    fileName : "WORLD/WMO/AZEROTH/BUILDINGS/DUSKWOOD_INN/DUSKWOOD_INN.WMO",
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    doodadSet: 0
+                });
+                */
+
+                /*
+                sceneObj.loadWMOFile({
+                    fileName : "World/wmo/Azeroth/Buildings/Duskwood_Barn/Duskwood_Barn.wmo",
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    doodadSet: 0
+                });
+                */
+
+
+
                 //sceneObj.loadMap("Kalimdor", 32, 32);
                 //sceneObj.loadMap("Azeroth", 31, 31);
                 //sceneObj.loadMap("Azeroth", 38, 40); sceneObj.setCameraPos(-4583, -3290, 394);

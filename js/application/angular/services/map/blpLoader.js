@@ -21,7 +21,7 @@
                 {name : "lengths",      type: "int32Array", len : 16 },
                 {name : "palette",      type: "uint8Array", len : 256 }
             ]
-    };
+        };
 
         return function(filePath) {
             var promise = linedFileLoader(filePath);

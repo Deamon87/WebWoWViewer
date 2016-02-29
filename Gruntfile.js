@@ -76,7 +76,37 @@ module.exports = function(grunt) {
             },
             requestWorker : {
                 options: {
+                    // Replace all 'use strict' statements in the code with a single one at the top
+                    stripBanners : true,
+                    banner: 'var requestWorker = "',
+                    separator : '',
+                    process: function(src, filepath) {
+                        var concatedStr = src
+                            .replace(/join\("\n/g, 'join\(\\"')
+                            .replace(/"/g, '\\"')
+                            .replace(/'/g, '\\\'')
+                            .replace(/\r/g, '')
+                            .replace(/\n/g, '\\n"+\n"');
 
+                        //console.log(concatedStr[concatedStr.length-1] + "_" + concatedStr[concatedStr.length-2]);
+                        //if (concatedStr[concatedStr.length-1] == '"'){
+                        //    concatedStr = concatedStr.substr(0, concatedStr.length - 1);
+                        //}
+
+                        return concatedStr;
+                    },
+                    footer : '";' +
+                    'var blob = new Blob([requestWorker]);' +
+                    'var blobURL = window.URL.createObjectURL(blob);' +
+                    'window["requestWorker"] = blobURL;'
+                },
+                files: {
+                    'js/temp/worker-file-loader.js': [
+                        'js/lib/bower/zip.js/WebContent/zip.js',
+                        'js/lib/bower/q/q.js',
+                        'js/application/angular/services/fileSystem/fileLoaderStub.js',
+                        'js/application/angular/services/fileSystem/fileLoader-worker.js'
+                    ]
                 }
             }
         },
