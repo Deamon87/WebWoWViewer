@@ -2,8 +2,8 @@
 
     var fileLoader = angular.module('main.services.fileLoader', ['main.services.config']);
 
-    fileLoader.factory('fileLoader', ['configService', 'fileReadHelper', '$http', '$window', "$q",
-        function(configService, fileReadHelper, $http, $window, $q) {
+    fileLoader.factory('fileLoader', ['configService', 'fileReadHelper', '$http', '$window', "$q", "$log",
+        function(configService, fileReadHelper, $http, $window, $q, $log) {
             if (fileLoaderStub) {
                 return fileLoaderStub(configService, $q);
             } else {
@@ -17,8 +17,12 @@
 
                     if (opcode == 'fileLoaded') {
                         //Imply message is Uint8Array
+                        var defer = messageTable[recv_messageId].defer;
+                        var fileName = messageTable[recv_messageId].fileName;
                         if (message) {
-                            messageTable[recv_messageId].resolve(message.buffer);
+                            messageTable[recv_messageId].defer.resolve(message.buffer);
+                        } else {
+                            $log.info("Could not load file = " + fileName);
                         }
                         delete messageTable[recv_messageId];
                     }
@@ -39,7 +43,7 @@
 
                     var defer = $q.defer();
                     worker.postMessage({opcode: 'loadFile', messageId: messageId, message: fileName});
-                    messageTable[messageId] = defer;
+                    messageTable[messageId] = {defer: defer, fileName : fileName};
                     messageId++;
 
                     return defer.promise;

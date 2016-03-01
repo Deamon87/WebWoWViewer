@@ -145,7 +145,9 @@
                 return this.diameter;
             },
             setIsRendered : function (value) {
-                this.isRendered = value;
+               //if (value === undefined) return;
+
+                this.isRendered = true;
             },
             getIsRendered : function () {
                 return this.isRendered;
