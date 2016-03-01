@@ -438,10 +438,62 @@
                     }
                 }
             },
-            transverseInteriorWMO : function (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
-                var currentlyDrawnGroups = this.drawGroup;
-                //1. Check visible wmo doodads against frustum
+            startTraversingFromInteriorWMO : function (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes, currentVisibleM2, currentWmoVisible) {
+                //CurrentVisibleM2 and visibleWmo is array of global m2 objects, that are visible after frustum
 
+                /* 1. Create array of visibility with all false */
+                var traverseDoodadsVis = new Array(this.doodadsArray.length);
+                for (var i=0; i< traverseDoodadsVis.length; i++) {
+                    traverseDoodadsVis[i] = false;
+                }
+                var transverseVisitedGroups = new Array(this.wmoGroupArray.length);
+                for (var i = 0; i < transverseVisitedGroups.length; i++) {
+                    transverseVisitedGroups[i] = false;
+                }
+
+                this.traverseDoodadsVis = traverseDoodadsVis;
+                this.transverseVisitedGroups = transverseVisitedGroups;
+
+                this.transverseInteriorWMO(groupId, true, cameraVec4, perspectiveMat, lookat, frustumPlanes);
+
+
+                for (var i = 0; i< traverseDoodadsVis.length; i++) {
+                    this.doodadsArray[i].setIsRendered(!!traverseDoodadsVis[i]);
+                }
+
+            },
+            startTraversingFromExteriorWMO : function (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
+                this.transverseExteriorWMO(groupId, false, cameraVec4, perspectiveMat, lookat, frustumPlanes);
+            },
+            transverseInteriorWMO : function (groupId, fromInterior, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
+                var currentlyDrawnGroups = this.drawGroup;
+                this.transverseVisitedGroups[groupId] = true;
+
+                //1. Check visible wmo doodads against frustum
+                if (this.wmoGroupArray[groupId]) {
+                    var doodadRefs = this.wmoGroupArray[groupId].wmoGroupFile.doodadRefs;
+                    var doodadsSet = this.currentDoodadSet;
+
+                    if (doodadRefs) {
+                        for (var j = 0; j < doodadRefs.length; j++) {
+                            var doodadIndex = doodadRefs[j];
+                            if (
+                                (doodadIndex - doodadsSet.index < 0) ||
+                                (doodadIndex > doodadsSet.index + doodadsSet.number - 1)
+                            ) continue;
+
+                            var doodadWmoIndex = doodadIndex - doodadsSet.index;
+                            var mdxObject = this.doodadsArray[doodadWmoIndex];
+                            if (mdxObject.getIsRendered()) {
+                                var inFrustum = mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes);
+
+
+                                var currVis = this.traverseDoodadsVis[doodadWmoIndex];
+                                this.traverseDoodadsVis[doodadWmoIndex] = currVis | inFrustum;
+                            }
+                        }
+                    }
+                }
 
                 //2. Loop through portals of current group
                 var moprIndex = this.wmoGroupArray[groupId].wmoGroupFile.mogp.moprIndex;
@@ -460,10 +512,12 @@
                     //2.1 If portal has less than 4 vertices - skip it(invalid?)
                     if (portalInfo.index_count < 4) continue;
 
+                    //Skip groups we already visited
+                    if (this.transverseVisitedGroups[nextGroup]) continue;
+
                     //2.2 Check if Portal BB made from portal vertexes intersects
 
-
-
+                    mathHelper.checkPortalFrustum();
 
                     //2.3 Form 4 new planes(fifth is the portal's plane)
                     var planeTop =      mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+0], portalVertexes[base_index+1]);
@@ -485,7 +539,7 @@
                     }
                 }
             },
-            transverseExteriorWMO : function (frustumMat, lookAtMat4) {
+            transverseExteriorWMO : function (groupId, fromInterior, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
                 /*1. Check Adt WMO, check adtm2 */
             },
             checkFrustumCulling : function (cameraVec4, perspectiveMat, lookat, frustumPlanes) {

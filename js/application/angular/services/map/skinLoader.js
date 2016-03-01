@@ -40,19 +40,18 @@
                     count : "nSub",
                     type : "layout",
                     layout : [
-                        {name : "meshID",       type: "int32"},
-                        {name : "vStart",       type: "uint16"},
-                        {name : "vCount",       type: "uint16"},
-                        {name : "idxStart",     type: "uint16"},
-                        {name : "idxCount",     type: "uint16"},
-                        {name : "idxBone",      type: "uint16"},
-                        {name : "OfsBoneList",  type: "uint16"},
-                        {name : "unk1",         type: "uint16"},
-                        {name : "rootBone",     type: "uint16"},
-                        {name : "pos",          type: "vector3f"},
-                        {name : "unkPos",       type: "vector3f"},
-                        {name : "unkFloat",     type: "float32"}
-
+                        {name : "meshID",         type: "int32"},
+                        {name : "vStart",         type: "uint16"},
+                        {name : "vCount",         type: "uint16"},
+                        {name : "StartTriangle",  type: "uint16"},
+                        {name : "nTriangles",     type: "uint16"},
+                        {name : "nBones",         type: "uint16"},
+                        {name : "OfsBoneList",    type: "uint16"},
+                        {name : "boneInfluences", type: "uint16"},
+                        {name : "rootBone",       type: "uint16"},
+                        {name : "pos",            type: "vector3f"},
+                        {name : "unkPos",         type: "vector3f"},
+                        {name : "unkFloat",       type: "float32"},
                     ]
                 },
                 {

@@ -82,11 +82,17 @@ module.exports = function(grunt) {
                     separator : '',
                     process: function(src, filepath) {
                         var concatedStr = src
-                            .replace(/join\("\n/g, 'join\(\\"')
+                            .replace(/"\\n"/g, '"1_n"')
+                            .replace(/\/\\\\\/g/g, '\/\\\\\\\\\/g')
+
+                            .replace(/Promise]\\n"/g, 'Promise]1_n')
+                            .replace(/useWebWorkers : true/g, 'useWebWorkers : false')
                             .replace(/"/g, '\\"')
                             .replace(/'/g, '\\\'')
                             .replace(/\r/g, '')
-                            .replace(/\n/g, '\\n"+\n"');
+                            .replace(/\n/g, '\\n"+\n"')
+                            .replace(/\\"1_n\\"/g, '\\"\\\\n\\"').
+                            replace(/Promise]1_n"/g, 'Promise]\\\\n');
 
                         //console.log(concatedStr[concatedStr.length-1] + "_" + concatedStr[concatedStr.length-2]);
                         //if (concatedStr[concatedStr.length-1] == '"'){

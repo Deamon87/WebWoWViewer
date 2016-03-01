@@ -76,6 +76,7 @@
 
                     var materialData = materialArray[i];
 
+                    materialData.layer =  skinTextureDefinition.layer;
                     materialData.isRendered = true;
                     materialData.isTransparent = isTransparent;
                     materialData.meshIndex = skinTextureDefinition.submeshIndex;
@@ -88,7 +89,6 @@
                             materialData.isEnviromentMapping = true;
                         }
                     }
-
 
                     if (op_count > 0) {
                         var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
@@ -105,10 +105,12 @@
                     if (op_count > 2) {
                         var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 2];
                         var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex2];
-                        materialData.texUnit2TexIndex = i;
-                        materialData.textureUnit2TexName = mdxTextureDefinition2.textureName;
+                        materialData.texUnit3TexIndex = i;
+                        materialData.textureUnit3TexName = mdxTextureDefinition2.textureName;
                     }
                 }
+
+
 
                 for (var i = 0; i < materialArray.length; i++) {
                     var materialData = materialArray[i];
@@ -141,6 +143,9 @@
                     }
                 }
 
+                materialArray.sort(function(a,b){
+                    return a.layer - b.layer;
+                });
 
                 this.materialArray = materialArray;
             },

@@ -149,8 +149,6 @@ void main() {
     mat4 cameraMatrix = uLookAtMat * uPlacementMat * boneTransformMat;
     vec4 cameraPoint = cameraMatrix * aPositionVec4;
 
-    mat4 cameraMatrixInv = inverse(cameraMatrix);
-
     mat3 invWorldMat = mat3(
         uPlacementMat[0].xyz,
         uPlacementMat[1].xyz,

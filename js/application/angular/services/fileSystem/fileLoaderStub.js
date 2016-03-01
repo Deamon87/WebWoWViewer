@@ -1,3 +1,23 @@
+function ArrayBufferReaderSync(arrayBuffer) {
+    var that = this;
+
+    function init(callback) {
+        that.size = arrayBuffer.byteLength;
+        callback();
+    }
+    function readUint8Array(index, length, callback, onerror) {
+        var newArrayBuffer = arrayBuffer.slice(index, index+length);
+        var result = new Uint8Array(newArrayBuffer);
+        callback(result);
+    }
+
+    that.size = 0;
+    that.init = init;
+    that.readUint8Array = readUint8Array;
+}
+ArrayBufferReaderSync.prototype = new zip.Reader();
+ArrayBufferReaderSync.prototype.constructor = ArrayBufferReaderSync;
+
 var fileLoaderStub = function (configService, $q) {
     var zipEntries;
 
@@ -8,7 +28,7 @@ var fileLoaderStub = function (configService, $q) {
         initDefers.push(defer);
 
         var zipFile = configService.getArhiveFile();
-        zip.createReader(new zip.BlobReader(new Blob([zipFile])), function (reader) {
+        zip.createReader(new ArrayBufferReaderSync(zipFile), function (reader) {
 
             // get all entries from the zip
             reader.getEntries(function (entries) {
@@ -104,8 +124,8 @@ var fileLoaderStub = function (configService, $q) {
                 return initZipEntries().then(function succees(a) {
                     zipEntries = a;
                     return readZipFile(filePath);
-                }, function error(a) {
-
+                }, function error(a,b,c) {
+                    return
                 }).then(function success(fileData) {
                     return fileData;
                 }, function error(e) {
