@@ -109,6 +109,7 @@ module.exports = function(grunt) {
                 files: {
                     'js/temp/worker-file-loader.js': [
                         'js/lib/bower/zip.js/WebContent/zip.js',
+                        'js/lib/bower/zip.js/WebContent/inflate.js',
                         'js/lib/bower/q/q.js',
                         'js/application/angular/services/fileSystem/fileLoaderStub.js',
                         'js/application/angular/services/fileSystem/fileLoader-worker.js'

@@ -3,7 +3,7 @@
     configService.factory('configService', [function() {
         var urlToLoadWoWFile = '/get/';
         var readFileMethod = 'zip';
-        var archiveUrl = 'http://deamon87.github.io/WoWFiles/ironforge.zip';
+        var archiveUrl = 'http://deamon87.github.io/WoWFiles/shattrath.zip';
 
         var archiveFile = null;
 

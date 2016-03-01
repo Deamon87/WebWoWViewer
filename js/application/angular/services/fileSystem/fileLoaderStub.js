@@ -18,6 +18,38 @@ function ArrayBufferReaderSync(arrayBuffer) {
 ArrayBufferReaderSync.prototype = new zip.Reader();
 ArrayBufferReaderSync.prototype.constructor = ArrayBufferReaderSync;
 
+function concatTypedArrays(a, b) { // a, b TypedArray of same type
+    var c = new (a.constructor)(a.length + b.length);
+    c.set(a, 0);
+    c.set(b, a.length);
+    return c;
+}
+
+function ArrayBufferWriterSync(contentType) {
+    var uint8Array, that = this;
+
+    function init(callback) {
+        uint8Array = new Uint8Array(0);
+        callback();
+    }
+
+    function writeUint8Array(array, callback) {
+        uint8Array = concatTypedArrays(uint8Array, array);
+        callback();
+    }
+
+    function getData(callback) {
+        callback(uint8Array);
+    }
+
+    that.init = init;
+    that.writeUint8Array = writeUint8Array;
+    that.getData = getData;
+}
+ArrayBufferWriterSync.prototype = new zip.Writer();
+ArrayBufferWriterSync.prototype.constructor = ArrayBufferWriterSync;
+
+
 var fileLoaderStub = function (configService, $q) {
     var zipEntries;
 
@@ -81,16 +113,8 @@ var fileLoaderStub = function (configService, $q) {
          */
 
         if (result) {
-            result.getData(new zip.BlobWriter(), function (data) {
-                var fileReader = new FileReader;
-                fileReader.onload = function (evt) {
-                    // Read out file contents as a Data URL
-                    var result = evt.target.result;
-                    defer.resolve(result);
-                };
-                // Load blob as Data URL
-
-                fileReader.readAsArrayBuffer(data);
+            result.getData(new ArrayBufferWriterSync(), function (data) {
+                defer.resolve(data);
             });
         } else {
             defer.reject(null);

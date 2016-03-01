@@ -16,7 +16,10 @@
                     var recv_messageId = e.data.messageId;
 
                     if (opcode == 'fileLoaded') {
-                        messageTable[recv_messageId].resolve(message);
+                        //Imply message is Uint8Array
+                        if (message) {
+                            messageTable[recv_messageId].resolve(message.buffer);
+                        }
                         delete messageTable[recv_messageId];
                     }
                 };
@@ -37,6 +40,7 @@
                     var defer = $q.defer();
                     worker.postMessage({opcode: 'loadFile', messageId: messageId, message: fileName});
                     messageTable[messageId] = defer;
+                    messageId++;
 
                     return defer.promise;
                 }
