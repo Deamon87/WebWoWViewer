@@ -244,9 +244,9 @@ m2GeomCache.factory("m2GeomCache", ['mdxLoader', 'cacheTemplate', '$q', function
 
                     meshIndex = materialData.meshIndex;
                     if (instanceCount == undefined) {
-                        gl.drawElements(gl.TRIANGLES, skinData.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].idxStart * 2);
+                        gl.drawElements(gl.TRIANGLES, skinData.subMeshes[meshIndex].nTriangles, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].StartTriangle * 2);
                     } else {
-                        instExt.drawElementsInstancedANGLE(gl.TRIANGLES, skinData.subMeshes[meshIndex].idxCount, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].idxStart * 2, instanceCount);
+                        instExt.drawElementsInstancedANGLE(gl.TRIANGLES, skinData.subMeshes[meshIndex].nTriangles, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].StartTriangle * 2, instanceCount);
                     }
                     if (materialData.texUnit2Texture != null) {
                         gl.activeTexture(gl.TEXTURE1);

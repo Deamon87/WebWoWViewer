@@ -43,7 +43,7 @@
             this.stats = stats;
 
             var self = this;
-            self.enableDeferred = true;
+            self.enableDeferred = false;
 
             self.sceneObjectList = [];
             self.sceneAdts = [];
@@ -182,10 +182,18 @@
                 function throwOnGLError(err, funcName, args) {
                     throw WebGLDebugUtils.glEnumToString(err) + " was caused by call to: " + funcName;
                 }
+                function validateNoneOfTheArgsAreUndefined(functionName, args) {
+                    for (var ii = 0; ii < args.length; ++ii) {
+                        if (args[ii] === undefined) {
+                            console.error("undefined passed to gl." + functionName + "(" +
+                                WebGLDebugUtils.glFunctionArgsToString(functionName, args) + ")");
+                        }
+                    }
+                }
 
                 try {
                     var gl = canvas.getContext("webgl", {premultipliedAlpha: false, alpha: false }) || canvas.getContext("experimental-webgl", {premultipliedAlpha: false});
-                    gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError);
+                    gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError, validateNoneOfTheArgsAreUndefined);
                 }
                 catch(e) {}
 
@@ -639,8 +647,13 @@
 
                     gl.activeTexture(gl.TEXTURE0);
 
+                    gl.disableVertexAttribArray(1);
+
+
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.u_sampler, 0);
-                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.u_depth, 1);
+                    if (this.currentShaderProgram.shaderUniforms.u_depth) {
+                        gl.uniform1i(this.currentShaderProgram.shaderUniforms.u_depth, 1);
+                    }
                 }
             },
             activateRenderDepthShader : function () {
@@ -665,7 +678,6 @@
                     gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.position);
                     gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.texture);
 
-                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.diffuse, 0);
                 }
             },
             activateAdtShader : function(){
@@ -756,7 +768,9 @@
 
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
                     gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
-                    gl.uniform1i(this.currentShaderProgram.shaderUniforms.isBillboard, 0);
+                    if (this.currentShaderProgram.shaderUniforms.isBillboard) {
+                        gl.uniform1i(this.currentShaderProgram.shaderUniforms.isBillboard, 0);
+                    }
 
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
                     gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
@@ -918,9 +932,10 @@
                 }
                 var uniforms = this.currentShaderProgram.shaderUniforms;
 
-
-                gl.uniform1fv(uniforms.gauss_offsets, [0.0/this.canvas.height, 1.0/this.canvas.height, 2.0/this.canvas.height, 3.0/this.canvas.height, 4.0/this.canvas.height]);
-                gl.uniform1fv(uniforms.gauss_weights, [0.2270270270, 0.1945945946, 0.1216216216,0.0540540541, 0.0162162162]);
+                if(uniforms.gauss_offsets) {
+                    gl.uniform1fv(uniforms.gauss_offsets, [0.0/this.canvas.height, 1.0/this.canvas.height, 2.0/this.canvas.height, 3.0/this.canvas.height, 4.0/this.canvas.height]);
+                    gl.uniform1fv(uniforms.gauss_weights, [0.2270270270, 0.1945945946, 0.1216216216,0.0540540541, 0.0162162162]);
+                }
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
                 gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
