@@ -1,79 +1,64 @@
-/**
- * Created by Deamon on 26/01/2015.
- */
+export default function (dbcFilePath) {
+    var deferred = $q.defer();
 
-(function (window, $, undefined) {
+    var dbcHeaderLen = 20;
 
-    var loadDBCService = angular.module('main.services.dbcLoader', ['main.services.config']);
-
-    loadDBCService.factory('loadDBC', ['fileLoader', 'fileReadHelper', "$q", function(fileLoader, fileReadHelper, $q) {
-        /*
-            Returns deferredObject
-        */
-        return function (dbcFilePath) {
-            var deferred = $q.defer();
-
-            var dbcHeaderLen = 20;
-
-            fileLoader(dbcFilePath).then(function success(a) {
-                var fileReader = fileReadHelper(a);
-                var offset = {offs : 0};
+    fileLoader(dbcFilePath).then(function success(a) {
+        var fileReader = fileReadHelper(a);
+        var offset = {offs : 0};
 
 
-                var dbcIdent = fileReader.readString(offset, 4);
+        var dbcIdent = fileReader.readString(offset, 4);
 
-                var rowCount = fileReader.readInt32(offset);
-                var colCount = fileReader.readInt32(offset);
-                var rowSize  = fileReader.readInt32(offset);
-                var textSize = fileReader.readInt32(offset);
+        var rowCount = fileReader.readInt32(offset);
+        var colCount = fileReader.readInt32(offset);
+        var rowSize  = fileReader.readInt32(offset);
+        var textSize = fileReader.readInt32(offset);
 
-                var textSectionStart = dbcHeaderLen + rowCount* (colCount*4);
+        var textSectionStart = dbcHeaderLen + rowCount* (colCount*4);
 
-                function calcOffset(row, col){
-                    var offs =  dbcHeaderLen + row * (colCount * 4) + col * 4;
-                    return {offs : offs};
-                }
-                function getTextOffset(row, col) {
-                    var offs = calcOffset(row, col);
-                    var textOffs = fileReader.readUint32(offs);
+        function calcOffset(row, col){
+            var offs =  dbcHeaderLen + row * (colCount * 4) + col * 4;
+            return {offs : offs};
+        }
+        function getTextOffset(row, col) {
+            var offs = calcOffset(row, col);
+            var textOffs = fileReader.readUint32(offs);
 
-                    var result = textSectionStart + textOffs;
-                    return result;
-                }
+            var result = textSectionStart + textOffs;
+            return result;
+        }
 
 
-                var dbcObject = {
-                    fileSize    : a.byteLength ,
-                    getRowCount : function() {
-                        return rowCount;
-                    },
-                    getColCount : function() {
-                        return colCount;
-                    },
-                    getRowSize  : function() {
-                        return rowSize;
-                    },
-                    readInt32 : function (row, col) {
-                        var offs = calcOffset(row, col);
-                        return fileReader.readInt32(offs, true);
-                    },
-                    readUInt32 : function (row, col){
-                        var offs = calcOffset(row, col);
-                        return fileReader.readUint32(offs, true);
-                    },
-                    readText : function (row, col) {
-                        var textOffs = getTextOffset(row, col);
-                        return fileReader.readString(textOffs, textSize);
-                    }
-                };
-
-                deferred.resolve(dbcObject);
-            }, function error(){
-                deferred.reject(null);
-            });
-
-            return deferred.promise;
+        var dbcObject = {
+            fileSize    : a.byteLength ,
+            getRowCount : function() {
+                return rowCount;
+            },
+            getColCount : function() {
+                return colCount;
+            },
+            getRowSize  : function() {
+                return rowSize;
+            },
+            readInt32 : function (row, col) {
+                var offs = calcOffset(row, col);
+                return fileReader.readInt32(offs, true);
+            },
+            readUInt32 : function (row, col){
+                var offs = calcOffset(row, col);
+                return fileReader.readUint32(offs, true);
+            },
+            readText : function (row, col) {
+                var textOffs = getTextOffset(row, col);
+                return fileReader.readString(textOffs, textSize);
+            }
         };
-    }]);
 
-})(jQuery, window);
+        deferred.resolve(dbcObject);
+    }, function error(){
+        deferred.reject(null);
+    });
+
+    return deferred.promise;
+};

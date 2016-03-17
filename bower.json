@@ -26,19 +26,9 @@
     }
   },
   "dependencies": {
-    "angular": "v1.3.19",
-    "angular-animate": "v1.3.19",
-    "angular-mocks": "v1.3.19",
-    "angular-resource":"v1.3.19",
-    "angular-route": "v1.3.19",
-    "angular-sanitize": "v1.3.19",
-    "angular-ui-router": "~0.2.10",
-    "angular-bootstrap": "v0.13.4",
     "bootstrap" : "3.1.1",
     "jquery": "~1.11.1",
-    "stats.js" : "r12",
     "text-encoding": "v0.5.1",
-    "gl-matrix": "v2.2.1",
     "decodeDXT": "Deamon87/decodeDXT",
     "q" : "q#1.0.1",
     "zip.js" : "gildas-lormeau/zip.js"

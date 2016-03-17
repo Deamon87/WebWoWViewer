@@ -1,32 +1,22 @@
-/* WMO Main Cache */
-/* global alert: false */
-'use strict';
-(function (window, $, undefined) {
+class WmoMainCache {
+    constructor(sceneApi) {
+        var self = this;
 
-    var wmoGeomCache = angular.module('js.wow.render.geometry.wmoMainCache', ['main.services.map.wmoLoader', 'js.wow.render.cacheTemplate']);
-    wmoGeomCache.factory("wmoMainCache", ['wmoLoader', 'cacheTemplate', '$q', function(wmoLoader, cacheTemplate, $q){
+        this.cache = cacheTemplate(function loadGroupWmo(fileName) {
+            /* Must return promise */
+            return wmoLoader(fileName);
+        }, function (a) {
+            return a;
+        });
+    }
+    loadWmoMain (fileName) {
+        return this.cache.get(fileName);
+    };
 
-        function WmoMainCache(sceneApi) {
-            var self = this;
+    unLoadWmoMain (fileName) {
+        this.cache.remove(fileName)
+    }
+}
 
-            var cache = cacheTemplate(function loadGroupWmo(fileName){
-                /* Must return promise */
-                return wmoLoader(fileName);
-            }, function (a){
-                return a;
-            });
-
-            self.loadWmoMain = function (fileName){
-                return cache.get(fileName);
-            };
-
-            self.unLoadWmoMain = function (fileName) {
-                cache.remove(fileName)
-            }
-        }
-
-        return WmoMainCache;
-    }]);
-
-})(window, jQuery);
+export default WmoMainCache;
 

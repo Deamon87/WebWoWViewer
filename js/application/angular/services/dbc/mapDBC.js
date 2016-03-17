@@ -1,43 +1,34 @@
-/**
- * Created by Deamon on 26/01/2015.
- */
+import $q from 'q';
+import loadDBC from './../dbcLoader.js';
 
-(function (window, $, undefined) {
 
-    var mapDBCService = angular.module('main.services.dbc.map', ['main.services.dbcLoader']);
+const mapDBCFile = {};
 
-    mapDBCService.factory('mapDBC', ['loadDBC', "$q", function(loadDBC, $q) {
-        var mapDBCFile;
 
-        return function(){
-            var deferred = $q.defer();
+export default function mapDBC(){
+    var deferred = $q.defer();
 
-            if (mapDBCFile === undefined) {
-                var promise = loadDBC("DBFilesClient/Map.dbc");
+    if (mapDBCFile === undefined) {
+        var promise = loadDBC("DBFilesClient/Map.dbc");
 
-                promise.then(function(dbcObject){
-                    mapDBCFile = {};
+        promise.then(function(dbcObject){
+            for (var i = 0; i < dbcObject.getRowCount(); i++ ) {
+                var mapDBCRecord = {};
 
-                    for (var i = 0; i < dbcObject.getRowCount(); i++ ) {
-                        var mapDBCRecord = {};
+                mapDBCRecord.id      = dbcObject.readInt32(i, 0);
+                mapDBCRecord.mapName = dbcObject.readText(i, 1);
+                mapDBCRecord.wdtName = dbcObject.readText(i, 5);
 
-                        mapDBCRecord.id      = dbcObject.readInt32(i, 0);
-                        mapDBCRecord.mapName = dbcObject.readText(i, 1);
-                        mapDBCRecord.wdtName = dbcObject.readText(i, 5);
-
-                        mapDBCFile[mapDBCRecord.id] = mapDBCRecord;
-                    }
-
-                    deferred.resolve(mapDBCFile);
-                }, function (error) {
-                    deferred.reject();
-                });
-            } else {
-                deferred.resolve(mapDBCFile);
+                mapDBCFile[mapDBCRecord.id] = mapDBCRecord;
             }
 
-            return deferred.promise;
-        };
-    }]);
+            deferred.resolve(mapDBCFile);
+        }, function (error) {
+            deferred.reject();
+        });
+    } else {
+        deferred.resolve(mapDBCFile);
+    }
 
-})(window, jQuery);
+    return deferred.promise;
+}

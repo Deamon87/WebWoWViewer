@@ -1,178 +1,167 @@
-'use strict';
 
-(function (window, $, undefined) {
-    var cacheTemplate = angular.module('js.wow.render.wmoM2ObjectFactory', ['js.wow.render.mdxObject']);
-    cacheTemplate.factory("wmoM2ObjectFactory", ['mdxObject', '$q', '$timeout', 'mathHelper', function(mdxObject, $q, $timeout, mathHelper) {
-        function WmoM2Object(sceneApi){
-            var self = this;
+class WmoM2Object {
+    constructor(sceneApi) {
+        var self = this;
 
-            self.sceneApi = sceneApi;
-            self.mdxObject = new mdxObject(sceneApi);
-            self.currentDistance = 0;
-            self.isRendered = true;
-            self.useLocalLighting = true;
+        self.sceneApi = sceneApi;
+        self.mdxObject = new mdxObject(sceneApi);
+        self.currentDistance = 0;
+        self.isRendered = true;
+        self.useLocalLighting = true;
+    }
+    getFileNameIdent (){
+        return this.mdxObject.fileIdent;
+    }
+    getMeshesToRender() {
+        if (!this.mdxObject) return null;
+        return this.mdxObject.getMeshesToRender();
+    }
+    checkFrustumCullingAndSet (cameraVec4, frustumPlanes) {
+        var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes);
+        this.setIsRendered(this.getIsRendered() && inFrustum);
+    }
+    checkFrustumCulling (cameraVec4, frustumPlanes) {
+        var inFrustum = this.aabb && this.mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb);
+        return inFrustum;
+    }
+    checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, getDepth) {
+        this.setIsRendered(this.getIsRendered() && this.mdxObject.checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, this.placementMatrix, getDepth));
+    }
+    updateAABB (){
+        var bb = this.mdxObject.getBoundingBox();
+        if (bb) {
+            var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
+            var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
+
+            var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [a_ab, a_cd]);
+
+            this.diameter = vec3.distance(worldAABB[0], worldAABB[1]);
+            this.aabb = worldAABB;
         }
-        WmoM2Object.prototype = {
-            sceneApi : null,
-            mdxObject : null,
+    }
+    update(deltaTime, cameraPos) {
+        if (!this.getIsRendered()) return;
+        this.mdxObject.update(deltaTime, cameraPos, this.placementInvertMatrix);
+    }
+    drawTransparentMeshes () {
+        var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
+        this.mdxObject.drawTransparentMeshes(this.placementMatrix, diffuseColor);
+    }
+    drawNonTransparentMeshes () {
+        var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
+        this.mdxObject.drawNonTransparentMeshes(this.placementMatrix, diffuseColor);
+    }
+    draw () {
+        var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
+        this.mdxObject.draw(this.placementMatrix, diffuseColor);
+    }
+    drawInstancedNonTransparentMeshes (instanceCount, placementVBO) {
+        var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
+        this.mdxObject.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, diffuseColor);
+    }
+    drawInstancedTransparentMeshes (instanceCount, placementVBO) {
+        var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
+        this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, diffuseColor);
+    }
+    drawBB () {
+        var gl = this.sceneApi.getGlContext();
+        var uniforms = this.sceneApi.shaders.getShaderUniforms();
 
-            getFileNameIdent : function (){
-                return this.mdxObject.fileIdent;
-            },
-            getMeshesToRender : function () {
-                if (!this.mdxObject) return null;
-                return this.mdxObject.getMeshesToRender();
-            },
-            checkFrustumCullingAndSet : function (cameraVec4, frustumPlanes) {
-                var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes);
-                this.setIsRendered(this.getIsRendered() && inFrustum);
-            },
-            checkFrustumCulling : function (cameraVec4, frustumPlanes) {
-                var inFrustum = this.aabb && this.mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb);
-                return inFrustum;
-            },
-            checkAgainstDepthBuffer: function (frustumMatrix, lookAtMat4, getDepth) {
-                this.setIsRendered(this.getIsRendered() && this.mdxObject.checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, this.placementMatrix, getDepth));
-            },
-            updateAABB : function (){
-                var bb = this.mdxObject.getBoundingBox();
-                if (bb) {
-                    var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
-                    var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
+        var bb = this.mdxObject.getBoundingBox();
 
-                    var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [a_ab, a_cd]);
+        if (bb) {
+            var bb1 = bb.ab,
+                bb2 = bb.cd;
 
-                    this.diameter = vec3.distance(worldAABB[0], worldAABB[1]);
-                    this.aabb = worldAABB;
-                }
-            },
-            update: function (deltaTime, cameraPos) {
-                if (!this.getIsRendered()) return;
-                this.mdxObject.update(deltaTime, cameraPos, this.placementInvertMatrix);
-            },
-            drawTransparentMeshes : function () {
-                var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-                this.mdxObject.drawTransparentMeshes(this.placementMatrix, diffuseColor);
-            },
-            drawNonTransparentMeshes : function () {
-                var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-                this.mdxObject.drawNonTransparentMeshes(this.placementMatrix, diffuseColor);
-            },
-            draw : function () {
-                var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-                this.mdxObject.draw(this.placementMatrix, diffuseColor);
-            },
-            drawInstancedNonTransparentMeshes : function (instanceCount, placementVBO) {
-                var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-                this.mdxObject.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, diffuseColor);
-            },
-            drawInstancedTransparentMeshes : function (instanceCount, placementVBO) {
-                var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-                this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, diffuseColor);
-            },
-            drawBB : function () {
-                var gl = this.sceneApi.getGlContext();
-                var uniforms = this.sceneApi.shaders.getShaderUniforms();
+            var center = [
+                (bb1.x + bb2.x) / 2,
+                (bb1.y + bb2.y) / 2,
+                (bb1.z + bb2.z) / 2
+            ];
 
-                var bb = this.mdxObject.getBoundingBox();
+            var scale = [
+                bb2.x - center[0],
+                bb2.y - center[1],
+                bb2.z - center[2]
+            ];
 
-                if (bb) {
-                    var bb1 = bb.ab,
-                        bb2 = bb.cd;
+            gl.uniform3fv(uniforms.uBBScale, new Float32Array(scale));
+            gl.uniform3fv(uniforms.uBBCenter, new Float32Array(center));
+            gl.uniform3fv(uniforms.uColor, new Float32Array([0.819607843, 0.058, 0.058])); //red
+            gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
 
-                    var center = [
-                        (bb1.x + bb2.x) / 2,
-                        (bb1.y + bb2.y) / 2,
-                        (bb1.z + bb2.z) / 2
-                    ];
+            gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
+        }
+    }
 
-                    var scale = [
-                        bb2.x - center[0],
-                        bb2.y - center[1],
-                        bb2.z - center[2]
-                    ];
+    createPlacementMatrix (doodad, wmoPlacementMatrix){
+        var placementMatrix = mat4.create();
+        mat4.identity(placementMatrix);
+        mat4.multiply(placementMatrix, placementMatrix, wmoPlacementMatrix);
 
-                    gl.uniform3fv(uniforms.uBBScale, new Float32Array(scale));
-                    gl.uniform3fv(uniforms.uBBCenter, new Float32Array(center));
-                    gl.uniform3fv(uniforms.uColor, new Float32Array([0.819607843, 0.058, 0.058])); //red
-                    gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
+        mat4.translate(placementMatrix, placementMatrix, [doodad.pos.x,doodad.pos.y,doodad.pos.z]);
 
-                    gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
-                }
-            },
+        var orientMatrix = mat4.create();
+        mat4.fromQuat(orientMatrix,
+            [doodad.rotation.imag.x,
+            doodad.rotation.imag.y,
+            doodad.rotation.imag.z,
+            doodad.rotation.real]
+        );
+        mat4.multiply(placementMatrix, placementMatrix, orientMatrix);
 
-            createPlacementMatrix : function(doodad, wmoPlacementMatrix){
-                var placementMatrix = mat4.create();
-                mat4.identity(placementMatrix);
-                mat4.multiply(placementMatrix, placementMatrix, wmoPlacementMatrix);
+        mat4.scale(placementMatrix, placementMatrix, [doodad.scale, doodad.scale, doodad.scale]);
 
-                mat4.translate(placementMatrix, placementMatrix, [doodad.pos.x,doodad.pos.y,doodad.pos.z]);
+        var placementInvertMatrix = mat4.create();
+        mat4.invert(placementInvertMatrix, placementMatrix);
 
-                var orientMatrix = mat4.create();
-                mat4.fromQuat(orientMatrix,
-                    [doodad.rotation.imag.x,
-                    doodad.rotation.imag.y,
-                    doodad.rotation.imag.z,
-                    doodad.rotation.real]
-                );
-                mat4.multiply(placementMatrix, placementMatrix, orientMatrix);
+        this.placementInvertMatrix = placementInvertMatrix;
+        this.placementMatrix = placementMatrix;
+    }
+    calcOwnPosition () {
+        var position = vec4.fromValues(0,0,0,1 );
+        vec4.transformMat4(position, position, this.placementMatrix);
 
-                mat4.scale(placementMatrix, placementMatrix, [doodad.scale, doodad.scale, doodad.scale]);
+        this.position = position;
+    }
+    calcDistance (position) {
+        function distance(aabb, p) {
+            var dx = Math.max(aabb[0][0] - p[0], 0, p[0] - aabb[1][0]);
+            var dy = Math.max(aabb[0][1] - p[1], 0, p[1] - aabb[1][1]);
+            var dz = Math.max(aabb[0][2] - p[2], 0, p[2] - aabb[1][2]);
+            return Math.sqrt(dx*dx + dy*dy + dz*dz);
+        }
 
-                var placementInvertMatrix = mat4.create();
-                mat4.invert(placementInvertMatrix, placementMatrix);
+        if (this.aabb) {
+            this.currentDistance = distance(this.aabb, position);
+        }
+    }
+    setUseLocalLighting(value) {
+        this.useLocalLighting = value;
+    }
+    getCurrentDistance (){
+        return this.currentDistance;
+    }
+    getDiameter () {
+        return this.diameter;
+    }
+    setIsRendered (value) {
+        this.isRendered = value;
+    }
+    getIsRendered () {
+        return this.isRendered;
+    }
+    load (doodad, wmoPlacementMatrix, useLocalColor){
+        var self = this;
 
-                this.placementInvertMatrix = placementInvertMatrix;
-                this.placementMatrix = placementMatrix;
-            },
-            calcOwnPosition : function () {
-                var position = vec4.fromValues(0,0,0,1 );
-                vec4.transformMat4(position, position, this.placementMatrix);
+        self.doodad = doodad;
+        self.diffuseColor = doodad.color;
 
-                this.position = position;
-            },
-            calcDistance : function (position) {
-                function distance(aabb, p) {
-                    var dx = Math.max(aabb[0][0] - p[0], 0, p[0] - aabb[1][0]);
-                    var dy = Math.max(aabb[0][1] - p[1], 0, p[1] - aabb[1][1]);
-                    var dz = Math.max(aabb[0][2] - p[2], 0, p[2] - aabb[1][2]);
-                    return Math.sqrt(dx*dx + dy*dy + dz*dz);
-                }
+        self.createPlacementMatrix(doodad, wmoPlacementMatrix);
+        self.calcOwnPosition();
 
-                if (this.aabb) {
-                    this.currentDistance = distance(this.aabb, position);
-                }
-            },
-            setUseLocalLighting: function (value) {
-                this.useLocalLighting = value;
-            },
-            getCurrentDistance : function (){
-                return this.currentDistance;
-            },
-            getDiameter : function () {
-                return this.diameter;
-            },
-            setIsRendered : function (value) {
-                this.isRendered = value;
-            },
-            getIsRendered : function () {
-                return this.isRendered;
-            },
-            load : function (doodad, wmoPlacementMatrix, useLocalColor){
-                var self = this;
-
-                self.doodad = doodad;
-                self.diffuseColor = doodad.color;
-
-                self.createPlacementMatrix(doodad, wmoPlacementMatrix);
-                self.calcOwnPosition();
-
-                return self.mdxObject.load(doodad.modelName, 0).then(function success(){
-                    self.updateAABB();
-                }, function error(){});
-            }
-        };
-
-        return WmoM2Object;
-    }]);
-})(window, jQuery);
+        return self.mdxObject.load(doodad.modelName, 0).then(function success(){
+            self.updateAABB();
+        }, function error(){});
+    }
+}

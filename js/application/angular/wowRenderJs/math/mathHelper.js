@@ -1,7 +1,6 @@
 'use strict';
-function MathHelper(){}
-MathHelper.prototype = {
-    getFrustumClipsFromMatrix : function (mat) {
+class MathHelper{
+    static getFrustumClipsFromMatrix (mat) {
         var planes = new Array(6);
         // Right clipping plane.
         planes[0] = vec4.fromValues(mat[3]-mat[0],
@@ -41,8 +40,8 @@ MathHelper.prototype = {
         }
 
         return planes;
-    },
-    createPlaneFromEyeAndVertexes : function (eye, vertex1, vertex2 ) {
+    }
+    static createPlaneFromEyeAndVertexes (eye, vertex1, vertex2 ) {
         var edgeDir = vec4.create();
 
         vec4.subtract(edgeDir, vertex1, vertex2);
@@ -65,8 +64,8 @@ MathHelper.prototype = {
         planeNorm[3] = distToPlane;
 
         return distToPlane;
-    },
-    checkPortalFrustum : function (portalVerticles, planes) {
+    }
+    static checkPortalFrustum (portalVerticles, planes) {
         /*
         for(var i=0; i<6; i++ )
         {
@@ -78,8 +77,8 @@ MathHelper.prototype = {
             if( out==2 ) return false;
         }
         */
-    },
-    checkFrustum : function (planes, box) {
+    }
+    static checkFrustum (planes, box) {
       // check box outside/inside of frustum
         for(var i=0; i<6; i++ )
         {
@@ -106,8 +105,8 @@ MathHelper.prototype = {
 */
 
         return true;
-    },
-    transformAABBWithMat4 : function (mat4,aabb) {
+    }
+    static transformAABBWithMat4 (mat4,aabb) {
         //Adapted from http://dev.theomader.com/transform-bounding-boxes/
         var xa = vec4.create();
         var xb = vec4.create();
@@ -153,7 +152,4 @@ MathHelper.prototype = {
             bb_max
         ];
     }
-};
-
-var cacheTemplate = angular.module('js.wow.math.mathHelper', []);
-cacheTemplate.service("mathHelper", MathHelper);
+}

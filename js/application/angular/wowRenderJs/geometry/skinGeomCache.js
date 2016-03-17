@@ -1,41 +1,34 @@
-/* Skin geometry Cache */
-/* global alert: false */
-'use strict';
-
-var m2GeomCache = angular.module('js.wow.render.geometry.skinGeomCache', ['main.services.map.skinLoader', 'js.wow.render.cacheTemplate']);
-m2GeomCache.factory("skinGeomCache", ['skinLoader', 'cacheTemplate', '$q', function(skinLoader, cacheTemplate, $q){
-
-    function SkinGeom(sceneApi){
+class SkinGeom {
+    constructor(sceneApi) {
         this.gl = sceneApi.getGlContext();
 
         this.indexVBO = null;
-
-        this.assign = function(skinFile){
-            this.skinFile = skinFile;
-        };
-
-        this.createVBO = function(){
-            var gl = this.gl;
-            var skinObject = this.skinFile;
-
-            var indicies = [];
-            var skinFileHeader = this.skinFile.header;
-            indicies.length = skinFileHeader.triangles.length;
-
-            for (var i = 0; i < indicies.length; i ++) {
-                indicies[i] = skinFileHeader.indexes[skinFileHeader.triangles[i]];
-            }
-
-             this.indexVBO = gl.createBuffer();
-             gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO );
-             gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indicies), gl.STATIC_DRAW );
-        };
     }
+    assign (skinFile) {
+        this.skinFile = skinFile;
+    };
 
-    function SkinGeomCache(sceneApi) {
-        var self = this;
+    createVBO() {
+        var gl = this.gl;
+        var skinObject = this.skinFile;
 
-        var cache = cacheTemplate(function loadGroupWmo(fileName){
+        var indicies = [];
+        var skinFileHeader = this.skinFile.header;
+        indicies.length = skinFileHeader.triangles.length;
+
+        for (var i = 0; i < indicies.length; i++) {
+            indicies[i] = skinFileHeader.indexes[skinFileHeader.triangles[i]];
+        }
+
+        this.indexVBO = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indicies), gl.STATIC_DRAW);
+    };
+}
+
+class SkinGeomCache {
+    constructor (sceneApi){
+        this.cache = cacheTemplate(function loadGroupWmo(fileName) {
             /* Must return promise */
             return skinLoader(fileName, true);
         }, function process(skinFile) {
@@ -45,15 +38,14 @@ m2GeomCache.factory("skinGeomCache", ['skinLoader', 'cacheTemplate', '$q', funct
             skinGeomObj.createVBO();
             return skinGeomObj;
         });
-
-        self.loadSkin = function (fileName){
-            return cache.get(fileName);
-        };
-
-        self.unLoadSkin = function (fileName) {
-            cache.remove(fileName)
-        }
     }
+    loadSkin (fileName){
+        return this.cache.get(fileName);
+    };
 
-    return SkinGeomCache;
-}]);
+    unLoadSkin(fileName) {
+        this.cache.remove(fileName)
+    }
+}
+
+export default SkinGeomCache;
