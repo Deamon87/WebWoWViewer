@@ -15,28 +15,29 @@ module.exports = {
         filename: "[name].js",
         library: "[name]"
     },
-
+    resolve: {
+        extensions: ['', '.js', '.jsx'],
+        alias: {}
+    },
 
     module: {
-        loaders: [{
-            test: /\.js?$/,
-            loader: 'babel',
-            exclude: [/node_modules/ ],
-            query: {
-                presets: ['es2015']
+        loaders: [
+            {
+                test: /\.js?$/,
+                loader: 'babel',
+                exclude: [/node_modules/ ],
+                query: {
+                    presets: ['es2015']
+                }
+            },
+            {
+                test: /\.glsl$/,
+                loader: 'webpack-glsl'
             }
-        }
         ]
     },
     plugins: [
-        new BowerWebpackPlugin({
-            modulesDirectories: [__dirname+"/js/lib/bower"],
-            manifestFiles:      "bower.json",
-            searchResolveModulesDirectories: true
-        }),
-        new webpack.ProvidePlugin({
-            $: 'jquery'
-        })
+
     ]
 };
 

@@ -24,6 +24,7 @@
     "grunt-contrib-watch": "0.6.0",
     "grunt-ngmin": "0.0.3",
     "webpack": "^1.12.14",
+    "webpack-glsl-loader": "^1.0.1",
     "worker-loader": "^0.7.0"
   },
   "dependencies": {
@@ -32,7 +33,18 @@
     "angular-bootstrap": "^0.12.2",
     "angular-route": "^1.5.1",
     "angular-ui-router": "^0.2.18",
+    "axios": "^0.9.1",
     "gl-matrix": "^2.3.2",
     "stats.js": "0.0.14-master"
+  },
+  "jspm": {
+    "dependencies": {
+      "angular": "github:angular/bower-angular@^1.5.1"
+    },
+    "devDependencies": {
+      "babel": "npm:babel-core@^5.8.24",
+      "babel-runtime": "npm:babel-runtime@^5.8.24",
+      "core-js": "npm:core-js@^1.1.4"
+    }
   }
 }

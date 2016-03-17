@@ -1,3 +1,6 @@
+import Stats from 'stats.js';
+import axios from 'axios';
+import drawDepthShader from './../../../../glsl/drawDepthShader.glsl';
 
 
 class Scene {
@@ -235,18 +238,14 @@ class Scene {
             });
         promisesArray.push(promise);
 
-        promise = $http.get("glsl/drawDepthShader.glsl")
-            .then(function success(result){
-                var shaderText = result.data;
-                var shader = self.compileShader(shaderText, shaderText);
-                self.drawDepthBuffer = shader;
-            },function error(){
-                throw 'could not load shader'
-            });
+
+        var shader = self.compileShader(drawDepthShader, drawDepthShader);
+        self.drawDepthBuffer = shader;
+
         promisesArray.push(promise);
 
 
-        promise = $http.get("glsl/readDepthBuffer.glsl")
+        promise = axios.get("glsl/readDepthBuffer.glsl")
             .then(function success(result){
                 var shaderText = result.data;
                 var shader = self.compileShader(shaderText, shaderText);
@@ -256,7 +255,7 @@ class Scene {
             });
         promisesArray.push(promise);
 
-        promise = $http.get("glsl/WmoShader.glsl")
+        promise = axios.get("glsl/WmoShader.glsl")
             .then(function success(result){
                 var shaderText = result.data;
                 var shader = self.compileShader(shaderText, shaderText);
@@ -269,7 +268,7 @@ class Scene {
             });
         promisesArray.push(promise);
 
-        promise = $http.get("glsl/m2Shader.glsl")
+        promise = axios.get("glsl/m2Shader.glsl")
             .then(function success(result){
                 var shaderText = result.data;
                 var shader = self.compileShader(shaderText, shaderText);
@@ -282,7 +281,7 @@ class Scene {
             });
         promisesArray.push(promise);
 
-        promise = $http.get("glsl/drawBBShader.glsl")
+        promise = axios.get("glsl/drawBBShader.glsl")
             .then(function success(result){
                 var shaderText = result.data;
                 var shader = self.compileShader(shaderText, shaderText);
@@ -291,7 +290,8 @@ class Scene {
                 throw 'could not load shader'
             });
 
-        promisesArray.push(promise);promise = $http.get("glsl/adtShader.glsl")
+        promisesArray.push(promise);
+        promise = axios.get("glsl/adtShader.glsl")
             .then(function success(result){
                 var shaderText = result.data;
                 var shader = self.compileShader(shaderText, shaderText);
@@ -301,7 +301,7 @@ class Scene {
             });
         promisesArray.push(promise);
 
-        promise = $http.get("glsl/drawPortalShader.glsl")
+        promise = axios.get("glsl/drawPortalShader.glsl")
             .then(function success(result){
                 var shaderText = result.data;
                 var shader = self.compileShader(shaderText, shaderText);
@@ -312,7 +312,7 @@ class Scene {
         promisesArray.push(promise);
 
 
-        return $q.all(promisesArray)
+        return axios.all(promisesArray)
     }
     initCaches (){
         this.wmoGeomCache = new wmoGeomCache(this.sceneApi);
@@ -1041,3 +1041,5 @@ class Scene {
         this.camera.setCameraPos(x,y,z);
     }
 }
+
+export default Scene;
