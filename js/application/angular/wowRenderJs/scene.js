@@ -1,6 +1,16 @@
 import Stats from 'stats.js';
 import axios from 'axios';
+
 import drawDepthShader from './../../../../glsl/drawDepthShader.glsl';
+import renderFrameBufferShader from './../../../../glsl/renderFrameBufferShader.glsl';
+import readDepthBuffer from './../../../../glsl/readDepthBuffer.glsl';
+import wmoShader from './../../../../glsl/WmoShader.glsl';
+import m2Shader from './../../../../glsl/m2Shader.glsl';
+import drawBBShader from './../../../../glsl/drawBBShader.glsl';
+import adtShader from './../../../../glsl/adtShader.glsl';
+import drawPortalShader from './../../../../glsl/drawPortalShader.glsl';
+
+
 
 
 class Scene {
@@ -33,10 +43,10 @@ class Scene {
         self.initRenderBuffers();
         self.initAnisotropicExt();
         self.initCompressedTextureS3tcExt();
-        self.initShaders().then(function success() {
-            self.isShadersLoaded = true;
-        }, function error() {
-        });
+
+        self.initShaders()
+        self.isShadersLoaded = true;
+
         self.initSceneApi();
         self.initSceneGraph();
         self.createBlackPixelTexture();
@@ -224,95 +234,25 @@ class Scene {
     }
     initShaders (){
         var self = this;
-        var promise = null;
-        var promisesArray = [];
 
         /* Get and compile shaders */
-        promise = $http.get("glsl/renderFrameBufferShader.glsl")
-            .then(function success(result){
-                var shaderText = result.data;
-                var shader = self.compileShader(shaderText, shaderText);
-                self.renderFrameShader = shader;
-            },function error(){
-                throw 'could not load shader'
-            });
-        promisesArray.push(promise);
+        self.renderFrameShader = self.compileShader(renderFrameBufferShader, renderFrameBufferShader);
 
+        self.drawDepthBuffer = self.compileShader(drawDepthShader, drawDepthShader);
 
-        var shader = self.compileShader(drawDepthShader, drawDepthShader);
-        self.drawDepthBuffer = shader;
+        self.readDepthBuffer = self.compileShader(readDepthBuffer, readDepthBuffer);
 
-        promisesArray.push(promise);
+        self.wmoShader = self.compileShader(wmoShader, wmoShader);
+        self.wmoInstancingShader = self.compileShader("#define INSTANCED 1\r\n " + wmoShader, "#define INSTANCED 1\r\n " + wmoShader);
 
+        self.m2Shader = self.compileShader(m2Shader, m2Shader);
+        self.m2InstancingShader = self.compileShader("#define INSTANCED 1\r\n " + m2Shader, "#define INSTANCED 1\r\n " + m2Shader);
 
-        promise = axios.get("glsl/readDepthBuffer.glsl")
-            .then(function success(result){
-                var shaderText = result.data;
-                var shader = self.compileShader(shaderText, shaderText);
-                self.readDepthBuffer = shader;
-            },function error(){
-                throw 'could not load shader'
-            });
-        promisesArray.push(promise);
+        self.bbShader = self.compileShader(drawBBShader, drawBBShader);
 
-        promise = axios.get("glsl/WmoShader.glsl")
-            .then(function success(result){
-                var shaderText = result.data;
-                var shader = self.compileShader(shaderText, shaderText);
-                self.wmoShader = shader;
+        self.adtShader = self.compileShader(adtShader, adtShader);
 
-                var instancingShader = self.compileShader("#define INSTANCED 1\r\n "+shaderText, "#define INSTANCED 1\r\n "+shaderText);
-                self.wmoInstancingShader = instancingShader;
-            },function error(){
-                throw 'could not load shader'
-            });
-        promisesArray.push(promise);
-
-        promise = axios.get("glsl/m2Shader.glsl")
-            .then(function success(result){
-                var shaderText = result.data;
-                var shader = self.compileShader(shaderText, shaderText);
-                self.m2Shader = shader;
-
-                var instancingShader = self.compileShader("#define INSTANCED 1\r\n "+shaderText, "#define INSTANCED 1\r\n "+shaderText);
-                self.m2InstancingShader = instancingShader;
-            },function error(){
-                throw 'could not load shader'
-            });
-        promisesArray.push(promise);
-
-        promise = axios.get("glsl/drawBBShader.glsl")
-            .then(function success(result){
-                var shaderText = result.data;
-                var shader = self.compileShader(shaderText, shaderText);
-                self.bbShader = shader;
-            },function error(){
-                throw 'could not load shader'
-            });
-
-        promisesArray.push(promise);
-        promise = axios.get("glsl/adtShader.glsl")
-            .then(function success(result){
-                var shaderText = result.data;
-                var shader = self.compileShader(shaderText, shaderText);
-                self.adtShader = shader;
-            },function error(){
-                throw 'could not load shader'
-            });
-        promisesArray.push(promise);
-
-        promise = axios.get("glsl/drawPortalShader.glsl")
-            .then(function success(result){
-                var shaderText = result.data;
-                var shader = self.compileShader(shaderText, shaderText);
-                self.drawPortalShader = shader;
-            },function error(){
-                throw 'could not load shader'
-            });
-        promisesArray.push(promise);
-
-
-        return axios.all(promisesArray)
+        self.drawPortalShader = self.compileShader(drawPortalShader, drawPortalShader);
     }
     initCaches (){
         this.wmoGeomCache = new wmoGeomCache(this.sceneApi);
