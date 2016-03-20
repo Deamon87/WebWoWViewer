@@ -301,7 +301,7 @@ export default function(filename){
         chunkedFile.processFile(adtObj);
         addTextureNames(adtObj);
 
-        console.log(adtObj);
+        //console.log(adtObj);
         deferred.resolve(adtObj);
     }, function error() {
         deferred.reject();

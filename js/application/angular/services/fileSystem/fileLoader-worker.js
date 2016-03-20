@@ -1,7 +1,12 @@
 import fileLoaderStub from './../fileSystem/fileLoaderStub.js';
-import Q from 'q';
+import Q from 'bluebird';
+
+Q.setScheduler(function(fn) {
+    fn();
+});
 
 self.addEventListener('message', function(e) {
+    //console.log("Worker got message = "+e);
     var opcode = e.data.opcode;
     var message = e.data.message;
     var messageId = e.data.messageId;
@@ -26,8 +31,9 @@ self.addEventListener('message', function(e) {
         var filePath = message;
 
         (function(self, messageId) {
-            var promise = self.fileLoader(filePath)
+            var promise = self.fileLoader(filePath);
             promise.then(function success(a){
+                //console.log("Worker sent file = "+a);
                 //debugger;
                 self.postMessage({ opcode: 'fileLoaded', messageId: messageId, message: a});
             }, function error() {

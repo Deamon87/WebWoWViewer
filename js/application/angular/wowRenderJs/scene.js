@@ -22,7 +22,9 @@ import TextureWoWCache from './texture/textureCache.js';
 
 import firstPersonCamera from './camera/firstPersonCamera.js'
 
-import {mat4, vec4} from 'gl-matrix'
+import {mat4, vec4, glMatrix} from 'gl-matrix'
+
+glMatrix.setMatrixArrayType(Array);
 
 
 class Scene {

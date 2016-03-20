@@ -64,37 +64,42 @@ export default function (configService, $q) {
     var initDefers = [];
 
     function initZipEntries() {
-        var defer = $q.defer();
+        var defer = $q.pending();
         initDefers.push(defer);
 
         var zipFile = configService.getArchiveFile();
-        global.zip.createReader(new ArrayBufferReaderSync(zipFile), function (reader) {
+        //console.log("initDefers.length = "+initDefers.length);
+        if (initDefers.length <= 1) {
+            global.zip.createReader(new ArrayBufferReaderSync(zipFile), function (reader) {
 
-            // get all entries from the zip
-            reader.getEntries(function (entries) {
-                //1. Transform array into map
-                var map = {};
-                for (var i = 0; i < entries.length; i++) {
-                    var key = entries[i].filename.trim().replace(/\\/g, "/").toLowerCase();
-                    var value = entries[i];
-                    map[key] = value;
-                }
+                // get all entries from the zip
+                reader.getEntries(function (entries) {
+                    //1. Transform array into map
+                    //console.log("getting file list completed");
+                    var map = {};
+                    for (var i = 0; i < entries.length; i++) {
+                        var key = entries[i].filename.trim().replace(/\\/g, "/").toLowerCase();
+                        var value = entries[i];
+                        map[key] = value;
+                    }
 
-                //2. Return map
+                    //console.log("getting file list completed");
+                    //2. Return map
+                    var len = initDefers.length;
+                    for (var i = 0; i < len; i++) {
+                        initDefers[i].resolve(map);
+                    }
+                    initDefers = [];
+                });
+            }, function (error) {
+                // onerror callback
                 var len = initDefers.length;
                 for (var i = 0; i < len; i++) {
-                    initDefers[i].resolve(map);
+                    initDefers[i].reject(error);
                 }
                 initDefers = [];
             });
-        }, function (error) {
-            // onerror callback
-            var len = initDefers.length;
-            for (var i = 0; i < len; i++) {
-                initDefers[i].reject(error);
-            }
-            initDefers = [];
-        });
+        }
 
         return defer.promise;
     }
