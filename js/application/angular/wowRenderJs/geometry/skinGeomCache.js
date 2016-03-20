@@ -1,3 +1,5 @@
+import cacheTemplate from './../cache.js';
+
 class SkinGeom {
     constructor(sceneApi) {
         this.gl = sceneApi.getGlContext();

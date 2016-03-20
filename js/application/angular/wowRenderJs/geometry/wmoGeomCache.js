@@ -1,3 +1,7 @@
+import cacheTemplate from './../cache.js';
+
+import {wmoGroupLoader} from './../../services/map/wmoLoader.js'
+
 class WmoGeom {
     constructor (wmoGroupFile, sceneApi) {
         this.gl = sceneApi.getGlContext();
@@ -289,3 +293,4 @@ class WmoGeomCache {
     }
 }
 
+export default WmoGeomCache;

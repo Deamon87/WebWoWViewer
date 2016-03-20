@@ -1,3 +1,5 @@
+import {vec3} from 'gl-matrix';
+
 export default function initCamera(canvas, document) {
     /* Handlers for elem */
     var camera = [0, 0, 0];

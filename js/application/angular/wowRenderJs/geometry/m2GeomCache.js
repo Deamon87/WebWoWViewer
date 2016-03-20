@@ -1,3 +1,5 @@
+import cacheTemplate from './../cache.js';
+
 class M2Geom {
     constructor(sceneApi) {
         this.sceneApi = sceneApi;

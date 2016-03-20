@@ -1,3 +1,5 @@
+import fileLoader from 'fileLoader.js';
+
 export default function (filePath , arrayBuffer) {
 
     function parseLinedFileObj(a){

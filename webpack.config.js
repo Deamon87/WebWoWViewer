@@ -1,13 +1,15 @@
 var BowerWebpackPlugin = require("bower-webpack-plugin");
 var webpack = require("webpack");
+var path = require('path');
+
 
 module.exports = {
     debug: true,
     devtool: 'source-map',
 
-    context: __dirname + '/js/application/angular',
+    context: __dirname,
 
-    entry: ["./app_wowjs.js"],
+    entry: ["./js/application/angular/app_wowjs.js"],
 
 
     output: {
@@ -16,8 +18,13 @@ module.exports = {
         library: "[name]"
     },
     resolve: {
-        extensions: ['', '.js', '.jsx'],
-        alias: {}
+        extensions: ['', '.js', '.jsx','.glsl'],
+        root: [
+            path.resolve('./js/application/angular'),
+            path.resolve('./glsl/'),
+            path.resolve('./js/lib/bower')
+        ]
+
     },
 
     module: {
@@ -25,19 +32,22 @@ module.exports = {
             {
                 test: /\.js?$/,
                 loader: 'babel',
-                exclude: [/node_modules/ ],
+                exclude: [/node_modules/, /zip.js/ ],
                 query: {
                     presets: ['es2015']
                 }
             },
             {
-                test: /\.glsl$/,
+                test: /\.glsl?$/,
                 loader: 'webpack-glsl'
             }
         ]
     },
-    plugins: [
 
+    plugins: [
+        new webpack.ResolverPlugin(
+            new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin(".bower.json", ["main"])
+        )
     ]
 };
 

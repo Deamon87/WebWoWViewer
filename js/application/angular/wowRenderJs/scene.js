@@ -1,16 +1,28 @@
 import Stats from 'stats.js';
 import axios from 'axios';
 
-import drawDepthShader from './../../../../glsl/drawDepthShader.glsl';
-import renderFrameBufferShader from './../../../../glsl/renderFrameBufferShader.glsl';
-import readDepthBuffer from './../../../../glsl/readDepthBuffer.glsl';
-import wmoShader from './../../../../glsl/WmoShader.glsl';
-import m2Shader from './../../../../glsl/m2Shader.glsl';
-import drawBBShader from './../../../../glsl/drawBBShader.glsl';
-import adtShader from './../../../../glsl/adtShader.glsl';
-import drawPortalShader from './../../../../glsl/drawPortalShader.glsl';
+import drawDepthShader from 'drawDepthShader.glsl';
+import renderFrameBufferShader from 'renderFrameBufferShader.glsl';
+import readDepthBuffer from 'readDepthBuffer.glsl';
+import wmoShader from 'WmoShader.glsl';
+import m2Shader from 'm2Shader.glsl';
+import drawBBShader from 'drawBBShader.glsl';
+import adtShader from 'adtShader.glsl';
+import drawPortalShader from 'drawPortalShader.glsl';
+
+import GraphManager from './graph/sceneGraphManager.js'
 
 
+import AdtGeomCache    from './geometry/adtGeomCache.js';
+import M2GeomCache     from './geometry/m2GeomCache.js';
+import SkinGeomCache   from './geometry/skinGeomCache.js';
+import WmoGeomCache    from './geometry/wmoGeomCache.js';
+import WmoMainCache    from './geometry/wmoMainCache.js';
+import TextureWoWCache from './texture/textureCache.js';
+
+import firstPersonCamera from './camera/firstPersonCamera.js'
+
+import {mat4, vec4} from 'gl-matrix'
 
 
 class Scene {
@@ -255,12 +267,12 @@ class Scene {
         self.drawPortalShader = self.compileShader(drawPortalShader, drawPortalShader);
     }
     initCaches (){
-        this.wmoGeomCache = new wmoGeomCache(this.sceneApi);
-        this.wmoMainCache = new wmoMainCache(this.sceneApi);
-        this.textureCache = new textureWoWCache(this.sceneApi);
-        this.m2GeomCache = new m2GeomCache(this.sceneApi);
-        this.skinGeomCache = new skinGeomCache(this.sceneApi);
-        this.adtGeomCache = new adtGeomCache(this.sceneApi);
+        this.wmoGeomCache = new WmoGeomCache(this.sceneApi);
+        this.wmoMainCache = new WmoMainCache(this.sceneApi);
+        this.textureCache = new TextureWoWCache(this.sceneApi);
+        this.m2GeomCache = new M2GeomCache(this.sceneApi);
+        this.skinGeomCache = new SkinGeomCache(this.sceneApi);
+        this.adtGeomCache = new AdtGeomCache(this.sceneApi);
     }
     initDrawBuffers (frameBuffer) {
         var gl = this.gl;
@@ -378,7 +390,7 @@ class Scene {
         this.vertBuffer = vertBuffer;
     }
     initSceneGraph () {
-        this.graphManager = new graphManager(this.sceneApi);
+        this.graphManager = new GraphManager(this.sceneApi);
     }
     initSceneApi () {
         var self = this;

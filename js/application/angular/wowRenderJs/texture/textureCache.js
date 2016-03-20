@@ -1,3 +1,5 @@
+import cacheTemplate from './../cache.js';
+
 class Texture {
     constructor(sceneApi) {
         this.sceneApi = sceneApi;
@@ -153,3 +155,4 @@ class TextureWoWCache {
         this.cache.remove(fileName)
     }
 }
+export default TextureWoWCache;

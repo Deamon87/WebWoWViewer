@@ -1,3 +1,7 @@
+import cacheTemplate from './../cache.js';
+
+import {wmoLoader} from './../../services/map/wmoLoader.js'
+
 class WmoMainCache {
     constructor(sceneApi) {
         var self = this;

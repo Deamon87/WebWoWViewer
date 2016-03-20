@@ -1,3 +1,5 @@
+import $q from 'q';
+
 const handlerTable = {
     "MVER" : function (adtObject, chunk) {
         if (chunk.chunkIdent !== "MVER") {

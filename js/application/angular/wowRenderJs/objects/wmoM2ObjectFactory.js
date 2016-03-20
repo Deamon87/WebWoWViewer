@@ -1,20 +1,14 @@
+import MDXObject from './MDXObject.js';
 
-class WmoM2Object {
+class WmoM2Object extends MDXObject {
     constructor(sceneApi) {
-        var self = this;
+        super(sceneApi);
 
+        var self = this;
         self.sceneApi = sceneApi;
-        self.mdxObject = new mdxObject(sceneApi);
         self.currentDistance = 0;
         self.isRendered = true;
         self.useLocalLighting = true;
-    }
-    getFileNameIdent (){
-        return this.mdxObject.fileIdent;
-    }
-    getMeshesToRender() {
-        if (!this.mdxObject) return null;
-        return this.mdxObject.getMeshesToRender();
     }
     checkFrustumCullingAndSet (cameraVec4, frustumPlanes) {
         var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes);
@@ -41,7 +35,7 @@ class WmoM2Object {
     }
     update(deltaTime, cameraPos) {
         if (!this.getIsRendered()) return;
-        this.mdxObject.update(deltaTime, cameraPos, this.placementInvertMatrix);
+        super.update(deltaTime, cameraPos, this.placementInvertMatrix);
     }
     drawTransparentMeshes () {
         var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
@@ -165,3 +159,5 @@ class WmoM2Object {
         }, function error(){});
     }
 }
+
+export default WmoM2Object;

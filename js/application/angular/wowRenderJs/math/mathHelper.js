@@ -1,4 +1,5 @@
-'use strict';
+import {vec4, vec3} from 'gl-matrix';
+
 class MathHelper{
     static getFrustumClipsFromMatrix (mat) {
         var planes = new Array(6);
@@ -153,3 +154,5 @@ class MathHelper{
         ];
     }
 }
+
+export default MathHelper;

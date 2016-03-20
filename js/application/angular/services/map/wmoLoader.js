@@ -1,3 +1,5 @@
+import chunkedLoader from '../chunkedLoader.js';
+
 function wmoGroupLoader(wmoFilePath, loadPlainVertexes) {
     var deferred = $q.defer();
 
@@ -420,7 +422,4 @@ function wmoLoader(wmoFilePath){
     return newPromise;
 }
 
-export default {
-    wmoLoader : wmoLoader,
-    wmoGroupLoader : wmoGroupLoader
-}
+export { wmoLoader as wmoLoader, wmoGroupLoader as wmoGroupLoader};

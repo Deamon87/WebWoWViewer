@@ -55,3 +55,4 @@ class ADTObject {
         }
     }
 }
+export default ADTObject;

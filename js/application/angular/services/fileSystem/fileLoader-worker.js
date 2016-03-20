@@ -1,3 +1,6 @@
+import fileLoaderStub from './../fileSystem/fileLoaderStub.js';
+import Q from 'q';
+
 self.addEventListener('message', function(e) {
     var opcode = e.data.opcode;
     var message = e.data.message;
@@ -6,8 +9,8 @@ self.addEventListener('message', function(e) {
     if (opcode == 'init') {
 
         var configService = {
-            getArhiveFile : function () {
-                return message.arhiveFile
+            getArchiveFile : function () {
+                return message.archiveFile
             },
             getFileReadMethod : function () {
                 return message.fileReadMethod

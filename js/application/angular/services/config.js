@@ -35,7 +35,7 @@ export default {
         return archiveUrl;
     },
 
-    getArhiveFile : function (){
+    getArchiveFile : function (){
         return archiveFile;
     },
     setArchiveFile : function(archive) {

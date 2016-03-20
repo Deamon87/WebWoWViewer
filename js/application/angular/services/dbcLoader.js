@@ -1,3 +1,6 @@
+import $q from 'q';
+import fileLoader from 'fileLoader.js';
+
 export default function (dbcFilePath) {
     var deferred = $q.defer();
 

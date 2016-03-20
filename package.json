@@ -23,6 +23,7 @@
     "grunt-contrib-uglify": "0.6.0",
     "grunt-contrib-watch": "0.6.0",
     "grunt-ngmin": "0.0.3",
+    "imports-loader": "^0.6.5",
     "webpack": "^1.12.14",
     "webpack-glsl-loader": "^1.0.1",
     "worker-loader": "^0.7.0"

@@ -1,3 +1,6 @@
+import $q from 'q';
+import {mat4, glMatrix} from 'gl-matrix';
+
 class WmoObject {
     constructor (sceneApi){
         var self = this;
@@ -713,6 +716,7 @@ class WmoObject {
                 gl.drawElements(gl.TRIANGLES, node.numFaces*3, gl.UNSIGNED_SHORT, (node.firstFace*3) * 2);
             }
         }
-
     }
 }
+
+export default WmoObject;

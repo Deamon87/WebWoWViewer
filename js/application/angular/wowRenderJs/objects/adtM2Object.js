@@ -1,9 +1,11 @@
-class AdtM2Object {
-    constructor(sceneApi){
-        var self = this;
+import MDXObject from './MDXObject.js';
 
+class AdtM2Object extends MDXObject {
+    constructor(sceneApi){
+        super(sceneApi);
+
+        var self = this;
         self.sceneApi = sceneApi;
-        self.mdxObject = new mdxObject(sceneApi);
         self.currentDistance = 0;
         self.isRendered = true;
     }

@@ -1,3 +1,5 @@
+import $q from 'q';
+
 export default function(wdtFilePath) {
     var deferred = $q.defer();
 

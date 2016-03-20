@@ -1,8 +1,12 @@
+import $q from 'q';
 
 class Cache {
     constructor(load, process) {
         this.cache = {};
         this.queueForLoad = {};
+
+        this.load = load;
+        this.process = process;
     }
     /*
      * Queue load functions
@@ -11,53 +15,47 @@ class Cache {
         var deferred = $q.defer();
 
         /* 1. Return the promise right away, if object is already in cache */
-        var obj = getCached(fileName);
+        var obj = this.getCached(fileName);
         if (obj) {
             deferred.resolve(obj);
             return deferred.promise;
         }
 
         /* 2. Otherwise put the deferred to queue for resolving later */
-        var queue = queueForLoad[fileName];
+        var queue = this.queueForLoad[fileName];
         if (queue === undefined) {
             /* 2.1 If object is not loading yet - launch the loading process */
             queue = [];
-            launchLoadingIn1ms(fileName)
+            this.load(fileName).then(function success(loadedObj) {
+                var finalObject = this.process(loadedObj);
+
+                this.put(fileName, finalObject);
+                this.resolve(fileName);
+            }, function error(object) {
+                reject(fileName);
+            });
         }
         queue.push(deferred);
-        queueForLoad[fileName] = queue;
+        this.queueForLoad[fileName] = queue;
 
         return deferred.promise;
     };
 
     resolve(fileName) {
-        var queue = queueForLoad[fileName];
+        var queue = this.queueForLoad[fileName];
         for (var i = 0; i < queue.length; i++) {
-            var obj = getCached(fileName);
+            var obj = this.getCached(fileName);
             queue[i].resolve(obj)
         }
         this.queueForLoad[fileName] = undefined;
     }
 
     reject(fileName, obj) {
-        var queue = queueForLoad[fileName];
+        var queue = this.queueForLoad[fileName];
         for (var i = 0; i < queue.length; i++) {
             queue[i].reject(obj)
         }
         this.queueForLoad[fileName] = undefined;
-    }
-
-    launchLoadingIn1ms(fileName){
-        $timeout(function() {
-            load(fileName).then(function success(loadedObj) {
-                var finalObject = process(loadedObj);
-
-                put(fileName, finalObject);
-                resolve(fileName);
-            }, function error(object) {
-                reject(fileName);
-            });
-        }, 1);
     }
 
     /*
@@ -82,7 +80,7 @@ class Cache {
     }
 
     remove (fileName) {
-        var container = cache[fileName];
+        var container = this.cache[fileName];
         if (!container) {
             /* TODO: Log the message? */
             return;

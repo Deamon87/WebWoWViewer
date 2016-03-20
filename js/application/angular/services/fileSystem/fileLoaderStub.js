@@ -1,3 +1,10 @@
+import 'imports?this=>global!zip.js/WebContent/z-worker.js';
+import 'imports?this=>global!zip.js/WebContent/inflate.js';
+import 'imports?this=>global!zip.js/WebContent/zip.js';
+
+//debugger;
+global.zip.useWebWorkers = false;
+
 function ArrayBufferReaderSync(arrayBuffer) {
     var that = this;
 
@@ -15,7 +22,7 @@ function ArrayBufferReaderSync(arrayBuffer) {
     that.init = init;
     that.readUint8Array = readUint8Array;
 }
-ArrayBufferReaderSync.prototype = new zip.Reader();
+ArrayBufferReaderSync.prototype = new global.zip.Reader();
 ArrayBufferReaderSync.prototype.constructor = ArrayBufferReaderSync;
 
 function concatTypedArrays(a, b) { // a, b TypedArray of same type
@@ -46,11 +53,11 @@ function ArrayBufferWriterSync(contentType) {
     that.writeUint8Array = writeUint8Array;
     that.getData = getData;
 }
-ArrayBufferWriterSync.prototype = new zip.Writer();
+ArrayBufferWriterSync.prototype = new global.zip.Writer();
 ArrayBufferWriterSync.prototype.constructor = ArrayBufferWriterSync;
 
 
-var fileLoaderStub = function (configService, $q) {
+export default function (configService, $q) {
     var zipEntries;
 
     var initDefers = [];
@@ -59,8 +66,8 @@ var fileLoaderStub = function (configService, $q) {
         var defer = $q.defer();
         initDefers.push(defer);
 
-        var zipFile = configService.getArhiveFile();
-        zip.createReader(new ArrayBufferReaderSync(zipFile), function (reader) {
+        var zipFile = configService.getArchiveFile();
+        global.zip.createReader(new ArrayBufferReaderSync(zipFile), function (reader) {
 
             // get all entries from the zip
             reader.getEntries(function (entries) {

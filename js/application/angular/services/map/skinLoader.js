@@ -1,3 +1,7 @@
+import $q from 'q';
+import linedFileLoader from './../linedfileLoader.js';
+
+
 const skinDefinition = {
     name: "header",
     type: "layout",

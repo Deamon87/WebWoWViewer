@@ -1,4 +1,4 @@
-
+import cacheTemplate from './../cache.js';
 
 class ADTGeom {
     constructor(sceneApi, wdtFile) {

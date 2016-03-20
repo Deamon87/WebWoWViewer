@@ -1,3 +1,5 @@
+import $q from 'q';
+
 class MDXObject {
     constructor(sceneApi){
         this.sceneApi = sceneApi;
@@ -814,3 +816,5 @@ class MDXObject {
         }
     }
 }
+
+export default MDXObject;

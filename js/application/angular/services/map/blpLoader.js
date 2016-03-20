@@ -1,3 +1,5 @@
+import linedFileLoader from './../linedfileLoader.js';
+
 const blpDefinition = {
     name: "header",
     type: "layout",
