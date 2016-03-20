@@ -1,4 +1,6 @@
 import MDXObject from './MDXObject.js';
+import {mat4, vec4} from 'gl-matrix';
+
 
 class AdtM2Object extends MDXObject {
     constructor(sceneApi){
@@ -11,17 +13,16 @@ class AdtM2Object extends MDXObject {
     }
 
     getFileNameIdent(){
-        return this.mdxObject.fileIdent;
+        return super.fileIdent;
     }
     getMeshesToRender () {
-        if (!this.mdxObject) return null;
-        return this.mdxObject.getMeshesToRender();
+        return super.getMeshesToRender();
     }
     drawBB (){
         var gl = this.sceneApi.getGlContext();
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
 
-        var bb = this.mdxObject.getBoundingBox();
+        var bb = super.getBoundingBox();
 
         if (bb) {
             var bb1 = bb.ab,
@@ -48,34 +49,34 @@ class AdtM2Object extends MDXObject {
         }
     }
     drawTransparentMeshes () {
-        this.mdxObject.drawTransparentMeshes(this.placementMatrix, 0xffffffff);
+        super.drawTransparentMeshes(this.placementMatrix, 0xffffffff);
     }
     drawNonTransparentMeshes () {
-        this.mdxObject.drawNonTransparentMeshes(this.placementMatrix, 0xffffffff);
+        super.drawNonTransparentMeshes(this.placementMatrix, 0xffffffff);
     }
     draw () {
-        this.mdxObject.draw(this.placementMatrix, 0xffffffff);
+        super.draw(this.placementMatrix, 0xffffffff);
     }
     drawInstancedNonTransparentMeshes (instanceCount, placementVBO) {
-        this.mdxObject.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
+        super.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
     }
     drawInstancedTransparentMeshes (instanceCount, placementVBO) {
-        this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
+        super.drawInstancedTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
     }
     checkFrustumCullingAndSet (cameraVec4, frustumPlanes) {
         var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes);
         this.setIsRendered(this.getIsRendered() && inFrustum);
     }
     checkFrustumCulling (cameraVec4, frustumPlanes) {
-        var inFrustum = this.aabb && this.mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb);
+        var inFrustum = this.aabb && super.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb);
         return inFrustum;
     }
     checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, getDepth) {
-        this.setIsRendered(this.getIsRendered() && this.mdxObject.checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, this.placementMatrix, getDepth));
+        this.setIsRendered(this.getIsRendered() && super.checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, this.placementMatrix, getDepth));
     }
     update (deltaTime, cameraPos) {
         if (!this.aabb) {
-            var bb = this.mdxObject.getBoundingBox();
+            var bb = super.getBoundingBox();
             if (bb) {
                 var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
                 var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
@@ -87,7 +88,7 @@ class AdtM2Object extends MDXObject {
             }
         }
         if (!this.getIsRendered()) return;
-        this.mdxObject.update(deltaTime, cameraPos, this.placementInvertMatrix);
+        super.update(deltaTime, cameraPos, this.placementInvertMatrix);
     }
     createPlacementMatrix (mddf){
         var TILESIZE = 533.333333333;
@@ -155,7 +156,7 @@ class AdtM2Object extends MDXObject {
 
         self.createPlacementMatrix(mddf);
         self.calcOwnPosition();
-        return self.mdxObject.load(mddf.fileName, 0);
+        return super.load(mddf.fileName, 0);
     }
 }
 

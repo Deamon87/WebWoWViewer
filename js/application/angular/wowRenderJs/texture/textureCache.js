@@ -1,4 +1,6 @@
 import cacheTemplate from './../cache.js';
+import blpLoader from './../../services/map/blpLoader.js';
+import dxtLib from 'decodeDXT/decodeDXT.js';
 
 class Texture {
     constructor(sceneApi) {

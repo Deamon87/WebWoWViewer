@@ -1,6 +1,7 @@
-import 'imports?this=>global!zip.js/WebContent/z-worker.js';
-import 'imports?this=>global!zip.js/WebContent/inflate.js';
 import 'imports?this=>global!zip.js/WebContent/zip.js';
+import 'imports?this=>global!zip.js/WebContent/inflate.js';
+import 'imports?this=>global!zip.js/WebContent/z-worker.js';
+
 
 //debugger;
 global.zip.useWebWorkers = false;

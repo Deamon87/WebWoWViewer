@@ -28,8 +28,10 @@ self.addEventListener('message', function(e) {
         (function(self, messageId) {
             var promise = self.fileLoader(filePath)
             promise.then(function success(a){
+                //debugger;
                 self.postMessage({ opcode: 'fileLoaded', messageId: messageId, message: a});
             }, function error() {
+                //debugger;
             })
         })(self, messageId)
     }

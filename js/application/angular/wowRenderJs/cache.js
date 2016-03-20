@@ -13,6 +13,7 @@ class Cache {
      */
     get (fileName) {
         var deferred = $q.defer();
+        var self = this;
 
         /* 1. Return the promise right away, if object is already in cache */
         var obj = this.getCached(fileName);
@@ -27,12 +28,12 @@ class Cache {
             /* 2.1 If object is not loading yet - launch the loading process */
             queue = [];
             this.load(fileName).then(function success(loadedObj) {
-                var finalObject = this.process(loadedObj);
+                var finalObject = self.process(loadedObj);
 
-                this.put(fileName, finalObject);
-                this.resolve(fileName);
+                self.put(fileName, finalObject);
+                self.resolve(fileName);
             }, function error(object) {
-                reject(fileName);
+                self.reject(fileName);
             });
         }
         queue.push(deferred);

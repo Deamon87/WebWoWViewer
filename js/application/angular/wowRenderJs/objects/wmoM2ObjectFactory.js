@@ -1,4 +1,6 @@
 import MDXObject from './MDXObject.js';
+import mathHelper from './../math/mathHelper.js';
+import {mat4, vec4, vec3} from 'gl-matrix';
 
 class WmoM2Object extends MDXObject {
     constructor(sceneApi) {
@@ -15,14 +17,14 @@ class WmoM2Object extends MDXObject {
         this.setIsRendered(this.getIsRendered() && inFrustum);
     }
     checkFrustumCulling (cameraVec4, frustumPlanes) {
-        var inFrustum = this.aabb && this.mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb);
+        var inFrustum = this.aabb && super.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb);
         return inFrustum;
     }
     checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, getDepth) {
-        this.setIsRendered(this.getIsRendered() && this.mdxObject.checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, this.placementMatrix, getDepth));
+        this.setIsRendered(this.getIsRendered() && super.checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, this.placementMatrix, getDepth));
     }
     updateAABB (){
-        var bb = this.mdxObject.getBoundingBox();
+        var bb = super.getBoundingBox();
         if (bb) {
             var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
             var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
@@ -39,29 +41,29 @@ class WmoM2Object extends MDXObject {
     }
     drawTransparentMeshes () {
         var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        this.mdxObject.drawTransparentMeshes(this.placementMatrix, diffuseColor);
+        super.drawTransparentMeshes(this.placementMatrix, diffuseColor);
     }
     drawNonTransparentMeshes () {
         var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        this.mdxObject.drawNonTransparentMeshes(this.placementMatrix, diffuseColor);
+        super.drawNonTransparentMeshes(this.placementMatrix, diffuseColor);
     }
     draw () {
         var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        this.mdxObject.draw(this.placementMatrix, diffuseColor);
+        super.draw(this.placementMatrix, diffuseColor);
     }
     drawInstancedNonTransparentMeshes (instanceCount, placementVBO) {
         var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        this.mdxObject.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, diffuseColor);
+        super.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, diffuseColor);
     }
     drawInstancedTransparentMeshes (instanceCount, placementVBO) {
         var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        this.mdxObject.drawInstancedTransparentMeshes(instanceCount, placementVBO, diffuseColor);
+        super.drawInstancedTransparentMeshes(instanceCount, placementVBO, diffuseColor);
     }
     drawBB () {
         var gl = this.sceneApi.getGlContext();
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
 
-        var bb = this.mdxObject.getBoundingBox();
+        var bb = super.getBoundingBox();
 
         if (bb) {
             var bb1 = bb.ab,
@@ -154,7 +156,7 @@ class WmoM2Object extends MDXObject {
         self.createPlacementMatrix(doodad, wmoPlacementMatrix);
         self.calcOwnPosition();
 
-        return self.mdxObject.load(doodad.modelName, 0).then(function success(){
+        return super.load(doodad.modelName, 0).then(function success(){
             self.updateAABB();
         }, function error(){});
     }

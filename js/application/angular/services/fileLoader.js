@@ -8,6 +8,8 @@ var messageId = 0;
 var messageTable = {};
 var worker = new FileWorker();
 worker.onmessage = function(e) {
+    //debugger;
+
     var opcode = e.data.opcode;
     var message = e.data.message;
     var recv_messageId = e.data.messageId;
@@ -16,8 +18,9 @@ worker.onmessage = function(e) {
         //Imply message is Uint8Array
         var defer = messageTable[recv_messageId].defer;
         var fileName = messageTable[recv_messageId].fileName;
+
         if (message) {
-            messageTable[recv_messageId].defer.resolve(message.buffer);
+            defer.resolve(message.buffer);
         } else {
             //$log.info("Could not load file = " + fileName);
         }

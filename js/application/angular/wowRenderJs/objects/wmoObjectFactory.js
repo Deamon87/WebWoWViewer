@@ -1,5 +1,8 @@
 import $q from 'q';
-import {mat4, glMatrix} from 'gl-matrix';
+import {vec4, mat4, vec3, glMatrix} from 'gl-matrix';
+
+import mathHelper from './../math/mathHelper.js';
+import config from './../../services/config.js';
 
 class WmoObject {
     constructor (sceneApi){

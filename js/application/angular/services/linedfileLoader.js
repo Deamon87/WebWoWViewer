@@ -1,4 +1,5 @@
-import fileLoader from 'fileLoader.js';
+import fileLoader from './fileLoader.js';
+import fileReadHelper from './fileReadHelper.js';
 
 export default function (filePath , arrayBuffer) {
 

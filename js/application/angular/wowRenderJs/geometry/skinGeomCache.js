@@ -1,4 +1,5 @@
 import cacheTemplate from './../cache.js';
+import skinLoader from './../../services/map/skinLoader.js'
 
 class SkinGeom {
     constructor(sceneApi) {

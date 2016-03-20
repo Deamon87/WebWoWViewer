@@ -1,4 +1,6 @@
 import chunkedLoader from '../chunkedLoader.js';
+import fileReadHelper from './../fileReadHelper.js';
+import $q from 'q';
 
 function wmoGroupLoader(wmoFilePath, loadPlainVertexes) {
     var deferred = $q.defer();
@@ -411,12 +413,14 @@ function wmoLoader(wmoFilePath){
     var newPromise = promise.then(function(chunkedFile){
         /* First chunk in file has to be MVER */
 
+        //debugger;
         var wmoObj = {};
         chunkedFile.setSectionReaders( new BaseWMOLoader());
         chunkedFile.processFile(wmoObj);
 
         return wmoObj;
     }, function error(){
+        //debugger;
     });
 
     return newPromise;

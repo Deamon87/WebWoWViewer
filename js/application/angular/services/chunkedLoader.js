@@ -103,6 +103,8 @@ export default function (filePath, arrayBuffer) {
         return fileLoader(filePath).then(function success(a) {
             return parseArrayBuffer(a);
         }, function error(e) {
+            debugger;
+
             return e;
         });
     }

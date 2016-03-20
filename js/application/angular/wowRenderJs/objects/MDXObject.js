@@ -1,4 +1,6 @@
 import $q from 'q';
+import mathHelper from './../math/mathHelper.js';
+import {vec4, mat4, vec3} from 'gl-matrix';
 
 class MDXObject {
     constructor(sceneApi){

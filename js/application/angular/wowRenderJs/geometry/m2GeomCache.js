@@ -1,4 +1,6 @@
 import cacheTemplate from './../cache.js';
+import mdxLoader from './../../services/map/mdxLoader.js';
+
 
 class M2Geom {
     constructor(sceneApi) {
