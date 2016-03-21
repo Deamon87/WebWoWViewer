@@ -109,10 +109,9 @@ export default function (arrayBuffer, start, end){
             return quaternion;
         },
         readUint8Array : function (offsetObj, length) {
-            var vector = new Uint8Array(length);
-            for (var i = 0; i < length; i ++) {
-                vector[i] = this.readUint8(offsetObj);
-            }
+            var newArrayBuffer = this.sliceArrayBuffer(dataView.byteOffset + offsetObj.offs, dataView.byteOffset+offsetObj.offs+length);
+            var vector = new Uint8Array(newArrayBuffer);
+            offsetObj.offs += length;
 
             return vector;
         },
