@@ -1,6 +1,13 @@
-import 'angular-bootstrap';
+import angular from 'angular';
+import angularProgressbar from 'angular-ui-bootstrap/src/progressbar';
+import 'angular-ui-bootstrap/template/progressbar/progress.html.js';
+import 'angular-ui-bootstrap/template/progressbar/progressbar.html.js';
 
-var wowJsRender = angular.module('main.directives.fileDownloader', ['ui.bootstrap.progressbar', "template/progressbar/progress.html","template/progressbar/progressbar.html"]);
+var wowJsRender = angular.module('main.directives.fileDownloader', [
+    angularProgressbar,
+    "uib/template/progressbar/progress.html",
+    "uib/template/progressbar/progressbar.html"]);
+
 wowJsRender.directive('fileDownloader', [function () {
     return {
         restrict: 'E',
