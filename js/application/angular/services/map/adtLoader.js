@@ -1,4 +1,6 @@
 import $q from 'q';
+import chunkedLoader from './../chunkedLoader.js';
+import fileReadHelper from './../fileReadHelper.js';
 
 const handlerTable = {
     "MVER" : function (adtObject, chunk) {

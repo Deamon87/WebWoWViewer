@@ -1,4 +1,5 @@
 import $q from 'q';
+import chunkedLoader from './../chunkedLoader.js';
 
 export default function(wdtFilePath) {
     var deferred = $q.defer();

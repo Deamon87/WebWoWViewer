@@ -1,17 +1,18 @@
 import Stats from 'stats.js';
 import axios from 'axios';
 
-import drawDepthShader from 'drawDepthShader.glsl';
+import drawDepthShader         from 'drawDepthShader.glsl';
 import renderFrameBufferShader from 'renderFrameBufferShader.glsl';
-import readDepthBuffer from 'readDepthBuffer.glsl';
-import wmoShader from 'WmoShader.glsl';
-import m2Shader from 'm2Shader.glsl';
-import drawBBShader from 'drawBBShader.glsl';
-import adtShader from 'adtShader.glsl';
-import drawPortalShader from 'drawPortalShader.glsl';
+import readDepthBuffer         from 'readDepthBuffer.glsl';
+import wmoShader               from 'WmoShader.glsl';
+import m2Shader                from 'm2Shader.glsl';
+import drawBBShader            from 'drawBBShader.glsl';
+import adtShader               from 'adtShader.glsl';
+import drawPortalShader        from 'drawPortalShader.glsl';
 
 import GraphManager from './graph/sceneGraphManager.js'
 
+import wdtLoader from './../services/map/wdtLoader.js';
 
 import AdtGeomCache    from './geometry/adtGeomCache.js';
 import M2GeomCache     from './geometry/m2GeomCache.js';
