@@ -1,5 +1,7 @@
 import MDXObject from './MDXObject.js';
-import {mat4, vec4} from 'gl-matrix';
+import mathHelper from './../math/mathHelper.js';
+
+import {mat4, vec4, vec3, glMatrix} from 'gl-matrix';
 
 
 class AdtM2Object extends MDXObject {

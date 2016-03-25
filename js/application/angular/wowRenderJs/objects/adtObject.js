@@ -1,3 +1,5 @@
+import adtM2ObjectFactory from './../objects/adtM2Object.js';
+
 class ADTObject {
     constructor(sceneApi, wdtFile) {
         this.sceneApi = sceneApi;

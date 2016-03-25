@@ -1,4 +1,87 @@
 import cacheTemplate from './../cache.js';
+import adtLoader from './../../services/map/adtLoader.js';
+
+function parseAlphaTextures(adtObj, wdtObj){
+    var megaTexture = [];
+    var xStride = 64*4; // (width of alphaTex) * (max number of textures per chunk)
+    //megaTexture[xStride*256*64-1] = 0;
+
+    for (var i = 0; i < adtObj.mcnkObjs.length; i++) {
+        var mcnkObj = adtObj.mcnkObjs[i];
+        var alphaArray = mcnkObj.alphaArray;
+        var layers = mcnkObj.textureLayers;
+
+        var currentLayer = new Array(((64*4) * 64));
+        megaTexture.push(currentLayer);
+
+        if (!layers) continue;
+        for (var j = 0; j < layers.length; j++ ) {
+            var alphaOffs = layers[j].alphaMap;
+            var offO = (64 * j);
+            var readCnt = 0;
+            var readForThisLayer = 0;
+
+            if ((layers[j].flags & 0x200) > 0) {
+                //Compressed
+                //http://www.pxr.dk/wowdev/wiki/index.php?title=ADT/v18
+                while( readForThisLayer < 4096 )
+                {
+                    // fill or copy mode
+                    var fill = (alphaArray[alphaOffs] & 0x80 );
+                    var n = alphaArray[alphaOffs] & 0x7F;
+                    alphaOffs++;
+
+                    for ( var k = 0; k < n; k++ )
+                    {
+                        if (readForThisLayer == 4096) break;
+
+                        currentLayer[offO++] = alphaArray[alphaOffs];
+                        readCnt++; readForThisLayer++;
+
+                        if (readCnt >=64) {
+                            offO = offO + xStride - 64;
+                            readCnt = 0;
+                            readForThisLayer++;
+                        }
+
+                        if( !fill ) alphaOffs++;
+                    }
+                    if( fill ) alphaOffs++;
+                }
+            } else {
+                //Uncompressed
+                if (((wdtObj.flags & 0x4) > 0) || ((wdtObj.flags & 0x80) > 0)) {
+                    for (var iX =0; iX < 64; iX++) {
+                        for (var iY = 0; iY < 64; iY++){
+                            currentLayer[offO] = alphaArray[alphaOffs];
+
+                            offO+=1; readCnt+=1; readForThisLayer+=1; alphaOffs++;
+                            if (readCnt >=64) {
+                                offO = offO + xStride - 64;
+                                readCnt = 0;
+                            }
+                        }
+                    }
+                } else {
+                    for (var iX =0; iX < 64; iX++) {
+                        for (var iY = 0; iY < 32; iY++){
+                            //Old world
+                            currentLayer[offO] =  ((alphaArray[alphaOffs] & 0xf0 ) >> 4) * 17;
+                            currentLayer[offO+1] = (alphaArray[alphaOffs] & 0x0f ) * 17;
+
+                            offO+=2; readCnt+=2; readForThisLayer+=2; alphaOffs++;
+                            if (readCnt >=64) {
+                                offO = offO + xStride - 64;
+                                readCnt = 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return megaTexture;
+}
 
 class ADTGeom {
     constructor(sceneApi, wdtFile) {
