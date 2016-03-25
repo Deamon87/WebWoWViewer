@@ -115,9 +115,13 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
             }
         ]
     };
+
     $scope.selectionOptions = parameters;
     $scope.status = {};
     $scope.status.isopen = false;
+
+
+    $scope.source = 'url';
 
     $scope.startApplication = function () {
         configService.setUrlToLoadWoWFile($scope.params.urlForLoading);
