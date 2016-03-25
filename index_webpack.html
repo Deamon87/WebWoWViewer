@@ -15,8 +15,6 @@
         <!-- Application code -->
         <!---------------------->
         <script type="text/javascript" src="build/main.js"></script>
-
-        <link rel="stylesheet" href="css/application.min.css"/>
     </head>
     <body ng-app="main.app" ng-controller="UrlChooserCtrl" style="background: black">
     <div style="margin: auto;position: absolute; top: 0; left: 0; bottom: 0; right: 0;">
@@ -29,11 +27,15 @@
                     Button dropdown <span class="caret"></span>
                 </button>
                 <ul uib-dropdown-menu role="menu" aria-labelledby="single-button">
-                    <li role="menuitem"><a href="#">Action</a></li>
-                    <li role="menuitem"><a href="#">Another action</a></li>
-                    <li role="menuitem"><a href="#">Something else here</a></li>
-                    <li class="divider"></li>
-                    <li role="menuitem"><a href="#">Separated link1</a></li>
+                    <li class="disabled"><a href="#">Available without client</a></li>
+                    <li ng-repeat="value in selectionOptions.predefined" role="menuitem">
+                        <a href="#">{{value.name}}</a>
+                    </li>
+                    <li class="divider"/>
+                    <li class="disabled"><a href="#">Available only with client http source</a></li>
+                    <li ng-repeat="value in selectionOptions.custom" role="menuitem">
+                        <a href="#">{{value.name}}</a>
+                    </li>
                 </ul>
             </div>
 
@@ -44,7 +46,7 @@
             <br/><br/><br/>
             <div ng-if="isReadyForDownload">
                 <file-downloader url="params.zipUrl" loaded-file="params.zipFile" file-progress="params.downLoadProgress">
-                    <progressbar max="100" value="params.downLoadProgress">{{params.downLoadProgress}}</progressbar>
+                    <uib-progressbar max="100" value="params.downLoadProgress">{{params.downLoadProgress}}</uib-progressbar>
                 </file-downloader>
             </div>
         </div>

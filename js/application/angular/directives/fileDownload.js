@@ -1,5 +1,6 @@
 import angular from 'angular';
 import angularProgressbar from 'angular-ui-bootstrap/src/progressbar';
+import 'bootstrap-loader';
 import 'angular-ui-bootstrap/template/progressbar/progress.html.js';
 import 'angular-ui-bootstrap/template/progressbar/progressbar.html.js';
 

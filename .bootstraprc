@@ -1,0 +1,6 @@
+bootstrapVersion: 3
+styles: true
+styleLoaders:
+  - style
+  - css
+  - sass

@@ -115,7 +115,7 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
             }
         ]
     };
-
+    $scope.selectionOptions = parameters;
     $scope.status = {};
     $scope.status.isopen = false;
 

@@ -9,7 +9,7 @@ module.exports = {
 
     context: __dirname,
 
-    entry: ["./js/application/angular/app_wowjs.js"],
+    entry: ['bootstrap-loader', "./js/application/angular/app_wowjs.js"],
 
 
     output: {
@@ -46,6 +46,11 @@ module.exports = {
                 test: /\.scss$/,
                 loaders: ["style", "css", "sass"]
             },
+            { test: /\.woff$/,   loader: "url-loader?limit=10000&minetype=application/font-woff" },
+            { test: /\.woff2$/,  loader: "url-loader?limit=10000&minetype=application/font-woff" },
+            { test: /\.ttf$/,    loader: "file-loader" },
+            { test: /\.eot$/,    loader: "file-loader" },
+            { test: /\.svg$/,    loader: "file-loader" }
         ]
     },
 
