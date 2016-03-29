@@ -19,6 +19,8 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
     $scope.params.urlForLoading = configService.getUrlToLoadWoWFile();
     $scope.params.zipFile = null;
 
+    $scope.selectedModeName = "Please select mode";
+
     var parameters = {
             predefined: [{
                 name: 'Shattrath city (WotLK)',
@@ -42,12 +44,12 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
         custom: [
             {
                 name: 'Raw coordinates',
-                source: 'url',
+                source: 'http',
                 sceneType: 'customMap'
             },
             {
                 name: 'Azeroth adt 31-31',
-                source: 'url',
+                source: 'http',
                 sceneType: 'map',
                 mapId: 0,
                 mapName: 'Azeroth',
@@ -57,7 +59,7 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
             },
             {
                 name: 'Eye of Storm',
-                source: 'url',
+                source: 'http',
                 sceneType: 'map',
                 //mapId: 0,
                 mapName: 'NetherstormBG',
@@ -67,49 +69,69 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
             },
             {
                 name: 'Halls Of Reflection',
-                source: 'url',
+                source: 'http',
                 sceneType: 'map',
                 //mapId: 0,
                 mapName: 'HallsOfReflection',
-                x: 5245,
-                y: 2025,
-                z: 2025
+                x: 5243.2461346537075,
+                y: 1938.6550422193939,
+                z: 717.0332923206179
+            },
+            {
+                name: 'Darkshire',
+                source: 'http',
+                sceneType: 'map',
+                //mapId: 0,
+                mapName: 'Azeroth',
+                x: -10559.7,
+                y: -1189.02,
+                z: 29.0698
+            },
+            {
+                name: 'Forsaken start',
+                source: 'http',
+                sceneType: 'map',
+                //mapId: 0,
+                mapName: 'Azeroth',
+                x: 2000,
+                y: 1600,
+                z: 137
             },
             {
                 name: 'Deeprun Tram',
-                source: 'url',
+                source: 'http',
                 sceneType: 'map',
                 //mapId: 0,
-                mapName: 'HallsOfReflection',
+                mapName: 'DeeprunTram',
                 x: 17066.666666656,
                 y: 17066.666666656,
                 z: 0
             },
             {
                 name: 'Karazahn',
-                source: 'url',
+                source: 'http',
                 sceneType: 'map',
                 //mapId: 0,
-                mapName: 'HallsOfReflection',
+                mapName: 'Karazahn',
                 x: -10666.666666656,
                 y: -1600,
                 z: 170
             },
             {
                 name: 'Gnome subway glass(Wotlk)',
-                source: 'url',
+                source: 'http',
                 sceneType: 'm2',
                 modelName: 'WORLD\\GENERIC\\GNOME\\PASSIVE DOODADS\\GNOMEMACHINE\\GNOMESUBWAYGLASS.m2'
             },
             {
                 name: 'Ironforge garage machine',
-                source: 'url',
+                source: 'http',
                 sceneType: 'm2',
                 modelName: 'WORLD\\KHAZMODAN\\IRONFORGE\\PASSIVEDOODADS\\GARAGEMACHINE\\GARAGEMACHINE.m2'
             },
             {
                 name: 'KARAZAN CHANDELIER',
-                source: 'url',
+                source: 'http',
                 sceneType: 'm2',
                 modelName: 'WORLD\\AZEROTH\\KARAZAHN\\PASSIVEDOODADS\\CHANDELIERS\\KARAZANCHANDELIER_02.m2'
             }
@@ -120,13 +142,23 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
     $scope.status = {};
     $scope.status.isopen = false;
 
+    $scope.selectMode = function (value) {
+        $scope.selectedValue = value;
+        $scope.selectedSource = value.source;
+        $scope.selectedModeName = value.name;
 
-    $scope.source = 'url';
+        configService.setArchiveUrl(value.url);
+        configService.setFileReadMethod(value.source);
+    };
+
+
 
     $scope.startApplication = function () {
         configService.setUrlToLoadWoWFile($scope.params.urlForLoading);
         $scope.params.zipUrl = configService.getArchiveUrl();
         $scope.params.downLoadProgress = 0;
+
+        configService.setSceneParams($scope.selectedValue);
 
         $scope.isReadyForDownload = configService.getFileReadMethod() == "zip" ;
         $scope.isReadyForStart = configService.getFileReadMethod() == "http" ;

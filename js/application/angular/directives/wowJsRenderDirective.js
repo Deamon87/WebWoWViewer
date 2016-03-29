@@ -19,8 +19,34 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
         link: function postLink(scope, element, attrs) {
             var canvas = element.find('canvas')[0];
 
+            var sceneParams = config.getSceneParams();
             var sceneObj = new Scene(canvas);
             var lastTimeStamp = undefined;
+
+            if (sceneParams.sceneType == 'map') {
+                var adt_x = Math.floor((32 - (sceneParams.y / 533.33333)));
+                var adt_y = Math.floor((32 - (sceneParams.x / 533.33333)));
+
+                sceneObj.loadMap(sceneParams.mapName, adt_x, adt_y);
+                sceneObj.setCameraPos(sceneParams.x, sceneParams.y, sceneParams.z);
+            } else if (sceneParams.sceneType == 'wmo') {
+                sceneObj.loadWMOFile({
+                    fileName : sceneParams.fileName,
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    doodadSet: 0
+                });
+
+            } else if (sceneParams.sceneType == 'm2') {
+                sceneObj.loadM2File({
+                    fileName : sceneParams.modelName,
+                    uniqueId : 0,
+                    pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
+                    rotation : {x : 0, y: 0, z : 0},
+                    scale    : 1024
+                });
+            }
 
             scope.$watch('drawM2', function (newValue) {
                 config.setRenderM2(newValue);
@@ -29,7 +55,6 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                 config.setRenderPortals(newValue);
             });
             var renderfunc = function(){
-
                 var currentTimeStamp = new Date().getTime();
                 var timeDelta = 0;
                 if (lastTimeStamp !== undefined) {

@@ -594,7 +594,10 @@ class WmoObject {
         ambientColor[2] /= 255.0; ambientColor[3] /= 255.0;
 
         //for (var i = 70; i < 90; i++){
+        //if ((this.wmoGroupArray.length) < 5) return;
+
         for (var i = 0; i < this.wmoGroupArray.length; i++){
+            //if (i != 0) continue;
             if (this.wmoGroupArray[i]){
                 if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
 

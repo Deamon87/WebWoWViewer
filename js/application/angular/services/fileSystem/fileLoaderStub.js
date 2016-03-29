@@ -1,6 +1,7 @@
 import 'imports?this=>global!zip.js/WebContent/zip.js';
 import 'imports?this=>global!zip.js/WebContent/inflate.js';
 import 'imports?this=>global!zip.js/WebContent/z-worker.js';
+import axios from 'axios';
 
 
 //debugger;
@@ -148,11 +149,11 @@ export default function (configService, $q) {
         if (configService.getFileReadMethod() == 'http') {
             var fullPath = configService.getUrlToLoadWoWFile() + filePath;
 
-            return $http.get(fullPath, {responseType: "arraybuffer"}).then(function success(a) {
-                return a.data;
+            return axios.get(fullPath,{responseType: "arraybuffer"}).then(function success(a) {
+                return new Uint8Array(a.data);
             }, function error(a) {
+                console.log("axios error" + e);
             });
-
         } else if (configService.getFileReadMethod() == 'zip') {
             if (filePath) {
                 filePath = filePath.replace(/\\/g, "/");

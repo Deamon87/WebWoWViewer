@@ -1,6 +1,6 @@
 var urlToLoadWoWFile = '/get/';
 var readFileMethod = 'zip';
-var archiveUrl = 'http://deamon87.github.io/WoWFiles/ironforge.zip';
+var archiveUrl = 'http://deamon87.github.io/WoWFiles/shattrath.zip';
 
 var archiveFile = null;
 
@@ -13,6 +13,8 @@ var savedUrlForLoading = localStorage.getItem('urlForLoading');
 if (savedUrlForLoading) {
     urlToLoadWoWFile = savedUrlForLoading;
 }
+
+var sceneParams = null;
 
 //zip.workerScriptsPath = 'js/lib/bower/zip.js/WebContent/';
 /*zip.workerScripts = {
@@ -31,8 +33,14 @@ export default {
     getFileReadMethod : function(){
         return readFileMethod;
     },
+    setFileReadMethod : function(value){
+        readFileMethod = value;
+    },
     getArchiveUrl : function (){
         return archiveUrl;
+    },
+    setArchiveUrl : function (value) {
+        archiveUrl = value;
     },
 
     getArchiveFile : function (){
@@ -64,5 +72,11 @@ export default {
     },
     setUsePortalCulling : function (value) {
         usePortalCulling = value;
+    },
+    getSceneParams : function () {
+        return sceneParams;
+    },
+    setSceneParams: function (value) {
+        sceneParams = value;
     }
 }
