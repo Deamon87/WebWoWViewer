@@ -14,7 +14,12 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<div>lookAt = ( {{cameraVecs.lookAtVec3[0]}}, {{cameraVecs.lookAtVec3[1]}}, {{cameraVecs.lookAtVec3[2]}} )</div>' +
             '<div>Group number = {{updateResult.interiorGroupNum}}</div>'+
             '<div>BSP Node Id = {{updateResult.nodeId}}</div>'+
-            '<input type="checkbox" ng-model="drawM2" >Draw M2 objects</input><input type="checkbox" ng-model="drawPortals" >Draw portals</input>' +
+            '<input type="checkbox" ng-model="drawM2" >Draw M2 objects</input>' +
+            '<input type="checkbox" ng-model="drawPortals">Draw portals</input>' +
+            '<input type="checkbox" ng-model="drawM2BB">Draw M2 BB</input>' +
+            '<input type="checkbox" ng-model="drawWmoBB">Draw Wmo BB</input>' +
+            '<input type="checkbox" ng-model="drawBSP">Draw BSP leafs</input>' +
+
             '</div>',
         link: function postLink(scope, element, attrs) {
             var canvas = element.find('canvas')[0];
@@ -47,6 +52,16 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                     scale    : 1024
                 });
             }
+            scope.$watch('drawM2BB', function (newValue) {
+                config.setDrawM2BB(newValue);
+            });
+            scope.$watch('drawWmoBB', function (newValue) {
+                config.setDrawWmoBB(newValue);
+            });
+
+            scope.$watch('drawBSP', function (newValue) {
+                config.setRenderBSP(newValue);
+            });
 
             scope.$watch('drawM2', function (newValue) {
                 config.setRenderM2(newValue);

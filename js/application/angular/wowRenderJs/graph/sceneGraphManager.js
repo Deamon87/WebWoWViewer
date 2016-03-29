@@ -472,7 +472,7 @@ class GraphManager {
         //7. Draw BBs
         this.sceneApi.shaders.activateBoundingBoxShader();
         //7.1 Draw M2 BBs
-        if (config.getRenderM2()) {
+        if (config.getDrawM2BB()) {
             for (var i = 0; i < this.m2Objects.length; i++) {
                 if (!this.m2Objects[i].getIsRendered()) continue;
 
@@ -481,8 +481,10 @@ class GraphManager {
         }
 
         //7.1 Draw WMO BBs
-        for (var i = 0; i < this.wmoObjects.length; i++) {
-            this.wmoObjects[i].drawBB();
+        if (config.getDrawWmoBB()) {
+            for (var i = 0; i < this.wmoObjects.length; i++) {
+                this.wmoObjects[i].drawBB();
+            }
         }
 
     }

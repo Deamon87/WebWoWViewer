@@ -9,6 +9,9 @@ var renderBSP = false;
 var renderPortals = false;
 var usePortalCulling = false;
 
+var drawWmoBB = false;
+var drawM2BB = false;
+
 var savedUrlForLoading = localStorage.getItem('urlForLoading');
 if (savedUrlForLoading) {
     urlToLoadWoWFile = savedUrlForLoading;
@@ -78,5 +81,17 @@ export default {
     },
     setSceneParams: function (value) {
         sceneParams = value;
+    },
+    getDrawWmoBB : function (){
+        return drawWmoBB;
+    },
+    setDrawWmoBB : function (value) {
+        drawWmoBB = value;
+    },
+    getDrawM2BB : function (){
+        return drawM2BB;
+    },
+    setDrawM2BB: function (value) {
+        drawM2BB = value;
     }
 }
