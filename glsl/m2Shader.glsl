@@ -24,8 +24,8 @@ uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 uniform int isBillboard;
 uniform mat4 uBoneMatrixes[59]; //Max 59 for ANGLE implementation and max 120? bones in Wotlk client
-
 uniform int isEnviroment;
+
 #ifdef INSTANCED
 attribute mat4 uPlacementMat;
 #else
@@ -36,9 +36,9 @@ varying vec2 vTexCoord;
 varying vec2 vTexCoord2;
 varying vec4 vColor;
 varying vec3 vNormal;
+varying vec3 vPosition;
 
 #ifdef drawBuffersIsSupported
-varying vec3 vPosition;
 varying float fs_Depth;
 #endif
 
@@ -149,39 +149,35 @@ void main() {
     mat4 cameraMatrix = uLookAtMat * uPlacementMat * boneTransformMat;
     vec4 cameraPoint = cameraMatrix * aPositionVec4;
 
-    mat3 invWorldMat = mat3(
-        uPlacementMat[0].xyz,
-        uPlacementMat[1].xyz,
-        uPlacementMat[2].xyz);
-    vec3 worldNormal = normalize((aNormal * invWorldMat));
+    vec3 normal = mat3(cameraMatrix) * aNormal;
 
-    mat3 invCameraMat = mat3(
-      uLookAtMat[0].xyz,
-      uLookAtMat[1].xyz,
-      uLookAtMat[2].xyz);
-
-    vec3 normal = normalize((worldNormal * invCameraMat));
-
+    vec2 texCoord;
     if (isEnviroment == 1) {
+
         vec3 normPos = -(normalize(cameraPoint.xyz));
         vec3 temp = (normPos - (normal * (2.0 * dot(normPos, normal))));
-        temp.z = (temp.z + 1.0);
+        temp = vec3(temp.x, temp.y, temp.z + 1.0);
 
-        vTexCoord = ((normalize(temp).xy * 0.5) + vec2(0.5));
-    }else {
-        vTexCoord = aTexCoord;
+        texCoord = ((normalize(temp).xy * 0.5) + vec2(0.5));
+
+    } else {
+        /* Animation support */
+        texCoord = vec4(aTexCoord, 0, 1).xy;
     }
+
+    vTexCoord = texCoord;
     vTexCoord2 = aTexCoord2;
     vColor = aColor;
 
 #ifndef drawBuffersIsSupported
     gl_Position = uPMatrix * cameraPoint;
     vNormal = normal;
+    vPosition = cameraPoint.xyz;
 #else
     gl_Position = uPMatrix * cameraPoint;
     fs_Depth = gl_Position.z / gl_Position.w;
 
-    vNormal = normalize((uPlacementMat * vec4(aNormal, 0)).xyz);
+    vNormal = normal;
     vPosition = cameraPoint.xyz;
 #endif //drawBuffersIsSupported
 
@@ -190,7 +186,7 @@ void main() {
 
 #ifdef COMPILING_FS
 
-precision lowp float;
+precision highp float;
 varying vec3 vNormal;
 varying vec2 vTexCoord;
 varying vec2 vTexCoord2;
@@ -210,23 +206,20 @@ varying float fs_Depth;
 #endif
 
 void main() {
+
+
     /* Animation support */
-    vec2 texCoord =  (uTextMat1 * vec4(vTexCoord, 0, 1)).xy;
+    vec2 texCoord = (uTextMat1 * vec4(vTexCoord, 0, 1)).xy;
     vec2 texCoord2 = (uTextMat2 * vec4(vTexCoord2, 0, 1)).xy;
 
     /* Get color from texture */
     vec4 tex = texture2D(uTexture, texCoord).rgba;
     vec4 tex2 = texture2D(uTexture2, texCoord2).rgba;
 
-    vec4 finalColor = vec4(
-        (tex.r * vColor.b) ,
-        (tex.g * vColor.g) ,
-        (tex.b * vColor.r) ,
-        tex.a * vColor.a);
+    vec4 finalColor = vec4((tex.rgb * tex2.rgb) * vColor.bgr, 1.0);
+     finalColor.a = tex.a;
 
-    finalColor = finalColor * tex2;
-
-    if(finalColor.a < uAlphaTest)
+    if(tex.a < uAlphaTest)
         discard;
 
     //Apply global lighting
