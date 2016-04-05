@@ -709,11 +709,21 @@ class WmoObject {
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // default blend func
+        gl.disable(gl.BLEND);
+
+
+        gl.depthMask(true);
+        gl.disable(gl.CULL_FACE);
+        gl.disable(gl.BLEND);
+
         if (this.currentGroupId >= 0 && this.wmoGroupArray[this.currentGroupId]) {
             var node = this.wmoGroupArray[this.currentGroupId].wmoGroupFile.nodes[this.currentNodeId];
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.wmoGroupArray[this.currentGroupId].mobrVBO);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.wmoGroupArray[this.currentGroupId].combinedVBO);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.wmoGroupArray[this.currentGroupId].mobrVBO);
+
             gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0); // position
 
             gl.uniform4fv(uniforms.uColor, new Float32Array([0.819607843, 0.819607843, 0.058, 0.0])); //yellow
@@ -722,6 +732,9 @@ class WmoObject {
                 gl.drawElements(gl.TRIANGLES, node.numFaces*3, gl.UNSIGNED_SHORT, (node.firstFace*3) * 2);
             }
         }
+
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
     }
 }
 
