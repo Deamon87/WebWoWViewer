@@ -204,6 +204,7 @@ export default function (filePath , arrayBuffer) {
                 return;
             }
             var linedFileObj = parseLinedFileObj(a);
+            linedFileObj.filePath = filePath;
 
             return linedFileObj;
         }, function error(e) {

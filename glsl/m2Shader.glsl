@@ -62,8 +62,8 @@ void main() {
     if (isEnviroment == 1) {
 
         vec3 normPos = -(normalize(cameraPoint.xyz));
-        vec3 temp = (normPos - (normal * (2.0 * dot(normPos, normal))));
-        temp = vec3(temp.x, temp.y, temp.z + 1.0);
+        vec3 temp = reflect(normPos, normal);
+        temp.z += 1.0;
 
         texCoord = ((normalize(temp).xy * 0.5) + vec2(0.5));
 
@@ -123,8 +123,8 @@ void main() {
     vec4 tex = texture2D(uTexture, texCoord).rgba;
     vec4 tex2 = texture2D(uTexture2, texCoord2).rgba;
 
-    vec4 finalColor = vec4((tex.rgb * tex2.rgb) * vColor.bgr, 1.0);
-     finalColor.a = tex.a;
+    vec4 finalColor = vec4((tex.rgb * tex2.rgb * vColor.bgr), 1.0);
+    finalColor.a = tex.a * vColor.a;
 
     if(tex.a < uAlphaTest)
         discard;

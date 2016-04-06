@@ -9,6 +9,52 @@
 #endif
 #endif
 
+/*
+//0
+MapObjDiffuse {
+    VertexShader(MapObjDiffuse_T1);
+	PixelShader(MapObjDiffuse);
+}
+
+//1
+MapObjSpecular {
+    VertexShader(MapObjSpecular_T1);
+    PixelShader(MapObjSpecular);
+}
+
+//2
+MapObjMetal {
+    VertexShader(MapObjSpecular_T1);
+    PixelShader(MapObjMetal);
+}
+
+//3
+MapObjEnv {
+	VertexShader(MapObjDiffuse_T1_Refl);
+	PixelShader(MapObjEnv);
+}
+
+//4
+MapObjOpaque {
+    VertexShader(MapObjDiffuse_T1);
+    PixelShader(MapObjOpaque);
+}
+
+//5
+Effect(MapObjEnvMetal {
+    VertexShader(MapObjDiffuse_T1_Refl);
+    PixelShader(MapObjEnvMetal);
+}
+
+//6
+Effect(MapObjComposite)
+{
+    VertexShader(MapObjDiffuse_Comp);
+    PixelShader(MapObjComposite);
+}
+*/
+
+
 #ifdef COMPILING_VS
 /* vertex shader code */
 attribute vec3 aPosition;

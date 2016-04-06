@@ -58,6 +58,26 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 z: 0
             },
             {
+                name: 'Dalaran crater',
+                source: 'http',
+                sceneType: 'map',
+                mapId: 0,
+                mapName: 'Azeroth',
+                x: 122.61,
+                y: 397.96,
+                z: 136.88
+            },
+            {
+                name: 'Ulduar Raid',
+                source: 'http',
+                sceneType: 'map',
+                mapId: 0,
+                mapName: 'UlduarRaid',
+                x: 2290,
+                y: -9.475,
+                z: 470
+            },
+            {
                 name: 'Eye of Storm',
                 source: 'http',
                 sceneType: 'map',
@@ -122,6 +142,12 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 source: 'http',
                 sceneType: 'm2',
                 modelName: 'WORLD\\GENERIC\\GNOME\\PASSIVE DOODADS\\GNOMEMACHINE\\GNOMESUBWAYGLASS.m2'
+            },
+            {
+                name: 'Volumetric Light',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'WORLD\\NODXT\\GENERIC\\PASSIVEDOODADS\\VOLUMETRICLIGHTS\\LD_LIGHTSHAFT01.m2'
             },
             {
                 name: 'Ironforge garage machine',
