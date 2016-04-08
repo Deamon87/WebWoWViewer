@@ -75,6 +75,9 @@ export default function (filePath) {
                 case 9:
                     resultBLPObject.textureFormat = "PalARGB2565DitherFloydSteinberg";
                     break;
+
+                default:
+                    break;
             }
 
 
@@ -104,12 +107,12 @@ export default function (filePath) {
                     }
                 }
                 //Check dimensions for dxt textures
-                validSize = data.length;
+                var validSize = data.length;
                 if ((resultBLPObject.textureFormat == "S3TC_RGBA_DXT5") || (resultBLPObject.textureFormat == "S3TC_RGBA_DXT3")) {
-                    var validSize = Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 16;
+                    validSize = Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 16;
                 }
                 if ((resultBLPObject.textureFormat == "S3TC_RGB_DXT1") || (resultBLPObject.textureFormat == "S3TC_RGBA_DXT1")) {
-                    var validSize = Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 8;
+                    validSize = Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 8;
                 }
 
                 if (data.length != validSize) {
