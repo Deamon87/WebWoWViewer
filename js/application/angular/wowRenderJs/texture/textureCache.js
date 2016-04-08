@@ -16,7 +16,6 @@ class Texture {
         this.texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
 
-        //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
         var textureGPUFormat = null;
         if (ext) {
             switch (textureFormat) {
@@ -47,11 +46,13 @@ class Texture {
 
 
         /* Hack for DXT1. It still falls on gpu when width is not equal to height and one of them is less than 8 :/ */
+        /*
         useDXT1Decoding = useDXT1Decoding ||
             (
                 (textureFormat === "S3TC_RGB_DXT1") ||
                 (textureFormat === "S3TC_RGBA_DXT1")
             ) &&( mipmaps[0].width !== mipmaps[0].height );
+        */
 
         var generateMipMaps = false;
         switch (textureFormat) {
@@ -89,6 +90,7 @@ class Texture {
                         gl.compressedTexImage2D(gl.TEXTURE_2D, k, textureGPUFormat, mipmaps[k].width, mipmaps[k].height, 0, mipmaps[k].texture);
                     }
                 }
+
                 break;
 
             case "BGRA":
@@ -107,13 +109,13 @@ class Texture {
             gl.texParameterf(gl.TEXTURE_2D, anisFilterExt.TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
         }
 
-        /*if (generateMipMaps) {
+        if (generateMipMaps) {
             gl.generateMipmap(gl.TEXTURE_2D);
-            if (gl.getError()!=0) {
+            if (gl.getError() !=0 ) {
                 debugger;
             }
         }
-        */
+
 
         gl.bindTexture(gl.TEXTURE_2D, null);
     };

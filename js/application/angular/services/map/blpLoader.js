@@ -39,7 +39,7 @@ export default function (filePath) {
             };
 
             var resultBLPObject = fileObject.parseSectionDefinition(resultBLPObject, blpDefinition, fileObject, offset);
-            resultBLPObject.fileName = filePath;
+            resultBLPObject.fileName = fileObject.filePath;
 
             /* Post load for texture data. Can't define them through declarative definition */
             var width = resultBLPObject.width;
@@ -48,10 +48,14 @@ export default function (filePath) {
             /* Determine texture format */
             switch (resultBLPObject.preferredFormat) {
                 case 0:
-                    resultBLPObject.textureFormat = "S3TC_RGB_DXT1";
+                    if (resultBLPObject.alphaChannelBitDepth > 0) {
+                        resultBLPObject.textureFormat = "S3TC_RGBA_DXT1";
+                    } else {
+                        resultBLPObject.textureFormat = "S3TC_RGB_DXT1";
+                    }
                     break;
                 case 1:
-                    resultBLPObject.textureFormat = "S3TC_RGB_DXT3";
+                    resultBLPObject.textureFormat = "S3TC_RGBA_DXT3";
                     break;
                 case 3:
                     resultBLPObject.textureFormat = "BGRA";
@@ -99,6 +103,24 @@ export default function (filePath) {
                         data[j*4 + 3] = a;
                     }
                 }
+                //Check dimensions for dxt textures
+                validSize = data.length;
+                if ((resultBLPObject.textureFormat == "S3TC_RGBA_DXT5") || (resultBLPObject.textureFormat == "S3TC_RGBA_DXT3")) {
+                    var validSize = Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 16;
+                }
+                if ((resultBLPObject.textureFormat == "S3TC_RGB_DXT1") || (resultBLPObject.textureFormat == "S3TC_RGB_DXT1")) {
+                    var validSize = Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 8;
+                }
+
+                if (data.length != validSize) {
+                    var newData = new Uint8Array(validSize);
+                    for (var j = 0; j < data.length; j++) {
+                        newData[j] = data[j];
+                    }
+                    data = newData;
+                }
+
+
                 mipmaps.push({
                     texture: data,
                     width: width,
