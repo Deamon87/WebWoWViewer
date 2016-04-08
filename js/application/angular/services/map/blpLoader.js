@@ -108,7 +108,7 @@ export default function (filePath) {
                 if ((resultBLPObject.textureFormat == "S3TC_RGBA_DXT5") || (resultBLPObject.textureFormat == "S3TC_RGBA_DXT3")) {
                     var validSize = Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 16;
                 }
-                if ((resultBLPObject.textureFormat == "S3TC_RGB_DXT1") || (resultBLPObject.textureFormat == "S3TC_RGB_DXT1")) {
+                if ((resultBLPObject.textureFormat == "S3TC_RGB_DXT1") || (resultBLPObject.textureFormat == "S3TC_RGBA_DXT1")) {
                     var validSize = Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 8;
                 }
 
