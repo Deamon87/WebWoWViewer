@@ -1,6 +1,6 @@
 import $q from 'q';
 import mathHelper from './../math/mathHelper.js';
-import {vec4, mat4, vec3} from 'gl-matrix';
+import {vec4, mat4, vec3, quat} from 'gl-matrix';
 
 class MDXObject {
     constructor(sceneApi){
@@ -337,16 +337,22 @@ class MDXObject {
         }
         return this.currentAnimation;
     }
-    interpolateValues (currentTime, interpolType, time1, time2, value1, value2){
+    interpolateValues (currentTime, interpolType, time1, time2, value1, value2, valueType){
         //Support and use only linear interpolation for now
         if (interpolType == 0) {
             return value1;
         } else if (interpolType >= 1) {
-            var diff = vec4.create();
-            vec4.subtract(diff, value2, value1);
-            vec4.scale(diff, diff, (currentTime - time1)/(time2 - time1));
-            var result = vec4.create();
-            vec4.add(result, value1, diff);
+
+            if (valueType == 1 || valueType == 3) {
+                var result = vec4.create();
+                quat.slerp(result, value1, value2, (currentTime - time1)/(time2 - time1));
+            } else {
+                var diff = vec4.create();
+                vec4.subtract(diff, value2, value1);
+                vec4.scale(diff, diff, (currentTime - time1)/(time2 - time1));
+                var result = vec4.create();
+                vec4.add(result, value1, diff);
+            }
 
             return result;
         }
@@ -354,7 +360,9 @@ class MDXObject {
     getTimedValue (value_type, currTime, maxTime, animation, animationBlock) {
         function convertInt16ToFloat(value){
             return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
+            //return (value / 32768) - 1.0
         }
+
         function convertValueTypeToVec4(value, type){
             if (type == 0) {
                 return [value.x, value.y, value.z, 0];
@@ -365,6 +373,8 @@ class MDXObject {
                     convertInt16ToFloat(value[3])];
             } else if (type == 2) {
                 return [value/32767,value/32767, value/32767, value/32767];
+            } else if (type == 3) {
+                return [value.x,value.y, value.z, value.w];
             }
         }
 
@@ -410,9 +420,9 @@ class MDXObject {
                         value2 = convertValueTypeToVec4(value2, value_type);
 
                         result = this.interpolateValues(animTime,
-                            interpolType, time1, time2, value1, value2);
+                            interpolType, time1, time2, value1, value2, value_type);
 
-                        if (value_type == 1) {
+                        if (value_type == 1 || value_type == 3) {
                             vec4.normalize(result, result); //quaternion has to be normalized after lerp operation
                         }
 
@@ -462,7 +472,7 @@ class MDXObject {
             if (animBlock.rotation.valuesPerAnimation.length > 0) {
 
                 var quaternionVec4 = this.getTimedValue(
-                    1,
+                    3,
                     time,
                     animationRecord.length,
                     animation,
@@ -470,8 +480,22 @@ class MDXObject {
 
                 if (quaternionVec4) {
                     var orientMatrix = mat4.create();
+
                     mat4.fromQuat(orientMatrix, quaternionVec4 );
+                    transVec = mat4.translate(tranformMat, tranformMat, [
+                        0.5,
+                        0.5,
+                        0,
+                        0
+                    ]);
+
                     mat4.multiply(tranformMat, tranformMat, orientMatrix);
+                    transVec = mat4.translate(tranformMat, tranformMat, [
+                        -0.5,
+                        -0.5,
+                        0,
+                        0
+                    ]);
                 }
             }
 

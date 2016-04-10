@@ -98,6 +98,16 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 z: 717.0332923206179
             },
             {
+                name: 'Tree at dalaran zone (Halls Of Reflection)',
+                source: 'http',
+                sceneType: 'map',
+                //mapId: 0,
+                mapName: 'HallsOfReflection',
+                x: 5551.2461346537075,
+                y: 993.6550422193939,
+                z: 267.0332923206179
+            },
+            {
                 name: 'Darkshire',
                 source: 'http',
                 sceneType: 'map',
@@ -160,6 +170,12 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 source: 'http',
                 sceneType: 'm2',
                 modelName: 'WORLD\\AZEROTH\\KARAZAHN\\PASSIVEDOODADS\\CHANDELIERS\\KARAZANCHANDELIER_02.m2'
+            },
+            {
+                name: 'Test runecircle',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'WORLD\\GOOBER\\G_SCOURGERUNECIRCLECRYSTAL.m2'
             }
         ]
     };

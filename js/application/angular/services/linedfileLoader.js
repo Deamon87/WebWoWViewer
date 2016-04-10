@@ -46,8 +46,14 @@ export default function (filePath , arrayBuffer) {
                     case "int16Array" :
                         result = fileObject.readInt16Array(offset, len);
                         break;
+                    case "int32Array" :
+                        result = fileObject.readInt32Array(offset, len);
+                        break;
                     case "vector3f" :
                         result = fileObject.readVector3f(offset);
+                        break;
+                    case "vector4f" :
+                        result = fileObject.readVector4f(offset);
                         break;
                     case "float32" :
                         result = fileObject.readFloat32(offset);
