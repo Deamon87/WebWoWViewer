@@ -45,20 +45,22 @@ class MathHelper{
     static createPlaneFromEyeAndVertexes (eye, vertex1, vertex2 ) {
         var edgeDir = vec4.create();
 
-        vec4.subtract(edgeDir, vertex1, vertex2);
-        vec4.normalize(edgeDir);
+        vec3.subtract(edgeDir, vertex1, vertex2);
+        vec3.normalize(edgeDir, edgeDir );
 
         //viewToPointDir = normalize(((vertexA+vertexB)*0.5)-viewPos)
         var viewToPointDir = vec4.create();
-        vec4.add(viewToPointDir, vertex1, vertex2);
-        vec4.scale(viewToPointDir, viewToPointDir, 0.5);
-        vec4.subtract(viewToPointDir, viewToPointDir, eye);
-        vec4.normalize(viewToPointDir, viewToPointDir);
+        vec3.add(viewToPointDir, vertex1, vertex2);
+        vec3.scale(viewToPointDir, viewToPointDir, 0.5);
+        vec3.subtract(viewToPointDir, viewToPointDir, eye);
+        vec3.normalize(viewToPointDir, viewToPointDir);
 
         //planeNorm=cross(viewDir, edgeDir)
         var planeNorm = vec4.create();
-        vec4.cross(planeNorm, viewToPointDir, edgeDir);
-        vec4.normalize(planeNorm, planeNorm);
+        vec3.cross(planeNorm, viewToPointDir, edgeDir);
+        vec3.normalize(planeNorm, planeNorm);
+
+        planeNorm[3] = 1;
 
         //Plane fpl(planeNorm, dot(planeNorm, vertexA))
         var distToPlane = vec4.dot(planeNorm, vertex1);

@@ -174,12 +174,6 @@ class GraphManager {
         }
 
         if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
-            for (var j = 0; j < this.m2Objects.length; j++) {
-                this.m2Objects[j].setIsRendered(true);
-            }
-            for (var i = 0; i < this.wmoObjects.length; i++) {
-                this.wmoObjects[i].resetDrawnForAllGroups(true);
-            }
             //TODO: set not render for adt too
             //Cull with normal portals
             this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
@@ -189,8 +183,8 @@ class GraphManager {
             var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
 
             //Travel through portals
-            this.currentWMO.transverseInteriorWMO(this.currentInteriorGroup, this.position, frustumMat, lookAtMat4, frustumPlanes);
-            this.currentWMO.transverseExteriorWMO(frustumMat, lookAtMat4)
+            this.currentWMO.startTraversingFromInteriorWMO(this.currentInteriorGroup, this.position, frustumMat, lookAtMat4, frustumPlanes);
+            //this.currentWMO.transverseExteriorWMO(frustumMat, lookAtMat4)
 
         } else {
             this.checkNormalFrustumCulling(frustumMat, lookAtMat4)

@@ -19,6 +19,7 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<input type="checkbox" ng-model="drawM2BB">Draw M2 BB</input>' +
             '<input type="checkbox" ng-model="drawWmoBB">Draw Wmo BB</input>' +
             '<input type="checkbox" ng-model="drawBSP">Draw BSP leafs</input>' +
+            '<input type="checkbox" ng-model="usePortalCulling">Use portal culling</input>' +
 
             '</div>',
         link: function postLink(scope, element, attrs) {
@@ -68,6 +69,9 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             });
             scope.$watch('drawPortals', function (newValue) {
                 config.setRenderPortals(newValue);
+            });
+            scope.$watch('usePortalCulling', function (newValue) {
+                config.setUsePortalCulling(newValue);
             });
             var renderfunc = function(){
                 var currentTimeStamp = new Date().getTime();

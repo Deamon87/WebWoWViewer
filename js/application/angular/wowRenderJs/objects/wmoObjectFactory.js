@@ -434,7 +434,7 @@ class WmoObject {
             }
         }
     }
-    startTraversingFromInteriorWMO (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes, currentVisibleM2, currentWmoVisible) {
+    startTraversingFromInteriorWMO (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
         //CurrentVisibleM2 and visibleWmo is array of global m2 objects, that are visible after frustum
 
         /* 1. Create array of visibility with all false */
@@ -499,7 +499,7 @@ class WmoObject {
             var relation = this.wmoObj.portalRelations[j];
             var portalInfo = this.wmoObj.portalInfos[relation.portal_index];
 
-            var nextGroup = relation.groupId;
+            var nextGroup = relation.group_index;
             var plane = portalInfo.plane;
 
             var base_index = portalInfo.base_index;
@@ -510,15 +510,51 @@ class WmoObject {
             //Skip groups we already visited
             if (this.transverseVisitedGroups[nextGroup]) continue;
 
-            //2.2 Check if Portal BB made from portal vertexes intersects
+            //2.2 Check if Portal BB made from portal vertexes intersects frustum
 
             mathHelper.checkPortalFrustum();
 
             //2.3 Form 4 new planes(fifth is the portal's plane)
-            var planeTop =      mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+0], portalVertexes[base_index+1]);
-            var planeLeft =     mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+1], portalVertexes[base_index+2]);
-            var planeRight =    mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+2], portalVertexes[base_index+3]);
-            var planeBottom =   mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertexes[base_index+3], portalVertexes[base_index+0]);
+            var planeTop = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4,
+                [
+                    portalVertexes[3*(base_index+0)+0],
+                    portalVertexes[3*(base_index+0)+1],
+                    portalVertexes[3*(base_index+0)+2]
+                ], [
+                    portalVertexes[3*(base_index+1)+0],
+                    portalVertexes[3*(base_index+1)+1],
+                    portalVertexes[3*(base_index+1)+2]
+                ]);
+            var planeLeft = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4,
+                [
+                    portalVertexes[3*(base_index+1)+0],
+                    portalVertexes[3*(base_index+1)+1],
+                    portalVertexes[3*(base_index+1)+2]
+                ], [
+                    portalVertexes[3*(base_index+2)+0],
+                    portalVertexes[3*(base_index+2)+1],
+                    portalVertexes[3*(base_index+2)+2]
+                ]);
+            var planeRight = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4,
+                [
+                    portalVertexes[3*(base_index+2)+0],
+                    portalVertexes[3*(base_index+2)+1],
+                    portalVertexes[3*(base_index+2)+2]
+                ], [
+                    portalVertexes[3*(base_index+3)+0],
+                    portalVertexes[3*(base_index+3)+1],
+                    portalVertexes[3*(base_index+3)+2]
+                ]);
+            var planeBottom = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4,
+                [
+                    portalVertexes[3*(base_index+3)+0],
+                    portalVertexes[3*(base_index+3)+1],
+                    portalVertexes[3*(base_index+3)+2],
+                ], [
+                    portalVertexes[3*(base_index+0)+0],
+                    portalVertexes[3*(base_index+0)+1],
+                    portalVertexes[3*(base_index+0)+2]
+                ]);
 
             var portalFrustum = frustumPlanes.slice(0,8);
 
@@ -527,9 +563,10 @@ class WmoObject {
             portalFrustum[2] = planeBottom;
             portalFrustum[3] = planeTop;
             portalFrustum[5] = plane;
+
             if (this.wmoObj.groupInfos[nextGroup].flags & 0x2000 > 0) {
-                this.transverseInteriorWMO(nextGroup, cameraVec4, perspectiveMat, lookat, portalFrustum)
-            } else {
+                this.transverseInteriorWMO(nextGroup, fromInterior, cameraVec4, perspectiveMat, lookat, portalFrustum)
+            } else if (fromInterior) {
                 this.transverseExteriorWMO();
             }
         }
