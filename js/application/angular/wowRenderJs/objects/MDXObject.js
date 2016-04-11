@@ -92,17 +92,24 @@ class MDXObject {
                 var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
                 var mdxTextureDefinition = mdxObject.m2File.textureDefinition[mdxTextureIndex];
                 materialData.texUnit1TexIndex = i;
+                materialData.xWrapTex1 = mdxTextureDefinition.flags & 1 > 0;
+                materialData.yWrapTex1 = mdxTextureDefinition.flags & 2 > 0;
+
                 materialData.textureUnit1TexName = mdxTextureDefinition.textureName;
             }
             if (op_count > 1) {
                 var mdxTextureIndex1 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 1];
                 var mdxTextureDefinition1 = mdxObject.m2File.textureDefinition[mdxTextureIndex1];
+                materialData.xWrapTex2 = mdxTextureDefinition.flags & 1 > 0;
+                materialData.yWrapTex2 = mdxTextureDefinition.flags & 2 > 0;
                 materialData.texUnit2TexIndex = i;
                 materialData.textureUnit2TexName = mdxTextureDefinition1.textureName;
             }
             if (op_count > 2) {
                 var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 2];
                 var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex2];
+                materialData.xWrapTex3 = mdxTextureDefinition.flags & 1 > 0;
+                materialData.yWrapTex3 = mdxTextureDefinition.flags & 2 > 0;
                 materialData.texUnit3TexIndex = i;
                 materialData.textureUnit3TexName = mdxTextureDefinition2.textureName;
             }
@@ -452,6 +459,13 @@ class MDXObject {
 
             var tranformMat = mat4.identity(this.textAnimMatrix[i]);
 
+            transVec = mat4.translate(tranformMat, tranformMat, [
+                0.5,
+                0.5,
+                0,
+                0
+            ]);
+
             if (animBlock.translation.valuesPerAnimation.length > 0) {
                 var transVec = this.getTimedValue(
                     0,
@@ -482,20 +496,7 @@ class MDXObject {
                     var orientMatrix = mat4.create();
 
                     mat4.fromQuat(orientMatrix, quaternionVec4 );
-                    transVec = mat4.translate(tranformMat, tranformMat, [
-                        0.5,
-                        0.5,
-                        0,
-                        0
-                    ]);
-
                     mat4.multiply(tranformMat, tranformMat, orientMatrix);
-                    transVec = mat4.translate(tranformMat, tranformMat, [
-                        -0.5,
-                        -0.5,
-                        0,
-                        0
-                    ]);
                 }
             }
 
@@ -517,6 +518,12 @@ class MDXObject {
                     );
                 }
             }
+            transVec = mat4.translate(tranformMat, tranformMat, [
+                -0.5,
+                -0.5,
+                0,
+                0
+            ]);
 
             this.textAnimMatrix[i] = tranformMat;
         }

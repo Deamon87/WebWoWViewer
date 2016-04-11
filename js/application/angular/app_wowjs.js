@@ -175,7 +175,7 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 name: 'Test runecircle',
                 source: 'http',
                 sceneType: 'm2',
-                modelName: 'WORLD\\GOOBER\\G_SCOURGERUNECIRCLECRYSTAL.m2'
+                modelName: 'WORLD\\EXPANSION02\\DOODADS\\CRYSTALSONGFOREST\\BUBBLE\\CAMOUFLAGEBUBBLE_CRYSTALSONG.m2'
             }
         ]
     };
