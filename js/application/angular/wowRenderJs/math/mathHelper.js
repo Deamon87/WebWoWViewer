@@ -1,52 +1,53 @@
 import {vec4, vec3} from 'gl-matrix';
 
-class MathHelper{
-    static getFrustumClipsFromMatrix (mat) {
+class MathHelper {
+    static getFrustumClipsFromMatrix(mat) {
         var planes = new Array(6);
         // Right clipping plane.
-        planes[0] = vec4.fromValues(mat[3]-mat[0],
-            mat[7]-mat[4],
-            mat[11]-mat[8],
-            mat[15]-mat[12]);
+        planes[0] = vec4.fromValues(mat[3] - mat[0],
+            mat[7] - mat[4],
+            mat[11] - mat[8],
+            mat[15] - mat[12]);
         // Left clipping plane.
-        planes[1] = vec4.fromValues(mat[3]+mat[0],
-            mat[7]+mat[4],
-            mat[11]+mat[8],
-            mat[15]+mat[12]);
+        planes[1] = vec4.fromValues(mat[3] + mat[0],
+            mat[7] + mat[4],
+            mat[11] + mat[8],
+            mat[15] + mat[12]);
         // Bottom clipping plane.
-        planes[2] = vec4.fromValues(mat[3]+mat[1],
-            mat[7]+mat[5],
-            mat[11]+mat[9],
-            mat[15]+mat[13] );
+        planes[2] = vec4.fromValues(mat[3] + mat[1],
+            mat[7] + mat[5],
+            mat[11] + mat[9],
+            mat[15] + mat[13]);
         // Top clipping plane.
-        planes[3] = vec4.fromValues(mat[3]-mat[1],
-            mat[7]-mat[5],
-            mat[11]-mat[9],
-            mat[15]-mat[13] );
+        planes[3] = vec4.fromValues(mat[3] - mat[1],
+            mat[7] - mat[5],
+            mat[11] - mat[9],
+            mat[15] - mat[13]);
         // Far clipping plane.
-        planes[4] = vec4.fromValues(mat[3]-mat[2],
-            mat[7]-mat[6],
-            mat[11]-mat[10],
-            mat[15]-mat[14] );
+        planes[4] = vec4.fromValues(mat[3] - mat[2],
+            mat[7] - mat[6],
+            mat[11] - mat[10],
+            mat[15] - mat[14]);
         // Near clipping plane.
-        planes[5] = vec4.fromValues(mat[3]+mat[2],
-            mat[7]+mat[6],
-            mat[11]+mat[10],
-            mat[15]+mat[14]);
+        planes[5] = vec4.fromValues(mat[3] + mat[2],
+            mat[7] + mat[6],
+            mat[11] + mat[10],
+            mat[15] + mat[14]);
 
-        for(var i = 0; i < 6; i++ ) {
+        for (var i = 0; i < 6; i++) {
             //Hand made normalize
-            var invVecLength = 1/vec3.length(planes[i]);
+            var invVecLength = 1 / vec3.length(planes[i]);
             vec4.scale(planes[i], planes[i], invVecLength);
         }
 
         return planes;
     }
-    static createPlaneFromEyeAndVertexes (eye, vertex1, vertex2 ) {
+
+    static createPlaneFromEyeAndVertexes(eye, vertex1, vertex2) {
         var edgeDir = vec4.create();
 
         vec3.subtract(edgeDir, vertex1, vertex2);
-        vec3.normalize(edgeDir, edgeDir );
+        vec3.normalize(edgeDir, edgeDir);
 
         //viewToPointDir = normalize(((vertexA+vertexB)*0.5)-viewPos)
         var viewToPointDir = vec4.create();
@@ -68,19 +69,91 @@ class MathHelper{
 
         return distToPlane;
     }
-    static checkPortalFrustum (portalVerticles, planes) {
-        /*
-        for(var i=0; i<6; i++ )
-        {
-            var out = 0;
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[0][1], box[0][2], 1.0) ) < 0.0 )?1:0);
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], box[0][2], 1.0) ) < 0.0 )?1:0);
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], box[0][2], 1.0) ) < 0.0 )?1:0);
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], box[0][2], 1.0) ) < 0.0 )?1:0);
-            if( out==2 ) return false;
+
+    static ClipPolygon(dst, src, num_verts, planes, num_planes) {
+        var swap = new Array(18); //vec3_t
+        for (var i = 0; i < swap.length; i++) {
+            swap[i] = vec3.create();
         }
-        */
+
+        var num = MathHelper.ClipPlane(dst, src, num_verts, planes[0]); //uint
+        for (var i = 1; i <= num_planes - 1; i++) {
+
+            if ((i & 1) != 0) { // ???????? ?? ????????
+                num = MathHelper.ClipPlane(swap, dst, num, planes[i])
+            } else {
+                num = MathHelper.ClipPlane(dst, swap, num, planes[i]);
+            }
+        }
+
+        if ((num_planes & 1) == 0) {
+            // swap->dest
+            for (var i = 0; i < num; i++) {
+                dst[i] = swap[i];
+            }
+        }
+
+        return num; // ???-?? ?????? ? dst
     }
+    static GetPolyFrustum(poly, num_verts, frustum, eye) {
+        var v1, v2;
+
+        for (var i = 0; i <= (num_verts - 1); i++) {
+            v1 = poly[(i + 1) % num_verts];
+            v2 = poly[i];
+
+            //Normal start
+            var edge1 = vec3.create();
+            vec3.subtract(edge1, v2, eye);
+
+            var edge2 = vec3.create();
+            vec3.subtract(edge2, v1, eye);
+
+            var normal = vec3.create();
+            vec3.cross(normal, edge1, edge2);
+            vec3.normalize(normal, normal);
+
+            // Normal end
+
+            frustum[i][0] = normal[0];
+            frustum[i][1] = normal[1];
+            frustum[i][2] = normal[2];
+
+            frustum[i][3] = -vec3.dot(normal, eye);
+        }
+    }
+
+    static ClipPlane(dst, src, num_verts, plane) {
+        var v1, v2;//: vec3_t; // ??????? ?????????? ?????
+        var t1, t2;//: single;
+        var k1, k2;//: single;
+
+        var num = 0; // ???-?? ?????? ? dst
+        for (var i = 0; i <= (num_verts - 1); i++) {
+            v1 = src[i];
+            v2 = src[(i + 1) % num_verts];
+
+            t1 = vec3.dot(v1, [plane[0],plane[1], plane[2]]) + plane[3];
+            t2 = vec3.dot(v2, [plane[0],plane[1], plane[2]]) + plane[3];
+
+            if (t1 >= 0) {
+                dst[num] = v1;
+                num++;
+            }
+
+            if ((t1 * t2) < 0) {
+                k1 = t2 / (t2 - t1);
+                k2 = -t1 / (t2 - t1);
+
+                dst[num][0] = v1[0] * k1 + v2[0] * k2;
+                dst[num][1] = v1[1] * k1 + v2[1] * k2;
+                dst[num][2] = v1[2] * k1 + v2[2] * k2;
+                num++;
+            }
+        }
+        return num;
+    }
+
     static checkFrustum (planes, box) {
       // check box outside/inside of frustum
         for(var i=0; i<6; i++ )

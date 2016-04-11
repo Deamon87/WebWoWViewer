@@ -452,9 +452,12 @@ class WmoObject {
 
         this.transverseInteriorWMO(groupId, true, cameraVec4, perspectiveMat, lookat, frustumPlanes);
 
-
         for (var i = 0; i< traverseDoodadsVis.length; i++) {
             this.doodadsArray[i].setIsRendered(!!traverseDoodadsVis[i]);
+        }
+
+        for (var i = 0; i< this.wmoGroupArray.length; i++) {
+            this.drawGroup[i] = transverseVisitedGroups[i];
         }
     }
     startTraversingFromExteriorWMO (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
@@ -479,13 +482,13 @@ class WmoObject {
 
                     var doodadWmoIndex = doodadIndex - doodadsSet.index;
                     var mdxObject = this.doodadsArray[doodadWmoIndex];
-                    if (mdxObject.getIsRendered()) {
+                    //if (mdxObject.getIsRendered()) {
                         var inFrustum = mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes);
 
 
                         var currVis = this.traverseDoodadsVis[doodadWmoIndex];
                         this.traverseDoodadsVis[doodadWmoIndex] = currVis | inFrustum;
-                    }
+                    //}
                 }
             }
         }
@@ -511,61 +514,36 @@ class WmoObject {
             if (this.transverseVisitedGroups[nextGroup]) continue;
 
             //2.2 Check if Portal BB made from portal vertexes intersects frustum
+            var clipped = new Array(18);
+            for (var i = 0; i < 18; i++) {
+                clipped[i] = vec3.create();
+            }
+            var portal_frustum = new Array(18);
+            for (i = 0; i < 18; i++) {
+                if (i >= frustumPlanes.length) {
+                    portal_frustum[i] = vec4.create()
+                } else {
+                    portal_frustum[i] = vec4.clone(frustumPlanes[i]);
+                }
+            }
 
-            mathHelper.checkPortalFrustum();
+            var portalVerticles = new Array(portalInfo.index_count);
+            for (i = 0; i < portalVerticles.length; i++) {
+                portalVerticles[i] = [
+                    portalVertexes[3*(base_index+i)+0],
+                    portalVertexes[3*(base_index+i)+1],
+                    portalVertexes[3*(base_index+i)+2]
+                ]
+            }
 
-            //2.3 Form 4 new planes(fifth is the portal's plane)
-            var planeTop = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4,
-                [
-                    portalVertexes[3*(base_index+0)+0],
-                    portalVertexes[3*(base_index+0)+1],
-                    portalVertexes[3*(base_index+0)+2]
-                ], [
-                    portalVertexes[3*(base_index+1)+0],
-                    portalVertexes[3*(base_index+1)+1],
-                    portalVertexes[3*(base_index+1)+2]
-                ]);
-            var planeLeft = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4,
-                [
-                    portalVertexes[3*(base_index+1)+0],
-                    portalVertexes[3*(base_index+1)+1],
-                    portalVertexes[3*(base_index+1)+2]
-                ], [
-                    portalVertexes[3*(base_index+2)+0],
-                    portalVertexes[3*(base_index+2)+1],
-                    portalVertexes[3*(base_index+2)+2]
-                ]);
-            var planeRight = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4,
-                [
-                    portalVertexes[3*(base_index+2)+0],
-                    portalVertexes[3*(base_index+2)+1],
-                    portalVertexes[3*(base_index+2)+2]
-                ], [
-                    portalVertexes[3*(base_index+3)+0],
-                    portalVertexes[3*(base_index+3)+1],
-                    portalVertexes[3*(base_index+3)+2]
-                ]);
-            var planeBottom = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4,
-                [
-                    portalVertexes[3*(base_index+3)+0],
-                    portalVertexes[3*(base_index+3)+1],
-                    portalVertexes[3*(base_index+3)+2],
-                ], [
-                    portalVertexes[3*(base_index+0)+0],
-                    portalVertexes[3*(base_index+0)+1],
-                    portalVertexes[3*(base_index+0)+2]
-                ]);
+            var num_verts = mathHelper.ClipPolygon( clipped, portalVerticles, 4, portal_frustum, 4 );
+            if (num_verts <= 0) continue;
 
-            var portalFrustum = frustumPlanes.slice(0,8);
+            //2.3 Form new planes
+            mathHelper.GetPolyFrustum( clipped, num_verts, portal_frustum, cameraVec4);
 
-            portalFrustum[0] = planeRight;
-            portalFrustum[1] = planeLeft;
-            portalFrustum[2] = planeBottom;
-            portalFrustum[3] = planeTop;
-            portalFrustum[5] = plane;
-
-            if (this.wmoObj.groupInfos[nextGroup].flags & 0x2000 > 0) {
-                this.transverseInteriorWMO(nextGroup, fromInterior, cameraVec4, perspectiveMat, lookat, portalFrustum)
+            if ((this.wmoObj.groupInfos[nextGroup].flags & 0x2000) > 0) {
+                this.transverseInteriorWMO(nextGroup, fromInterior, cameraVec4, perspectiveMat, lookat, portal_frustum)
             } else if (fromInterior) {
                 this.transverseExteriorWMO();
             }

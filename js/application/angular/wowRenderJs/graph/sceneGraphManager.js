@@ -169,14 +169,14 @@ class GraphManager {
         this.transparentM = transparentMeshes;
     }
     checkCulling(frustumMat, lookAtMat4) {
-        for (var j = 0; j < this.m2Objects.length; j++) {
-            this.m2Objects[j].setIsRendered(true);
-        }
-
         if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
+            for (var j = 0; j < this.m2Objects.length; j++) {
+                this.m2Objects[j].setIsRendered(false);
+            }
+
             //TODO: set not render for adt too
             //Cull with normal portals
-            this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
+            //this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
 
             var combinedMat4 = mat4.create();
             mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
@@ -187,6 +187,10 @@ class GraphManager {
             //this.currentWMO.transverseExteriorWMO(frustumMat, lookAtMat4)
 
         } else {
+            for (var j = 0; j < this.m2Objects.length; j++) {
+                this.m2Objects[j].setIsRendered(true);
+            }
+
             this.checkNormalFrustumCulling(frustumMat, lookAtMat4)
         }
 
