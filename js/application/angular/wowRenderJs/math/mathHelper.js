@@ -68,6 +68,118 @@ class MathHelper{
 
         return distToPlane;
     }
+    //Half converted from https://github.com/erich666/GraphicsGems/blob/master/gems/PolyScan/poly_clip.c
+    static CLIP_AND_SWAP(p1, elem, sign, k, obj) {
+        poly_clip_to_halfspace(obj.p, obj.q, elem, sign, sign*k);
+        if (q.length==0) {
+            p1.length = 0;
+            return "POLY_CLIP_OUT";
+        }
+        obj.r = obj.p;
+        obj.p = obj.q;
+        obj.q = obj.r;
+    }
+
+    static poly_clip_to_box(p1, box) {
+        var POLY_NMAX = 12;
+        var x0out = 0, x1out = 0, y0out = 0, y1out = 0, z0out = 0, z1out = 0;
+        var i;
+        var v;
+        var p2, p, q, r;
+
+        if (p1.length+6>POLY_NMAX) {
+            //fprintf(stderr, "poly_clip_to_box: too many vertices: %d (max=%d-6)\n",
+            //p1->n, POLY_NMAX);
+            //exit(1);
+        }
+
+        /* count vertices "outside" with respect to each of the six planes */
+        for (i=p1.length; i>0; i--) {
+            v = p1[i];
+
+            if (v[0] < box->x0*v[3]) x0out++;	/* out on left */
+            if (v[0] > box->x1*v[3]) x1out++;	/* out on right */
+            if (v[1] < box->y0*v[3]) y0out++;	/* out on top */
+            if (v[1] > box->y1*v[3]) y1out++;	/* out on bottom */
+            if (v[2] < box->z0*v[3]) z0out++;	/* out on near */
+            if (v[2] > box->z1*v[3]) z1out++;	/* out on far */
+        }
+
+        /* check if all vertices inside */
+        if (x0out+x1out+y0out+y1out+z0out+z1out == 0) return POLY_CLIP_IN;
+
+        /* check if all vertices are "outside" any of the six planes */
+        if (x0out==p1.length || x1out==p1.length || y0out==p1.length ||
+            y1out==p1.length || z0out==p1.length || z1out==p1.length) {
+            p1.length = 0;
+
+            return "POLY_CLIP_OUT"
+        }
+
+        /*
+         * now clip against each of the planes that might cut the polygon,
+         * at each step toggling between polygons p1 and p2
+         */
+        p = p1;
+        q = p2;
+        var obj = {'p': p, 'q': q, 'r' : r};
+        var result;
+        if (x0out) result = CLIP_AND_SWAP(p1, 0 /*sx*/, -1., box->x0, obj); if (result) return result;
+        if (x1out) result = CLIP_AND_SWAP(p1, 0 /*sx*/,  1., box->x1, obj); if (result) return result;
+        if (y0out) result = CLIP_AND_SWAP(p1, 1 /*sy*/, -1., box->y0, obj); if (result) return result;
+        if (y1out) result = CLIP_AND_SWAP(p1, 1 /*sy*/,  1., box->y1, obj); if (result) return result;
+        if (z0out) result = CLIP_AND_SWAP(p1, 2 /*sz*/, -1., box->z0, obj); if (result) return result;
+        if (z1out) result = CLIP_AND_SWAP(p1, 2 /*sz*/,  1., box->z1, obj); if (result) return result;
+
+        /* if result ended up in p2 then copy it to p1 */
+        p = obj.p;
+        p2 = obj.q;
+        if (p==p2) {
+            //memcpy(p1, &p2, sizeof(Poly)-(POLY_NMAX-p2.n)*sizeof(Poly_vert));
+        }
+
+        return "POLY_CLIP_PARTIAL";
+    }
+
+    static poly_clip_to_halfspace(p, q, index, sign, k) {
+        var m;
+        var up, vp, wp;
+        var v;
+        var i;
+        var t, tu, tv;
+
+        q.length = 0;
+        q.mask = p.mask;
+
+        /* start with u=vert[n-1], v=vert[0] */
+        var u = p[p.length - 1];
+        tu = sign * u[index] - u[3] * k;
+        for (v = p[0], i = p.length; i > 0; i--, u = v, tu = tv)
+        {
+            /* on old polygon (p), u is previous vertex, v is current vertex */
+            /* tv is negative if vertex v is in */
+            tv = sign * v[index]- v[3] * k;
+            if ((tu <= 0.) ^ (tv <= 0.)) {
+                /* edge crosses plane; add intersection point to q */
+                t = tu / (tu - tv);
+                up = u;
+                vp = v;
+                wp = q[q.length];
+                for (var j = 0; j < 3; j++) {
+                    wp[j] = up[j] + t * (vp[j] - up[j]); // fucking indexes! Redo!!!
+                }
+
+                q.length = q.length+1;
+            }
+            if (tv <= 0.) {        /* vertex v is in, copy it to q */
+                q[q.length] = v;
+                q.length = q.length + 1;
+            }
+
+            v = p[p.length - i + 1]
+        }
+    }
+
     static checkPortalFrustum (portalVerticles, planes) {
         /*
         for(var i=0; i<6; i++ )
