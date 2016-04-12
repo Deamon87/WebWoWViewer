@@ -152,7 +152,7 @@ class MDXObject {
 
         this.materialArray = materialArray;
     }
-    checkFrustumCulling (cameraVec4, frustumPlanes, aabb) {
+    checkFrustumCulling (cameraVec4, frustumPlanes, aabb, num_planes) {
         //1. Check if camera position is inside Bounding Box
         if (
             cameraVec4[0] > aabb[0][0] && cameraVec4[0] < aabb[1][0] &&
@@ -161,7 +161,7 @@ class MDXObject {
         ) return true;
 
         //2. Check aabb is inside camera frustum
-        var result = mathHelper.checkFrustum(frustumPlanes, aabb);
+        var result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes);
         return result;
     }
     checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, placementMatrix, checkDepth) {

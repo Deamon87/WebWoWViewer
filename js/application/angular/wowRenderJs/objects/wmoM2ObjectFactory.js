@@ -12,12 +12,12 @@ class WmoM2Object extends MDXObject {
         self.isRendered = true;
         self.useLocalLighting = true;
     }
-    checkFrustumCullingAndSet (cameraVec4, frustumPlanes) {
-        var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes);
+    checkFrustumCullingAndSet (cameraVec4, frustumPlanes, num_planes) {
+        var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
         this.setIsRendered(this.getIsRendered() && inFrustum);
     }
-    checkFrustumCulling (cameraVec4, frustumPlanes) {
-        var inFrustum = this.aabb && super.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb);
+    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes) {
+        var inFrustum = this.aabb && super.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb, num_planes);
         return inFrustum;
     }
     checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, getDepth) {

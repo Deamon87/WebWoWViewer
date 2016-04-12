@@ -67,11 +67,11 @@ class MathHelper {
         var distToPlane = vec4.dot(planeNorm, vertex1);
         planeNorm[3] = distToPlane;
 
-        return distToPlane;
+        return planeNorm;
     }
 
     static ClipPolygon(dst, src, num_verts, planes, num_planes) {
-        var swap = new Array(18); //vec3_t
+        var swap = new Array(num_verts * 2); //vec3_t
         for (var i = 0; i < swap.length; i++) {
             swap[i] = vec3.create();
         }
@@ -103,23 +103,28 @@ class MathHelper {
             v2 = poly[i];
 
             //Normal start
-            var edge1 = vec3.create();
-            vec3.subtract(edge1, v2, eye);
+            var edgeDir = vec4.create();
 
-            var edge2 = vec3.create();
-            vec3.subtract(edge2, v1, eye);
+            vec3.subtract(edgeDir, v1, v2);
+            vec3.normalize(edgeDir, edgeDir);
 
-            var normal = vec3.create();
-            vec3.cross(normal, edge1, edge2);
-            vec3.normalize(normal, normal);
+            //viewToPointDir = normalize(((vertexA+vertexB)*0.5)-viewPos)
+            var viewToPointDir = vec4.create();
+            vec3.add(viewToPointDir, v1, v2);
+            vec3.scale(viewToPointDir, viewToPointDir, 0.5);
+            vec3.subtract(viewToPointDir, viewToPointDir, eye);
+            vec3.normalize(viewToPointDir, viewToPointDir);
 
-            // Normal end
+            //planeNorm=cross(viewDir, edgeDir)
+            frustum[i] = vec4.create();
+            vec3.cross(frustum[i], viewToPointDir, edgeDir);
+            vec3.normalize(frustum[i], frustum[i]);
 
-            frustum[i][0] = normal[0];
-            frustum[i][1] = normal[1];
-            frustum[i][2] = normal[2];
+            frustum[i][3] = 1;
 
-            frustum[i][3] = -vec3.dot(normal, eye);
+            //Plane fpl(planeNorm, dot(planeNorm, vertexA))
+            var distToPlane = vec4.dot(frustum[i], v1);
+            frustum[i][3] = distToPlane;
         }
     }
 
@@ -129,15 +134,19 @@ class MathHelper {
         var k1, k2;//: single;
 
         var num = 0; // ???-?? ?????? ? dst
-        for (var i = 0; i <= (num_verts - 1); i++) {
+        var count = ((num_verts ) > src.length) ? src.length : num_verts;
+
+        for (var i = 0; i < count; i++) {
             v1 = src[i];
-            v2 = src[(i + 1) % num_verts];
+            v2 = src[(i + 1) % count];
 
             t1 = vec3.dot(v1, [plane[0],plane[1], plane[2]]) + plane[3];
             t2 = vec3.dot(v2, [plane[0],plane[1], plane[2]]) + plane[3];
 
             if (t1 >= 0) {
-                dst[num] = v1;
+                if (num < dst.length) {
+                    dst[num] = v1;
+                }
                 num++;
             }
 
@@ -145,18 +154,20 @@ class MathHelper {
                 k1 = t2 / (t2 - t1);
                 k2 = -t1 / (t2 - t1);
 
-                dst[num][0] = v1[0] * k1 + v2[0] * k2;
-                dst[num][1] = v1[1] * k1 + v2[1] * k2;
-                dst[num][2] = v1[2] * k1 + v2[2] * k2;
+                if (num < dst.length) {
+                    dst[num][0] = v1[0] * k1 + v2[0] * k2;
+                    dst[num][1] = v1[1] * k1 + v2[1] * k2;
+                    dst[num][2] = v1[2] * k1 + v2[2] * k2;
+                }
                 num++;
             }
         }
         return num;
     }
 
-    static checkFrustum (planes, box) {
+    static checkFrustum (planes, box, num_planes) {
       // check box outside/inside of frustum
-        for(var i=0; i<6; i++ )
+        for(var i=0; i< num_planes; i++ )
         {
             var out = 0;
             out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[0][1], box[0][2], 1.0) ) < 0.0 )?1:0);
