@@ -97,12 +97,12 @@ class MathHelper{
         for (i=p1.length; i>0; i--) {
             v = p1[i];
 
-            if (v[0] < box->x0*v[3]) x0out++;	/* out on left */
-            if (v[0] > box->x1*v[3]) x1out++;	/* out on right */
-            if (v[1] < box->y0*v[3]) y0out++;	/* out on top */
-            if (v[1] > box->y1*v[3]) y1out++;	/* out on bottom */
-            if (v[2] < box->z0*v[3]) z0out++;	/* out on near */
-            if (v[2] > box->z1*v[3]) z1out++;	/* out on far */
+            if (v[0] < -1*v[3]) x0out++;	/* out on left */
+            if (v[0] >  1*v[3]) x1out++;	/* out on right */
+            if (v[1] < -1*v[3]) y0out++;	/* out on top */
+            if (v[1] >  1*v[3]) y1out++;	/* out on bottom */
+            if (v[2] < -1*v[3]) z0out++;	/* out on near */
+            if (v[2] >  1*v[3]) z1out++;	/* out on far */
         }
 
         /* check if all vertices inside */
@@ -124,12 +124,12 @@ class MathHelper{
         q = p2;
         var obj = {'p': p, 'q': q, 'r' : r};
         var result;
-        if (x0out) result = CLIP_AND_SWAP(p1, 0 /*sx*/, -1., box->x0, obj); if (result) return result;
-        if (x1out) result = CLIP_AND_SWAP(p1, 0 /*sx*/,  1., box->x1, obj); if (result) return result;
-        if (y0out) result = CLIP_AND_SWAP(p1, 1 /*sy*/, -1., box->y0, obj); if (result) return result;
-        if (y1out) result = CLIP_AND_SWAP(p1, 1 /*sy*/,  1., box->y1, obj); if (result) return result;
-        if (z0out) result = CLIP_AND_SWAP(p1, 2 /*sz*/, -1., box->z0, obj); if (result) return result;
-        if (z1out) result = CLIP_AND_SWAP(p1, 2 /*sz*/,  1., box->z1, obj); if (result) return result;
+        if (x0out) result = CLIP_AND_SWAP(p1, 0 /*sx*/, -1., -1, obj); if (result) return result;
+        if (x1out) result = CLIP_AND_SWAP(p1, 0 /*sx*/,  1., 1, obj); if (result) return result;
+        if (y0out) result = CLIP_AND_SWAP(p1, 1 /*sy*/, -1., -1, obj); if (result) return result;
+        if (y1out) result = CLIP_AND_SWAP(p1, 1 /*sy*/,  1., 1, obj); if (result) return result;
+        if (z0out) result = CLIP_AND_SWAP(p1, 2 /*sz*/, -1., -1, obj); if (result) return result;
+        if (z1out) result = CLIP_AND_SWAP(p1, 2 /*sz*/,  1., 1, obj); if (result) return result;
 
         /* if result ended up in p2 then copy it to p1 */
         p = obj.p;
