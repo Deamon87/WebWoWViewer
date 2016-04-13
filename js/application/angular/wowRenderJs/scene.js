@@ -9,6 +9,7 @@ import m2Shader                from 'm2Shader.glsl';
 import drawBBShader            from 'drawBBShader.glsl';
 import adtShader               from 'adtShader.glsl';
 import drawPortalShader        from 'drawPortalShader.glsl';
+import drawFrustumShader       from 'drawFrustum.glsl';
 
 import GraphManager from './graph/sceneGraphManager.js'
 
@@ -268,6 +269,7 @@ class Scene {
         self.adtShader = self.compileShader(adtShader, adtShader);
 
         self.drawPortalShader = self.compileShader(drawPortalShader, drawPortalShader);
+        self.drawFrustumShader = self.compileShader(drawFrustumShader, drawFrustumShader);
     }
     initCaches (){
         this.wmoGeomCache = new WmoGeomCache(this.sceneApi);
@@ -424,6 +426,9 @@ class Scene {
                 },
                 deativateBoundingBoxShader : function() {
                     self.deactivateBoundingBoxShader();
+                },
+                activateFrustumBoxShader : function () {
+                    self.activateFrustumBoxShader();
                 },
                 activateAdtShader : function () {
                     self.activateAdtShader();
@@ -793,6 +798,22 @@ class Scene {
             gl.bindBuffer(gl.ARRAY_BUFFER, this.bbBoxVars.vbo_vertices);
 
             //gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.aPosition);
+            gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0);  // position
+
+            gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
+            gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
+        }
+    }
+    activateFrustumBoxShader () {
+        this.currentShaderProgram = this.drawFrustumShader;
+        if (this.currentShaderProgram) {
+            var gl = this.gl;
+            gl.useProgram(this.currentShaderProgram.program);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bbBoxVars.ibo_elements);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.bbBoxVars.vbo_vertices);
+
+            gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.aPosition);
             gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0);  // position
 
             gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);

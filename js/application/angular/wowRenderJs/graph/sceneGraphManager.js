@@ -439,16 +439,16 @@ class GraphManager {
          //5.1 Draw instanced nontransparent meshes of m2
          this.sceneApi.shaders.activateM2InstancingShader();
          for (var fileIdent in this.instanceList) {
-         var instanceManager = this.instanceList[fileIdent];
-         instanceManager.drawInstancedNonTransparentMeshes();
-         }
+             var instanceManager = this.instanceList[fileIdent];
+             instanceManager.drawInstancedNonTransparentMeshes();
+             }
          this.sceneApi.shaders.deactivateM2InstancingShader();
 
          //6.1 Draw transparent meshes of m2
          this.sceneApi.shaders.activateM2InstancingShader();
          for (var fileIdent in this.instanceList) {
-         var instanceManager = this.instanceList[fileIdent];
-         instanceManager.drawInstancedTransparentMeshes();
+             var instanceManager = this.instanceList[fileIdent];
+             instanceManager.drawInstancedTransparentMeshes();
          }
          this.sceneApi.shaders.deactivateM2InstancingShader();
          */
@@ -478,11 +478,18 @@ class GraphManager {
             }
         }
 
+
         //7.1 Draw WMO BBs
         if (config.getDrawWmoBB()) {
             for (var i = 0; i < this.wmoObjects.length; i++) {
                 this.wmoObjects[i].drawBB();
             }
+        }
+
+        this.sceneApi.shaders.activateFrustumBoxShader();
+        //Draw Wmo portal frustums
+        for (var i = 0; i < this.wmoObjects.length; i++) {
+            this.wmoObjects[i].drawPortalFrustumsBB();
         }
 
     }

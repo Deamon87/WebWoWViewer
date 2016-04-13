@@ -450,6 +450,8 @@ class WmoObject {
         this.traverseDoodadsVis = traverseDoodadsVis;
         this.transverseVisitedGroups = transverseVisitedGroups;
 
+        this.portalViewFrustums = new Array(this.wmoObj.portalInfos.length);
+
         this.transverseInteriorWMO(groupId, true, cameraVec4, perspectiveMat, lookat, frustumPlanes, 6, 0);
 
         for (var i = 0; i< traverseDoodadsVis.length; i++) {
@@ -580,8 +582,10 @@ class WmoObject {
 
             var frustumMat4 = mat4.create();
             mat4.frustum(frustumMat4, minX, maxX, minY, maxY, minZ, 1000);
-
             mat4.multiply(viewPerspective, frustumMat4, lookat);
+
+            this.portalViewFrustums[relation.portal_index] = viewPerspective;
+
             portal_frustum = mathHelper.getFrustumClipsFromMatrix(viewPerspective);
 
             if ((this.wmoObj.groupInfos[nextGroup].flags & 0x2000) > 0) {
@@ -692,6 +696,19 @@ class WmoObject {
         gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indiciesArray), gl.STATIC_DRAW);
         gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null);
     }
+    createFrustumVBO() {
+        var gl = this.sceneApi.getGlContext();
+        if (this.wmoObj.nPortals == 0) return;
+
+        this.frustumVertexVBO = gl.createBuffer();
+
+        gl.bindBuffer( gl.ARRAY_BUFFER, this.frustumVertexVBO);
+        gl.bufferData( gl.ARRAY_BUFFER, new Float32Array([1,1,1, -1, 1, 1, ]), gl.STATIC_DRAW );
+        gl.bindBuffer( gl.ARRAY_BUFFER, null);
+
+
+
+    }
     createWorldPortalVerticies () {
         //
         var portalVerticles = this.wmoObj.portalVerticles;
@@ -758,6 +775,27 @@ class WmoObject {
         }
         gl.depthMask(true);
         gl.disable(gl.BLEND);
+    }
+    drawPortalFrustumsBB () {
+        var gl = this.sceneApi.getGlContext();
+        var uniforms = this.sceneApi.shaders.getShaderUniforms();
+        if (!this.portalViewFrustums) return;
+
+        gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
+
+        for (var i = 0; i < this.portalViewFrustums.length; i++) {
+            if (!this.wmoGroupArray[i] || !this.wmoGroupArray[i].wmoGroupFile) continue;
+            if (!this.portalViewFrustums[i]) continue;
+
+            var viewFrustum = this.portalViewFrustums[i];
+            var invViewFrustum = mat4.create();
+            mat4.invert(invViewFrustum, viewFrustum);
+
+
+            gl.uniformMatrix4fv(uniforms.uInverseViewProjection, false, new Float32Array(invViewFrustum));
+
+            gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
+        }
     }
     drawBspVerticles () {
         if (!this.wmoObj) return;
