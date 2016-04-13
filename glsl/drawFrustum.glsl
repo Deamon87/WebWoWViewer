@@ -13,7 +13,7 @@ void main() {
     vec4 c_world = uInverseViewProjection * vec4(aPosition, 1);
     c_world = c_world*1.0/c_world.w;
 
-    gl_Position = uPMatrix * uLookAtMat * uPlacementMat * c_world;
+    gl_Position = uPMatrix * uLookAtMat * vec4(c_world.xyz, 1);
 }
 #endif //COMPILING_VS
 

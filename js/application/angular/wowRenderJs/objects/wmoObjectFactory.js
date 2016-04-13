@@ -552,6 +552,7 @@ class WmoObject {
 
             for (i = 0; i < portalVerticles.length; i++) {
                 vec4.transformMat4(portalVerticles[i], portalVerticles[i], invPerspective);
+                vec4.scale(portalVerticles[i], portalVerticles[i], 1/portalVerticles[i][3]);
             }
 
             //2.3 Form new planes
@@ -581,7 +582,7 @@ class WmoObject {
             }
 
             var frustumMat4 = mat4.create();
-            mat4.frustum(frustumMat4, minX, maxX, minY, maxY, minZ, 1000);
+            mat4.frustum(frustumMat4, minX, maxX, minY, maxY, maxZ, 1000);
             mat4.multiply(viewPerspective, frustumMat4, lookat);
 
             this.portalViewFrustums[relation.portal_index] = viewPerspective;
