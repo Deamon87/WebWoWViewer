@@ -42,7 +42,55 @@ class MathHelper {
 
         return planes;
     }
+    static createPlaneFromVertexes(vertex1, vertex2, vertex3) {
+        var edgeDir1 = vec4.create();
 
+        vec3.subtract(edgeDir, vertex1, vertex2);
+        vec3.normalize(edgeDir, edgeDir);
+
+        var edgeDir2 = vec4.create();
+
+        vec3.subtract(edgeDir2, vertex1, vertex3);
+        vec3.normalize(edgeDir2, edgeDir2);
+
+        var planeNorm = vec4.create();
+        vec3.cross(planeNorm, edgeDir2, edgeDir);
+        vec3.normalize(planeNorm, planeNorm);
+
+        planeNorm[3] = 1;
+
+        //Plane fpl(planeNorm, dot(planeNorm, vertexA))
+        var distToPlane = vec4.dot(planeNorm, vertex1);
+        planeNorm[3] = distToPlane;
+
+    }
+
+    static createPlaneFromEyeAndVertexes(eye, vertex1, vertex2) {
+        var edgeDir = vec4.create();
+
+        vec3.subtract(edgeDir, vertex1, vertex2);
+        vec3.normalize(edgeDir, edgeDir);
+
+        //viewToPointDir = normalize(((vertexA+vertexB)*0.5)-viewPos)
+        var viewToPointDir = vec4.create();
+        vec3.add(viewToPointDir, vertex1, vertex2);
+        vec3.scale(viewToPointDir, viewToPointDir, 0.5);
+        vec3.subtract(viewToPointDir, viewToPointDir, eye);
+        vec3.normalize(viewToPointDir, viewToPointDir);
+
+        //planeNorm=cross(viewDir, edgeDir)
+        var planeNorm = vec4.create();
+        vec3.cross(planeNorm, viewToPointDir, edgeDir);
+        vec3.normalize(planeNorm, planeNorm);
+
+        planeNorm[3] = 1;
+
+        //Plane fpl(planeNorm, dot(planeNorm, vertexA))
+        var distToPlane = vec4.dot(planeNorm, [vertex1[0], vertex1[1], vertex1[2]]);
+        planeNorm[3] = distToPlane;
+
+        return planeNorm;
+    }
     static createPlaneFromEyeAndVertexes(eye, vertex1, vertex2) {
         var edgeDir = vec4.create();
 
@@ -71,8 +119,8 @@ class MathHelper {
     }
     //Half converted from https://github.com/erich666/GraphicsGems/blob/master/gems/PolyScan/poly_clip.c
     static CLIP_AND_SWAP(p1, elem, sign, k, obj) {
-        poly_clip_to_halfspace(obj.p, obj.q, elem, sign, sign*k);
-        if (q.length==0) {
+        MathHelper.poly_clip_to_halfspace(obj.p, obj.q, elem, sign, sign*k);
+        if (obj.q.length==0) {
             p1.length = 0;
             return "POLY_CLIP_OUT";
         }
@@ -81,7 +129,7 @@ class MathHelper {
         obj.q = obj.r;
     }
 
-    static poly_clip_to_box(p1, box) {
+    static poly_clip_to_box(p1) {
         var POLY_NMAX = 12;
         var x0out = 0, x1out = 0, y0out = 0, y1out = 0, z0out = 0, z1out = 0;
         var i;
@@ -95,49 +143,44 @@ class MathHelper {
         }
 
         /* count vertices "outside" with respect to each of the six planes */
-        for (i=p1.length; i>0; i--) {
+        for (i=0; i<p1.length; i++) {
             v = p1[i];
 
-            if (v[0] < -1*v[3]) x0out++;	/* out on left */
-            if (v[0] >  1*v[3]) x1out++;	/* out on right */
-            if (v[1] < -1*v[3]) y0out++;	/* out on top */
-            if (v[1] >  1*v[3]) y1out++;	/* out on bottom */
-            if (v[2] < -1*v[3]) z0out++;	/* out on near */
-            if (v[2] >  1*v[3]) z1out++;	/* out on far */
+            if ((v[0]/v[3]) < -1) x0out++;	/* out on left */
+            if ((v[0]/v[3]) >  1) x1out++;	/* out on right */
+            if ((v[1]/v[3]) < -1) y0out++;	/* out on top */
+            if ((v[1]/v[3]) >  1) y1out++;	/* out on bottom */
+            //if ((v[2]/v[3]) < -1) z0out++;	/* out on near */
+            //if ((v[2]/v[3]) >  1) z1out++;	/* out on far */
         }
 
         /* check if all vertices inside */
-        if (x0out+x1out+y0out+y1out+z0out+z1out == 0) return POLY_CLIP_IN;
+        if (x0out+x1out+y0out+y1out+z0out+z1out == 0) {
+            //console.log("POLY_CLIP_IN");
+            return "POLY_CLIP_IN";
+        }
 
         /* check if all vertices are "outside" any of the six planes */
         if (x0out==p1.length || x1out==p1.length || y0out==p1.length ||
             y1out==p1.length || z0out==p1.length || z1out==p1.length) {
             p1.length = 0;
 
+            //console.log("POLY_CLIP_OUT");
             return "POLY_CLIP_OUT"
         }
 
-        /*
-         * now clip against each of the planes that might cut the polygon,
-         * at each step toggling between polygons p1 and p2
-         */
-        p = p1;
-        q = p2;
-        var obj = {'p': p, 'q': q, 'r' : r};
-        var result;
-        if (x0out) result = CLIP_AND_SWAP(p1, 0 /*sx*/, -1., -1, obj); if (result) return result;
-        if (x1out) result = CLIP_AND_SWAP(p1, 0 /*sx*/,  1., 1, obj); if (result) return result;
-        if (y0out) result = CLIP_AND_SWAP(p1, 1 /*sy*/, -1., -1, obj); if (result) return result;
-        if (y1out) result = CLIP_AND_SWAP(p1, 1 /*sy*/,  1., 1, obj); if (result) return result;
-        if (z0out) result = CLIP_AND_SWAP(p1, 2 /*sz*/, -1., -1, obj); if (result) return result;
-        if (z1out) result = CLIP_AND_SWAP(p1, 2 /*sz*/,  1., 1, obj); if (result) return result;
+        for (i=0; i<p1.length; i++) {
+            v = p1[i];
 
-        /* if result ended up in p2 then copy it to p1 */
-        p = obj.p;
-        p2 = obj.q;
-        if (p==p2) {
-            //memcpy(p1, &p2, sizeof(Poly)-(POLY_NMAX-p2.n)*sizeof(Poly_vert));
+            if ((v[0]/v[3]) < -1) { v[0] = -v[3] } 	/* out on left */
+            if ((v[0]/v[3]) >  1) { v[0] = v[3] }	/* out on right */
+            if ((v[1]/v[3]) < -1) { v[1] = -v[3] };	/* out on top */
+            if ((v[1]/v[3]) >  1) { v[0] = v[3] };	/* out on bottom */
+            if ((v[2]/v[3]) < -1) { v[0] = -v[3] };	/* out on near */
+            if ((v[2]/v[3]) >  1) { v[0] = v[3] };	/* out on far */
         }
+
+
 
         return "POLY_CLIP_PARTIAL";
     }
@@ -165,16 +208,16 @@ class MathHelper {
                 t = tu / (tu - tv);
                 up = u;
                 vp = v;
-                wp = q[q.length];
+
+                wp = vec4.create();
                 for (var j = 0; j < 3; j++) {
                     wp[j] = up[j] + t * (vp[j] - up[j]); // fucking indexes! Redo!!!
                 }
 
-                q.length = q.length+1;
+                q.push(wp);
             }
             if (tv <= 0.) {        /* vertex v is in, copy it to q */
-                q[q.length] = v;
-                q.length = q.length + 1;
+                q.push(v);
             }
 
             v = p[p.length - i + 1]
