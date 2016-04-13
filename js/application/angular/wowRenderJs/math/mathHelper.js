@@ -42,6 +42,47 @@ class MathHelper {
 
         return planes;
     }
+    //static planeCull(points, planes) {
+    //    for(var i=0; i<planes.length; i++)
+    //    {
+    //        var j=0;
+    //        for(; j<points.length; j++) {
+    //            if (vec4.dot(planes[i], vec4.fromValues(points[j][0], points[j][1], points[j][2], 1)) <= 0) {
+    //                break;
+    //            }
+    //        }
+    //
+    //        if(j == points.length)
+    //           return true;
+    //    }
+    //    return false;
+    //}
+    //
+    static planeCull (points, planes) {
+        // check box outside/inside of frustum
+        for(var i=0; i< planes.length; i++ )
+        {
+            var out = 0;
+            for( var j=0; j<points.length; j++) {
+                out += ((vec4.dot(planes[i], vec4.fromValues(points[j][0], points[j][1], points[j][2], 1.0)) < 0.0 ) ? 1 : 0);
+            }
+            if( out==points.length ) return false;
+        }
+
+        // check frustum outside/inside box
+        /*
+         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].x > box.mMaxX)?1:0); if( out==8 ) return false;
+         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].x < box.mMinX)?1:0); if( out==8 ) return false;
+         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].y > box.mMaxY)?1:0); if( out==8 ) return false;
+         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].y < box.mMinY)?1:0); if( out==8 ) return false;
+         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].z > box.mMaxZ)?1:0); if( out==8 ) return false;
+         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].z < box.mMinZ)?1:0); if( out==8 ) return false;
+         */
+
+        return true;
+    }
+
+
     static createPlaneFromVertexes(vertex1, vertex2, vertex3) {
         var edgeDir1 = vec4.create();
 
@@ -86,34 +127,8 @@ class MathHelper {
         planeNorm[3] = 1;
 
         //Plane fpl(planeNorm, dot(planeNorm, vertexA))
-        var distToPlane = vec4.dot(planeNorm, [vertex1[0], vertex1[1], vertex1[2]]);
-        planeNorm[3] = distToPlane;
-
-        return planeNorm;
-    }
-    static createPlaneFromEyeAndVertexes(eye, vertex1, vertex2) {
-        var edgeDir = vec4.create();
-
-        vec3.subtract(edgeDir, vertex1, vertex2);
-        vec3.normalize(edgeDir, edgeDir);
-
-        //viewToPointDir = normalize(((vertexA+vertexB)*0.5)-viewPos)
-        var viewToPointDir = vec4.create();
-        vec3.add(viewToPointDir, vertex1, vertex2);
-        vec3.scale(viewToPointDir, viewToPointDir, 0.5);
-        vec3.subtract(viewToPointDir, viewToPointDir, eye);
-        vec3.normalize(viewToPointDir, viewToPointDir);
-
-        //planeNorm=cross(viewDir, edgeDir)
-        var planeNorm = vec4.create();
-        vec3.cross(planeNorm, viewToPointDir, edgeDir);
-        vec3.normalize(planeNorm, planeNorm);
-
-        planeNorm[3] = 1;
-
-        //Plane fpl(planeNorm, dot(planeNorm, vertexA))
-        var distToPlane = vec4.dot(planeNorm, vertex1);
-        planeNorm[3] = distToPlane;
+        var distToPlane = vec3.dot(planeNorm, vertex1);
+        planeNorm[3] = -distToPlane;
 
         return planeNorm;
     }
@@ -150,8 +165,8 @@ class MathHelper {
             if ((v[0]/v[3]) >  1) x1out++;	/* out on right */
             if ((v[1]/v[3]) < -1) y0out++;	/* out on top */
             if ((v[1]/v[3]) >  1) y1out++;	/* out on bottom */
-            //if ((v[2]/v[3]) < -1) z0out++;	/* out on near */
-            //if ((v[2]/v[3]) >  1) z1out++;	/* out on far */
+            if ((v[2]/v[3]) < -1) z0out++;	/* out on near */
+            if ((v[2]/v[3]) >  1) z1out++;	/* out on far */
         }
 
         /* check if all vertices inside */

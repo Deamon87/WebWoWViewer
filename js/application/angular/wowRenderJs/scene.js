@@ -24,7 +24,7 @@ import TextureWoWCache from './texture/textureCache.js';
 
 import firstPersonCamera from './camera/firstPersonCamera.js'
 
-import {mat4, vec4, glMatrix} from 'gl-matrix'
+import {mat4, vec4, vec3, glMatrix} from 'gl-matrix'
 
 glMatrix.setMatrixArrayType(Array);
 
@@ -903,6 +903,14 @@ class Scene {
         var lookAtMat4 = [];
         mat4.lookAt(lookAtMat4, cameraVecs.cameraVec3, cameraVecs.lookAtVec3, [0,0,1]);
 
+        var oppositeLookAtMat4 = [];
+        var oppositeLookAtVec3 = vec3.create();
+        vec3.subtract(oppositeLookAtVec3, cameraVecs.lookAtVec3, cameraVecs.cameraVec3);
+        vec3.scale(oppositeLookAtVec3, oppositeLookAtVec3, -1);
+        vec3.add(oppositeLookAtVec3, cameraVecs.cameraVec3, oppositeLookAtVec3);
+
+        mat4.lookAt(oppositeLookAtMat4, cameraVecs.cameraVec3, oppositeLookAtVec3, [0,0,1]);
+
         //Static camera for tests
         var staticLookAtMat = [];
         mat4.lookAt(staticLookAtMat,
@@ -947,6 +955,9 @@ class Scene {
         var updateRes = this.graphManager.update(deltaTime);
 
         gl.depthMask(true);
+        //if (!cameraVecs.staticCamera) {
+        //    this.lookAtMat4 = oppositeLookAtMat4
+        //}
         this.graphManager.draw();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 

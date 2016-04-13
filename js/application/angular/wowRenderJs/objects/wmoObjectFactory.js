@@ -436,6 +436,8 @@ class WmoObject {
     }
     startTraversingFromInteriorWMO (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
         //CurrentVisibleM2 and visibleWmo is array of global m2 objects, that are visible after frustum
+        var cameraLocal = vec4.create();
+        vec4.transformMat4(cameraLocal, cameraVec4, this.placementInvertMatrix);
 
         /* 1. Create array of visibility with all false */
         var traverseDoodadsVis = new Array(this.doodadsArray.length);
@@ -452,7 +454,7 @@ class WmoObject {
 
         this.portalViewFrustums = new Array(this.wmoObj.portalInfos.length);
 
-        this.transverseInteriorWMO(groupId, true, cameraVec4, perspectiveMat, lookat, frustumPlanes, 6, 0);
+        this.transverseInteriorWMO(groupId, true, cameraVec4, cameraLocal, perspectiveMat, lookat, [frustumPlanes], 0);
 
         for (var i = 0; i< traverseDoodadsVis.length; i++) {
             this.doodadsArray[i].setIsRendered(!!traverseDoodadsVis[i]);
@@ -465,7 +467,7 @@ class WmoObject {
     startTraversingFromExteriorWMO (groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
         this.transverseExteriorWMO(groupId, false, cameraVec4, perspectiveMat, lookat, frustumPlanes);
     }
-    transverseInteriorWMO (groupId, fromInterior, cameraVec4, perspectiveMat, lookat, frustumPlanes, num_planes, level) {
+    transverseInteriorWMO (groupId, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level) {
         var currentlyDrawnGroups = this.drawGroup;
         this.transverseVisitedGroups[groupId] = true;
 
@@ -485,8 +487,10 @@ class WmoObject {
                     var doodadWmoIndex = doodadIndex - doodadsSet.index;
                     var mdxObject = this.doodadsArray[doodadWmoIndex];
                     //if (mdxObject.getIsRendered()) {
-                        var inFrustum = mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
-
+                        var inFrustum = true;
+                        for( i=0; inFrustum && i<frustumPlanes.length; i++) {
+                            inFrustum = inFrustum && mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes[i], frustumPlanes[i].length);
+                        }
 
                         var currVis = this.traverseDoodadsVis[doodadWmoIndex];
                         this.traverseDoodadsVis[doodadWmoIndex] = currVis | inFrustum;
@@ -498,7 +502,7 @@ class WmoObject {
         //2. Loop through portals of current group
         var moprIndex = this.wmoGroupArray[groupId].wmoGroupFile.mogp.moprIndex;
         var numItems = this.wmoGroupArray[groupId].wmoGroupFile.mogp.numItems;
-        var portalVertexes = this.worldPortalVerticles;
+        var portalVertexes = this.wmoObj.portalVerticles;
 
         for (var j = moprIndex; j < moprIndex+numItems; j++) {
             var relation = this.wmoObj.portalRelations[j];
@@ -506,6 +510,10 @@ class WmoObject {
 
             var nextGroup = relation.group_index;
             var plane = portalInfo.plane;
+
+            //var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal));
+            //var isInsidePortalThis = (relation.side < 0) ? (dotResult < 0) : (dotResult > 0);
+            //if (!isInsidePortalThis) continue;
 
             var base_index = portalInfo.base_index;
 
@@ -516,84 +524,75 @@ class WmoObject {
             if (this.transverseVisitedGroups[nextGroup]) continue;
 
             //2.2 Check if Portal BB made from portal vertexes intersects frustum
-            var portal_frustum = new Array(18);
-            for (i = 0; i < 6; i++) {
-                if (i >= frustumPlanes.length) {
-                    portal_frustum[i] = vec4.create()
-                } else {
-                    portal_frustum[i] = vec4.clone(frustumPlanes[i]);
-                }
-            }
-
             var portalVerticles = new Array(portalInfo.index_count);
-            for (i = 0; i < portalVerticles.length; i++) {
+            for (var i = 0; i < portalVerticles.length; i++) {
                 portalVerticles[i] = [
                     portalVertexes[3*(base_index+i)+0],
                     portalVertexes[3*(base_index+i)+1],
                     portalVertexes[3*(base_index+i)+2],
                     1
-                ]
+                ];
+                vec4.transformMat4(portalVerticles[i], portalVerticles[i], this.placementMatrix);
             }
 
-            var viewPerspective = mat4.create();
-            mat4.multiply(viewPerspective, perspectiveMat, lookat);
-
-            var invPerspective = mat4.create();
-            mat4.invert(invPerspective, perspectiveMat);
-
-            for (i = 0; i < portalVerticles.length; i++) {
-                vec4.transformMat4(portalVerticles[i], portalVerticles[i], viewPerspective);
-            }
-
-            var result = mathHelper.poly_clip_to_box(portalVerticles);
-            if (result == "POLY_CLIP_OUT") {
-                continue;
-            }
-
-            for (i = 0; i < portalVerticles.length; i++) {
-                vec4.transformMat4(portalVerticles[i], portalVerticles[i], invPerspective);
-                vec4.scale(portalVerticles[i], portalVerticles[i], 1/portalVerticles[i][3]);
-            }
-
-            //2.3 Form new planes
-            //mathHelper.GetPolyFrustum( clipped, num_verts, portal_frustum, cameraVec4);
-            var minX = 999999, minY = 999999, minZ = 999999;
-            var maxX = -9999, maxY = -999999, maxZ = -999999;
-            var tempVec4 = vec4.create();
+            var center = vec3.fromValues(0,0,0);
             for (var i = 0; i < portalVerticles.length; i++) {
-                if (portalVerticles[i][0] > maxX) {
-                    maxX = portalVerticles[i][0];
-                }
-                if (portalVerticles[i][1] > maxY) {
-                    maxY = portalVerticles[i][1];
-                }
-                if (portalVerticles[i][2] > maxZ) {
-                    maxZ = portalVerticles[i][2];
-                }
-                if (portalVerticles[i][0] < minX) {
-                    minX = portalVerticles[i][0];
-                }
-                if (portalVerticles[i][1] < minY) {
-                    minY = portalVerticles[i][1];
-                }
-                if (portalVerticles[i][2] < minZ) {
-                    minZ = portalVerticles[i][2];
-                }
+                vec3.add(center, portalVerticles, center);
+            }
+            vec3.scale(center, 1/portalVerticles.length);
+            portalVerticles.sort(function(a,b) {
+                var ac = vec3.create();
+                vec3.subtract(ac, a, center);
+
+                var bc = vec3.create();
+                vec3.subtract(bc, b, center);
+
+                var cross = vec3.create();
+                vec3.cross(cross, ac, bc);
+
+
+                return vec3.dot(cross, [plane.x, plane.y, plane.z]);
+            });
+
+
+
+            var visible = true;
+            for( i=0; visible && i<frustumPlanes.length; i++) {
+                visible = visible && mathHelper.planeCull(portalVerticles, frustumPlanes[i]);
             }
 
-            var frustumMat4 = mat4.create();
-            mat4.frustum(frustumMat4, minX, maxX, minY, maxY, -minZ, 1000);
-            mat4.multiply(viewPerspective, frustumMat4, lookat);
+            if (!visible) continue;
 
-            this.portalViewFrustums[relation.portal_index] = viewPerspective;
+            var lastFrustumPlanesLen = frustumPlanes.length;
+            var thisPortalPlanes = [];
+            var eyeMinusPortalVert = vec3.create();
+            vec3.subtract(eyeMinusPortalVert, cameraVec4, portalVerticles[0]);
 
-            portal_frustum = mathHelper.getFrustumClipsFromMatrix(viewPerspective);
+            var flip = vec3.dot(eyeMinusPortalVert, [plane.x, plane.y, plane.z]) < 0;
+            for(i=0; i<portalVerticles.length; ++i) {
+               var i2 = (i+1) % portalVerticles.length;
+
+                var n = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVerticles[i], portalVerticles[i2]);
+
+                if (level >= 1) {
+                    console.log("dot(cameraVec4, n) = ", vec4.dot(cameraVec4, n));
+                }
+
+                if (!flip) {
+                    vec4.scale(n, n, -1)
+                }
+
+                thisPortalPlanes.push(n);
+            }
+            frustumPlanes.push(thisPortalPlanes);
 
             if ((this.wmoObj.groupInfos[nextGroup].flags & 0x2000) > 0) {
-                this.transverseInteriorWMO(nextGroup, fromInterior, cameraVec4, frustumMat4, lookat, portal_frustum, 6, level+1)
+                this.transverseInteriorWMO(nextGroup, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level+1)
             } else if (fromInterior) {
                 this.transverseExteriorWMO();
             }
+
+            frustumPlanes.length = lastFrustumPlanesLen;
         }
     }
     transverseExteriorWMO (groupId, fromInterior, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
@@ -725,7 +724,7 @@ class WmoObject {
                 portalVerticles[3*i + 0],
                 portalVerticles[3*i + 1],
                 portalVerticles[3*i + 2],
-                0
+                1
             );
 
             vec4.transformMat4(portalVert, portalVert, this.placementMatrix);
@@ -748,6 +747,7 @@ class WmoObject {
         gl.bindBuffer( gl.ARRAY_BUFFER, this.vertexVBO);
         gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
 
+        //gl.disable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // default blend func
 
@@ -776,12 +776,14 @@ class WmoObject {
         }
         gl.depthMask(true);
         gl.disable(gl.BLEND);
+        //gl.enable(gl.DEPTH_TEST);
     }
     drawPortalFrustumsBB () {
         var gl = this.sceneApi.getGlContext();
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
         if (!this.portalViewFrustums) return;
 
+        gl.disable(gl.DEPTH_TEST);
         gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
 
         for (var i = 0; i < this.portalViewFrustums.length; i++) {
@@ -797,6 +799,7 @@ class WmoObject {
 
             gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
         }
+        gl.enable(gl.DEPTH_TEST);
     }
     drawBspVerticles () {
         if (!this.wmoObj) return;

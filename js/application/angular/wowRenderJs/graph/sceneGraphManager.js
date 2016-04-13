@@ -486,11 +486,13 @@ class GraphManager {
             }
         }
 
+        /*
         this.sceneApi.shaders.activateFrustumBoxShader();
         //Draw Wmo portal frustums
         for (var i = 0; i < this.wmoObjects.length; i++) {
             this.wmoObjects[i].drawPortalFrustumsBB();
         }
+        */
 
     }
 }
