@@ -582,7 +582,7 @@ class WmoObject {
             }
 
             var frustumMat4 = mat4.create();
-            mat4.frustum(frustumMat4, minX, maxX, minY, maxY, maxZ, 1000);
+            mat4.frustum(frustumMat4, minX, maxX, minY, maxY, -minZ, 1000);
             mat4.multiply(viewPerspective, frustumMat4, lookat);
 
             this.portalViewFrustums[relation.portal_index] = viewPerspective;

@@ -175,9 +175,9 @@ class MathHelper {
             if ((v[0]/v[3]) < -1) { v[0] = -v[3] } 	/* out on left */
             if ((v[0]/v[3]) >  1) { v[0] = v[3] }	/* out on right */
             if ((v[1]/v[3]) < -1) { v[1] = -v[3] };	/* out on top */
-            if ((v[1]/v[3]) >  1) { v[0] = v[3] };	/* out on bottom */
-            if ((v[2]/v[3]) < -1) { v[0] = -v[3] };	/* out on near */
-            if ((v[2]/v[3]) >  1) { v[0] = v[3] };	/* out on far */
+            if ((v[1]/v[3]) >  1) { v[1] = v[3] };	/* out on bottom */
+            if ((v[2]/v[3]) < -1) { v[2] = -v[3] };	/* out on near */
+            if ((v[2]/v[3]) >  1) { v[2] = v[3] };	/* out on far */
         }
 
 
