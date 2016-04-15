@@ -12,14 +12,17 @@ uniform float uY;
 
 
 void main(void) {
-    texCoord = texture;
+    //texCoord = texture;
+    texCoord = position.xy * 0.5 + 0.5;
 
     //gl_Position = vec4(position, 0.0, 1.0);
-          gl_Position = vec4(
-                (((position.x + 1.0)/2.0) * uWidth + uX)*2.0 - 1.0,
-                (((position.y + 1.0)/2.0) * uHeight + uY)*2.0 - 1.0,
-                0.0,
-                1.0)  ;
+    gl_Position = vec4(
+        (((position.x + 1.0)/2.0) * uWidth + uX)*2.0 - 1.0,
+        (((position.y + 1.0)/2.0) * uHeight + uY)*2.0 - 1.0,
+
+
+        0.0,
+        1.0)  ;
 }
 #endif //COMPILING_VS
 
@@ -31,13 +34,14 @@ varying vec2 texCoord;
 
 void main(void) {
 
-    float f = 1000.0; //far plane
-    float n = 1.0; //near plane
-    float z = (2.0 * n) / (f + n - texture2D( diffuse, texCoord ).x * (f - n));
+    //float f = 1000.0; //far plane
+    //float n = 1.0; //near plane
+    //float z = (2.0 * n) / (f + n - texture2D( diffuse, texCoord ).x * (f - n));
 
 
     //vec4 color = texture2D(diffuse, texCoord);
-    gl_FragColor = vec4(z,z,z, 255);
+    //gl_FragColor = vec4(z,z,z, 255);
+    gl_FragColor = vec4(texture2D( diffuse, texCoord ).rgb, 255);
 }
 
 #endif //COMPILING_FS

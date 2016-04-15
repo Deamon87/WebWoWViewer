@@ -347,6 +347,12 @@ class Scene {
         var gl = this.gl;
         if(!this.depth_texture_ext) { return; }
 
+        var framebuffer = gl.createFramebuffer();
+        if (this.enableDeferred) {
+            this.initDrawBuffers(framebuffer)
+        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
         // Create a color texture
         var colorTexture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, colorTexture);
@@ -365,11 +371,6 @@ class Scene {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.canvas.width, this.canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
 
-        var framebuffer = gl.createFramebuffer();
-        if (this.enableDeferred) {
-            this.initDrawBuffers(framebuffer)
-        }
-        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
         if (!this.enableDeferred) {
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
@@ -831,28 +832,11 @@ class Scene {
         }
     }
     drawTexturedQuad(gl, texture, x, y, width, height, canv_width, canv_height) {
-        if(!this.quadShader) {
-            // Set up the verticies and indices
-            var quadVerts = [
-                -1,  1,  0, 1,
-                -1, -1,  0, 0,
-                1,  1,  1, 1,
-
-                -1, -1,  0, 0,
-                1, -1,  1, 0,
-                1,  1,  1, 1
-            ];
-
-            this.quadVertBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.quadVertBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(quadVerts), gl.STATIC_DRAW);
-        }
         gl.disable(gl.DEPTH_TEST);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.quadVertBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
 
-        gl.vertexAttribPointer(this.drawDepthBuffer.shaderAttributes.position, 2, gl.FLOAT, false, 16, 0);
-        gl.vertexAttribPointer(this.drawDepthBuffer.shaderAttributes.texture, 2, gl.FLOAT, false, 16, 8);
+        gl.vertexAttribPointer(this.drawDepthBuffer.shaderAttributes.position, 2, gl.FLOAT, false, 0, 0);
 
         gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uWidth, width/canv_width);
         gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uHeight, height/canv_height);
@@ -896,7 +880,6 @@ class Scene {
         }
 
         this.stats.begin();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
         //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         var cameraVecs = this.camera.tick(deltaTime);
 
@@ -940,9 +923,6 @@ class Scene {
 
         if (!this.isShadersLoaded) return;
 
-        this.glClearScreen(gl);
-        gl.activeTexture(gl.TEXTURE0);
-
         this.graphManager.setCameraPos(
             vec4.fromValues(
                 cameraVecs.cameraVec3[0],
@@ -954,50 +934,44 @@ class Scene {
         this.graphManager.setLookAtMat(lookAtMat4);
         var updateRes = this.graphManager.update(deltaTime);
 
-        gl.depthMask(true);
-        //if (!cameraVecs.staticCamera) {
-        //    this.lookAtMat4 = oppositeLookAtMat4
-        //}
-        this.graphManager.draw();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        //Draw static camera
+        this.lookAtMat4 = staticLookAtMat;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 
         this.glClearScreen(gl);
 
-        //save depthBuffer for occlusion culling next frame
-        this.activateReadDepthBuffer();
-        gl.disable(gl.DEPTH_TEST);
-
-        //Render depth buffer into array into js
-        /*
-        if( this.quadVertBuffer) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.quadVertBuffer);
-
-            gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.position, 2, gl.FLOAT, false, 16, 0);
-            gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.texture, 2, gl.FLOAT, false, 16, 8);
-
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
-            gl.readPixels(0,0,this.canvas.width, this.canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, this.depthBuffer);
-            //Normalize depthBuffer
-            var floatDepth = new Array(this.canvas.width*this.canvas.height);
-            for (var i = 0; i < this.canvas.width*this.canvas.height; i++) {
-                floatDepth[i] = (this.depthBuffer[4*index + 0] * 255.0 + this.depthBuffer[4*index + 1]) / 65536.0
-            }
-            this.floatDepthBuffer = floatDepth;
-        }
-        */
+        gl.activeTexture(gl.TEXTURE0);
+        gl.depthMask(true);
+        this.graphManager.draw();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         //Render framebuffer texture into screen
+        this.glClearScreen(gl);
         this.activateRenderFrameShader();
         this.drawFrameBuffer();
 
 
-        //Draw frameBuffer depth texture into screen
+        //Render real camera
+        this.lookAtMat4 = lookAtMat4;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
+        this.glClearScreen(gl);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.depthMask(true);
+        this.graphManager.draw();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        //Draw frameBuffer color texture into screen
         this.activateRenderDepthShader();
-        this.drawTexturedQuad(gl, this.frameBufferDepthTexture,
-            this.canvas.width * 0.75, 0,
-            this.canvas.width * 0.25, this.canvas.height * 0.25,
+        this.drawTexturedQuad(gl, this.frameBufferColorTexture,
+            this.canvas.width * 0.60,
+            0,//this.canvas.height * 0.75,
+
+            this.canvas.width * 0.40,
+            this.canvas.height * 0.40,
+
             this.canvas.width, this.canvas.height);
-        gl.enable(gl.DEPTH_TEST);
+
 
         this.stats.end();
 
