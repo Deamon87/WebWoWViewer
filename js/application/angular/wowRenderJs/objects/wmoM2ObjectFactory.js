@@ -1,4 +1,5 @@
 import MDXObject from './MDXObject.js';
+import config from './../../services/config.js'
 import mathHelper from './../math/mathHelper.js';
 import {mat4, vec4, vec3} from 'gl-matrix';
 
@@ -13,10 +14,11 @@ class WmoM2Object extends MDXObject {
         self.useLocalLighting = true;
     }
     checkFrustumCullingAndSet (cameraVec4, frustumPlanes, num_planes) {
+        if (config.getUsePortalCulling()) return;
         var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
         this.setIsRendered(this.getIsRendered() && inFrustum);
     }
-    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes) {
+    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, fromPortal) {
         var inFrustum = this.aabb && super.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb, num_planes);
         return inFrustum;
     }
@@ -143,6 +145,9 @@ class WmoM2Object extends MDXObject {
     }
     setIsRendered (value) {
         this.isRendered = value;
+        if (value) {
+            var i =1;
+        }
     }
     getIsRendered () {
         return this.isRendered;

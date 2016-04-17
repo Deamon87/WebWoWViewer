@@ -187,10 +187,6 @@ class GraphManager {
             //this.currentWMO.transverseExteriorWMO(frustumMat, lookAtMat4)
 
         } else {
-            for (var j = 0; j < this.m2Objects.length; j++) {
-                this.m2Objects[j].setIsRendered(true);
-            }
-
             this.checkNormalFrustumCulling(frustumMat, lookAtMat4)
         }
 
@@ -206,7 +202,9 @@ class GraphManager {
         for (var i = 0; i < this.wmoObjects.length; i++) {
             this.wmoObjects[i].resetDrawnForAllGroups(true);
             this.wmoObjects[i].checkFrustumCulling(this.position, frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
-            this.wmoObjects[i].setIsRenderedForDoodads();
+            if(!config.getUsePortalCulling()){
+                this.wmoObjects[i].setIsRenderedForDoodads();
+            }
         }
 
         /* 2. If m2Object is renderable after prev phase - check it against frustrum */

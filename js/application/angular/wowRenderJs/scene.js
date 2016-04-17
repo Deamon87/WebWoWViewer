@@ -12,6 +12,7 @@ import drawPortalShader        from 'drawPortalShader.glsl';
 import drawFrustumShader       from 'drawFrustum.glsl';
 
 import GraphManager from './graph/sceneGraphManager.js'
+import config from './../services/config.js'
 
 import wdtLoader from './../services/map/wdtLoader.js';
 
@@ -48,6 +49,11 @@ class Scene {
         self.sceneObjectList = [];
         self.sceneAdts = [];
 
+        this.secondCamera = [0,0,0];
+        this.secondCameraLookAt = [0,0,0];
+
+        this.mainCamera = [0,0,0];
+        this.mainCameraLookAt = [0,0,0];
 
 
         self.initGlContext(canvas);
@@ -880,28 +886,33 @@ class Scene {
         }
 
         this.stats.begin();
-        //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        var cameraVector;
+
+        if (config.getUseSecondCamera()) {
+            cameraVector = this.secondCamera;
+        } else {
+            cameraVector = this.mainCamera;
+        }
+
+        this.camera.setCameraPos(cameraVector[0], cameraVector[1], cameraVector[2]);
         var cameraVecs = this.camera.tick(deltaTime);
 
+        if (config.getUseSecondCamera()) {
+            this.secondCamera = cameraVecs.cameraVec3;
+            this.secondCameraLookAt = cameraVecs.lookAtVec3;
+        } else {
+            this.mainCamera = cameraVecs.cameraVec3;
+            this.mainCameraLookAt = cameraVecs.lookAtVec3;
+
+        }
+
         var lookAtMat4 = [];
-        mat4.lookAt(lookAtMat4, cameraVecs.cameraVec3, cameraVecs.lookAtVec3, [0,0,1]);
 
-        var oppositeLookAtMat4 = [];
-        var oppositeLookAtVec3 = vec3.create();
-        vec3.subtract(oppositeLookAtVec3, cameraVecs.lookAtVec3, cameraVecs.cameraVec3);
-        vec3.scale(oppositeLookAtVec3, oppositeLookAtVec3, -1);
-        vec3.add(oppositeLookAtVec3, cameraVecs.cameraVec3, oppositeLookAtVec3);
+        mat4.lookAt(lookAtMat4, this.mainCamera, this.mainCameraLookAt, [0,0,1]);
 
-        mat4.lookAt(oppositeLookAtMat4, cameraVecs.cameraVec3, oppositeLookAtVec3, [0,0,1]);
-
-        //Static camera for tests
-        var staticLookAtMat = [];
-        mat4.lookAt(staticLookAtMat,
-            //[-1873.050857362244,  5083.140737452966, 574.1095576120073 ],
-            //[-1872.9643854413891, 5083.406870660209, 573.1495077576213],
-            [294.2321516357276, -286.9515641408845, 214.62882630595595],
-            [294.17413677794764, -286.3490568062921, 213.83282430342132],
-            [0,0,1]);
+        //Second camera for debug
+        var secondLookAtMat = [];
+        mat4.lookAt(secondLookAtMat, this.secondCamera, this.secondCameraLookAt, [0,0,1]);
 
         var perspectiveMatrix = [];
         mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000);
@@ -915,11 +926,13 @@ class Scene {
         }
 
         this.perspectiveMatrix = perspectiveMatrix;
+        /*
         if (cameraVecs.staticCamera) {
             this.lookAtMat4 = staticLookAtMat;
         } else {
             this.lookAtMat4 = lookAtMat4;
         }
+        */
 
         if (!this.isShadersLoaded) return;
 
@@ -935,7 +948,7 @@ class Scene {
         var updateRes = this.graphManager.update(deltaTime);
 
         //Draw static camera
-        this.lookAtMat4 = staticLookAtMat;
+        this.lookAtMat4 = secondLookAtMat;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 
         this.glClearScreen(gl);

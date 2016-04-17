@@ -11,6 +11,7 @@ var usePortalCulling = false;
 
 var drawWmoBB = false;
 var drawM2BB = false;
+var secondCamera = false;
 
 var savedUrlForLoading = localStorage.getItem('urlForLoading');
 if (savedUrlForLoading) {
@@ -93,5 +94,11 @@ export default {
     },
     setDrawM2BB: function (value) {
         drawM2BB = value;
+    },
+    getUseSecondCamera : function() {
+        return secondCamera;
+    },
+    setUseSecondCamera : function(value) {
+        secondCamera = value;
     }
 }

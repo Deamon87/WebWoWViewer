@@ -20,7 +20,7 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<input type="checkbox" ng-model="drawWmoBB">Draw Wmo BB</input>' +
             '<input type="checkbox" ng-model="drawBSP">Draw BSP leafs</input>' +
             '<input type="checkbox" ng-model="usePortalCulling">Use portal culling</input>' +
-
+            '<div><input type="checkbox" ng-model="useSecondCamera">Use second camera</input></div>'+
             '</div>',
         link: function postLink(scope, element, attrs) {
             var canvas = element.find('canvas')[0];
@@ -72,6 +72,9 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             });
             scope.$watch('usePortalCulling', function (newValue) {
                 config.setUsePortalCulling(newValue);
+            });
+            scope.$watch('useSecondCamera', function (newValue) {
+                config.setUseSecondCamera(newValue);
             });
             var renderfunc = function(){
                 var currentTimeStamp = new Date().getTime();
