@@ -202,7 +202,7 @@ class GraphManager {
         for (var i = 0; i < this.wmoObjects.length; i++) {
             this.wmoObjects[i].resetDrawnForAllGroups(true);
             this.wmoObjects[i].checkFrustumCulling(this.position, frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
-            if(!config.getUsePortalCulling()){
+            if(!config.getUsePortalCulling() && this.wmoObjects[i].hasPortals()){
                 this.wmoObjects[i].setIsRenderedForDoodads();
             }
         }

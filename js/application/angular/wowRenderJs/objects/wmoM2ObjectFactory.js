@@ -145,9 +145,6 @@ class WmoM2Object extends MDXObject {
     }
     setIsRendered (value) {
         this.isRendered = value;
-        if (value) {
-            var i =1;
-        }
     }
     getIsRendered () {
         return this.isRendered;

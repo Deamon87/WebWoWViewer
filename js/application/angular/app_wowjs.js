@@ -68,6 +68,16 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 z: 136.88
             },
             {
+                name: 'Stormwind',
+                source: 'http',
+                sceneType: 'map',
+                mapId: 0,
+                mapName: 'Azeroth',
+                x: -9008,
+                y: 482,
+                z: 137
+            },
+            {
                 name: 'Ulduar Raid',
                 source: 'http',
                 sceneType: 'map',

@@ -62,6 +62,9 @@ class WmoObject {
             return false;
         }
     }
+    hasPortals () {
+        return this.wmoObj && this.wmoObj.portalInfos && (this.wmoObj.portalInfos.length > 0);
+    }
     createWorldGroupBB () {
         var worldGroupBorders = new Array(this.wmoGroupArray.length);
         var volumeWorldGroupBorders = new Array(this.wmoGroupArray.length);
@@ -707,7 +710,7 @@ class WmoObject {
     }
     checkFrustumCulling (cameraVec4, perspectiveMat, lookat, frustumPlanes) {
         if (!this.worldGroupBorders) return;
-        if (config.getUsePortalCulling()) {
+        if (config.getUsePortalCulling() && this.hasPortals()) {
             this.startTraversingFromExterior(cameraVec4, perspectiveMat, lookat, frustumPlanes);
         } else {
             //1. Set Doodads drawing to false. Doodad should be rendered if at least one WMO Group it belongs is visible(rendered)

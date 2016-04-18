@@ -1014,7 +1014,8 @@ class Scene {
         })
     }
     setCameraPos (x, y, z) {
-        this.camera.setCameraPos(x,y,z);
+        this.mainCamera = [x,y,z];
+        //this.camera.setCameraPos(x,y,z);
     }
 }
 
