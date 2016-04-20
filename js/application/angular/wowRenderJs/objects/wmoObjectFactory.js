@@ -285,6 +285,9 @@ class WmoObject {
             var relation = this.wmoObj.portalRelations[j];
             var portalInfo = this.wmoObj.portalInfos[relation.portal_index];
 
+            //Skip portals we already visited
+            if (this.transverseVisitedPortals[relation.portal_index]) continue;
+
             var nextGroup = relation.group_index;
             var plane = portalInfo.plane;
 
@@ -292,63 +295,22 @@ class WmoObject {
             var isInsidePortalThis = (relation.side < 0) ? (dotResult <= 0) : (dotResult => 0);
             if (!isInsidePortalThis) continue;
 
-            var base_index = portalInfo.base_index;
-
             //2.1 If portal has less than 4 vertices - skip it(invalid?)
             if (portalInfo.index_count < 4) continue;
 
-            //Skip portals we already visited
-            if (this.transverseVisitedPortals[relation.portal_index]) continue;
-
             //2.2 Check if Portal BB made from portal vertexes intersects frustum
-            var portalVerticles = new Array(4);
-
-            for (var i = 0; i < portalVerticles.length; i++) {
-                portalVerticles[i] = [
-                    portalVertexes[3 * (base_index + i) + 0],
-                    portalVertexes[3 * (base_index + i) + 1],
-                    portalVertexes[3 * (base_index + i) + 2],
-                    1
-                ];
-                vec4.transformMat4(portalVerticles[i], portalVerticles[i], this.placementMatrix);
-            }
-
-            var center = vec3.fromValues(0, 0, 0);
-            for (var i = 0; i < portalVerticles.length; i++) {
-                vec3.add(center, portalVerticles, center);
-            }
-            vec3.scale(center, 1 / portalVerticles.length);
-            portalVerticles.sort(function (a, b) {
-                var ac = vec3.create();
-                vec3.subtract(ac, a, center);
-
-                var bc = vec3.create();
-                vec3.subtract(bc, b, center);
-
-                var cross = vec3.create();
-                vec3.cross(cross, ac, bc);
-
-                var dotResult;
-                if (relation.side > 0) {
-                    dotResult = vec3.dot(cross, [-plane.x, -plane.y, -plane.z]);
-                } else {
-                    dotResult = vec3.dot(cross, [plane.x, plane.y, plane.z]);
-                }
-
-                return dotResult;
-            });
-
+            var thisPortalVertices = this.worldPortalVerticles[relation.portal_index];
 
             var visible = true;
-            for (i = 0; visible && i < frustumPlanes.length; i++) {
-                visible = visible && mathHelper.planeCull(portalVerticles, frustumPlanes[i]);
+            for (var i = 0; visible && i < frustumPlanes.length; i++) {
+                visible = visible && mathHelper.planeCull(thisPortalVertices, frustumPlanes[i]);
             }
 
             if (!visible) continue;
 
             this.transverseVisitedPortals[relation.portal_index] = true;
 
-            traverseNextCallback(portalInfo, plane, nextGroup, portalVerticles)
+            traverseNextCallback(portalInfo, relation, thisPortalVertices)
         }
     }
     checkGroupDoodads(groupId, cameraVec4, frustumPlanes){
@@ -367,12 +329,15 @@ class WmoObject {
                     var doodadWmoIndex = doodadIndex - doodadsSet.index;
                     var mdxObject = this.doodadsArray[doodadWmoIndex];
                     //if (mdxObject.getIsRendered()) {
+                    var currVis = this.traverseDoodadsVis[doodadWmoIndex];
+                    if (currVis) continue;
+
                     var inFrustum = true;
                     for(var i=0; inFrustum && i<frustumPlanes.length; i++) {
                         inFrustum = inFrustum && mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes[i], frustumPlanes[i].length);
                     }
 
-                    var currVis = this.traverseDoodadsVis[doodadWmoIndex];
+
                     this.traverseDoodadsVis[doodadWmoIndex] = currVis | inFrustum;
                     //}
                 }
@@ -388,23 +353,22 @@ class WmoObject {
         this.checkGroupDoodads(groupId, cameraVec4, frustumPlanes);
 
         this.traverseGroupPortals(groupId, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level,
-            function(portalInfo, plane, nextGroup, portalVerticles){
+            function(portalInfo, relation, portalVertices){
                 var lastFrustumPlanesLen = frustumPlanes.length;
+
+                frustumPlanes.push(vec4.fromValues(portalInfo.plane.x, portalInfo.plane.y, portalInfo.plane.z, portalInfo.plane.w));
                 if (portalInfo.index_count = 4) {
 
                     var thisPortalPlanes = [];
 
-                    var eyeMinusPortalVert = vec3.create();
-                    vec3.subtract(eyeMinusPortalVert, cameraVec4, portalVerticles[0]);
+                    //var flip = vec3.dot(eyeMinusPortalVert, [portalInfo.plane.x, portalInfo.plane.y, portalInfo.plane.z]) < 0;
+                    var flip = (relation.side < 0);
+                    for (var i = 0; i < portalVertices.length; ++i) {
+                        var i2 = (i + 1) % portalVertices.length;
 
-                    var flip = vec3.dot(eyeMinusPortalVert, [plane.x, plane.y, plane.z]) < 0;
-                    //if (relation.side > 0) flip = !flip;
-                    for (var i = 0; i < portalVerticles.length; ++i) {
-                        var i2 = (i + 1) % portalVerticles.length;
+                        var n = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertices[i], portalVertices[i2]);
 
-                        var n = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVerticles[i], portalVerticles[i2]);
-
-                        if (!flip) {
+                        if (flip) {
                             vec4.scale(n, n, -1)
                         }
 
@@ -413,10 +377,10 @@ class WmoObject {
                     frustumPlanes.push(thisPortalPlanes);
                 }
 
-                if ((self.wmoObj.groupInfos[nextGroup].flags & 0x2000) > 0) {
-                    self.transverseInteriorWMO(nextGroup, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level+1)
+                if ((self.wmoObj.groupInfos[relation.group_index].flags & 0x2000) > 0) {
+                    self.transverseInteriorWMO(relation.group_index, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level+1)
                 } else if (fromInterior) {
-                    self.transverseExteriorWMO(nextGroup, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level+1);
+                    self.transverseExteriorWMO(relation.group_index, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level+1);
                 }
 
                 frustumPlanes.length = lastFrustumPlanesLen;
@@ -432,21 +396,21 @@ class WmoObject {
         this.checkGroupDoodads(groupId, cameraVec4, frustumPlanes);
 
         this.traverseGroupPortals(groupId, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level,
-            function(portalInfo, plane, nextGroup, portalVerticles){
+            function(portalInfo, relation, portalVertices){
                 var lastFrustumPlanesLen = frustumPlanes.length;
+                var plane = portalInfo.plane;
                 if (portalInfo.index_count = 4) {
-
                     var thisPortalPlanes = [];
 
                     var eyeMinusPortalVert = vec3.create();
-                    vec3.subtract(eyeMinusPortalVert, cameraVec4, portalVerticles[0]);
+                    vec3.subtract(eyeMinusPortalVert, cameraVec4, portalVertices[0]);
 
                     var flip = vec3.dot(eyeMinusPortalVert, [plane.x, plane.y, plane.z]) < 0;
                     //if (relation.side > 0) flip = !flip;
-                    for (var i = 0; i < portalVerticles.length; ++i) {
-                        var i2 = (i + 1) % portalVerticles.length;
+                    for (var i = 0; i < portalVertices.length; ++i) {
+                        var i2 = (i + 1) % portalVertices.length;
 
-                        var n = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVerticles[i], portalVerticles[i2]);
+                        var n = mathHelper.createPlaneFromEyeAndVertexes(cameraVec4, portalVertices[i], portalVertices[i2]);
 
                         if (!flip) {
                             vec4.scale(n, n, -1)
@@ -457,10 +421,10 @@ class WmoObject {
                     frustumPlanes.push(thisPortalPlanes);
                 }
 
-                if ((self.wmoObj.groupInfos[nextGroup].flags & 0x2000) > 0) {
-                    self.transverseInteriorWMO(nextGroup, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level+1)
+                if ((self.wmoObj.groupInfos[relation.group_index].flags & 0x2000) > 0) {
+                    self.transverseInteriorWMO(relation.group_index, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level+1)
                 } else if (fromInterior) {
-                    self.transverseExteriorWMO(nextGroup, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level+1);
+                    self.transverseExteriorWMO(relation.group_index, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level+1);
                 }
 
                 frustumPlanes.length = lastFrustumPlanesLen;
@@ -699,29 +663,57 @@ class WmoObject {
     createWorldPortalVerticies () {
         //
         var portalVerticles = this.wmoObj.portalVerticles;
+
         if (portalVerticles) {
-            var worldPortalVerticles = new Array(portalVerticles.length)
+            var worldPortalVertices = new Array(portalVerticles.length)
         } else {
-            var worldPortalVerticles = new Array(0);
+            var worldPortalVertices = new Array(0);
             return;
         }
 
-        for (var i = 0; i < worldPortalVerticles.length / 3; i++) {
-            var portalVert = vec4.fromValues(
-                portalVerticles[3*i + 0],
-                portalVerticles[3*i + 1],
-                portalVerticles[3*i + 2],
-                1
-            );
+        for (var i = 0; i < this.wmoObj.portalInfos.length; i++) {
+            var portalInfo = this.wmoObj.portalInfos[i];
 
-            vec4.transformMat4(portalVert, portalVert, this.placementMatrix);
+            var base_index = portalInfo.base_index;
+            var plane = portalInfo.plane;
 
-            worldPortalVerticles[3*i + 0] = portalVert[0];
-            worldPortalVerticles[3*i + 1] = portalVert[1];
-            worldPortalVerticles[3*i + 2] = portalVert[2];
+            //Make portal vertices for world space
+            var thisPortalVertices = new Array(portalInfo.index_count);
+            for (var j = 0; j < portalInfo.index_count; j++) {
+                thisPortalVertices[j] = vec4.fromValues(
+                    portalVerticles[3 * (base_index + j)    ],
+                    portalVerticles[3 * (base_index + j) + 1],
+                    portalVerticles[3 * (base_index + j) + 2],
+                    1
+                );
+                vec4.transformMat4(thisPortalVertices[j], thisPortalVertices[j], this.placementMatrix);
+            }
+
+            // Sort portal vertices
+            var center = vec3.fromValues(0, 0, 0);
+            for (j = 0; j < thisPortalVertices.length; j++) {
+                vec3.add(center, thisPortalVertices[j], center);
+            }
+            vec3.scale(center, 1 / thisPortalVertices.length);
+            thisPortalVertices.sort(function (a, b) {
+                var ac = vec3.create();
+                vec3.subtract(ac, a, center);
+
+                var bc = vec3.create();
+                vec3.subtract(bc, b, center);
+
+                var cross = vec3.create();
+                vec3.cross(cross, ac, bc);
+
+                var dotResult = vec3.dot(cross, [plane.x, plane.y, plane.z]);
+
+                return dotResult;
+            });
+
+            worldPortalVertices[i] = thisPortalVertices;
         }
 
-        this.worldPortalVerticles = worldPortalVerticles;
+        this.worldPortalVerticles = worldPortalVertices;
     }
     /*
      *      Draw functions

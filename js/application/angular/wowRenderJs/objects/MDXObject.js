@@ -12,6 +12,7 @@ class MDXObject {
         this.subMeshColors
     }
 
+
     load (modelName, skinNum, submeshRenderData){
         var self = this;
 
@@ -44,6 +45,159 @@ class MDXObject {
             return true;
         });
     }
+    getShaderNames(m2Batch){
+        function getTabledShaderNames(shaderId, op_count, tex_unit_number2){
+            var v4 = (shaderId >> 4) & 7;
+            var v5 = shaderId & 7;
+            var v6 = (shaderId >> 4) & 8;
+            var v7 = shaderId & 8;
+
+            var vertexShaderName;
+            var pixelShaderName;
+            if ( op_count == 1 ) {
+                if ( v6 )
+                {
+                    vertexShaderName = "Diffuse_Env";
+                }
+                else
+                {
+                    vertexShaderName = "Diffuse_T2";
+                    if ( tex_unit_number2 )
+                        vertexShaderName = "Diffuse_T1";
+                }
+                switch ( v4 )
+                {
+
+                    case 0:
+                        pixelShaderName = "Combiners_Opaque";
+                        break;
+                    case 2:
+                        pixelShaderName = "Combiners_Decal";
+                        break;
+                    case 3:
+                        pixelShaderName = "Combiners_Add";
+                        break;
+                    case 4:
+                        pixelShaderName = "Combiners_Mod2x";
+                        break;
+                    case 5:
+                        pixelShaderName = "Combiners_Fade";
+                        break;
+                    default:
+                        pixelShaderName = "Combiners_Mod";
+                        break;
+                }
+            } else {
+                if ( v6 )
+                {
+                    vertexShaderName = "Diffuse_Env_T2";
+                    if ( v7 )
+                        vertexShaderName = "Diffuse_Env_Env";
+                }
+                else if ( shaderId & 8 )
+                {
+                    vertexShaderName = "Diffuse_T1_Env";
+                }
+                else
+                {
+                    vertexShaderName = "Diffuse_T1_T2";
+                }
+                if ( !v4 )
+                {
+                    switch ( v5 )
+                    {
+                        case 0:
+                            pixelShaderName = "Combiners_Opaque_Opaque";
+                            break;
+                        case 3:
+                            pixelShaderName = "Combiners_Opaque_Add";
+                            break;
+                        case 4:
+                            pixelShaderName = "Combiners_Opaque_Mod2x";
+                            break;
+                        case 6:
+                            pixelShaderName = "Combiners_Opaque_Mod2xNA";
+                            break;
+                        case 7:
+                            pixelShaderName = "Combiners_Opaque_AddNA";
+                            break;
+                        default:
+                            pixelShaderName = "Combiners_Opaque_Mod";
+                            break;
+                    }
+                } else if ( v4 == 1 ) {
+                    switch ( v5 )
+                    {
+                        case 0:
+                            pixelShaderName = "Combiners_Mod_Opaque";
+                            break;
+                        case 3:
+                            pixelShaderName = "Combiners_Mod_Add";
+                            break;
+                        case 4:
+                            pixelShaderName = "Combiners_Mod_Mod2x";
+                            break;
+                        case 6:
+                            pixelShaderName = "Combiners_Mod_Mod2xNA";
+                            break;
+                        case 7:
+                            pixelShaderName = "Combiners_Mod_AddNA";
+                            break;
+                        default:
+                            pixelShaderName = "Combiners_Mod_Mod";
+                            break;
+
+                    }
+                } else if ( v4 == 3 ) {
+                    if ( v5 == 1 )
+                    {
+                        pixelShaderName = "Combiners_Add_Mod";
+                    }
+                    return 0;
+                } else if ( v4 != 4 ) {
+                    return 0;
+                } else if ( v5 == 1 ) {
+                    pixelShaderName = "Combiners_Mod_Mod2x";
+                } else {
+                    if ( v5 != 4 )
+                        return 0;
+                    pixelShaderName = "Combiners_Mod2x_Mod2x";
+                }
+            }
+            return { vertex: vertexShaderName, pixel : pixelShaderName }
+        }
+
+        var shaderId = m2Batch.shaderId;
+        var shaderNames;
+        var vertexShader;
+        var pixelShader;
+        if ( !(shaderId & 0x8000) ) {
+            shaderNames = getTabledShaderNames(shaderId, m2Batch.op_count, m2Batch.tex_unit_number2);
+            if ( !shaderNames )
+                shaderNames = getTabledShaderNames(shaderId, m2Batch.op_count, 0x11, m2Batch.tex_unit_number2);
+            return shaderNames;
+        }
+        switch ( shaderId & 0x7FFF ) {
+            case 0:
+                return 0;
+            case 1:
+                vertexShader = "Combiners_Opaque_Mod2xNA_Alpha";
+                pixelShader = "Diffuse_T1_Env";
+                break;
+            case 2:
+                vertexShader = "Combiners_Opaque_AddAlpha";
+                pixelShader = "Diffuse_T1_Env";
+                break;
+            case 3:
+                vertexShader = "Combiners_Opaque_AddAlpha_Alpha";
+                pixelShader = "Diffuse_T1_Env";
+                break;
+            default:
+                break;
+        }
+
+        return { vertex: vertexShader, pixel : pixelShader }
+    }
     makeTextureArray (mdxObject, skinObject, submeshRenderData) {
         var self = this;
 
@@ -63,6 +217,7 @@ class MDXObject {
             };
         }
 
+        var subMeshes = this.skinGeom.skinFile.header.subMeshes;
         for (var i = 0; i < skinObject.skinFile.header.texs.length ; i++) {
             var skinTextureDefinition = skinObject.skinFile.header.texs[i];
             var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
@@ -74,10 +229,15 @@ class MDXObject {
 
             var materialData = materialArray[i];
 
+            var subMesh = subMeshes[a.skinTextureDefinition.submeshIndex];
+
+            var shaderNames = this.getShaderNames(subMesh);
+
             materialData.layer =  skinTextureDefinition.layer;
             materialData.isRendered = true;
             materialData.isTransparent = isTransparent;
             materialData.meshIndex = skinTextureDefinition.submeshIndex;
+            materialData.shaderNames = shaderNames;
 
             var textureUnit;
             if (skinTextureDefinition.textureUnitNum <= mdxObject.m2File.textUnitLookup.length) {
@@ -196,6 +356,20 @@ class MDXObject {
 
         return checkDepth(min_x, max_x, min_y, max_y, depth);
     }
+    checkCurrentAnimation (animation, currentTime) {
+        var animationRecord = this.m2Geom.m2File.animations[animation];
+        if (currentTime > this.currentAnimationStart+animationRecord.length) {
+            var nextAnimation = animationRecord.next_animation;
+            this.currentAnimationStart = currentTime;
+
+            if (nextAnimation >= 0) {
+                this.currentAnimation = nextAnimation;
+                return nextAnimation
+            }
+        }
+        return this.currentAnimation;
+    }
+
     createVAO(gl, m2Geom, skinObject){
         var ext = gl.getExtension("OES_vertex_array_object"); // Vendor prefixes may apply!
         if (ext) {
@@ -209,6 +383,7 @@ class MDXObject {
 
         return {vao : vao, ext : ext};
     }
+
     getSubMeshColor (animation, time) {
         var colors = this.m2Geom.m2File.colors;
         var animationRecord = this.m2Geom.m2File.animations[animation];
@@ -329,21 +504,36 @@ class MDXObject {
         this.calcBones(animation, this.currentTime + deltaTime, cameraPos, invPlacementMat);
         this.calcAnimMatrixes(animation, this.currentTime + deltaTime);
 
+        var skinData = this.skinGeom.skinFile.header;
+        this.materialArray.sort(function(a, b) {
+            var result = a.layer - b.layer;
+            if (result == 0) {
+                var mesh1Pos = skinData.subMeshes[a.meshIndex].pos;
+                var mesh2Pos = skinData.subMeshes[b.meshIndex].pos;
+
+                var mesh1Vec = vec3.create();
+                vec3.subtract(mesh1Vec, [mesh1Pos.x, mesh1Pos.y, mesh1Pos.z], cameraPos);
+
+                var mesh2Vec = vec3.create();
+                vec3.subtract(mesh2Vec, [mesh2Pos.x, mesh2Pos.y, mesh2Pos.z], cameraPos);
+
+                var distMesh1 = vec3.length(mesh1Vec)
+                var distMesh2 = vec3.length(mesh2Vec);
+
+                result = distMesh2 - distMesh1;
+            }
+
+            return result;
+        });
+
         this.currentTime += deltaTime;
     }
-    checkCurrentAnimation (animation, currentTime) {
-        var animationRecord = this.m2Geom.m2File.animations[animation];
-        if (currentTime > this.currentAnimationStart+animationRecord.length) {
-            var nextAnimation = animationRecord.next_animation;
-            this.currentAnimationStart = currentTime;
 
-            if (nextAnimation >= 0) {
-                this.currentAnimation = nextAnimation;
-                return nextAnimation
-            }
-        }
-        return this.currentAnimation;
-    }
+    /*
+    * Animation functions
+    *
+    * */
+
     interpolateValues (currentTime, interpolType, time1, time2, value1, value2, valueType){
         //Support and use only linear interpolation for now
         if (interpolType == 0) {
@@ -702,6 +892,12 @@ class MDXObject {
 
         this.boneMatrix = this.combineBoneMatrixes();
     }
+
+    /*
+    * Draw functions
+    *
+    * */
+
     drawInstancedNonTransparentMeshes (instanceCount, placementVBO, color) {
         if (!this.m2Geom) return;
 
@@ -785,12 +981,12 @@ class MDXObject {
             if (materialData.texUnit1TexIndex >= 0 && skinData.texs[materialData.texUnit1TexIndex]) {
                 var textureAnim = skinData.texs[materialData.texUnit1TexIndex].textureAnim;
                 var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
-                if (textureMatIndex !== undefined && textureMatIndex >= 0 && textureMatIndex <  this.textAnimMatrix.length) {
+                if (textureMatIndex !== undefined && this.textAnimMatrix && textureMatIndex >= 0 && textureMatIndex <  this.textAnimMatrix.length) {
                     textureMatrix1 = this.textAnimMatrix[textureMatIndex];
                 }
                 if (materialData.texUnit2TexIndex >= 0) {
                     var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim+1];
-                    if (textureMatIndex !== undefined && textureMatIndex >= 0 && textureMatIndex <  this.textAnimMatrix.length) {
+                    if (textureMatIndex !== undefined && this.textAnimMatrix && textureMatIndex >= 0 && textureMatIndex <  this.textAnimMatrix.length) {
                         textureMatrix2 = this.textAnimMatrix[textureMatIndex];
                     }
                 }

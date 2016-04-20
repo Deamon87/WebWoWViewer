@@ -176,6 +176,12 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 modelName: 'WORLD\\KHAZMODAN\\IRONFORGE\\PASSIVEDOODADS\\GARAGEMACHINE\\GARAGEMACHINE.m2'
             },
             {
+                name: 'mainmenu_warlords',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'interface/glues/models/ui_mainmenu_warlords/ui_mainmenu_warlords.m2'
+            },
+            {
                 name: 'KARAZAN CHANDELIER',
                 source: 'http',
                 sceneType: 'm2',

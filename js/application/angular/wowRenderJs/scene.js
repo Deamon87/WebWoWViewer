@@ -948,6 +948,7 @@ class Scene {
         var updateRes = this.graphManager.update(deltaTime);
 
         //Draw static camera
+        /*
         this.lookAtMat4 = secondLookAtMat;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 
@@ -963,6 +964,7 @@ class Scene {
         this.activateRenderFrameShader();
         this.drawFrameBuffer();
 
+*/
 
         //Render real camera
         this.lookAtMat4 = lookAtMat4;
@@ -974,7 +976,12 @@ class Scene {
         this.graphManager.draw();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
+        this.glClearScreen(gl);
+        this.activateRenderFrameShader();
+        this.drawFrameBuffer();
+
         //Draw frameBuffer color texture into screen
+        /*
         this.activateRenderDepthShader();
         this.drawTexturedQuad(gl, this.frameBufferColorTexture,
             this.canvas.width * 0.60,
@@ -984,7 +991,7 @@ class Scene {
             this.canvas.height * 0.40,
 
             this.canvas.width, this.canvas.height);
-
+          */
 
         this.stats.end();
 
