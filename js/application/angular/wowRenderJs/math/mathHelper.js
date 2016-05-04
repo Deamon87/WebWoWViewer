@@ -72,14 +72,29 @@ class MathHelper {
          */
 
         //Clamp against planes
-        /*epsilon = 0.01;
+        /*
+        epsilon = 0;
         for ( var i=0; i< planes.length; i++ ) {
-            var normal = vec3.clone(planes[i]);
 
             for( var j = 0; j < points.length; j++) {
+                var normal = vec3.clone(planes[i]);
+
+                var a2 = vec3.create();
+                vec3.add(a2, vec4Points[j], normal);
+
+                var a2_dot = vec3.dot(a2, normal);
+                var a2_fixN = vec3.create();
+                vec3.scale(a2_fixN, normal, -epsilon-a2_dot);
+                vec3.add(a2,a2_fixN,a2);
+
+                vec3.subtract(a2_fixN, a2, vec4Points[j]);
+                vec3.normalize(a2_fixN, a2_fixN);
+
+                var dot3 = vec3.dot(planes[i], a2_fixN);
+
                 var dotResult = vec4.dot(planes[i], vec4Points[j]);
                 if (dotResult < 0) {
-                    vec3.scale(normal, normal, -epsilon-dotResult);
+                    vec3.scale(normal, normal, -(dotResult)/dot3 - epsilon);
                     vec3.add(vec4Points[j], vec4Points[j], normal);
                 }
             }
@@ -89,7 +104,8 @@ class MathHelper {
         for( var j = 0; j < points.length; j++) {
             points[j] = vec4Points[j];
         }
-        */
+         */
+
         return true;
     }
 
