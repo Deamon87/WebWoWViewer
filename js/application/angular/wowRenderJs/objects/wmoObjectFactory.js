@@ -300,17 +300,22 @@ class WmoObject {
 
             //2.2 Check if Portal BB made from portal vertexes intersects frustum
             var thisPortalVertices = this.worldPortalVerticles[relation.portal_index];
+            var thisPortalVerticesCopy = thisPortalVertices.slice(0);
+            for (var i = 0; i < thisPortalVerticesCopy.length; i++)
+                thisPortalVerticesCopy[i] = vec4.clone(thisPortalVerticesCopy[i]);
 
             var visible = true;
             for (var i = 0; visible && i < frustumPlanes.length; i++) {
-                visible = visible && mathHelper.planeCull(thisPortalVertices, frustumPlanes[i]);
+                visible = visible && mathHelper.planeCull(thisPortalVerticesCopy, frustumPlanes[i]);
             }
+
+
 
             if (!visible) continue;
 
             this.transverseVisitedPortals[relation.portal_index] = true;
 
-            traverseNextCallback(portalInfo, relation, thisPortalVertices)
+            traverseNextCallback(portalInfo, relation, thisPortalVerticesCopy)
         }
     }
     checkGroupDoodads(groupId, cameraVec4, frustumPlanes){

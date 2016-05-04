@@ -45,14 +45,18 @@ class MathHelper {
 
     static planeCull (points, planes) {
         // check box outside/inside of frustum
-        for(var i=0; i< planes.length; i++ )
-        {
+        var vec4Points = new Array(points.length);
+        for( var j = 0; j < points.length; j++) {
+            vec4Points[j] = vec4.fromValues(points[j][0], points[j][1], points[j][2], 1.0)
+        }
+
+        for ( var i=0; i< planes.length; i++ ) {
             var out = 0;
             var epsilon = 0;
             if (i == 5) epsilon = 1; //mitigation for near clipping plane
 
-            for( var j=0; j<points.length; j++) {
-                out += ((vec4.dot(planes[i], vec4.fromValues(points[j][0], points[j][1], points[j][2], 1.0)) + epsilon < 0.0 ) ? 1 : 0);
+            for( var j = 0; j<points.length; j++) {
+                out += ((vec4.dot(planes[i], vec4Points[j]) + epsilon < 0.0 ) ? 1 : 0);
             }
             if( out==points.length ) return false;
         }
@@ -67,6 +71,23 @@ class MathHelper {
          out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].z < box.mMinZ)?1:0); if( out==8 ) return false;
          */
 
+        //Clamp against planes
+        epsilon = 0.01;
+        for ( var i=0; i< planes.length; i++ ) {
+            var normal = vec3.clone(planes[i]);
+
+            for( var j = 0; j < points.length; j++) {
+                var dotResult = vec4.dot(planes[i], vec4Points[j]);
+                if (dotResult < 0) {
+                    vec3.scale(normal, normal, -epsilon-dotResult);
+                    vec3.add(vec4Points[j], vec4Points[j], normal);
+                }
+            }
+        }
+
+        for( var j = 0; j < points.length; j++) {
+            points[j] = vec4Points[j];
+        }
         return true;
     }
 
