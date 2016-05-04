@@ -229,7 +229,7 @@ class MDXObject {
 
             var materialData = materialArray[i];
 
-            var subMesh = subMeshes[a.skinTextureDefinition.submeshIndex];
+            var subMesh = subMeshes[skinTextureDefinition.submeshIndex];
 
             var shaderNames = this.getShaderNames(subMesh);
 

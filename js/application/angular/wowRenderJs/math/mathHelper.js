@@ -72,7 +72,7 @@ class MathHelper {
          */
 
         //Clamp against planes
-        epsilon = 0.01;
+        /*epsilon = 0.01;
         for ( var i=0; i< planes.length; i++ ) {
             var normal = vec3.clone(planes[i]);
 
@@ -85,9 +85,11 @@ class MathHelper {
             }
         }
 
+
         for( var j = 0; j < points.length; j++) {
             points[j] = vec4Points[j];
         }
+        */
         return true;
     }
 
