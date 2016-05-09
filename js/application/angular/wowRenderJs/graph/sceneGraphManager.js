@@ -364,7 +364,7 @@ class GraphManager {
         this.currentInteriorGroup = -1;
         this.currentWMO = null;
         var bspNodeId = -1;
-        var interiorGroupNum = -1
+        var interiorGroupNum = -1;
         for (var i = 0; i < this.wmoObjects.length; i++) {
             var result = this.wmoObjects[i].isInsideInterior(this.position);
             interiorGroupNum = result.groupId;

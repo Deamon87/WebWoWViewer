@@ -85,6 +85,133 @@ class WmoObject {
             }
         }
     }
+
+    queryBspTree(bbox, nodeId, nodes, bspLeafIdList) {
+        if (nodeId == -1) return;
+
+        if ((nodes[nodeId].planeType&0x4)){
+            bspLeafIdList.push(nodeId);
+        } else if ((nodes[nodeId].planeType == 0)) {
+            var leftSide = mathHelper.checkFrustum([[-1, 0, 0, nodes[nodeId].fDist]], bbox, 1);
+            var rightSide = mathHelper.checkFrustum([[1, 0, 0, -nodes[nodeId].fDist]], bbox, 1);
+
+            if (leftSide) {
+                this.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)
+            }
+            if (rightSide) {
+                this.queryBspTree(bbox, nodes[nodeId].children2, nodes, bspLeafIdList)
+            }
+        } else if ((nodes[nodeId].planeType == 1)) {
+            var leftSide = mathHelper.checkFrustum([[0, -1, 0, nodes[nodeId].fDist]], bbox, 1);
+            var rightSide = mathHelper.checkFrustum([[0, 1, 0, -nodes[nodeId].fDist]], bbox, 1);
+
+            if (leftSide) {
+                this.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)
+            }
+            if (rightSide) {
+                this.queryBspTree(bbox, nodes[nodeId].children2, nodes, bspLeafIdList)
+            }
+        } else if ((nodes[nodeId].planeType == 2)) {
+            var leftSide = mathHelper.checkFrustum([[0, 0, -1, nodes[nodeId].fDist]], bbox, 1);
+            var rightSide = mathHelper.checkFrustum([[0, 0, 1, -nodes[nodeId].fDist]], bbox, 1);
+
+            if (leftSide) {
+                this.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)
+            }
+            if (rightSide) {
+                this.queryBspTree(bbox, nodes[nodeId].children2, nodes, bspLeafIdList)
+            }
+        }
+    }
+    getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, bspLeafList) {
+        var result = 0;
+        var nodes = groupFile.nodes;
+        var topZ = -999999;
+        var bottomZ = 999999;
+        for (var i = 0; i < bspLeafList.length; i++) {
+            var node = nodes[bspLeafList[i]];
+
+            for (var j = node.firstFace; j < node.firstFace+node.numFaces; j++) {
+                var vertexInd1 = groupFile.indicies[3*groupFile.mobr[j] + 0];
+                var vertexInd2 = groupFile.indicies[3*groupFile.mobr[j] + 1];
+                var vertexInd3 = groupFile.indicies[3*groupFile.mobr[j] + 2];
+
+                var vert1 = vec3.fromValues(
+                    groupFile.verticles[3*vertexInd1 + 0],
+                    groupFile.verticles[3*vertexInd1 + 1],
+                    groupFile.verticles[3*vertexInd1 + 2]);
+
+                var vert2 = vec3.fromValues(
+                    groupFile.verticles[3*vertexInd2 + 0],
+                    groupFile.verticles[3*vertexInd2 + 1],
+                    groupFile.verticles[3*vertexInd2 + 2]);
+
+                var vert3 = vec3.fromValues(
+                    groupFile.verticles[3*vertexInd3 + 0],
+                    groupFile.verticles[3*vertexInd3 + 1],
+                    groupFile.verticles[3*vertexInd3 + 2]);
+
+                //1. Get if camera position inside vertex
+
+                var minX = Math.min(vert1[0], vert2[0], vert3[0]);
+                var minY = Math.min(vert1[1], vert2[1], vert3[1]);
+                var minZ = Math.min(vert1[2], vert2[2], vert3[2]);
+
+                var maxX = Math.max(vert1[0], vert2[0], vert3[0]);
+                var maxY = Math.max(vert1[1], vert2[1], vert3[1]);
+                var maxZ = Math.max(vert1[2], vert2[2], vert3[2]);
+
+                var testPassed = (
+                    (cameraLocal[0] > minX && cameraLocal[0] < maxX) &&
+                    (cameraLocal[1] > minY && cameraLocal[1] < maxY)
+                );
+                if (!testPassed) continue;
+
+                var z = mathHelper.calcZ(vert1,vert2,vert3,cameraLocal[0],cameraLocal[1]);
+
+                //2. Get if vertex top or bottom
+                var normal1 = vec3.fromValues(
+                    groupFile.normals[3*vertexInd1 + 0],
+                    groupFile.normals[3*vertexInd1 + 1],
+                    groupFile.normals[3*vertexInd1 + 2]
+                );
+                var normal2 = vec3.fromValues(
+                    groupFile.normals[3*vertexInd2 + 0],
+                    groupFile.normals[3*vertexInd2 + 1],
+                    groupFile.normals[3*vertexInd2 + 2]
+                );
+                var normal3 = vec3.fromValues(
+                    groupFile.normals[3*vertexInd3 + 0],
+                    groupFile.normals[3*vertexInd3 + 1],
+                    groupFile.normals[3*vertexInd3 + 2]
+                );
+
+                var bary = mathHelper.getBarycentric(
+                    vec3.fromValues(cameraLocal[0], cameraLocal[1], z),
+                    vert1,
+                    vert2,
+                    vert3
+                );
+
+                /*if (testPassed && cameraLocal[2] < vert1[2] || cameraLocal[2] < vert2[2] || cameraLocal[2] < vert3[2]){
+                    debugger;
+                } */
+                if (bary[0] < -0.001 || bary[1] < -0.001 || bary[2] < -0.001) continue;
+
+                var normal_avg = bary[0]*normal1[2]+bary[1]*normal2[2]+bary[2]*normal3[2];
+                if (normal_avg > 0) {
+                    //Bottom
+                    bottomZ = Math.min(z, bottomZ);
+                } else {
+                    //Top
+                    topZ = Math.max(z, topZ);
+                }
+            }
+
+        }
+        return {'topZ' : topZ, 'bottomZ' : bottomZ};
+    }
+
     isInsideInterior (cameraVec4) {
         if (!this.wmoGroupArray || this.wmoGroupArray.length ==0) return -1;
 
@@ -104,6 +231,7 @@ class WmoObject {
         var wmoGroupsInside = 0;
         var interiorGroups = 0;
         var lastWmoGroupInside = -1;
+        var candidateGroups = [];
 
         for (var i = 0; i < this.wmoGroupArray.length; i++) {
             if (!this.wmoGroupArray[i]) continue;
@@ -129,19 +257,35 @@ class WmoObject {
             var moprIndex = this.wmoGroupArray[i].wmoGroupFile.mogp.moprIndex;
             var numItems = this.wmoGroupArray[i].wmoGroupFile.mogp.numItems;
 
+            /*
             for (var j = moprIndex; j < moprIndex+numItems; j++) {
                 var relation = this.wmoObj.portalRelations[j];
                 var portalInfo = this.wmoObj.portalInfos[relation.portal_index];
 
                 var plane = portalInfo.plane;
-                var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal));
+                var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w),  cameraLocal));
                 var isInsidePortalThis = (relation.side < 0) ? (dotResult < 0) : (dotResult > 0);
                 isInsidePortals = isInsidePortals && isInsidePortalThis;
             }
+            */
 
             if (isInsidePortals) {
+                var cameraBBMin = vec3.fromValues(cameraLocal[0]-0.2, cameraLocal[1]-0.2, bbArray[0][2]);
+                var cameraBBMax = vec3.fromValues(cameraLocal[0]+0.2, cameraLocal[1]+0.2, bbArray[1][2]);
+
+
                 var nodeId = 0;
                 var nodes = this.wmoGroupArray[i].wmoGroupFile.nodes;
+                var bspLeafList = [];
+                this.queryBspTree([cameraBBMin, cameraBBMax], nodeId, nodes, bspLeafList);
+                var topBottom = this.getTopAndBottomTriangleFromBsp(cameraLocal, this.wmoGroupArray[i].wmoGroupFile, bspLeafList);
+
+                //if (topBottom.bottomZ == null) continue;
+                if (topBottom.bottomZ > 99999) continue;
+
+                if (cameraLocal[2] < topBottom.bottomZ) continue;
+                if (cameraLocal[2] > topBottom.topZ) continue;
+/*
                 while (nodeId >=0 && ((nodes[nodeId].planeType&0x4) == 0)){
                     var prevNodeId = nodeId;
                     if ((nodes[nodeId].planeType == 0)) {
@@ -164,15 +308,35 @@ class WmoObject {
                         }
                     }
                 }
-                this.currentNodeId = nodeId;
-                this.currentGroupId = i;
-                //return {nodeId : nodeId, node: nodes[nodeId]};
-                return { groupId : i, nodeId : nodeId};
-            }
+                */
 
+                candidateGroups.push({'topBottom' : topBottom, groupId : i, bspList : bspLeafList});
+
+                //if (nodeId != -1 && (nodes[nodeId].planeType&0x4) > 0 && (nodes[nodeId].numFaces > 0)) {
+                /*if (true) {
+                    this.currentNodeId = bspLeafList;
+                    this.currentGroupId = i;
+                    //return {nodeId : nodeId, node: nodes[nodeId]};
+                    return { groupId : i, nodeId : nodeId};
+                } */
+            }
         }
 
-        if (wmoGroupsInside == 1 && interiorGroups > 1) return lastWmoGroupInside;
+        var minDist = 99999;
+        var resObj = null;
+        for (var i = 0; i < candidateGroups.length; i++) {
+            var dist = candidateGroups[i].topBottom.topZ - candidateGroups[i].topBottom.bottomZ
+            if (dist < minDist) {
+                this.currentNodeId = bspLeafList;
+                this.currentGroupId = i;
+                resObj = { groupId : candidateGroups[i].groupId, nodeId : 0};
+            }
+        }
+        if (resObj != null){
+            return resObj;
+        }
+
+        //if (wmoGroupsInside == 1 && interiorGroups > 1) return lastWmoGroupInside;
         this.currentNodeId = -1;
         this.currentGroupId = -1;
 
@@ -748,11 +912,13 @@ class WmoObject {
             if (this.wmoGroupArray[i]){
                 if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
 
-                var bpsNode = null;
+                var bpsNodeList = null;
                 if (config.getRenderBSP()) {
-                    bpsNode = (this.currentGroupId == i) ? this.wmoGroupArray[i].wmoGroupFile.nodes[this.currentNodeId] : null;
+                    bpsNodeList = (this.currentGroupId == i) ?
+                        this.currentNodeId.map((x) => this.wmoGroupArray[i].wmoGroupFile.nodes[x])
+                        : null;
                 }
-                this.wmoGroupArray[i].draw(ambientColor, bpsNode);
+                this.wmoGroupArray[i].draw(ambientColor, bpsNodeList);
             }
         }
     }

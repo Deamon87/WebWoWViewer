@@ -158,6 +158,12 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 z: 170
             },
             {
+                name: 'Darkshire blacksmith',
+                source: 'http',
+                sceneType: 'wmo',
+                fileName: 'WORLD\\WMO\\AZEROTH\\BUILDINGS\\DUSKWOOD_BLACKSMITH\\DUSKWOOD_BLACKSMITH.WMO'
+            },
+            {
                 name: 'Gnome subway glass(Wotlk)',
                 source: 'http',
                 sceneType: 'm2',
@@ -192,7 +198,9 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 source: 'http',
                 sceneType: 'm2',
                 modelName: 'WORLD\\EXPANSION02\\DOODADS\\CRYSTALSONGFOREST\\BUBBLE\\CAMOUFLAGEBUBBLE_CRYSTALSONG.m2'
-            }
+            },
+
+
         ]
     };
 

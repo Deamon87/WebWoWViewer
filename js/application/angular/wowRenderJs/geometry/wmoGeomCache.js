@@ -118,7 +118,7 @@ class WmoGeom {
         }
     };
 
-    draw (ambientColor, bspNode){
+    draw (ambientColor, bspNodeList){
         var gl = this.gl;
         var shaderUniforms = this.sceneApi.shaders.getShaderUniforms();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
@@ -229,13 +229,19 @@ class WmoGeom {
             }
 
             /* Hack to skip verticles from node */
-            if (bspNode) {
+            if (bspNodeList) {
                 var currentTriangle = renderBatch.startIndex / 3;
                 var triangleCount = renderBatch.count / 3;
                 var finalTriangle = currentTriangle+triangleCount;
 
-                var mobrPiece = this.wmoGroupFile.mobr.slice(bspNode.firstFace, bspNode.firstFace+bspNode.numFaces-1);
-                mobrPiece = mobrPiece.sort(function (a,b) {return a < b ? -1 : 1})
+                var mobrPiece = [];
+                for (var k = 0; k < bspNodeList.length; k++) {
+                    mobrPiece = mobrPiece.concat(this.wmoGroupFile.mobr.slice(bspNodeList[k].firstFace, bspNodeList[k].firstFace+bspNodeList[k].numFaces-1));
+                }
+                mobrPiece = mobrPiece.sort(function (a,b) {return a < b ? -1 : 1}).filter(function(item, pos, ary) {
+                    return !pos || item != ary[pos - 1];
+                });
+
                 var mobrIndex = 0;
                 while (currentTriangle < finalTriangle) {
                     while (mobrPiece[mobrIndex] < currentTriangle) mobrIndex++;

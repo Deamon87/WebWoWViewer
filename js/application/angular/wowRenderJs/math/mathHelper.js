@@ -185,6 +185,38 @@ class MathHelper {
         }
     }
 
+    static calcZ(p1, p2, p3, x, y) {
+        var det = (p2[1] - p3[1]) * (p1[0] - p3[0]) + (p3[0] - p2[0]) * (p1[1] - p3[1]);
+
+        if (det > -0.001 && det < 0.001) {
+            return Math.min(p1[0], p2[0], p3[0]);
+        }
+
+        var l1 = ((p2[1] - p3[1]) * (x - p3[0]) + (p3[0] - p2[0]) * (y - p3[1])) / det;
+        var l2 = ((p3[1] - p1[1]) * (x - p3[0]) + (p1[0] - p3[0]) * (y - p3[1])) / det;
+        var l3 = 1.0 - l1 - l2;
+
+        return l1 * p1[2] + l2 * p2[2] + l3 * p3[2];
+    }
+    static getBarycentric( p, a, b, c) {
+        var v0 = vec3.create();
+        vec3.subtract(v0, b, a);
+        var v1 = vec3.create();
+        vec3.subtract(v1, c, a);
+        var v2 = vec3.create();
+        vec3.subtract(v2, p, a);
+
+        var d00 = vec3.dot(v0, v0);
+        var d01 = vec3.dot(v0, v1);
+        var d11 = vec3.dot(v1, v1);
+        var d20 = vec3.dot(v2, v0);
+        var d21 = vec3.dot(v2, v1);
+        var denom = d00 * d11 - d01 * d01;
+        var v = (d11 * d20 - d01 * d21) / denom;
+        var w = (d00 * d21 - d01 * d20) / denom;
+        var u = 1.0 - v - w;
+        return vec3.fromValues(u, v, w)
+    }
     static checkFrustum (planes, box, num_planes) {
       // check box outside/inside of frustum
         for(var i=0; i< num_planes; i++ )
