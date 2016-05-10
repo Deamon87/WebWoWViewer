@@ -236,6 +236,7 @@ class WmoObject {
         for (var i = 0; i < this.wmoGroupArray.length; i++) {
             if (!this.wmoGroupArray[i]) continue;
             var bbArray = this.volumeWorldGroupBorders[i];
+
             var groupInfo = this.wmoObj.groupInfos[i];
 
             //1. Check if group wmo is interior wmo
@@ -270,8 +271,8 @@ class WmoObject {
             */
 
             if (isInsidePortals) {
-                var cameraBBMin = vec3.fromValues(cameraLocal[0]-0.2, cameraLocal[1]-0.2, bbArray[0][2]);
-                var cameraBBMax = vec3.fromValues(cameraLocal[0]+0.2, cameraLocal[1]+0.2, bbArray[1][2]);
+                var cameraBBMin = vec3.fromValues(cameraLocal[0]-0.2, cameraLocal[1]-0.2, groupInfo.bb1.z);
+                var cameraBBMax = vec3.fromValues(cameraLocal[0]+0.2, cameraLocal[1]+0.2, groupInfo.bb2.z);
 
 
                 var nodeId = 0;
@@ -285,7 +286,7 @@ class WmoObject {
 
                 if (cameraLocal[2] < topBottom.bottomZ) continue;
                 if (cameraLocal[2] > topBottom.topZ) continue;
-/*
+
                 while (nodeId >=0 && ((nodes[nodeId].planeType&0x4) == 0)){
                     var prevNodeId = nodeId;
                     if ((nodes[nodeId].planeType == 0)) {
@@ -308,9 +309,9 @@ class WmoObject {
                         }
                     }
                 }
-                */
 
-                candidateGroups.push({'topBottom' : topBottom, groupId : i, bspList : bspLeafList});
+
+                candidateGroups.push({'topBottom' : topBottom, groupId : i, bspList : bspLeafList, nodeId: nodeId});
 
                 //if (nodeId != -1 && (nodes[nodeId].planeType&0x4) > 0 && (nodes[nodeId].numFaces > 0)) {
                 /*if (true) {
@@ -329,7 +330,7 @@ class WmoObject {
             if (dist < minDist) {
                 this.currentNodeId = bspLeafList;
                 this.currentGroupId = i;
-                resObj = { groupId : candidateGroups[i].groupId, nodeId : 0};
+                resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId};
             }
         }
         if (resObj != null){
