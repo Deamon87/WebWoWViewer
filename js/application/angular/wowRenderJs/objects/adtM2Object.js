@@ -146,7 +146,7 @@ class AdtM2Object extends MDXObject {
     setIsRendered (value) {
        //if (value === undefined) return;
 
-        this.isRendered = value;
+        this.isRendered = true;
     }
     getIsRendered () {
         return this.isRendered;

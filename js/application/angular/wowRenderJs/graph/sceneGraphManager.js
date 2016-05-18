@@ -5,6 +5,7 @@ import wmoM2ObjectFactory from './../objects/wmoM2ObjectFactory.js';
 import wmoObjectFactory from './../objects/wmoObjectFactory.js';
 
 import mathHelper from './../math/mathHelper.js';
+import PortalCullingAlgo from './../math/portalCullingAlgo.js';
 
 import config from './../../services/config.js';
 
@@ -81,6 +82,7 @@ class GraphManager {
         this.currentTime = 0;
         this.lastTimeSort = 0;
         this.globalM2Counter = 0;
+        this.portalCullingAlgo = new PortalCullingAlgo()
     }
 
     addAdtM2Object(doodad) {
@@ -183,8 +185,7 @@ class GraphManager {
             var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
 
             //Travel through portals
-            this.currentWMO.startTraversingFromInteriorWMO(this.currentInteriorGroup, this.position, frustumMat, lookAtMat4, frustumPlanes);
-            //this.currentWMO.transverseExteriorWMO(frustumMat, lookAtMat4)
+            this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroup, this.position, frustumMat, lookAtMat4, frustumPlanes);
 
         } else {
             this.checkNormalFrustumCulling(frustumMat, lookAtMat4)
@@ -201,9 +202,13 @@ class GraphManager {
         /* Checking group wmo will significatly decrease the amount of m2wmo */
         for (var i = 0; i < this.wmoObjects.length; i++) {
             this.wmoObjects[i].resetDrawnForAllGroups(true);
-            this.wmoObjects[i].checkFrustumCulling(this.position, frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
-            if(!config.getUsePortalCulling() && this.wmoObjects[i].hasPortals()){
+            if (config.getUsePortalCulling() && this.wmoObjects[i].hasPortals()) {
+
+                this.portalCullingAlgo.startTraversingFromExterior(this.wmoObjects[i], this.position, frustumMat, lookAtMat4, frustumPlanes);
                 this.wmoObjects[i].setIsRenderedForDoodads();
+
+            } else {
+                this.wmoObjects[i].checkFrustumCulling(this.position, frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
             }
         }
 
@@ -372,7 +377,7 @@ class GraphManager {
             if (interiorGroupNum >= 0) {
                 this.currentWMO = this.wmoObjects[i];
                 this.currentInteriorGroup = interiorGroupNum;
-                bspNodeId = result.nodeId
+                bspNodeId = result.nodeId;
                 break;
             }
         }
