@@ -14,6 +14,12 @@ export default class PortalCullingAlgo {
         for (var i=0; i< traverseDoodadsVis.length; i++) {
             traverseDoodadsVis[i] = false;
         }
+        var checkedDoodadsVis = new Array(wmoObject.doodadsArray.length);
+        for (var i = 0; i< checkedDoodadsVis.length; i++) {
+            checkedDoodadsVis[i] = 99;
+        }
+
+
         var transverseVisitedGroups = new Array(wmoObject.wmoGroupArray.length);
         for (var i = 0; i < transverseVisitedGroups.length; i++) {
             transverseVisitedGroups[i] = false;
@@ -25,6 +31,7 @@ export default class PortalCullingAlgo {
         }
 
         this.traverseDoodadsVis = traverseDoodadsVis;
+        this.checkedDoodadsVis = checkedDoodadsVis;
         this.transverseVisitedGroups = transverseVisitedGroups;
         this.transverseVisitedPortals = transverseVisitedPortals;
 
@@ -120,7 +127,7 @@ export default class PortalCullingAlgo {
             traverseNextCallback(portalInfo, relation, thisPortalVerticesCopy)
         }
     }
-    checkGroupDoodads(wmoObject, groupId, cameraVec4, frustumPlanes){
+    checkGroupDoodads(wmoObject, groupId, cameraVec4, frustumPlanes, level){
         if (wmoObject.wmoGroupArray[groupId]) {
             var doodadRefs = wmoObject.wmoGroupArray[groupId].wmoGroupFile.doodadRefs;
             var doodadsSet = wmoObject.currentDoodadSet;
@@ -134,6 +141,12 @@ export default class PortalCullingAlgo {
                     ) continue;
 
                     var doodadWmoIndex = doodadIndex - doodadsSet.index;
+                    if ((this.checkedDoodadsVis[doodadWmoIndex] < level)){
+                        continue;
+                    } else {
+                        this.checkedDoodadsVis[doodadWmoIndex] = level;
+                    }
+
                     var mdxObject = wmoObject.doodadsArray[doodadWmoIndex];
                     //if (mdxObject.getIsRendered()) {
                     var currVis = this.traverseDoodadsVis[doodadWmoIndex];
@@ -157,19 +170,23 @@ export default class PortalCullingAlgo {
         this.transverseVisitedGroups[groupId] = true;
 
         //1. Check visible wmo doodads against frustum
-        this.checkGroupDoodads(wmoObject, groupId, cameraVec4, frustumPlanes);
+        this.checkGroupDoodads(wmoObject, groupId, cameraVec4, frustumPlanes, level);
 
         this.traverseGroupPortals(wmoObject, groupId, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level,
             function(portalInfo, relation, portalVertices){
                 var lastFrustumPlanesLen = frustumPlanes.length;
 
-                frustumPlanes.push(vec4.fromValues(portalInfo.plane.x, portalInfo.plane.y, portalInfo.plane.z, portalInfo.plane.w));
+                //;
                 if (portalInfo.index_count = 4) {
 
                     var thisPortalPlanes = [];
-
-                    //var flip = vec3.dot(eyeMinusPortalVert, [portalInfo.plane.x, portalInfo.plane.y, portalInfo.plane.z]) < 0;
                     var flip = (relation.side < 0);
+
+                    var nearPlane = vec4.fromValues(portalInfo.plane.x, portalInfo.plane.y, portalInfo.plane.z, portalInfo.plane.w)
+                    if (flip) {
+                        vec4.scale(nearPlane, nearPlane, -1)
+                    }
+                    thisPortalPlanes.push(nearPlane);
                     for (var i = 0; i < portalVertices.length; ++i) {
                         var i2 = (i + 1) % portalVertices.length;
 
@@ -200,7 +217,7 @@ export default class PortalCullingAlgo {
         this.transverseVisitedGroups[groupId] = true;
 
         //1. Check visible wmo doodads against frustum
-        this.checkGroupDoodads(wmoObject, groupId, cameraVec4, frustumPlanes);
+        this.checkGroupDoodads(wmoObject, groupId, cameraVec4, frustumPlanes, level);
 
         this.traverseGroupPortals(wmoObject, groupId, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level,
             function(portalInfo, relation, portalVertices){

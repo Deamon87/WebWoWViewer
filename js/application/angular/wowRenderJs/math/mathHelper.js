@@ -52,8 +52,8 @@ class MathHelper {
 
         for ( var i=0; i< planes.length; i++ ) {
             var out = 0;
-            var epsilon = 0;
-            if (i == 5) epsilon = 1; //mitigation for near clipping plane
+            var epsilon = 0
+            //if (i == 5) epsilon = 1; //mitigation for near clipping plane
 
             for( var j = 0; j<points.length; j++) {
                 out += ((vec4.dot(planes[i], vec4Points[j]) + epsilon < 0.0 ) ? 1 : 0);

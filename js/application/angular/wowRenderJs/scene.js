@@ -914,38 +914,35 @@ class Scene {
         var secondLookAtMat = [];
         mat4.lookAt(secondLookAtMat, this.secondCamera, this.secondCameraLookAt, [0,0,1]);
 
-        var perspectiveMatrix = [];
+        var perspectiveMatrix = mat4.create();
         mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000);
+        var perspectiveMatrixForCulling = mat4.create();
+        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, 0, 1000);
         //mat4.ortho(perspectiveMatrix, -100, 100, -100, 100, -100, 100);
 
+        this.perspectiveMatrix = perspectiveMatrix;
+        if (!this.isShadersLoaded) return;
 
-        this.graphManager.checkCulling(perspectiveMatrix, lookAtMat4);
+        this.graphManager.setCameraPos(
+            vec4.fromValues(
+                this.mainCamera[0],
+                this.mainCamera[1],
+                this.mainCamera[2],
+                1
+            )
+        );
+
         //Matrixes from previous frame
         if (this.perspectiveMatrix && this.lookAtMat4) {
             //this.graphManager.checkAgainstDepthBuffer(this.perspectiveMatrix, this.lookAtMat4, this.floatDepthBuffer, this.canvas.width, this.canvas.height);
         }
 
-        this.perspectiveMatrix = perspectiveMatrix;
-        /*
-        if (cameraVecs.staticCamera) {
-            this.lookAtMat4 = staticLookAtMat;
-        } else {
-            this.lookAtMat4 = lookAtMat4;
-        }
-        */
-
-        if (!this.isShadersLoaded) return;
-
-        this.graphManager.setCameraPos(
-            vec4.fromValues(
-                cameraVecs.cameraVec3[0],
-                cameraVecs.cameraVec3[1],
-                cameraVecs.cameraVec3[2],
-                1
-            )
-        );
         this.graphManager.setLookAtMat(lookAtMat4);
+
         var updateRes = this.graphManager.update(deltaTime);
+        this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4);
+
+
 
         //Draw static camera
         /*

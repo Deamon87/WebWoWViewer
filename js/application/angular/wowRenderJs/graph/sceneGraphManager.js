@@ -188,6 +188,9 @@ class GraphManager {
             this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroup, this.position, frustumMat, lookAtMat4, frustumPlanes);
 
         } else {
+            for (var j = 0; j < this.m2Objects.length; j++) {
+                this.m2Objects[j].setIsRendered(true);
+            }
             this.checkNormalFrustumCulling(frustumMat, lookAtMat4)
         }
 
@@ -205,10 +208,10 @@ class GraphManager {
             if (config.getUsePortalCulling() && this.wmoObjects[i].hasPortals()) {
 
                 this.portalCullingAlgo.startTraversingFromExterior(this.wmoObjects[i], this.position, frustumMat, lookAtMat4, frustumPlanes);
-                this.wmoObjects[i].setIsRenderedForDoodads();
-
+                //this.wmoObjects[i].setIsRenderedForDoodads();
             } else {
                 this.wmoObjects[i].checkFrustumCulling(this.position, frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
+                this.wmoObjects[i].setIsRenderedForDoodads();
             }
         }
 

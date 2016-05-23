@@ -9,6 +9,8 @@ export default function initCamera(canvas, document) {
     var mleft_pressed = 0;
     var m_x = 0, m_y = 0;
     var ah = 0, av = 0;
+    var _document = document;
+    _document.cameraSpeed = 0.02;
 
     function keyDown(event) {
         var key = String.fromCharCode(event.keyCode || event.charCode);
@@ -151,7 +153,7 @@ export default function initCamera(canvas, document) {
     return {
         tick: function (timeDelta) {
             var dir = [1, 0, 0];
-            var moveSpeed = 0.02;
+            var moveSpeed = _document.cameraSpeed;
 
             var dTime = timeDelta;
 

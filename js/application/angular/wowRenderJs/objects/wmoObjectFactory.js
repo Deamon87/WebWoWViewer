@@ -196,7 +196,7 @@ class WmoObject {
                 /*if (testPassed && cameraLocal[2] < vert1[2] || cameraLocal[2] < vert2[2] || cameraLocal[2] < vert3[2]){
                     debugger;
                 } */
-                if (bary[0] < -0.001 || bary[1] < -0.001 || bary[2] < -0.001) continue;
+                if ((bary[0] < 0) || (bary[1] < 0) || (bary[2] < 0)) continue;
 
                 var normal_avg = bary[0]*normal1[2]+bary[1]*normal2[2]+bary[2]*normal3[2];
                 if (normal_avg > 0) {
