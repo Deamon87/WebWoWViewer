@@ -407,6 +407,9 @@ class Scene {
     initSceneApi () {
         var self = this;
         this.sceneApi = {
+            drawCamera : function () {
+                return self.drawCamera();
+            },
             getGlContext: function () {
                 return self.gl;
             },
@@ -468,7 +471,6 @@ class Scene {
                 getShaderAttributes: function () {
                     return self.currentShaderProgram.shaderAttributes;
                 }
-
             },
 
             objects : {
@@ -878,6 +880,25 @@ class Scene {
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
+    drawCamera () {
+        var gl = this.gl;
+        var uniforms = this.currentShaderProgram.shaderUniforms;
+
+        gl.disable(gl.DEPTH_TEST);
+        var matIdent = mat4.create();
+        mat4.identity(matIdent);
+        gl.uniformMatrix4fv(uniforms.uPlacementMat, false, matIdent);
+
+
+        var invViewFrustum = mat4.create();
+        mat4.invert(invViewFrustum, this.viewCameraForRender);
+
+
+        gl.uniformMatrix4fv(uniforms.uInverseViewProjection, false, new Float32Array(invViewFrustum));
+
+        gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
+        gl.enable(gl.DEPTH_TEST);
+    }
     draw (deltaTime) {
         var gl = this.gl;
         if (!this.depthBuffer) {
@@ -916,11 +937,21 @@ class Scene {
 
         var perspectiveMatrix = mat4.create();
         mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000);
+
         var perspectiveMatrixForCulling = mat4.create();
         mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, 0, 1000);
         //mat4.ortho(perspectiveMatrix, -100, 100, -100, 100, -100, 100);
 
+        //Camera for rendering
+        var perspectiveMatrixForCameraRender = mat4.create();
+        mat4.perspective(perspectiveMatrixForCameraRender, 45.0, this.canvas.width / this.canvas.height, 1, 30);
+
+        var viewCameraForRender = mat4.create();
+        mat4.multiply(viewCameraForRender, perspectiveMatrixForCameraRender,lookAtMat4)
+        //
+
         this.perspectiveMatrix = perspectiveMatrix;
+        this.viewCameraForRender = viewCameraForRender;
         if (!this.isShadersLoaded) return;
 
         this.graphManager.setCameraPos(
@@ -942,11 +973,8 @@ class Scene {
         var updateRes = this.graphManager.update(deltaTime);
         this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4);
 
-
-
         //Draw static camera
-        /*
-        this.lookAtMat4 = secondLookAtMat;
+        /*this.lookAtMat4 = secondLookAtMat;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 
         this.glClearScreen(gl);
@@ -960,8 +988,8 @@ class Scene {
         this.glClearScreen(gl);
         this.activateRenderFrameShader();
         this.drawFrameBuffer();
+          */
 
-*/
 
         //Render real camera
         this.lookAtMat4 = lookAtMat4;
@@ -972,6 +1000,7 @@ class Scene {
         gl.depthMask(true);
         this.graphManager.draw();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
 
         this.glClearScreen(gl);
         this.activateRenderFrameShader();

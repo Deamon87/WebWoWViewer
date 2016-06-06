@@ -389,116 +389,138 @@ class GraphManager {
         return {interiorGroupNum: interiorGroupNum, nodeId: bspNodeId};
     }
     draw() {
-        //1. Draw ADT
-        this.sceneApi.shaders.activateAdtShader();
-        for (var i = 0; i < this.adtObjects.length; i++) {
-            this.adtObjects[i].draw();
-        }
+        if (this.currentWMO && config.getUsePortalCulling()) {
+            this.currentWMO.drawPortalBased(true);
 
-        //2.0. Draw WMO bsp highlighted vertices
-        if (config.getRenderBSP()) {
-            this.sceneApi.shaders.activateDrawPortalShader();
+
+            if (this.currentWMO.exteriorPortals.length > 0) {
+                //1. Draw ADT
+                this.sceneApi.shaders.activateAdtShader();
+                for (var i = 0; i < this.adtObjects.length; i++) {
+                    this.adtObjects[i].draw();
+                }
+            }
+
+
+        } else {
+
+            //1. Draw ADT
+            this.sceneApi.shaders.activateAdtShader();
+            for (var i = 0; i < this.adtObjects.length; i++) {
+                this.adtObjects[i].draw();
+            }
+
+            //2.0. Draw WMO bsp highlighted vertices
+            if (config.getRenderBSP()) {
+                this.sceneApi.shaders.activateDrawPortalShader();
+                for (var i = 0; i < this.wmoObjects.length; i++) {
+                    this.wmoObjects[i].drawBspVerticles();
+                }
+            }
+
+            //2. Draw WMO
+            this.sceneApi.shaders.activateWMOShader();
             for (var i = 0; i < this.wmoObjects.length; i++) {
-                this.wmoObjects[i].drawBspVerticles();
+                this.wmoObjects[i].draw();
             }
-        }
-
-        //2. Draw WMO
-        this.sceneApi.shaders.activateWMOShader();
-        for (var i = 0; i < this.wmoObjects.length; i++) {
-            this.wmoObjects[i].draw();
-        }
-        this.sceneApi.shaders.deactivateWMOShader();
+            this.sceneApi.shaders.deactivateWMOShader();
 
 
-        //3. Draw background WDL
+            //3. Draw background WDL
 
-        //4. Draw skydom
-        if (this.skyDom) {
-            this.skyDom.draw();
-        }
-
-
-        //5. Draw nontransparent meshes of m2
-        if (config.getRenderM2()) {
-            this.sceneApi.shaders.activateM2Shader();
-            for (var i = 0; i < this.m2Objects.length; i++) {
-                if (this.m2Objects[i].instanceManager) continue;
-                if (!this.m2Objects[i].getIsRendered()) continue;
-                if (!this.m2Objects[i].aabb) continue;
-
-                this.m2Objects[i].drawNonTransparentMeshes();
+            //4. Draw skydom
+            if (this.skyDom) {
+                this.skyDom.draw();
             }
-            this.sceneApi.shaders.deactivateM2Shader();
-        }
 
-        //6. Draw WMO portals
-        if (config.getRenderPortals()) {
-            this.sceneApi.shaders.activateDrawPortalShader();
-            for (var i = 0; i < this.wmoObjects.length; i++) {
-                this.wmoObjects[i].drawPortals();
+
+            //5. Draw nontransparent meshes of m2
+            if (config.getRenderM2()) {
+                this.sceneApi.shaders.activateM2Shader();
+                for (var i = 0; i < this.m2Objects.length; i++) {
+                    if (this.m2Objects[i].instanceManager) continue;
+                    if (!this.m2Objects[i].getIsRendered()) continue;
+                    if (!this.m2Objects[i].aabb) continue;
+
+                    this.m2Objects[i].drawNonTransparentMeshes();
+                }
+                this.sceneApi.shaders.deactivateM2Shader();
             }
-        }
+
+            //6. Draw WMO portals
+            if (config.getRenderPortals()) {
+                this.sceneApi.shaders.activateDrawPortalShader();
+                for (var i = 0; i < this.wmoObjects.length; i++) {
+                    this.wmoObjects[i].drawPortals();
+                }
+            }
 
 
-        /*
-         //5.1 Draw instanced nontransparent meshes of m2
-         this.sceneApi.shaders.activateM2InstancingShader();
-         for (var fileIdent in this.instanceList) {
+            /*
+             //5.1 Draw instanced nontransparent meshes of m2
+             this.sceneApi.shaders.activateM2InstancingShader();
+             for (var fileIdent in this.instanceList) {
              var instanceManager = this.instanceList[fileIdent];
              instanceManager.drawInstancedNonTransparentMeshes();
              }
-         this.sceneApi.shaders.deactivateM2InstancingShader();
+             this.sceneApi.shaders.deactivateM2InstancingShader();
 
-         //6.1 Draw transparent meshes of m2
-         this.sceneApi.shaders.activateM2InstancingShader();
-         for (var fileIdent in this.instanceList) {
+             //6.1 Draw transparent meshes of m2
+             this.sceneApi.shaders.activateM2InstancingShader();
+             for (var fileIdent in this.instanceList) {
              var instanceManager = this.instanceList[fileIdent];
              instanceManager.drawInstancedTransparentMeshes();
-         }
-         this.sceneApi.shaders.deactivateM2InstancingShader();
-         */
+             }
+             this.sceneApi.shaders.deactivateM2InstancingShader();
+             */
 
-        //6. Draw transparent meshes of m2
-        if (config.getRenderM2()) {
-            this.sceneApi.shaders.activateM2Shader();
-            for (var i = 0; i < this.m2Objects.length; i++) {
-                if (this.m2Objects[i].instanceManager) continue;
-                if (!this.m2Objects[i].getIsRendered()) continue;
-                if (!this.m2Objects[i].aabb) continue;
+            //6. Draw transparent meshes of m2
+            if (config.getRenderM2()) {
+                this.sceneApi.shaders.activateM2Shader();
+                for (var i = 0; i < this.m2Objects.length; i++) {
+                    if (this.m2Objects[i].instanceManager) continue;
+                    if (!this.m2Objects[i].getIsRendered()) continue;
+                    if (!this.m2Objects[i].aabb) continue;
 
-                this.m2Objects[i].drawTransparentMeshes();
+                    this.m2Objects[i].drawTransparentMeshes();
+                }
+                this.sceneApi.shaders.deactivateM2Shader();
             }
-            this.sceneApi.shaders.deactivateM2Shader();
-        }
 
 
-        //7. Draw BBs
-        this.sceneApi.shaders.activateBoundingBoxShader();
-        //7.1 Draw M2 BBs
-        if (config.getDrawM2BB()) {
-            for (var i = 0; i < this.m2Objects.length; i++) {
-                if (!this.m2Objects[i].getIsRendered()) continue;
+            //7. Draw BBs
+            this.sceneApi.shaders.activateBoundingBoxShader();
+            //7.1 Draw M2 BBs
+            if (config.getDrawM2BB()) {
+                for (var i = 0; i < this.m2Objects.length; i++) {
+                    if (!this.m2Objects[i].getIsRendered()) continue;
 
-                this.m2Objects[i].drawBB();
+                    this.m2Objects[i].drawBB();
+                }
             }
-        }
 
 
-        //7.1 Draw WMO BBs
-        if (config.getDrawWmoBB()) {
-            for (var i = 0; i < this.wmoObjects.length; i++) {
-                this.wmoObjects[i].drawBB();
+            //7.1 Draw WMO BBs
+            if (config.getDrawWmoBB()) {
+                for (var i = 0; i < this.wmoObjects.length; i++) {
+                    this.wmoObjects[i].drawBB();
+                }
             }
+
+            /*
+             this.sceneApi.shaders.activateFrustumBoxShader();
+             //Draw Wmo portal frustums
+             for (var i = 0; i < this.wmoObjects.length; i++) {
+             this.wmoObjects[i].drawPortalFrustumsBB();
+             }
+             */
+
+            this.sceneApi.shaders.activateFrustumBoxShader();
+            //Draw Wmo portal frustums
+            this.sceneApi.drawCamera()
         }
 
-        /*
-        this.sceneApi.shaders.activateFrustumBoxShader();
-        //Draw Wmo portal frustums
-        for (var i = 0; i < this.wmoObjects.length; i++) {
-            this.wmoObjects[i].drawPortalFrustumsBB();
-        }
-        */
+
 
     }
 }

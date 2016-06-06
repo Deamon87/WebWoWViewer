@@ -13,6 +13,12 @@ class WmoObject {
         self.doodadsArray = [];
         self.drawGroup = [];
         self.drawDoodads = [];
+        //Portal culling variables
+        self.drawExterior = false;
+        self.exteriorPortals = [];
+
+
+        self.groupDoodads = [];
     }
     getFileNameIdent () {
         return this.fileName;
@@ -211,7 +217,6 @@ class WmoObject {
         }
         return {'topZ' : topZ, 'bottomZ' : bottomZ};
     }
-
     isInsideInterior (cameraVec4) {
         if (!this.wmoGroupArray || this.wmoGroupArray.length ==0) return -1;
 
@@ -485,6 +490,8 @@ class WmoObject {
             self.wmoObj = wmoObj;
             self.wmoGroupArray = new Array(wmoObj.nGroups);
 
+            self.groupDoodads = new Array(wmoObj.nGroups);
+
             self.createPortalsVBO();
             self.createWorldPortalVerticies();
 
@@ -511,6 +518,7 @@ class WmoObject {
             //credits to schlumpf for idea
             $q.all(groupPromises.concat([m2_loaded_promise])).then(function success(){
                 self.updateWorldGroupBBWithM2();
+
             }, function error(){
             });
 
@@ -598,6 +606,9 @@ class WmoObject {
         gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
         gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indiciesArray), gl.STATIC_DRAW);
         gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null);
+    }
+    createGroupDoodadsArrays() {
+
     }
     createWorldPortalVerticies () {
         //
@@ -689,6 +700,69 @@ class WmoObject {
                         : null;
                 }
                 this.wmoGroupArray[i].draw(ambientColor, bpsNodeList);
+            }
+        }
+    }
+    drawPortalBased(fromInteriorGroup) {
+        /* Draw */
+        var gl = this.sceneApi.getGlContext();
+        var sceneApi = this.sceneApi;
+        var uniforms = this.sceneApi.shaders.getShaderUniforms();
+
+        if (!this.wmoObj) return;
+
+        if (this.placementMatrix) {
+            gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
+        }
+
+        var ambientColor = [this.wmoObj.ambColor&0xff, (this.wmoObj.ambColor>> 8)&0xff,
+            (this.wmoObj.ambColor>>16)&0xff, (this.wmoObj.ambColor>> 24)&0xff];
+        ambientColor[0] /= 255.0; ambientColor[1] /= 255.0;
+        ambientColor[2] /= 255.0; ambientColor[3] /= 255.0;
+
+
+        if (fromInteriorGroup) {
+
+            this.sceneApi.shaders.activateWMOShader();
+            //1. Draw wmos
+            for (var i = 0; i < this.interiorPortals.length; i++){
+                var groupId = this.interiorPortals[i].groupId;
+                var portalIndex = this.interiorPortals[i].portalIndex;
+
+                if (this.wmoGroupArray[groupId]) {
+                    this.wmoGroupArray[groupId].draw();
+                }
+            }
+            //Draw exterior
+            if (this.exteriorPortals.length > 0) {
+                for (var i = 0; i< this.wmoGroupArray.length; i++) {
+                    if ((this.wmoObj.groupInfos[i].flags & 0x8) > 0) { //exterior
+                        if (this.drawGroup[i]) {
+                            this.wmoGroupArray[i].draw();
+                        }
+                    }
+                }
+            }
+
+
+            this.sceneApi.shaders.deactivateWMOShader();
+
+
+        } else {
+            for (var i = 0; i < this.wmoGroupArray.length; i++){
+                if (this.wmoGroupArray[i]){
+                    if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
+
+                    var bpsNodeList = null;
+                    if (config.getRenderBSP()) {
+                        bpsNodeList = (this.currentGroupId == i) ?
+                            this.currentNodeId.map((x) => this.wmoGroupArray[i].wmoGroupFile.nodes[x])
+                            : null;
+                    }
+                    this.wmoGroupArray[i].draw(ambientColor, bpsNodeList);
+
+
+                }
             }
         }
     }
@@ -789,6 +863,33 @@ class WmoObject {
             gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
         }
         gl.enable(gl.DEPTH_TEST);
+    }
+    drawGroupM2Objects(groupId, isDrawnM2) {
+        var groupInfo = this.wmoObj.groupInfos[groupId];
+        var doodadsSet = this.currentDoodadSet;
+
+        if (doodadsSet && this.wmoGroupArray[index]) {
+            var doodadRefs = this.wmoGroupArray[index].wmoGroupFile.doodadRefs;
+
+            if (doodadRefs) {
+                for (var i = 0; i < doodadRefs.length; i++) {
+                    var doodadIndex = doodadRefs[i];
+
+                    if (isDrawnM2[doodadIndex]) continue;
+                    if (
+                        (doodadIndex - doodadsSet.index < 0) ||
+                        (doodadIndex > doodadsSet.index + doodadsSet.number - 1)
+                    ) continue;
+
+                    var mdxObject = this.doodadsArray[doodadIndex - doodadsSet.index];
+                    //mdxObject.setIsRendered(mdxObject.getIsRendered() || doDraw);
+                    if (mdxObject && mdxObject.getIsRendered()){
+                        mdxObject.draw();
+                        isDrawnM2[doodadIndex] = true;
+                    }
+                }
+            }
+        }
     }
     drawBspVerticles () {
         if (!this.wmoObj) return;
