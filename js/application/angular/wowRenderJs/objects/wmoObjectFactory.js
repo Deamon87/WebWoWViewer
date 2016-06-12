@@ -48,7 +48,7 @@ class WmoObject {
                         var mdxObject = this.doodadsArray[doodadIndex - doodadsSet.index];
                         //1. Update the mdx
                         //If at least one exterior WMO group reference the doodad - do not use the diffuse lightning from modd chunk
-                        if ((this.wmoObj.groupInfos[i].flags & 0x8) > 0) {
+                        if (((this.wmoObj.groupInfos[i].flags & 0x40) > 0) || ((this.wmoObj.groupInfos[i].flags & 0x8) > 0)) {
                             mdxObject.setUseLocalLighting(false);
                         }
 
@@ -385,7 +385,7 @@ class WmoObject {
             cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
         );
 
-        var drawDoodads = isInside || mathHelper.checkFrustum(frustumPlanes,bbArray);
+        var drawDoodads = isInside || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length);
 
         var bbArray = this.volumeWorldGroupBorders[groupId];
         var isInside = (
@@ -394,11 +394,11 @@ class WmoObject {
             cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
         );
 
-        var drawGroup = isInside || mathHelper.checkFrustum(frustumPlanes,bbArray);
+        var drawGroup = isInside || mathHelper.checkFrustum(frustumPlanes,bbArray, frustumPlanes.length);
         return [drawDoodads, drawGroup];
     }
     checkFrustumCulling (cameraVec4, perspectiveMat, lookat, frustumPlanes) {
-        if (!this.worldGroupBorders) return;
+        if (!this.volumeWorldGroupBorders) return;
             //1. Set Doodads drawing to false. Doodad should be rendered if at least one WMO Group it belongs is visible(rendered)
             //It's so, because two group wmo can reference same doodad
             for ( var i = 0; i < this.doodadsArray.length; i++) {
@@ -707,13 +707,9 @@ class WmoObject {
         /* Draw */
         var gl = this.sceneApi.getGlContext();
         var sceneApi = this.sceneApi;
-        var uniforms = this.sceneApi.shaders.getShaderUniforms();
+
 
         if (!this.wmoObj) return;
-
-        if (this.placementMatrix) {
-            gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
-        }
 
         var ambientColor = [this.wmoObj.ambColor&0xff, (this.wmoObj.ambColor>> 8)&0xff,
             (this.wmoObj.ambColor>>16)&0xff, (this.wmoObj.ambColor>> 24)&0xff];
@@ -724,6 +720,11 @@ class WmoObject {
         if (fromInteriorGroup) {
 
             this.sceneApi.shaders.activateWMOShader();
+            var uniforms = this.sceneApi.shaders.getShaderUniforms();
+            if (this.placementMatrix) {
+                gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
+            }
+
             //1. Draw wmos
             for (var i = 0; i < this.interiorPortals.length; i++){
                 var groupId = this.interiorPortals[i].groupId;
@@ -749,6 +750,12 @@ class WmoObject {
 
 
         } else {
+            this.sceneApi.shaders.activateWMOShader();
+
+            var uniforms = this.sceneApi.shaders.getShaderUniforms();
+            if (this.placementMatrix) {
+                gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
+            }
             for (var i = 0; i < this.wmoGroupArray.length; i++){
                 if (this.wmoGroupArray[i]){
                     if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
@@ -760,10 +767,10 @@ class WmoObject {
                             : null;
                     }
                     this.wmoGroupArray[i].draw(ambientColor, bpsNodeList);
-
-
                 }
             }
+
+            this.sceneApi.shaders.deactivateWMOShader();
         }
     }
     drawBB () {

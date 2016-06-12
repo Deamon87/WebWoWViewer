@@ -76,6 +76,11 @@ export default class PortalCullingAlgo {
         for (var i=0; i< traverseDoodadsVis.length; i++) {
             traverseDoodadsVis[i] = false;
         }
+        var checkedDoodadsVis = new Array(wmoObject.doodadsArray.length);
+        for (var i = 0; i< checkedDoodadsVis.length; i++) {
+            checkedDoodadsVis[i] = 99;
+        }
+
         var transverseVisitedGroups = new Array(wmoObject.wmoGroupArray.length);
         for (var i = 0; i < transverseVisitedGroups.length; i++) {
             transverseVisitedGroups[i] = false;
@@ -86,6 +91,7 @@ export default class PortalCullingAlgo {
         }
 
         this.traverseDoodadsVis = traverseDoodadsVis;
+        this.checkedDoodadsVis = checkedDoodadsVis;
         this.transverseVisitedGroups = transverseVisitedGroups;
         this.transverseVisitedPortals = transverseVisitedPortals;
 
@@ -168,11 +174,12 @@ export default class PortalCullingAlgo {
             var relation = wmoObject.wmoObj.portalRelations[j];
             var portalInfo = wmoObject.wmoObj.portalInfos[relation.portal_index];
 
-            //Skip portals we already visited
-            if (this.transverseVisitedPortals[relation.portal_index]) continue;
-
             var nextGroup = relation.group_index;
             var plane = portalInfo.plane;
+
+            //Skip portals we already visited
+            if (this.transverseVisitedPortals[relation.portal_index]) continue;
+            if (!fromInterior && (wmoObject.wmoObj.groupInfos[nextGroup].flags & 0x2000) == 0) continue;
 
             var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal));
             dotResult = dotResult + relation.side * 0.01;

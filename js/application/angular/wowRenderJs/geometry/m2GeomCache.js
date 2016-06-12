@@ -7,6 +7,7 @@ class M2Geom {
         this.sceneApi = sceneApi;
         this.gl = sceneApi.getGlContext();
         this.combinedVBO = null;
+        this.vao = null;
         this.textureArray = []
     }
 
@@ -40,6 +41,24 @@ class M2Geom {
 
         /* Index is taken from skin object */
     }
+    createVAO(skinObject){
+        var gl = this.gl;
+        var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+        var vao_ext = this.sceneApi.extensions.getVaoExt();
+
+        if (vao_ext) {
+            var vao = vao_ext.createVertexArrayOES();
+            vao_ext.bindVertexArrayOES(vao);
+
+            this.sceneApi.shaders.activateM2Shader();
+            this.sceneApi.shaders.activateM2ShaderAttribs();
+            this.setupAttributes(skinObject);
+            vao_ext.bindVertexArrayOES(null);
+            this.sceneApi.shaders.deactivateM2Shader();
+
+            this.vao = vao;
+        }
+    }
 
     setupPlacementAttribute(placementVBO) {
         var gl = this.gl;
@@ -59,8 +78,8 @@ class M2Geom {
         var gl = this.gl;
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexVBO);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
         //gl.vertexAttrib4f(shaderAttributes.aColor, 0.5, 0.5, 0.5, 0.5);
 
         /*
@@ -97,22 +116,37 @@ class M2Geom {
         }
     }
 
+    bindVao() {
+        var vaoExt = this.sceneApi.extensions.getVaoExt();
+        if (this.vao && vaoExt) {
+            vaoExt.bindVertexArrayOES(this.vao);
+            return true
+        }
+        return false
+    }
+    unbindVao() {
+        var vaoExt = this.sceneApi.extensions.getVaoExt();
+        if (this.vao && vaoExt) {
+            vaoExt.bindVertexArrayOES(null);
+        }
+    }
 
-    draw(skinObject, submeshArray, placementMatrix, colorVector, subMeshColors, transperencies, vao, vaoExt) {
+    draw(skinObject, submeshArray, placementMatrix, colorVector, subMeshColors, transperencies) {
         var gl = this.gl;
         var m2Object = this.m2File;
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+        var vaoExt = this.sceneApi.extensions.getVaoExt();
 
         this.setupUniforms(placementMatrix);
 
         //gl.uniform4f(uniforms.uGlobalLighting, colorVector[0], colorVector[1],colorVector[2],colorVector[3]);
 
-        //if (!vao) {
-        this.setupAttributes(skinObject);
-        //} else {
-        //    vaoExt.bindVertexArrayOES(vao);
-        //}
+        if (!this.vao || !vaoExt) {
+            this.setupAttributes(skinObject);
+        } else {
+            vaoExt.bindVertexArrayOES(vao);
+        }
 
         if (submeshArray) {
             for (var i = 0; i < submeshArray.length; i++) {

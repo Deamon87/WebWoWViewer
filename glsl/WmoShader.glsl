@@ -122,7 +122,7 @@ uniform float uAlphaTest;
 uniform vec4 uMeshColor1;
 uniform vec4 uMeshColor2;
 uniform sampler2D uTexture;
-uniform sampler2D uTexture2;
+    uniform sampler2D uTexture2;
 
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;

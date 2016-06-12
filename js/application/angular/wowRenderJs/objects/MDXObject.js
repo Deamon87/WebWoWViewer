@@ -36,9 +36,8 @@ class MDXObject {
                 $log.log("m2 file failed to load : "+ modelName);
             } else {
                 var gl = self.sceneApi.getGlContext();
-                //var result = self.createVAO(gl, m2Geom, skinGeom);
-                //self.vao = result.vao;
-                //self.vaoExt = result.ext;
+                m2Geom.createVAO(skinGeom);
+
 
                 self.makeTextureArray(m2Geom, skinGeom, submeshRenderData)
             }
@@ -370,20 +369,6 @@ class MDXObject {
         return this.currentAnimation;
     }
 
-    createVAO(gl, m2Geom, skinObject){
-        var ext = gl.getExtension("OES_vertex_array_object"); // Vendor prefixes may apply!
-        if (ext) {
-            var vao = ext.createVertexArrayOES();
-            ext.bindVertexArrayOES(vao);
-
-            m2Geom.setupAttributes(gl, skinObject);
-
-            ext.bindVertexArrayOES(null);
-        }
-
-        return {vao : vao, ext : ext};
-    }
-
     getSubMeshColor (animation, time) {
         var colors = this.m2Geom.m2File.colors;
         var animationRecord = this.m2Geom.m2File.animations[animation];
@@ -443,7 +428,11 @@ class MDXObject {
                     animation,
                     transparencies[i].values);
 
-                result[i] = transparency[0];
+                if (transparency) {
+                    result[i] = transparency[0];
+                } else {
+                    debugger;
+                }
             }
 
             return result;
@@ -961,7 +950,11 @@ class MDXObject {
         var identMat = mat4.create();
         mat4.identity(identMat);
 
-        this.m2Geom.setupAttributes(this.skinGeom);
+        var vaoBinded = this.m2Geom.bindVao();
+        if (!vaoBinded) {
+            this.m2Geom.setupAttributes(this.skinGeom);
+        }
+
         var combinedMatrix = this.boneMatrix;
         this.m2Geom.setupUniforms(placementMatrix, combinedMatrix);
 
@@ -994,6 +987,10 @@ class MDXObject {
 
             this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2)
         }
+
+        if (vaoBinded) {
+            this.m2Geom.unbindVao()
+        }
     }
     drawTransparentMeshes (placementMatrix, color) {
         if (!this.m2Geom || !this.skinGeom) return;
@@ -1001,7 +998,10 @@ class MDXObject {
         var identMat = mat4.create();
         mat4.identity(identMat);
 
-        this.m2Geom.setupAttributes(this.skinGeom);
+        var vaoBinded = this.m2Geom.bindVao();
+        if (!vaoBinded) {
+            this.m2Geom.setupAttributes(this.skinGeom);
+        }
         var combinedMatrix = this.boneMatrix;
         this.m2Geom.setupUniforms(placementMatrix, combinedMatrix);
 
@@ -1033,6 +1033,10 @@ class MDXObject {
             }
             this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2)
         }
+
+        if (vaoBinded) {
+            this.m2Geom.unbindVao()
+        }
     }
     draw (placementMatrix, color){
         var colorVector = [color&0xff, (color>> 8)&0xff,
@@ -1041,7 +1045,7 @@ class MDXObject {
         colorVector[2] /= 255.0; colorVector[3] /= 255.0;
 
         if ((this.m2Geom) && (this.skinGeom)) {
-            this.m2Geom.draw(this.skinGeom, this.materialArray, placementMatrix, colorVector, this.subMeshColors, this.transperencies, this.vao, this.vaoExt);
+            this.m2Geom.draw(this.skinGeom, this.materialArray, placementMatrix, colorVector, this.subMeshColors, this.transperencies);
         }
     }
 }

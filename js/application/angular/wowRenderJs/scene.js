@@ -64,7 +64,9 @@ class Scene {
         }
         self.initRenderBuffers();
         self.initAnisotropicExt();
+        self.initVertexArrayObjectExt();
         self.initCompressedTextureS3tcExt();
+        self.initFrameTerminatorExt();
 
         self.initShaders()
         self.isShadersLoaded = true;
@@ -225,6 +227,13 @@ class Scene {
             this.anisotropic_ext = anisotropic_ext;
         }
     }
+    initVertexArrayObjectExt () {
+        var gl = this.gl;
+        var vao_ext = gl.getExtension("OES_vertex_array_object")
+        if (vao_ext) {
+            this.vao_ext = vao_ext;
+        }
+    }
     initCompressedTextureS3tcExt () {
         var gl = this.gl;
         var ext = (
@@ -252,6 +261,14 @@ class Scene {
             this.wdb_ext = wdb_ext;
         } else {
             this.enableDeferred = false;
+        }
+    }
+    //For WebInspector
+    initFrameTerminatorExt() {
+        var gl = this.gl;
+        var glext_ft = gl.getExtension("GLI_frame_terminator")
+        if (glext_ft) {
+            this.glext_ft = glext_ft;
         }
     }
     initShaders (){
@@ -428,6 +445,9 @@ class Scene {
                 },
                 getComprTextExt : function () {
                     return self.comp_tex_ext;
+                },
+                getVaoExt : function () {
+                    return self.vao_ext;
                 }
             },
             shaders : {
@@ -452,6 +472,14 @@ class Scene {
                 },
                 deactivateWMOShader : function () {
                     self.deactivateWMOShader()
+                },
+
+                /* M2 shader functions */
+                activateM2ShaderAttribs : function () {
+                    self.activateM2ShaderAttribs();
+                },
+                deactivateM2ShaderAttribs : function () {
+                    self.deactivateM2ShaderAttribs();
                 },
                 activateM2Shader : function () {
                     self.activateM2Shader()
@@ -689,22 +717,44 @@ class Scene {
         gl.disableVertexAttribArray(shaderAttributes.aColor);
         gl.disableVertexAttribArray(shaderAttributes.aColor2);
     }
+
+    activateM2ShaderAttribs() {
+        var gl = this.gl;
+        var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+         gl.enableVertexAttribArray(shaderAttributes.aPosition);
+         if (shaderAttributes.aNormal) {
+            gl.enableVertexAttribArray(shaderAttributes.aNormal);
+         }
+         gl.enableVertexAttribArray(shaderAttributes.boneWeights);
+         gl.enableVertexAttribArray(shaderAttributes.bones);
+         gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
+         gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
+         gl.disableVertexAttribArray(shaderAttributes.aColor);
+    }
+    deactivateM2ShaderAttribs() {
+        var gl = this.gl;
+        var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+        //gl.disableVertexAttribArray(shaderAttributes.aPosition);
+
+        if (shaderAttributes.aNormal) {
+            gl.disableVertexAttribArray(shaderAttributes.aNormal);
+        }
+        gl.disableVertexAttribArray(shaderAttributes.boneWeights);
+        gl.disableVertexAttribArray(shaderAttributes.bones);
+
+        gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
+        gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
+    }
     activateM2Shader () {
         this.currentShaderProgram = this.m2Shader;
         if (this.currentShaderProgram) {
             var gl = this.gl;
             gl.useProgram(this.currentShaderProgram.program);
-            var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-            gl.enableVertexAttribArray(shaderAttributes.aPosition);
-            if (shaderAttributes.aNormal) {
-                gl.enableVertexAttribArray(shaderAttributes.aNormal);
+            if (!this.vao_ext) {
+                this.activateM2ShaderAttribs()
             }
-            gl.enableVertexAttribArray(shaderAttributes.boneWeights);
-            gl.enableVertexAttribArray(shaderAttributes.bones);
-            gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
-            gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
-            gl.disableVertexAttribArray(shaderAttributes.aColor);
 
             gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
             gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
@@ -722,17 +772,10 @@ class Scene {
     deactivateM2Shader () {
         var gl = this.gl;
         var instExt = this.sceneApi.extensions.getInstancingExt();
-        var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-        //gl.disableVertexAttribArray(shaderAttributes.aPosition);
-        if (shaderAttributes.aNormal) {
-            gl.disableVertexAttribArray(shaderAttributes.aNormal);
+        if (!this.vao_ext) {
+            this.deactivateM2ShaderAttribs()
         }
-        gl.disableVertexAttribArray(shaderAttributes.boneWeights);
-        gl.disableVertexAttribArray(shaderAttributes.bones);
-
-        gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
-        gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
     }
     activateM2InstancingShader () {
         this.currentShaderProgram = this.m2InstancingShader;
@@ -939,7 +982,7 @@ class Scene {
         mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000);
 
         var perspectiveMatrixForCulling = mat4.create();
-        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, 0, 1000);
+        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, 0, 300);
         //mat4.ortho(perspectiveMatrix, -100, 100, -100, 100, -100, 100);
 
         //Camera for rendering
@@ -1020,6 +1063,9 @@ class Scene {
           */
 
         this.stats.end();
+        if (this.glext_ft) {
+            this.glext_ft.frameTerminator();
+        }
 
         return {cameraVecs : cameraVecs, updateResult : updateRes};
     }

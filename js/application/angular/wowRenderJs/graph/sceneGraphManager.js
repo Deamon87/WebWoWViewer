@@ -395,20 +395,21 @@ class GraphManager {
 
             if (this.currentWMO.exteriorPortals.length > 0) {
                 //1. Draw ADT
-                this.sceneApi.shaders.activateAdtShader();
+                /*this.sceneApi.shaders.activateAdtShader();
                 for (var i = 0; i < this.adtObjects.length; i++) {
                     this.adtObjects[i].draw();
                 }
+                */
             }
 
 
         } else {
 
             //1. Draw ADT
-            this.sceneApi.shaders.activateAdtShader();
+          /*  this.sceneApi.shaders.activateAdtShader();
             for (var i = 0; i < this.adtObjects.length; i++) {
                 this.adtObjects[i].draw();
-            }
+            }*/
 
             //2.0. Draw WMO bsp highlighted vertices
             if (config.getRenderBSP()) {
