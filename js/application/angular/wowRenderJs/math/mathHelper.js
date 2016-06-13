@@ -65,6 +65,15 @@ class MathHelper {
     }
 
     static planeCull (points, planes) {
+        function intersection(p1, p2, k) {
+            return vec4.fromValues(
+                p1[0] + k * (p2[0] - p1[0]),
+                p1[1] + k * (p2[1] - p1[1]),
+                p1[2] + k * (p2[2] - p1[2]),
+                1
+            );
+        }
+
         // check box outside/inside of frustum
         var vec4Points = new Array(points.length);
         for( var j = 0; j < points.length; j++) {
@@ -102,30 +111,21 @@ class MathHelper {
                 var p1 = vec4Points[j];
                 var p2 = vec4Points[(j + 1) % vec4Points.length];
 
-                var tmp = vec3.create();
+                // InFront = plane.Distance( point ) > 0.0f
+                // Behind  = plane.Distance( point ) < 0.0f
 
+                var t1 = vec4.dot(p1, planes[i]);
+                var t2 = vec4.dot(p2, planes[i]);
 
-                vec3.subtract(tmp, p1, pointO);
-                var t1 = vec3.dot(tmp, planes[i]);
-
-                vec3.subtract(tmp, p2, pointO);
-                var t2 = vec3.dot(tmp, planes[i]);
-
-                if (t1 >= 0) {   // если начало лежит в области
-                    resultPoints.push(p1); // добавляем начало
-                }
-                // если ребро пересекает границу
-                // добавляем точку пересечения
-                if (((t1 >  0) && (t2 < 0)) ||
-                    ((t2 >= 0) && (t1 < 0)))
-                {
-                    var k = 1 - (vec3.dot(p1, planes[i]) / vec3.dot(p2, planes[i]));
-                    resultPoints.push(vec4.fromValues(
-                        p1[0] + k * (p2[0] - p1[0]),
-                        p1[1] + k * (p2[1] - p1[1]),
-                        p1[2] + k * (p2[2] - p1[2]),
-                        1
-                    ));
+                if (t1 > 0 && t2 > 0) { //p1 InFront and p2 InFront
+                    resultPoints.push(p2)
+                } else if (t1 > 0 && t2 < 0) { //p1 InFront and p2 Behind
+                    var k = t1/(t1 - t2);
+                    resultPoints.push(intersection(p1, p2, k))
+                } else if (t1 < 0 && t2 > 0) { //p1 Behind and p2 Behind
+                    var k = t1/(t1 - t2);
+                    resultPoints.push(intersection(p1, p2, k))
+                    resultPoints.push(p2)
                 }
             }
             vec4Points = resultPoints;
