@@ -1041,6 +1041,7 @@ class Scene {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.depthMask(true);
+        gl.enableVertexAttribArray(0);
         this.graphManager.draw();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 

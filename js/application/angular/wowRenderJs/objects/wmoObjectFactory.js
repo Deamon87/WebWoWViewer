@@ -640,25 +640,7 @@ class WmoObject {
             }
 
             // Sort portal vertices
-            var center = vec3.fromValues(0, 0, 0);
-            for (j = 0; j < thisPortalVertices.length; j++) {
-                vec3.add(center, thisPortalVertices[j], center);
-            }
-            vec3.scale(center, 1 / thisPortalVertices.length);
-            thisPortalVertices.sort(function (a, b) {
-                var ac = vec3.create();
-                vec3.subtract(ac, a, center);
-
-                var bc = vec3.create();
-                vec3.subtract(bc, b, center);
-
-                var cross = vec3.create();
-                vec3.cross(cross, ac, bc);
-
-                var dotResult = vec3.dot(cross, [plane.x, plane.y, plane.z]);
-
-                return dotResult;
-            });
+            mathHelper.sortVec3ArrayAgainstPlane(thisPortalVertices, plane);
 
             worldPortalVertices[i] = thisPortalVertices;
         }

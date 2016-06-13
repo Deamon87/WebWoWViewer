@@ -42,6 +42,27 @@ class MathHelper {
 
         return planes;
     }
+    static sortVec3ArrayAgainstPlane(thisPortalVertices, plane) {
+        var center = vec3.fromValues(0, 0, 0);
+        for (var j = 0; j < thisPortalVertices.length; j++) {
+            vec3.add(center, thisPortalVertices[j], center);
+        }
+        vec3.scale(center, 1 / thisPortalVertices.length);
+        thisPortalVertices.sort(function (a, b) {
+            var ac = vec3.create();
+            vec3.subtract(ac, a, center);
+
+            var bc = vec3.create();
+            vec3.subtract(bc, b, center);
+
+            var cross = vec3.create();
+            vec3.cross(cross, ac, bc);
+
+            var dotResult = vec3.dot(cross, [plane.x, plane.y, plane.z]);
+
+            return dotResult;
+        });
+    }
 
     static planeCull (points, planes) {
         // check box outside/inside of frustum
@@ -52,61 +73,69 @@ class MathHelper {
 
         for ( var i=0; i< planes.length; i++ ) {
             var out = 0;
-            var epsilon = 0
-            //if (i == 5) epsilon = 1; //mitigation for near clipping plane
+            var epsilon = 0;
+            if (i == 4) continue;
 
-            for( var j = 0; j<points.length; j++) {
+
+            for( var j = 0; j < vec4Points.length; j++) {
                 out += ((vec4.dot(planes[i], vec4Points[j]) + epsilon < 0.0 ) ? 1 : 0);
             }
-            if( out==points.length ) return false;
-        }
 
-        // check frustum outside/inside box
-        /*
-         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].x > box.mMaxX)?1:0); if( out==8 ) return false;
-         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].x < box.mMinX)?1:0); if( out==8 ) return false;
-         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].y > box.mMaxY)?1:0); if( out==8 ) return false;
-         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].y < box.mMinY)?1:0); if( out==8 ) return false;
-         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].z > box.mMaxZ)?1:0); if( out==8 ) return false;
-         out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].z < box.mMinZ)?1:0); if( out==8 ) return false;
-         */
+            if( out==vec4Points.length ) return false;
 
-        //Clamp against planes
-        /*
-        epsilon = 0;
-        for ( var i=0; i< planes.length; i++ ) {
+            //---------------------------------
+            // Cull by points by current plane
+            //---------------------------------
+            var resultPoints = new Array();
+            var pointO;
+            if (planes[i][2] != 0) {
+                pointO = vec3.fromValues(0,0,-planes[i][3]/planes[i][2]);
+            } else if (planes[i][1] != 0) {
+                pointO = vec3.fromValues(0,-planes[i][3]/planes[i][1],0);
+            } else if (planes[i][0] != 0) {
+                pointO = vec3.fromValues(-planes[i][3]/planes[i][0],0,0);
+            } else {
+                continue;
+            }
 
-            for( var j = 0; j < points.length; j++) {
-                var normal = vec3.clone(planes[i]);
+            for (j = 0; j < vec4Points.length; j++) {
+                var p1 = vec4Points[j];
+                var p2 = vec4Points[(j + 1) % vec4Points.length];
 
-                var a2 = vec3.create();
-                vec3.add(a2, vec4Points[j], normal);
+                var tmp = vec3.create();
 
-                var a2_dot = vec3.dot(a2, normal);
-                var a2_fixN = vec3.create();
-                vec3.scale(a2_fixN, normal, -epsilon-a2_dot);
-                vec3.add(a2,a2_fixN,a2);
 
-                vec3.subtract(a2_fixN, a2, vec4Points[j]);
-                vec3.normalize(a2_fixN, a2_fixN);
+                vec3.subtract(tmp, p1, pointO);
+                var t1 = vec3.dot(tmp, planes[i]);
 
-                var dot3 = vec3.dot(planes[i], a2_fixN);
+                vec3.subtract(tmp, p2, pointO);
+                var t2 = vec3.dot(tmp, planes[i]);
 
-                var dotResult = vec4.dot(planes[i], vec4Points[j]);
-                if (dotResult < 0) {
-                    vec3.scale(normal, normal, -(dotResult)/dot3 - epsilon);
-                    vec3.add(vec4Points[j], vec4Points[j], normal);
+                if (t1 >= 0) {   // если начало лежит в области
+                    resultPoints.push(p1); // добавляем начало
+                }
+                // если ребро пересекает границу
+                // добавляем точку пересечения
+                if (((t1 >  0) && (t2 < 0)) ||
+                    ((t2 >= 0) && (t1 < 0)))
+                {
+                    var k = 1 - (vec3.dot(p1, planes[i]) / vec3.dot(p2, planes[i]));
+                    resultPoints.push(vec4.fromValues(
+                        p1[0] + k * (p2[0] - p1[0]),
+                        p1[1] + k * (p2[1] - p1[1]),
+                        p1[2] + k * (p2[2] - p1[2]),
+                        1
+                    ));
                 }
             }
+            vec4Points = resultPoints;
         }
 
-
-        for( var j = 0; j < points.length; j++) {
+        for( var j = 0; j < vec4Points.length; j++) {
             points[j] = vec4Points[j];
         }
-         */
 
-        return true;
+        return vec4Points.length > 2;
     }
 
 

@@ -199,8 +199,9 @@ export default class PortalCullingAlgo {
             for (var i = 0; visible && i < frustumPlanes.length; i++) {
                 visible = visible && mathHelper.planeCull(thisPortalVerticesCopy, frustumPlanes[i]);
             }
-
             if (!visible) continue;
+            mathHelper.sortVec3ArrayAgainstPlane(thisPortalVerticesCopy, plane);
+
             this.transverseVisitedPortals[relation.portal_index] = true;
 
             var lastFrustumPlanesLen = frustumPlanes.length;
@@ -226,18 +227,18 @@ export default class PortalCullingAlgo {
 
                 thisPortalPlanes.push(n);
             }
-            frustumPlanes.push(thisPortalPlanes);
+            //frustumPlanes.push(thisPortalPlanes);
 
             //5. Traverse next
             if ((wmoObject.wmoObj.groupInfos[nextGroup].flags & 0x2000) > 0) {
                 //5.1 The portal is into interior wmo group. So go on.
-                this.interiorPortals.push({groupId: nextGroup, portalIndex : relation.portal_index, frustumPlanes: frustumPlanes.slice(0)})
-                this.transverseGroupWMO(wmoObject, nextGroup, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level+1)
+                this.interiorPortals.push({groupId: nextGroup, portalIndex : relation.portal_index, frustumPlanes: [thisPortalPlanes]});
+                this.transverseGroupWMO(wmoObject, nextGroup, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, [thisPortalPlanes], level+1)
             } else if (fromInterior) {
                 //5.2 The portal is from interior into exterior wmo group.
                 //Make sense to add only if whole traversing process started from interior
-                this.exteriorPortals.push({groupId: nextGroup, portalIndex : relation.portal_index, frustumPlanes: frustumPlanes.slice(0)})
-                this.transverseGroupWMO(wmoObject, nextGroup, false, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level+1)
+                this.exteriorPortals.push({groupId: nextGroup, portalIndex : relation.portal_index, frustumPlanes: [thisPortalPlanes]});
+                this.transverseGroupWMO(wmoObject, nextGroup, false, cameraVec4, cameraLocal, perspectiveMat, lookat, [thisPortalPlanes], level+1)
             }
 
             frustumPlanes.length = lastFrustumPlanesLen;
