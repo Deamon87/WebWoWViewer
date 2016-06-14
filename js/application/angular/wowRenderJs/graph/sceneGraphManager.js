@@ -172,11 +172,11 @@ class GraphManager {
     }
     checkCulling(frustumMat, lookAtMat4) {
         if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
+            //TODO: set not render for adt too
             for (var j = 0; j < this.m2Objects.length; j++) {
                 this.m2Objects[j].setIsRendered(false);
             }
 
-            //TODO: set not render for adt too
             //Cull with normal portals
             //this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
 
@@ -187,11 +187,22 @@ class GraphManager {
             //Travel through portals
             this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroup, this.position, frustumMat, lookAtMat4, frustumPlanes);
 
+            if (this.currentWMO.exteriorPortals.length > 0) {
+                for (var j = 0; j < this.m2Objects.length; j++) {
+                    this.m2Objects[j].setIsRendered(true);
+                }
+                this.portalCullingAlgo.checkAllDoodads(this.currentWMO, this.position);
+
+                this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
+            } else {
+                this.portalCullingAlgo.checkAllDoodads(this.currentWMO, this.position);
+            }
+
         } else {
             for (var j = 0; j < this.m2Objects.length; j++) {
                 this.m2Objects[j].setIsRendered(true);
             }
-            this.checkNormalFrustumCulling(frustumMat, lookAtMat4)
+            this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
         }
 
     }
@@ -206,12 +217,23 @@ class GraphManager {
         for (var i = 0; i < this.wmoObjects.length; i++) {
             this.wmoObjects[i].resetDrawnForAllGroups(true);
             if (config.getUsePortalCulling() && this.wmoObjects[i].hasPortals()) {
+                if (this.currentInteriorGroup >= 0 && this.currentWMO == this.wmoObjects[i]) continue;
 
                 this.portalCullingAlgo.startTraversingFromExterior(this.wmoObjects[i], this.position, frustumMat, lookAtMat4, frustumPlanes);
+                this.portalCullingAlgo.checkAllDoodads(this.wmoObjects[i], this.position);
                 //this.wmoObjects[i].setIsRenderedForDoodads();
             } else {
                 this.wmoObjects[i].checkFrustumCulling(this.position, frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
                 this.wmoObjects[i].setIsRenderedForDoodads();
+            }
+        }
+
+
+        /* 3. Additionally check if distance to object is more than 100 time of it's diameter */
+        for (var j = 0; j < this.m2Objects.length; j++) {
+            var currentObj = this.m2Objects[j];
+            if (currentObj.getIsRendered()) {
+                currentObj.setIsRendered(currentObj.getDiameter() * 100 > currentObj.getCurrentDistance());
             }
         }
 
@@ -222,13 +244,6 @@ class GraphManager {
             }
         }
 
-        /* 3. Additionally check if distance to object is more than 100 time of it's diameter */
-        for (var j = 0; j < this.m2Objects.length; j++) {
-            var currentObj = this.m2Objects[j];
-            if (currentObj.getIsRendered()) {
-                currentObj.setIsRendered(currentObj.getDiameter() * 100 > currentObj.getCurrentDistance());
-            }
-        }
     }
     checkAgainstDepthBuffer(frustrumMat, lookAtMat4, depth, width, height) {
         //CompressDepthBuffer 8 times
@@ -395,12 +410,43 @@ class GraphManager {
 
             if (this.currentWMO.exteriorPortals.length > 0) {
                 //1. Draw ADT
-                /*this.sceneApi.shaders.activateAdtShader();
+                this.sceneApi.shaders.activateAdtShader();
                 for (var i = 0; i < this.adtObjects.length; i++) {
                     this.adtObjects[i].draw();
                 }
-                */
+
+                //2. Draw WMO
+                this.sceneApi.shaders.activateWMOShader();
+                for (var i = 0; i < this.wmoObjects.length; i++) {
+                    this.wmoObjects[i].drawPortalBased(false);
+                }
+                this.sceneApi.shaders.deactivateWMOShader();
             }
+            //5. Draw nontransparent meshes of m2
+            if (config.getRenderM2()) {
+                this.sceneApi.shaders.activateM2Shader();
+                for (var i = 0; i < this.m2Objects.length; i++) {
+                    if (this.m2Objects[i].instanceManager) continue;
+                    if (!this.m2Objects[i].getIsRendered()) continue;
+                    if (!this.m2Objects[i].aabb) continue;
+
+                    this.m2Objects[i].drawNonTransparentMeshes();
+                }
+                this.sceneApi.shaders.deactivateM2Shader();
+            }
+            //6. Draw transparent meshes of m2
+            if (config.getRenderM2()) {
+                this.sceneApi.shaders.activateM2Shader();
+                for (var i = 0; i < this.m2Objects.length; i++) {
+                    if (this.m2Objects[i].instanceManager) continue;
+                    if (!this.m2Objects[i].getIsRendered()) continue;
+                    if (!this.m2Objects[i].aabb) continue;
+
+                    this.m2Objects[i].drawTransparentMeshes();
+                }
+                this.sceneApi.shaders.deactivateM2Shader();
+            }
+
 
 
         } else {

@@ -974,6 +974,11 @@ class Scene {
 
         mat4.lookAt(lookAtMat4, this.mainCamera, this.mainCameraLookAt, [0,0,1]);
 
+        var lookAtMat4ForCulling = [];
+        var cameraForCulling = vec3.create();
+        vec3.lerp(cameraForCulling, this.mainCamera, this.mainCameraLookAt, -1);
+        mat4.lookAt(lookAtMat4ForCulling, cameraForCulling, this.mainCameraLookAt, [0,0,1]);
+
         //Second camera for debug
         var secondLookAtMat = [];
         mat4.lookAt(secondLookAtMat, this.secondCamera, this.secondCameraLookAt, [0,0,1]);
@@ -982,7 +987,7 @@ class Scene {
         mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000);
 
         var perspectiveMatrixForCulling = mat4.create();
-        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, 0, 300);
+        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, 1, 300);
         //mat4.ortho(perspectiveMatrix, -100, 100, -100, 100, -100, 100);
 
         //Camera for rendering
@@ -1014,10 +1019,11 @@ class Scene {
         this.graphManager.setLookAtMat(lookAtMat4);
 
         var updateRes = this.graphManager.update(deltaTime);
-        this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4);
+        this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4ForCulling);
 
         //Draw static camera
-        this.lookAtMat4 = secondLookAtMat;
+
+      /*  this.lookAtMat4 = secondLookAtMat;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 
         this.glClearScreen(gl);
@@ -1034,7 +1040,7 @@ class Scene {
         gl.enableVertexAttribArray(0);
         this.drawFrameBuffer();
 
-
+        */
 
         //Render real camera
         this.lookAtMat4 = lookAtMat4;
@@ -1047,14 +1053,14 @@ class Scene {
         this.graphManager.draw();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-        /*
+
         this.glClearScreen(gl);
         gl.enableVertexAttribArray(0);
         this.activateRenderFrameShader();
         this.drawFrameBuffer();
-          */
-        //Draw frameBuffer color texture into screen
 
+        //Draw frameBuffer color texture into screen
+        /*
         this.activateRenderDepthShader();
         gl.enableVertexAttribArray(0);
         this.drawTexturedQuad(gl, this.frameBufferColorTexture,
@@ -1065,7 +1071,7 @@ class Scene {
             this.canvas.height * 0.40,
 
             this.canvas.width, this.canvas.height);
-
+          */
 
         this.stats.end();
         if (this.glext_ft) {

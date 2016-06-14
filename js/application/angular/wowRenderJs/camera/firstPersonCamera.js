@@ -161,6 +161,7 @@ export default function initCamera(canvas, document) {
 
             dir = vec3.rotateY(dir, dir, [0, 0, 0], degToRad(av));
             dir = vec3.rotateZ(dir, dir, [0, 0, 0], degToRad(-ah));
+            vec3.normalize(dir,dir);
 
             var lookat = [];
 

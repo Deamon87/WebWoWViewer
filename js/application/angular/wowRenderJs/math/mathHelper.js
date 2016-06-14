@@ -83,8 +83,6 @@ class MathHelper {
         for ( var i=0; i< planes.length; i++ ) {
             var out = 0;
             var epsilon = 0;
-            if (i == 4) continue;
-
 
             for( var j = 0; j < vec4Points.length; j++) {
                 out += ((vec4.dot(planes[i], vec4Points[j]) + epsilon < 0.0 ) ? 1 : 0);
