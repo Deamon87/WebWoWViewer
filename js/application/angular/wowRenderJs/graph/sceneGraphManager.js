@@ -473,6 +473,7 @@ class GraphManager {
 
                     this.m2OpaqueRenderedThisFrame[m2Object.sceneNumber] = true;
                     m2Object.drawNonTransparentMeshes();
+                    lastWasDrawInstanced = false;
                 }
             }
             if (lastWasDrawInstanced) {
@@ -495,18 +496,20 @@ class GraphManager {
 
                 if (m2Object.instanceManager) {
                     if (!lastWasDrawInstanced) {
-                        //this.sceneApi.shaders.activateM2InstancingShader();
+                        this.sceneApi.shaders.activateM2InstancingShader();
                     }
 
                     m2Object.instanceManager.drawInstancedTransparentMeshes(this.m2TranspRenderedThisFrame)
+                    lastWasDrawInstanced = true;
                 } else {
                     if (lastWasDrawInstanced) {
-                        //this.sceneApi.shaders.deactivateM2InstancingShader();
+                        this.sceneApi.shaders.deactivateM2InstancingShader();
                         this.sceneApi.shaders.activateM2Shader();
                     }
 
                     this.m2TranspRenderedThisFrame[m2Object.sceneNumber] = true;
                     m2Object.drawTransparentMeshes();
+                    lastWasDrawInstanced = false;
                 }
             }
             this.sceneApi.shaders.deactivateM2Shader();
