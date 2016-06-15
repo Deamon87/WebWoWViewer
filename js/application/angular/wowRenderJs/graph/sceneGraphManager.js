@@ -512,7 +512,11 @@ class GraphManager {
                     lastWasDrawInstanced = false;
                 }
             }
-            this.sceneApi.shaders.deactivateM2Shader();
+            if (lastWasDrawInstanced) {
+                this.sceneApi.shaders.deactivateM2InstancingShader();
+            } else {
+                this.sceneApi.shaders.deactivateM2Shader();
+            }
         }
 
 

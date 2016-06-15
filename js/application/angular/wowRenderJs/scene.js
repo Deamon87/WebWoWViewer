@@ -1069,7 +1069,7 @@ class Scene {
           */
 
         this.stats.end();
-        if (this.glext_ft) {
+        if (this.glext_ft && this.glext_ft.frameTerminator) {
             this.glext_ft.frameTerminator();
         }
 

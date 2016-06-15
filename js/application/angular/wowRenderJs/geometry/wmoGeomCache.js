@@ -219,6 +219,8 @@ class WmoGeom {
             gl.activeTexture(gl.TEXTURE0);
             if (textureObject && textureObject[0]) {
                 gl.bindTexture(gl.TEXTURE_2D, textureObject[0].texture);
+            }  else {
+                gl.bindTexture(gl.TEXTURE_2D, blackPixelText);
             }
             if (textureObject && textureObject[1]) {
                 gl.activeTexture(gl.TEXTURE1);
