@@ -14,11 +14,8 @@ class AdtM2Object extends MDXObject {
         self.isRendered = true;
     }
 
-    getFileNameIdent(){
-        return super.fileIdent;
-    }
     getMeshesToRender () {
-        return super.getMeshesToRender();
+        return this.getMeshesToRender();
     }
     drawBB (){
         var gl = this.sceneApi.getGlContext();
@@ -51,19 +48,19 @@ class AdtM2Object extends MDXObject {
         }
     }
     drawTransparentMeshes () {
-        super.drawTransparentMeshes(this.placementMatrix, 0xffffffff);
+        super.draw(true, this.placementMatrix, 0xffffffff);
     }
     drawNonTransparentMeshes () {
-        super.drawNonTransparentMeshes(this.placementMatrix, 0xffffffff);
+        super.draw(false, this.placementMatrix, 0xffffffff);
     }
     draw () {
         super.draw(this.placementMatrix, 0xffffffff);
     }
     drawInstancedNonTransparentMeshes (instanceCount, placementVBO) {
-        super.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
+        super.drawInstanced(false, instanceCount, placementVBO, 0xffffffff);
     }
     drawInstancedTransparentMeshes (instanceCount, placementVBO) {
-        super.drawInstancedTransparentMeshes(instanceCount, placementVBO, 0xffffffff);
+        super.drawInstanced(true, instanceCount, placementVBO, 0xffffffff);
     }
     checkFrustumCullingAndSet (cameraVec4, frustumPlanes, num_planes) {
         var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);

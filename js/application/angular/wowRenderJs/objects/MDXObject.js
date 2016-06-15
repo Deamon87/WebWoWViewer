@@ -12,6 +12,9 @@ class MDXObject {
         this.subMeshColors
     }
 
+    getFileNameIdent(){
+        return this.fileIdent;
+    }
 
     load (modelName, skinNum, submeshRenderData){
         var self = this;
@@ -19,11 +22,14 @@ class MDXObject {
         var nameTemplate = modelName.split('.')[0];
         var modelFileName = nameTemplate + '.m2';
         var skinFileName = nameTemplate + '00.skin';
+        modelFileName = modelFileName.toLowerCase();
+        skinFileName = skinFileName.toLowerCase();
 
         var m2Promise = this.sceneApi.resources.loadM2Geom(modelFileName);
         var skinPromise = this.sceneApi.resources.loadSkinGeom(skinFileName);
 
         this.fileIdent = modelFileName + " " +skinFileName;
+        this.fileIdent = this.fileIdent.replace(/\0/g, '');
 
         return $q.all([m2Promise,skinPromise]).then(function(result){
             var m2Geom = result[0];
@@ -887,85 +893,13 @@ class MDXObject {
     *
     * */
 
-    drawInstancedNonTransparentMeshes (instanceCount, placementVBO, color) {
-        if (!this.m2Geom) return;
-
-        this.m2Geom.setupAttributes(this.skinGeom);
-        var combinedMatrix = this.boneMatrix;
-        this.m2Geom.setupUniforms(null, combinedMatrix);
-        this.m2Geom.setupPlacementAttribute(placementVBO);
-
-        var colorVector = [color&0xff, (color>> 8)&0xff,
-            (color>>16)&0xff, (color>> 24)&0xff];
-        colorVector[0] /= 255.0; colorVector[1] /= 255.0;
-        colorVector[2] /= 255.0; colorVector[3] /= 255.0;
-
-        for (var i = 0; i < this.submeshArray.length; i++) {
-            var materialData = this.submeshArray[i];
-            if (materialData.isTransparent) continue;
-
-            this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix, instanceCount)
-        }
-    }
-    drawInstancedTransparentMeshes (instanceCount, placementVBO, color) {
-        if (!this.m2Geom) return;
-
+    drawMeshes(drawTransparent, colorVector, instanceCount) {
         var identMat = mat4.create();
         mat4.identity(identMat);
 
-        this.m2Geom.setupAttributes(this.skinGeom);
-        var combinedMatrix = this.boneMatrix;
-        this.m2Geom.setupUniforms(null, combinedMatrix);
-        this.m2Geom.setupPlacementAttribute(placementVBO);
-
-        var colorVector = [color&0xff, (color>> 8)&0xff,
-            (color>>16)&0xff, (color>> 24)&0xff];
-        colorVector[0] /= 255.0; colorVector[1] /= 255.0;
-        colorVector[2] /= 255.0; colorVector[3] /= 255.0;
-
         for (var i = 0; i < this.materialArray.length; i++) {
             var materialData = this.materialArray[i];
-            if (!materialData.isTransparent) continue;
-
-            /* Get right texture animation matrix */
-            var textureMatrix;
-            var skinData = this.skinGeom.skinFile.header;
-
-            if (materialData.texUnit1TexIndex >= 0 && skinData.texs[materialData.texUnit1TexIndex]) {
-                var textureAnim = skinData.texs[materialData.texUnit1TexIndex].textureAnim;
-                var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
-                if (textureMatIndex >= 0) {
-                    textureMatrix = this.textAnimMatrix[textureMatIndex];
-                } else {
-                    textureMatrix = identMat;
-                }
-            }
-
-            this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix, instanceCount)
-        }
-    }
-    drawNonTransparentMeshes (placementMatrix, color) {
-        if (!this.m2Geom || !this.skinGeom) return;
-
-        var identMat = mat4.create();
-        mat4.identity(identMat);
-
-        var vaoBinded = this.m2Geom.bindVao();
-        if (!vaoBinded) {
-            this.m2Geom.setupAttributes(this.skinGeom);
-        }
-
-        var combinedMatrix = this.boneMatrix;
-        this.m2Geom.setupUniforms(placementMatrix, combinedMatrix);
-
-        var colorVector = [color&0xff, (color>> 8)&0xff,
-            (color>>16)&0xff, (color>> 24)&0xff];
-        colorVector[0] /= 255.0; colorVector[1] /= 255.0;
-        colorVector[2] /= 255.0; colorVector[3] /= 255.0;
-
-        for (var i = 0; i < this.materialArray.length; i++) {
-            var materialData = this.materialArray[i];
-            if (materialData.isTransparent) continue;
+            if (!(materialData.isTransparent ^ !drawTransparent)) continue;
 
             /* Get right texture animation matrix */
             var textureMatrix1 = identMat;
@@ -985,23 +919,33 @@ class MDXObject {
                 }
             }
 
-            this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2)
-        }
-
-        if (vaoBinded) {
-            this.m2Geom.unbindVao()
+            this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2, instanceCount)
         }
     }
-    drawTransparentMeshes (placementMatrix, color) {
+    drawInstanced(drawTransparent, instanceCount, placementVBO, color) {
         if (!this.m2Geom || !this.skinGeom) return;
 
-        var identMat = mat4.create();
-        mat4.identity(identMat);
+        this.m2Geom.setupAttributes(this.skinGeom);
+        var combinedMatrix = this.boneMatrix;
+        this.m2Geom.setupUniforms(null, combinedMatrix);
+        this.m2Geom.setupPlacementAttribute(placementVBO);
+
+        var colorVector = [color&0xff, (color>> 8)&0xff,
+            (color>>16)&0xff, (color>> 24)&0xff];
+        colorVector[0] /= 255.0; colorVector[1] /= 255.0;
+        colorVector[2] /= 255.0; colorVector[3] /= 255.0;
+
+        this.drawMeshes(drawTransparent, colorVector, instanceCount);
+    }
+
+    draw(drawTransparent, placementMatrix, color) {
+        if (!this.m2Geom || !this.skinGeom) return;
 
         var vaoBinded = this.m2Geom.bindVao();
         if (!vaoBinded) {
             this.m2Geom.setupAttributes(this.skinGeom);
         }
+
         var combinedMatrix = this.boneMatrix;
         this.m2Geom.setupUniforms(placementMatrix, combinedMatrix);
 
@@ -1010,44 +954,13 @@ class MDXObject {
         colorVector[0] /= 255.0; colorVector[1] /= 255.0;
         colorVector[2] /= 255.0; colorVector[3] /= 255.0;
 
-        for (var i = 0; i < this.materialArray.length; i++) {
-            var materialData = this.materialArray[i];
-            if (!materialData.isTransparent) continue;
-
-            /* Get right texture animation matrix */
-            var textureMatrix1 = identMat;
-            var textureMatrix2 = identMat;
-            var skinData = this.skinGeom.skinFile.header;
-            if (materialData.texUnit1TexIndex >= 0 && skinData.texs[materialData.texUnit1TexIndex]) {
-                var textureAnim = skinData.texs[materialData.texUnit1TexIndex].textureAnim;
-                var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
-                if (textureMatIndex !== undefined && textureMatIndex >= 0 && this.textAnimMatrix) {
-                    textureMatrix1 = this.textAnimMatrix[textureMatIndex];
-                }
-                if (materialData.texUnit2TexIndex >= 0) {
-                    var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim+1];
-                    if (textureMatIndex !== undefined && textureMatIndex >= 0 && this.textAnimMatrix) {
-                        textureMatrix2 = this.textAnimMatrix[textureMatIndex];
-                    }
-                }
-            }
-            this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2)
-        }
+        this.drawMeshes(drawTransparent, colorVector);
 
         if (vaoBinded) {
             this.m2Geom.unbindVao()
         }
     }
-    draw (placementMatrix, color){
-        var colorVector = [color&0xff, (color>> 8)&0xff,
-            (color>>16)&0xff, (color>> 24)&0xff];
-        colorVector[0] /= 255.0; colorVector[1] /= 255.0;
-        colorVector[2] /= 255.0; colorVector[3] /= 255.0;
 
-        if ((this.m2Geom) && (this.skinGeom)) {
-            this.m2Geom.draw(this.skinGeom, this.materialArray, placementMatrix, colorVector, this.subMeshColors, this.transperencies);
-        }
-    }
 }
 
 export default MDXObject;

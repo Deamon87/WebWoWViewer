@@ -43,23 +43,19 @@ class WmoM2Object extends MDXObject {
     }
     drawTransparentMeshes () {
         var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        super.drawTransparentMeshes(this.placementMatrix, diffuseColor);
+        super.draw(true, this.placementMatrix, diffuseColor);
     }
     drawNonTransparentMeshes () {
         var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        super.drawNonTransparentMeshes(this.placementMatrix, diffuseColor);
-    }
-    draw () {
-        var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        super.draw(this.placementMatrix, diffuseColor);
+        super.draw(false, this.placementMatrix, diffuseColor);
     }
     drawInstancedNonTransparentMeshes (instanceCount, placementVBO) {
         var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        super.drawInstancedNonTransparentMeshes(instanceCount, placementVBO, diffuseColor);
+        super.drawInstanced(false, instanceCount, placementVBO, diffuseColor);
     }
     drawInstancedTransparentMeshes (instanceCount, placementVBO) {
         var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        super.drawInstancedTransparentMeshes(instanceCount, placementVBO, diffuseColor);
+        super.drawInstanced(true, instanceCount, placementVBO, diffuseColor);
     }
     drawBB () {
         var gl = this.sceneApi.getGlContext();

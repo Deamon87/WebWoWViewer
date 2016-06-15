@@ -974,11 +974,6 @@ class Scene {
 
         mat4.lookAt(lookAtMat4, this.mainCamera, this.mainCameraLookAt, [0,0,1]);
 
-        var lookAtMat4ForCulling = [];
-        var cameraForCulling = vec3.create();
-        vec3.lerp(cameraForCulling, this.mainCamera, this.mainCameraLookAt, -1);
-        mat4.lookAt(lookAtMat4ForCulling, cameraForCulling, this.mainCameraLookAt, [0,0,1]);
-
         //Second camera for debug
         var secondLookAtMat = [];
         mat4.lookAt(secondLookAtMat, this.secondCamera, this.secondCameraLookAt, [0,0,1]);
@@ -1019,7 +1014,7 @@ class Scene {
         this.graphManager.setLookAtMat(lookAtMat4);
 
         var updateRes = this.graphManager.update(deltaTime);
-        this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4ForCulling);
+        this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4);
 
         //Draw static camera
 

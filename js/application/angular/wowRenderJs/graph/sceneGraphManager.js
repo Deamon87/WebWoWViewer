@@ -58,13 +58,19 @@ class InstanceManager {
         this.placementVBO = paramsVbo;
         this.lastUpdatedNumber = this.mdxObjectList.length;
     }
-    drawInstancedNonTransparentMeshes() {
+    drawInstancedNonTransparentMeshes(opaqueMap) {
         if (!this.mdxObjectList[0]) return;
+        for (var i = 0; i < this.mdxObjectList.length; i++) {
+            opaqueMap[this.mdxObjectList[i].sceneNumber] = true;
+        }
 
         this.mdxObjectList[0].drawInstancedNonTransparentMeshes(this.lastUpdatedNumber, this.placementVBO, this.dinamycParams);
     }
-    drawInstancedTransparentMeshes() {
+    drawInstancedTransparentMeshes(transparentMap) {
         if (!this.mdxObjectList[0]) return;
+        for (var i = 0; i < this.mdxObjectList.length; i++) {
+            transparentMap[this.mdxObjectList[i].sceneNumber] = true;
+        }
 
         this.mdxObjectList[0].drawInstancedTransparentMeshes(this.lastUpdatedNumber, this.placementVBO, this.dinamycParams);
     }
@@ -85,6 +91,9 @@ class GraphManager {
         this.portalCullingAlgo = new PortalCullingAlgo()
     }
 
+    /*
+    * Function for adding a new geometry to scene
+    * */
     addAdtM2Object(doodad) {
         var adtM2 = new adtM2ObjectFactory(this.sceneApi);
         adtM2.load(doodad, false);
@@ -130,46 +139,21 @@ class GraphManager {
         //3. Assign instance to object
         m2Object.instanceManager = instanceManager;
     }
+
+    /*
+    * Local variables
+    * */
+
     setCameraPos(position) {
         this.position = position;
     }
     setLookAtMat(lookAtMat) {
         this.lookAtMat = lookAtMat;
     }
-    collectMeshes() {
-        var meshesList = [];
-        for (var i = 0; i < this.m2Objects.length; i++) {
-            var meshes = this.m2Objects[i].getMeshesToRender();
-            meshesList = meshesList.concat(meshes);
-        }
 
-        //Filter transparent and non transparent meshes
-        var nonTransparentMeshes = meshesList.filter(function (a) {
-            return a && !a.isTransparent;
-        });
-        var transparentMeshes = meshesList.filter(function (a) {
-            return a && a.isTransparent;
-        });
-
-        //TODO: figure out how instancing and mesh sorting shall meet the "from farthest to nearest" requirement for transparent meshes
-        //Sort meshes
-        nonTransparentMeshes.sort(function (a, b) {
-            return a.m2Object == b.m2Object ? 0 : 1;
-        });
-        nonTransparentMeshes.sort(function (a, b) {
-            return (a.m2Object == b.m2Object && a.skin == b.skin) ? 0 : 1;
-        });
-        nonTransparentMeshes.sort(function (a, b) {
-            return (a.m2Object == b.m2Object && a.skin == b.skin && a.meshIndex == b.meshIndex) ? 0 : b.meshIndex - a.meshIndex;
-        });
-
-        transparentMeshes.sort(function (a, b) {
-
-        });
-
-        this.nonTransparentM = nonTransparentMeshes;
-        this.transparentM = transparentMeshes;
-    }
+    /*
+    * Culling algorithms
+    * */
     checkCulling(frustumMat, lookAtMat4) {
         if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
             //TODO: set not render for adt too
@@ -183,6 +167,7 @@ class GraphManager {
             var combinedMat4 = mat4.create();
             mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
             var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
+            mathHelper.fixNearPlane(frustumPlanes, this.position);
 
             //Travel through portals
             this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroup, this.position, frustumMat, lookAtMat4, frustumPlanes);
@@ -211,6 +196,7 @@ class GraphManager {
         var combinedMat4 = mat4.create();
         mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
         var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
+        mathHelper.fixNearPlane(frustumPlanes, this.position);
 
         /* 1. First check wmo's */
         /* Checking group wmo will significatly decrease the amount of m2wmo */
@@ -318,6 +304,10 @@ class GraphManager {
             }
         }
     }
+
+    /*
+     * Update function
+     * */
     update(deltaTime) {
         //1. Update all wmo and m2 objects
         var i;
@@ -336,30 +326,28 @@ class GraphManager {
             var self = this;
             //Sort by m2 and skin files and collect it into instances
 
-            /*
-             this.m2Objects.sort(function (a, b) {
-             return a.getFileNameIdent() < b.getFileNameIdent() ? -1 :
-             (a.getFileNameIdent() > b.getFileNameIdent() ? 1 : 0);
-             });
+            this.m2Objects.sort(function (a, b) {
+                return a.getFileNameIdent() < b.getFileNameIdent() ? -1 :
+                    (a.getFileNameIdent() > b.getFileNameIdent() ? 1 : 0);
+            });
 
 
-             var lastObject = this.m2Objects[0];
-             var lastInstanced = false;
-             for (var j = 1; j < this.m2Objects.length; j++) {
+            var lastObject = this.m2Objects[0];
+            var lastInstanced = false;
+            for (var j = 1; j < this.m2Objects.length; j++) {
 
-             var currentObject = this.m2Objects[j];
-             var newBucket = !lastInstanced;
-             if (currentObject.getFileNameIdent() == lastObject.getFileNameIdent()) {
-             this.addM2ObjectToInstanceManager(lastObject, newBucket);
-             lastInstanced = true;
-             } else if (lastInstanced) {
-             this.addM2ObjectToInstanceManager(lastObject, newBucket);
-             lastInstanced = false;
-             }
+                var currentObject = this.m2Objects[j];
+                var newBucket = !lastInstanced;
+                if (currentObject.getFileNameIdent() == lastObject.getFileNameIdent()) {
+                    this.addM2ObjectToInstanceManager(lastObject, newBucket);
+                    lastInstanced = true;
+                } else if (lastInstanced) {
+                    this.addM2ObjectToInstanceManager(lastObject, newBucket);
+                    lastInstanced = false;
+                }
 
-             lastObject = currentObject;
-             }
-             */
+                lastObject = currentObject;
+            }
 
             for (var j = 0; j < this.m2Objects.length; j++) {
                 this.m2Objects[j].calcDistance(self.position);
@@ -403,96 +391,160 @@ class GraphManager {
         this.currentTime = this.currentTime + deltaTime;
         return {interiorGroupNum: interiorGroupNum, nodeId: bspNodeId};
     }
+
+    /*
+    * Draw functions
+    * */
+
+    drawExterior() {
+        //1. Draw ADT
+        this.sceneApi.shaders.activateAdtShader();
+        for (var i = 0; i < this.adtObjects.length; i++) {
+            this.adtObjects[i].draw();
+        }
+
+        //2.0. Draw WMO bsp highlighted vertices
+        if (config.getRenderBSP()) {
+            this.sceneApi.shaders.activateDrawPortalShader();
+            for (var i = 0; i < this.wmoObjects.length; i++) {
+                this.wmoObjects[i].drawBspVerticles();
+            }
+        }
+
+        //2. Draw WMO
+        this.sceneApi.shaders.activateWMOShader();
+        for (var i = 0; i < this.wmoObjects.length; i++) {
+            if (config.getUsePortalCulling()) {
+                this.wmoObjects[i].drawPortalBased(false)
+            } else {
+                this.wmoObjects[i].draw();
+            }
+        }
+        this.sceneApi.shaders.deactivateWMOShader();
+
+
+        //3. Draw background WDL
+
+        //4. Draw skydom
+        if (this.skyDom) {
+            this.skyDom.draw();
+        }
+
+        //7.1 Draw WMO BBs
+        this.sceneApi.shaders.activateBoundingBoxShader();
+        if (config.getDrawWmoBB()) {
+            for (var i = 0; i < this.wmoObjects.length; i++) {
+                this.wmoObjects[i].drawBB();
+            }
+        }
+
+        /*
+         this.sceneApi.shaders.activateFrustumBoxShader();
+         //Draw Wmo portal frustums
+         for (var i = 0; i < this.wmoObjects.length; i++) {
+         this.wmoObjects[i].drawPortalFrustumsBB();
+         }
+         */
+    }
+    drawM2s(){
+        //5. Draw nontransparent meshes of m2
+        if (config.getRenderM2()) {
+            var lastWasDrawInstanced = false;
+            this.sceneApi.shaders.activateM2Shader();
+            for (var i = 0; i < this.m2Objects.length; i++) {
+                var m2Object = this.m2Objects[i];
+                if (this.m2OpaqueRenderedThisFrame[m2Object.sceneNumber]) continue;
+
+                if (!m2Object.getIsRendered()) continue;
+                if (!m2Object.aabb) continue;
+
+                if (m2Object.instanceManager) {
+                    if (!lastWasDrawInstanced) {
+                        this.sceneApi.shaders.activateM2InstancingShader();
+                    }
+
+                    m2Object.instanceManager.drawInstancedNonTransparentMeshes(this.m2OpaqueRenderedThisFrame)
+                    lastWasDrawInstanced = true;
+                } else {
+                    if (lastWasDrawInstanced) {
+                        this.sceneApi.shaders.deactivateM2InstancingShader();
+                        this.sceneApi.shaders.activateM2Shader();
+                    }
+
+                    this.m2OpaqueRenderedThisFrame[m2Object.sceneNumber] = true;
+                    m2Object.drawNonTransparentMeshes();
+                }
+            }
+            if (lastWasDrawInstanced) {
+                this.sceneApi.shaders.deactivateM2InstancingShader();
+            } else {
+                this.sceneApi.shaders.deactivateM2Shader();
+            }
+        }
+
+        //6. Draw transparent meshes of m2
+        if (config.getRenderM2()) {
+            var lastWasDrawInstanced = false;
+            this.sceneApi.shaders.activateM2Shader();
+            for (var i = 0; i < this.m2Objects.length; i++) {
+                var m2Object = this.m2Objects[i];
+                if (this.m2TranspRenderedThisFrame[m2Object.sceneNumber]) continue;
+
+                if (!m2Object.getIsRendered()) continue;
+                if (!m2Object.aabb) continue;
+
+                if (m2Object.instanceManager) {
+                    if (!lastWasDrawInstanced) {
+                        //this.sceneApi.shaders.activateM2InstancingShader();
+                    }
+
+                    m2Object.instanceManager.drawInstancedTransparentMeshes(this.m2TranspRenderedThisFrame)
+                } else {
+                    if (lastWasDrawInstanced) {
+                        //this.sceneApi.shaders.deactivateM2InstancingShader();
+                        this.sceneApi.shaders.activateM2Shader();
+                    }
+
+                    this.m2TranspRenderedThisFrame[m2Object.sceneNumber] = true;
+                    m2Object.drawTransparentMeshes();
+                }
+            }
+            this.sceneApi.shaders.deactivateM2Shader();
+        }
+
+
+        //7. Draw BBs
+        this.sceneApi.shaders.activateBoundingBoxShader();
+        //7.1 Draw M2 BBs
+        if (config.getDrawM2BB()) {
+            for (var i = 0; i < this.m2Objects.length; i++) {
+                if (!this.m2Objects[i].getIsRendered()) continue;
+
+                this.m2Objects[i].drawBB();
+            }
+        }
+    }
     draw() {
+        this.m2OpaqueRenderedThisFrame = {};
+        this.m2TranspRenderedThisFrame = {};
+
         if (this.currentWMO && config.getUsePortalCulling()) {
             this.currentWMO.drawPortalBased(true);
 
-
             if (this.currentWMO.exteriorPortals.length > 0) {
-                //1. Draw ADT
-                this.sceneApi.shaders.activateAdtShader();
-                for (var i = 0; i < this.adtObjects.length; i++) {
-                    this.adtObjects[i].draw();
-                }
-
-                //2. Draw WMO
-                this.sceneApi.shaders.activateWMOShader();
-                for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].drawPortalBased(false);
-                }
-                this.sceneApi.shaders.deactivateWMOShader();
+                this.drawExterior()
             }
-            //5. Draw nontransparent meshes of m2
-            if (config.getRenderM2()) {
-                this.sceneApi.shaders.activateM2Shader();
-                for (var i = 0; i < this.m2Objects.length; i++) {
-                    if (this.m2Objects[i].instanceManager) continue;
-                    if (!this.m2Objects[i].getIsRendered()) continue;
-                    if (!this.m2Objects[i].aabb) continue;
-
-                    this.m2Objects[i].drawNonTransparentMeshes();
-                }
-                this.sceneApi.shaders.deactivateM2Shader();
-            }
-            //6. Draw transparent meshes of m2
-            if (config.getRenderM2()) {
-                this.sceneApi.shaders.activateM2Shader();
-                for (var i = 0; i < this.m2Objects.length; i++) {
-                    if (this.m2Objects[i].instanceManager) continue;
-                    if (!this.m2Objects[i].getIsRendered()) continue;
-                    if (!this.m2Objects[i].aabb) continue;
-
-                    this.m2Objects[i].drawTransparentMeshes();
-                }
-                this.sceneApi.shaders.deactivateM2Shader();
-            }
-
-
-
-        } else {
-
-            //1. Draw ADT
-          /*  this.sceneApi.shaders.activateAdtShader();
-            for (var i = 0; i < this.adtObjects.length; i++) {
-                this.adtObjects[i].draw();
-            }*/
-
-            //2.0. Draw WMO bsp highlighted vertices
-            if (config.getRenderBSP()) {
+            //6. Draw WMO portals
+            if (config.getRenderPortals()) {
                 this.sceneApi.shaders.activateDrawPortalShader();
                 for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].drawBspVerticles();
+                    this.wmoObjects[i].drawPortals();
                 }
             }
-
-            //2. Draw WMO
-            this.sceneApi.shaders.activateWMOShader();
-            for (var i = 0; i < this.wmoObjects.length; i++) {
-                this.wmoObjects[i].draw();
-            }
-            this.sceneApi.shaders.deactivateWMOShader();
-
-
-            //3. Draw background WDL
-
-            //4. Draw skydom
-            if (this.skyDom) {
-                this.skyDom.draw();
-            }
-
-
-            //5. Draw nontransparent meshes of m2
-            if (config.getRenderM2()) {
-                this.sceneApi.shaders.activateM2Shader();
-                for (var i = 0; i < this.m2Objects.length; i++) {
-                    if (this.m2Objects[i].instanceManager) continue;
-                    if (!this.m2Objects[i].getIsRendered()) continue;
-                    if (!this.m2Objects[i].aabb) continue;
-
-                    this.m2Objects[i].drawNonTransparentMeshes();
-                }
-                this.sceneApi.shaders.deactivateM2Shader();
-            }
+            this.drawM2s();
+        } else {
+            this.drawExterior();
+            this.drawM2s();
 
             //6. Draw WMO portals
             if (config.getRenderPortals()) {
@@ -501,74 +553,10 @@ class GraphManager {
                     this.wmoObjects[i].drawPortals();
                 }
             }
-
-
-            /*
-             //5.1 Draw instanced nontransparent meshes of m2
-             this.sceneApi.shaders.activateM2InstancingShader();
-             for (var fileIdent in this.instanceList) {
-             var instanceManager = this.instanceList[fileIdent];
-             instanceManager.drawInstancedNonTransparentMeshes();
-             }
-             this.sceneApi.shaders.deactivateM2InstancingShader();
-
-             //6.1 Draw transparent meshes of m2
-             this.sceneApi.shaders.activateM2InstancingShader();
-             for (var fileIdent in this.instanceList) {
-             var instanceManager = this.instanceList[fileIdent];
-             instanceManager.drawInstancedTransparentMeshes();
-             }
-             this.sceneApi.shaders.deactivateM2InstancingShader();
-             */
-
-            //6. Draw transparent meshes of m2
-            if (config.getRenderM2()) {
-                this.sceneApi.shaders.activateM2Shader();
-                for (var i = 0; i < this.m2Objects.length; i++) {
-                    if (this.m2Objects[i].instanceManager) continue;
-                    if (!this.m2Objects[i].getIsRendered()) continue;
-                    if (!this.m2Objects[i].aabb) continue;
-
-                    this.m2Objects[i].drawTransparentMeshes();
-                }
-                this.sceneApi.shaders.deactivateM2Shader();
-            }
-
-
-            //7. Draw BBs
-            this.sceneApi.shaders.activateBoundingBoxShader();
-            //7.1 Draw M2 BBs
-            if (config.getDrawM2BB()) {
-                for (var i = 0; i < this.m2Objects.length; i++) {
-                    if (!this.m2Objects[i].getIsRendered()) continue;
-
-                    this.m2Objects[i].drawBB();
-                }
-            }
-
-
-            //7.1 Draw WMO BBs
-            if (config.getDrawWmoBB()) {
-                for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].drawBB();
-                }
-            }
-
-            /*
-             this.sceneApi.shaders.activateFrustumBoxShader();
-             //Draw Wmo portal frustums
-             for (var i = 0; i < this.wmoObjects.length; i++) {
-             this.wmoObjects[i].drawPortalFrustumsBB();
-             }
-             */
-
             this.sceneApi.shaders.activateFrustumBoxShader();
             //Draw Wmo portal frustums
             this.sceneApi.drawCamera()
         }
-
-
-
     }
 }
 
