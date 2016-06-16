@@ -18,8 +18,6 @@ attribute vec4 boneWeights;
 attribute vec2 aTexCoord;
 attribute vec2 aTexCoord2;
 
-attribute vec4 aColor;
-
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 uniform int isBillboard;
@@ -27,16 +25,19 @@ uniform mat4 uBoneMatrixes[59]; //Max 59 for ANGLE implementation and max 120? b
 uniform int isEnviroment;
 
 #ifdef INSTANCED
-attribute mat4 uPlacementMat;
+attribute vec4 aDiffuseColor;
+attribute mat4 aPlacementMat;
+
 #else
 uniform mat4 uPlacementMat;
+uniform vec4 uDiffuseColor;
 #endif
 
 varying vec2 vTexCoord;
 varying vec2 vTexCoord2;
-varying vec4 vColor;
 varying vec3 vNormal;
 varying vec3 vPosition;
+varying vec4 vDiffuseColor;
 
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;
@@ -53,7 +54,14 @@ void main() {
     boneTransformMat += (boneWeights.z ) * uBoneMatrixes[int(bones.z)];
     boneTransformMat += (boneWeights.w ) * uBoneMatrixes[int(bones.w)];
 
-    mat4 cameraMatrix = uLookAtMat * uPlacementMat * boneTransformMat;
+    mat4 placementMat;
+#ifdef INSTANCED
+    placementMat = aPlacementMat;
+#else
+    placementMat = uPlacementMat;
+#endif
+
+    mat4 cameraMatrix = uLookAtMat * placementMat * boneTransformMat;
     vec4 cameraPoint = cameraMatrix * aPositionVec4;
 
     vec3 normal = mat3(cameraMatrix) * aNormal;
@@ -74,7 +82,12 @@ void main() {
 
     vTexCoord = texCoord;
     vTexCoord2 = aTexCoord2;
-    vColor = aColor;
+
+#ifdef INSTANCED
+    vDiffuseColor = aDiffuseColor;
+#else
+    vDiffuseColor = uDiffuseColor;
+#endif
 
 #ifndef drawBuffersIsSupported
     gl_Position = uPMatrix * cameraPoint;
@@ -97,8 +110,11 @@ precision highp float;
 varying vec3 vNormal;
 varying vec2 vTexCoord;
 varying vec2 vTexCoord2;
-varying vec4 vColor;
 varying vec3 vPosition;
+
+varying vec4 vDiffuseColor;
+
+uniform vec4 uColor;
 
 //uniform vec4  uGlobalLighting;
 uniform float uAlphaTest;
@@ -123,8 +139,8 @@ void main() {
     vec4 tex = texture2D(uTexture, texCoord).rgba;
     vec4 tex2 = texture2D(uTexture2, texCoord2).rgba;
 
-    vec4 finalColor = vec4((tex.rgb * tex2.rgb * vColor.bgr), 1.0);
-    finalColor.a = tex.a * vColor.a;
+    vec4 finalColor = vec4((tex.rgb * tex2.rgb * uColor.bgr * vDiffuseColor.bgr ), 1.0);
+    finalColor.a = tex.a * uColor.a;
 
     if(tex.a < uAlphaTest)
         discard;

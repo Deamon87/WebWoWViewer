@@ -67,10 +67,12 @@ class M2Geom {
         gl.bindBuffer(gl.ARRAY_BUFFER, placementVBO);
 
         //"Official" way to pass mat4 to shader as attribute
-        gl.vertexAttribPointer(shaderAttributes.uPlacementMat + 0, 4, gl.FLOAT, false, 16 * 4, 0);  // position
-        gl.vertexAttribPointer(shaderAttributes.uPlacementMat + 1, 4, gl.FLOAT, false, 16 * 4, 16);  // position
-        gl.vertexAttribPointer(shaderAttributes.uPlacementMat + 2, 4, gl.FLOAT, false, 16 * 4, 32);  // position
-        gl.vertexAttribPointer(shaderAttributes.uPlacementMat + 3, 4, gl.FLOAT, false, 16 * 4, 48);  // position
+        gl.vertexAttribPointer(shaderAttributes.aPlacementMat + 0, 4, gl.FLOAT, false, 16 * 5, 0);  // position
+        gl.vertexAttribPointer(shaderAttributes.aPlacementMat + 1, 4, gl.FLOAT, false, 16 * 5, 16);  // position
+        gl.vertexAttribPointer(shaderAttributes.aPlacementMat + 2, 4, gl.FLOAT, false, 16 * 5, 32);  // position
+        gl.vertexAttribPointer(shaderAttributes.aPlacementMat + 3, 4, gl.FLOAT, false, 16 * 5, 48);  // position
+        gl.vertexAttribPointer(shaderAttributes.aDiffuseColor, 4, gl.FLOAT, false, 16 * 5, 64); //Diffuse color
+
     }
 
 
@@ -104,7 +106,7 @@ class M2Geom {
     }
 
 
-    setupUniforms(placementMatrix, boneMatrix) {
+    setupUniforms(placementMatrix, boneMatrix, diffuseColor) {
         var gl = this.gl;
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
         if (placementMatrix) {
@@ -113,6 +115,15 @@ class M2Geom {
 
         if (boneMatrix) {
             gl.uniformMatrix4fv(uniforms.uBoneMatrixes, false, boneMatrix);
+        }
+
+        //Set proper color
+        if (diffuseColor) {
+            try {
+                gl.uniform4fv(uniforms.uDiffuseColor, diffuseColor);
+            } catch (e) {
+                debugger;
+            }
         }
     }
 
@@ -131,32 +142,7 @@ class M2Geom {
         }
     }
 
-    draw(skinObject, submeshArray, placementMatrix, colorVector, subMeshColors, transperencies) {
-        var gl = this.gl;
-        var m2Object = this.m2File;
-        var uniforms = this.sceneApi.shaders.getShaderUniforms();
-        var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
-        var vaoExt = this.sceneApi.extensions.getVaoExt();
-
-        this.setupUniforms(placementMatrix);
-
-        //gl.uniform4f(uniforms.uGlobalLighting, colorVector[0], colorVector[1],colorVector[2],colorVector[3]);
-
-        if (!this.vao || !vaoExt) {
-            this.setupAttributes(skinObject);
-        } else {
-            vaoExt.bindVertexArrayOES(vao);
-        }
-
-        if (submeshArray) {
-            for (var i = 0; i < submeshArray.length; i++) {
-                this.drawMesh(i, submeshArray[i], skinObject, subMeshColors, transperencies)
-            }
-        }
-        gl.uniform1f(uniforms.uAlphaTest, -1);
-    }
-
-    drawMesh(meshIndex, materialData, skinObject, subMeshColors, colorVector, transperencies, textureMatrix1, textureMatrix2, instanceCount) {
+   drawMesh(meshIndex, materialData, skinObject, meshColor, textureMatrix1, textureMatrix2, instanceCount) {
         var gl = this.gl;
         var m2File = this.m2File;
         var instExt = this.sceneApi.extensions.getInstancingExt();
@@ -168,41 +154,11 @@ class M2Geom {
 
         gl.uniformMatrix4fv(uniforms.uTextMat1, false, textureMatrix1);
         gl.uniformMatrix4fv(uniforms.uTextMat2, false, textureMatrix2);
+        gl.uniform4fv(uniforms.uColor, meshColor);
 
         if (materialData.isRendered) {
             if (materialData.texUnit1Texture) {
                 //try {
-                var colorIndex = skinData.texs[materialData.texUnit1TexIndex].colorIndex;
-                var submeshColor = [colorVector[0], colorVector[1], colorVector[2], colorVector[3]];
-                if ((colorIndex >= 0) && (subMeshColors)) {
-                    var color = subMeshColors[colorIndex];
-                    submeshColor = [
-                        submeshColor[0] * color[0],
-                        submeshColor[1] * color[1],
-                        submeshColor[2] * color[2],
-                        submeshColor[3] * color[3]
-                    ];
-                }
-                var transperency = 1.0;
-                var transpIndex = skinData.texs[materialData.texUnit1TexIndex].transpIndex;
-                if ((transpIndex >= 0) && (transperencies)) {
-                    transperency = transperencies[transpIndex];
-                }
-                //submeshColor[0] = submeshColor[0] * transperency;
-                //submeshColor[1] = submeshColor[1] * transperency;
-                //submeshColor[2] = submeshColor[2] * transperency;
-                submeshColor[3] = submeshColor[3] * transperency;
-
-                if (submeshColor[3] == 0) {
-                    return;
-                }
-
-                gl.vertexAttrib4f(shaderAttributes.aColor,
-                    submeshColor[0],
-                    submeshColor[1],
-                    submeshColor[2],
-                    submeshColor[3]);
-
                 gl.depthMask(true);
 
                 var renderFlagIndex = skinData.texs[materialData.texUnit1TexIndex].renderFlagIndex;
@@ -304,7 +260,7 @@ class M2Geom {
                 }
 
                 meshIndex = materialData.meshIndex;
-                if (instanceCount == undefined) {
+                if (instanceCount == -1) {
                     //var error = gl.getError(); // Drop error flag
                     gl.drawElements(gl.TRIANGLES, skinData.subMeshes[meshIndex].nTriangles, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].StartTriangle * 2);
                 } else {

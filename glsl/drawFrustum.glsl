@@ -4,7 +4,6 @@ attribute vec3 aPosition;
 
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
-uniform mat4 uPlacementMat;
 
 uniform mat4 uInverseViewProjection;
 

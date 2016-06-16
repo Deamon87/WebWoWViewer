@@ -13,6 +13,10 @@ class WmoM2Object extends MDXObject {
         self.isRendered = true;
         self.useLocalLighting = true;
     }
+
+    getDiffuseColor() {
+        return (this.useLocalLighting) ? this.diffuseColor : new Float32Array([1,1,1,1])
+    }
     checkFrustumCullingAndSet (cameraVec4, frustumPlanes, num_planes) {
         if (config.getUsePortalCulling()) return;
         var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
@@ -42,20 +46,18 @@ class WmoM2Object extends MDXObject {
         super.update(deltaTime, cameraPos, this.placementInvertMatrix);
     }
     drawTransparentMeshes () {
-        var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        super.draw(true, this.placementMatrix, diffuseColor);
+        var diffuseColor = this.getDiffuseColor();
+        this.draw(true, this.placementMatrix, diffuseColor);
     }
     drawNonTransparentMeshes () {
-        var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        super.draw(false, this.placementMatrix, diffuseColor);
+        var diffuseColor = this.getDiffuseColor();
+        this.draw(false, this.placementMatrix, diffuseColor);
     }
     drawInstancedNonTransparentMeshes (instanceCount, placementVBO) {
-        var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        super.drawInstanced(false, instanceCount, placementVBO, diffuseColor);
+        this.drawInstanced(false, instanceCount, placementVBO);
     }
     drawInstancedTransparentMeshes (instanceCount, placementVBO) {
-        var diffuseColor = (this.useLocalLighting) ? this.diffuseColor : 0xffffffff;
-        super.drawInstanced(true, instanceCount, placementVBO, diffuseColor);
+        this.drawInstanced(true, instanceCount, placementVBO);
     }
     drawBB () {
         var gl = this.sceneApi.getGlContext();
@@ -149,7 +151,15 @@ class WmoM2Object extends MDXObject {
         var self = this;
 
         self.doodad = doodad;
-        self.diffuseColor = doodad.color;
+
+        var color = doodad.color;
+        var diffuseColorVec4 = [color&0xff, (color>> 8)&0xff,
+            (color>>16)&0xff, (color>> 24)&0xff];
+        diffuseColorVec4[0] /= 255.0; diffuseColorVec4[1] /= 255.0;
+        diffuseColorVec4[2] /= 255.0; diffuseColorVec4[3] /= 255.0;
+
+        self.diffuseColor = new Float32Array(diffuseColorVec4);
+
 
         self.createPlacementMatrix(doodad, wmoPlacementMatrix);
         self.calcOwnPosition();

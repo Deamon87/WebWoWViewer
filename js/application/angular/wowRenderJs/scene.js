@@ -729,13 +729,12 @@ class Scene {
          gl.enableVertexAttribArray(shaderAttributes.bones);
          gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
          gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
-         gl.disableVertexAttribArray(shaderAttributes.aColor);
     }
     deactivateM2ShaderAttribs() {
         var gl = this.gl;
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-        //gl.disableVertexAttribArray(shaderAttributes.aPosition);
+        gl.disableVertexAttribArray(shaderAttributes.aPosition);
 
         if (shaderAttributes.aNormal) {
             gl.disableVertexAttribArray(shaderAttributes.aNormal);
@@ -745,6 +744,7 @@ class Scene {
 
         gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
         gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
+        gl.enableVertexAttribArray(0);
     }
     activateM2Shader () {
         this.currentShaderProgram = this.m2Shader;
@@ -789,6 +789,9 @@ class Scene {
             gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
             gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
 
+            gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
+            gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
+
             gl.activeTexture(gl.TEXTURE0);
 
             gl.enableVertexAttribArray(shaderAttributes.aPosition);
@@ -799,17 +802,18 @@ class Scene {
             gl.enableVertexAttribArray(shaderAttributes.bones);
             gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
             gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
-            gl.disableVertexAttribArray(shaderAttributes.aColor);
 
-            gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 0);
-            gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 1);
-            gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 2);
-            gl.enableVertexAttribArray(shaderAttributes.uPlacementMat + 3);
+            gl.enableVertexAttribArray(shaderAttributes.aPlacementMat + 0);
+            gl.enableVertexAttribArray(shaderAttributes.aPlacementMat + 1);
+            gl.enableVertexAttribArray(shaderAttributes.aPlacementMat + 2);
+            gl.enableVertexAttribArray(shaderAttributes.aPlacementMat + 3);
+            gl.enableVertexAttribArray(shaderAttributes.aDiffuseColor);
             if (instExt != null) {
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 1);
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 1);
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 1);
-                instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 1);
+                instExt.vertexAttribDivisorANGLE(shaderAttributes.aPlacementMat + 0, 1);
+                instExt.vertexAttribDivisorANGLE(shaderAttributes.aPlacementMat + 1, 1);
+                instExt.vertexAttribDivisorANGLE(shaderAttributes.aPlacementMat + 2, 1);
+                instExt.vertexAttribDivisorANGLE(shaderAttributes.aPlacementMat + 3, 1);
+                instExt.vertexAttribDivisorANGLE(shaderAttributes.aDiffuseColor, 1);
             }
         }
 
@@ -819,7 +823,7 @@ class Scene {
         var instExt = this.sceneApi.extensions.getInstancingExt();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-        //gl.disableVertexAttribArray(shaderAttributes.aPosition);
+        gl.disableVertexAttribArray(shaderAttributes.aPosition);
         if (shaderAttributes.aNormal) {
             gl.disableVertexAttribArray(shaderAttributes.aNormal);
         }
@@ -829,16 +833,17 @@ class Scene {
         gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
 
         if (instExt) {
-            instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 0, 0);
-            instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 1, 0);
-            instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 2, 0);
-            instExt.vertexAttribDivisorANGLE(shaderAttributes.uPlacementMat + 3, 0);
+            instExt.vertexAttribDivisorANGLE(shaderAttributes.aPlacementMat + 0, 0);
+            instExt.vertexAttribDivisorANGLE(shaderAttributes.aPlacementMat + 1, 0);
+            instExt.vertexAttribDivisorANGLE(shaderAttributes.aPlacementMat + 2, 0);
+            instExt.vertexAttribDivisorANGLE(shaderAttributes.aPlacementMat + 3, 0);
         }
-        gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 0);
-        gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 1);
-        gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 2);
-        gl.disableVertexAttribArray(shaderAttributes.uPlacementMat + 3);
+        gl.disableVertexAttribArray(shaderAttributes.aPlacementMat + 0);
+        gl.disableVertexAttribArray(shaderAttributes.aPlacementMat + 1);
+        gl.disableVertexAttribArray(shaderAttributes.aPlacementMat + 2);
+        gl.disableVertexAttribArray(shaderAttributes.aPlacementMat + 3);
 
+        gl.enableVertexAttribArray(0);
     }
     activateBoundingBoxShader () {
         this.currentShaderProgram = this.bbShader;
@@ -928,10 +933,6 @@ class Scene {
         var uniforms = this.currentShaderProgram.shaderUniforms;
 
         gl.disable(gl.DEPTH_TEST);
-        var matIdent = mat4.create();
-        mat4.identity(matIdent);
-        gl.uniformMatrix4fv(uniforms.uPlacementMat, false, matIdent);
-
 
         var invViewFrustum = mat4.create();
         mat4.invert(invViewFrustum, this.viewCameraForRender);

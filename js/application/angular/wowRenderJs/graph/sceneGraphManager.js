@@ -32,8 +32,8 @@ class InstanceManager {
 
         //var buffer = new Array(this.mdxObjectList.length * 16);
         var permanentBuffer = this.permanentBuffer;
-        if (!permanentBuffer || permanentBuffer.length != this.mdxObjectList.length * 16) {
-            permanentBuffer = new Float32Array(this.mdxObjectList.length * 16);
+        if (!permanentBuffer || permanentBuffer.length != this.mdxObjectList.length * 20) {
+            permanentBuffer = new Float32Array(this.mdxObjectList.length * 20);
             this.permanentBuffer = permanentBuffer;
         }
 
@@ -45,12 +45,13 @@ class InstanceManager {
         for (var i = 0; i < this.mdxObjectList.length; i++) {
             var mdxObject = this.mdxObjectList[i];
             var placementMatrix = mdxObject.placementMatrix;
+            var diffuseColor = mdxObject.getDiffuseColor();
             //for (var j = 0; j < 16; j++) {
             //    buffer[i*16+j] = placementMatrix[j];
             //}
             //gl.bufferSubData( gl.ARRAY_BUFFER, i*16, placementMatrix);
-            permanentBuffer.set(placementMatrix, i * 16);
-
+            permanentBuffer.set(placementMatrix, i * 20);
+            permanentBuffer.set(diffuseColor, i * 20 + 16)
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, paramsVbo);
@@ -64,7 +65,7 @@ class InstanceManager {
             opaqueMap[this.mdxObjectList[i].sceneNumber] = true;
         }
 
-        this.mdxObjectList[0].drawInstancedNonTransparentMeshes(this.lastUpdatedNumber, this.placementVBO, this.dinamycParams);
+        this.mdxObjectList[0].drawInstancedNonTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
     }
     drawInstancedTransparentMeshes(transparentMap) {
         if (!this.mdxObjectList[0]) return;
@@ -72,7 +73,7 @@ class InstanceManager {
             transparentMap[this.mdxObjectList[i].sceneNumber] = true;
         }
 
-        this.mdxObjectList[0].drawInstancedTransparentMeshes(this.lastUpdatedNumber, this.placementVBO, this.dinamycParams);
+        this.mdxObjectList[0].drawInstancedTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
     }
 }
 
@@ -324,30 +325,19 @@ class GraphManager {
         //Sort every 500 ms
         if (this.currentTime + deltaTime - this.lastTimeSort > 500) {
             var self = this;
-            //Sort by m2 and skin files and collect it into instances
+            //Collect m2 into insntaces
+            var map = {};
+            for (var j = 0; j < this.m2Objects.length; j++) {
+                var m2Object = this.m2Objects[j];
+                var fileIdent = m2Object.getFileNameIdent();
 
-            this.m2Objects.sort(function (a, b) {
-                return a.getFileNameIdent() < b.getFileNameIdent() ? -1 :
-                    (a.getFileNameIdent() > b.getFileNameIdent() ? 1 : 0);
-            });
-
-
-            var lastObject = this.m2Objects[0];
-            var lastInstanced = false;
-            for (var j = 1; j < this.m2Objects.length; j++) {
-
-                var currentObject = this.m2Objects[j];
-                var newBucket = !lastInstanced;
-                if (currentObject.getFileNameIdent() == lastObject.getFileNameIdent()) {
-                    this.addM2ObjectToInstanceManager(lastObject, newBucket);
-                    lastInstanced = true;
-                } else if (lastInstanced) {
-                    this.addM2ObjectToInstanceManager(lastObject, newBucket);
-                    lastInstanced = false;
+                if (map[fileIdent] != undefined) {
+                    this.addM2ObjectToInstanceManager(m2Object)
+                } else {
+                    map[fileIdent] = m2Object;
                 }
-
-                lastObject = currentObject;
             }
+
 
             for (var j = 0; j < this.m2Objects.length; j++) {
                 this.m2Objects[j].calcDistance(self.position);

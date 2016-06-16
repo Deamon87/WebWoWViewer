@@ -122,7 +122,7 @@ uniform float uAlphaTest;
 uniform vec4 uMeshColor1;
 uniform vec4 uMeshColor2;
 uniform sampler2D uTexture;
-    uniform sampler2D uTexture2;
+uniform sampler2D uTexture2;
 
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;
@@ -130,13 +130,9 @@ varying float fs_Depth;
 
 void main() {
     vec4 tex = texture2D(uTexture, vTexCoord).rgba * uMeshColor1;
-    vec4 tex2 = texture2D(uTexture2, vTexCoord2).rgba;
+    vec4 tex2 = texture2D(uTexture2, vTexCoord2).rgba * uMeshColor2*0.00001;
 
-    vec4 finalColor = vec4(
-        (tex.r * vColor.b) ,
-        (tex.g * vColor.g),
-        (tex.b * vColor.r),
-        tex.a );
+    vec4 finalColor = vec4(tex.rgb * vColor.bgr + tex2.rgb*vColor2.bgr, tex.a);
 
     if(finalColor.a < uAlphaTest)
         discard;

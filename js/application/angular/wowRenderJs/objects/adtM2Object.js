@@ -17,6 +17,9 @@ class AdtM2Object extends MDXObject {
     getMeshesToRender () {
         return this.getMeshesToRender();
     }
+    getDiffuseColor() {
+        return this.diffuseColor;
+    }
     drawBB (){
         var gl = this.sceneApi.getGlContext();
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
@@ -48,13 +51,13 @@ class AdtM2Object extends MDXObject {
         }
     }
     drawTransparentMeshes () {
-        super.draw(true, this.placementMatrix, 0xffffffff);
+        super.draw(true, this.placementMatrix, this.diffuseColor);
     }
     drawNonTransparentMeshes () {
-        super.draw(false, this.placementMatrix, 0xffffffff);
+        super.draw(false, this.placementMatrix, this.diffuseColor);
     }
     draw () {
-        super.draw(this.placementMatrix, 0xffffffff);
+        super.draw(this.placementMatrix, this.diffuseColor);
     }
     drawInstancedNonTransparentMeshes (instanceCount, placementVBO) {
         super.drawInstanced(false, instanceCount, placementVBO, 0xffffffff);
@@ -152,6 +155,7 @@ class AdtM2Object extends MDXObject {
         var self = this;
 
         self.mddf = mddf;
+        self.diffuseColor = new Float32Array([1,1,1,1]);
 
         self.createPlacementMatrix(mddf);
         self.calcOwnPosition();

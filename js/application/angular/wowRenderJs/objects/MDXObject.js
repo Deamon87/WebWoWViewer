@@ -9,7 +9,7 @@ class MDXObject {
         this.currentAnimation = 0;
         this.currentTime = 0;
         this.isAnimated = false;
-        this.subMeshColors
+        this.subMeshColors = null;
     }
 
     getFileNameIdent(){
@@ -375,6 +375,7 @@ class MDXObject {
         return this.currentAnimation;
     }
 
+
     getSubMeshColor (animation, time) {
         var colors = this.m2Geom.m2File.colors;
         var animationRecord = this.m2Geom.m2File.animations[animation];
@@ -446,6 +447,30 @@ class MDXObject {
         } else {
             return null;
         }
+    }
+    getCombinedColor(skinData, materialData, subMeshColors, transperencies) {
+        var colorIndex = skinData.texs[materialData.texUnit1TexIndex].colorIndex;
+        var submeshColor = new Float32Array([1,1,1,1]);
+        if ((colorIndex >= 0) && (subMeshColors)) {
+            var color = subMeshColors[colorIndex];
+            submeshColor = color;
+        }
+        var transperency = 1.0;
+        var transpIndex = skinData.texs[materialData.texUnit1TexIndex].transpIndex;
+        if ((transpIndex >= 0) && (transperencies)) {
+            transperency = transperencies[transpIndex];
+        }
+
+        //Don't draw meshes with 0 transp
+        if (transperency == 0) {
+            return null;
+        }
+        //submeshColor[0] = submeshColor[0] * transperency;
+        //submeshColor[1] = submeshColor[1] * transperency;
+        //submeshColor[2] = submeshColor[2] * transperency;
+        submeshColor[3] = submeshColor[3] * transperency;
+
+        return submeshColor;
     }
     getMeshesToRender() {
         var meshesToRender = [];
@@ -893,7 +918,7 @@ class MDXObject {
     *
     * */
 
-    drawMeshes(drawTransparent, colorVector, instanceCount) {
+    drawMeshes(drawTransparent, instanceCount) {
         var identMat = mat4.create();
         mat4.identity(identMat);
 
@@ -918,27 +943,23 @@ class MDXObject {
                     }
                 }
             }
+            var meshColor = this.getCombinedColor(skinData, materialData, this.subMeshColors, this.transperencies);
+            if (!meshColor) continue;
 
-            this.m2Geom.drawMesh(i, materialData, this.skinGeom, this.subMeshColors, colorVector, this.transperencies, textureMatrix1, textureMatrix2, instanceCount)
+            this.m2Geom.drawMesh(i, materialData, this.skinGeom, meshColor, textureMatrix1, textureMatrix2, instanceCount)
         }
     }
-    drawInstanced(drawTransparent, instanceCount, placementVBO, color) {
+    drawInstanced(drawTransparent, instanceCount, placementVBO) {
         if (!this.m2Geom || !this.skinGeom) return;
 
         this.m2Geom.setupAttributes(this.skinGeom);
         var combinedMatrix = this.boneMatrix;
-        this.m2Geom.setupUniforms(null, combinedMatrix);
+        this.m2Geom.setupUniforms(null, combinedMatrix, null);
         this.m2Geom.setupPlacementAttribute(placementVBO);
-
-        var colorVector = [color&0xff, (color>> 8)&0xff,
-            (color>>16)&0xff, (color>> 24)&0xff];
-        colorVector[0] /= 255.0; colorVector[1] /= 255.0;
-        colorVector[2] /= 255.0; colorVector[3] /= 255.0;
-
-        this.drawMeshes(drawTransparent, colorVector, instanceCount);
+        this.drawMeshes(drawTransparent, instanceCount);
     }
 
-    draw(drawTransparent, placementMatrix, color) {
+    draw(drawTransparent, placementMatrix, diffuseColor) {
         if (!this.m2Geom || !this.skinGeom) return;
 
         var vaoBinded = this.m2Geom.bindVao();
@@ -947,14 +968,9 @@ class MDXObject {
         }
 
         var combinedMatrix = this.boneMatrix;
-        this.m2Geom.setupUniforms(placementMatrix, combinedMatrix);
+        this.m2Geom.setupUniforms(placementMatrix, combinedMatrix, diffuseColor);
 
-        var colorVector = [color&0xff, (color>> 8)&0xff,
-            (color>>16)&0xff, (color>> 24)&0xff];
-        colorVector[0] /= 255.0; colorVector[1] /= 255.0;
-        colorVector[2] /= 255.0; colorVector[3] /= 255.0;
-
-        this.drawMeshes(drawTransparent, colorVector);
+        this.drawMeshes(drawTransparent, -1);
 
         if (vaoBinded) {
             this.m2Geom.unbindVao()
