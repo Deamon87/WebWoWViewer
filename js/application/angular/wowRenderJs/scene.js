@@ -751,7 +751,7 @@ class Scene {
         if (this.currentShaderProgram) {
             var gl = this.gl;
             gl.useProgram(this.currentShaderProgram.program);
-
+            gl.enableVertexAttribArray(0);
             if (!this.vao_ext) {
                 this.activateM2ShaderAttribs()
             }
@@ -793,7 +793,7 @@ class Scene {
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
 
             gl.activeTexture(gl.TEXTURE0);
-
+            gl.enableVertexAttribArray(0);
             gl.enableVertexAttribArray(shaderAttributes.aPosition);
             if (shaderAttributes.aNormal) {
                 gl.enableVertexAttribArray(shaderAttributes.aNormal);
