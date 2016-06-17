@@ -10,10 +10,14 @@ class MDXObject {
         this.currentTime = 0;
         this.isAnimated = false;
         this.subMeshColors = null;
+        this.hasBillboarded = false;
     }
 
     getFileNameIdent(){
         return this.fileIdent;
+    }
+    getHasBillboarded() {
+        return this.hasBillboarded;
     }
 
     load (modelName, skinNum, submeshRenderData){
@@ -43,7 +47,7 @@ class MDXObject {
             } else {
                 var gl = self.sceneApi.getGlContext();
                 m2Geom.createVAO(skinGeom);
-
+                self.hasBillboarded = self.checkIfHasBillboarded();
 
                 self.makeTextureArray(m2Geom, skinGeom, submeshRenderData)
             }
@@ -514,7 +518,6 @@ class MDXObject {
         var animation = this.currentAnimation;
         animation = this.checkCurrentAnimation(animation, this.currentTime + deltaTime);
 
-
         var subMeshColors = this.getSubMeshColor(animation, this.currentTime + deltaTime);
         this.subMeshColors = subMeshColors;
 
@@ -652,6 +655,17 @@ class MDXObject {
         }
 
         return result;
+    }
+    checkIfHasBillboarded() {
+        var m2File = this.m2Geom.m2File;
+        for (var i = 0; i < m2File.nBones; i++) {
+            var boneDefinition = m2File.bones[i];
+            if ((boneDefinition.flags & 0x48) > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
     calcAnimMatrixes (animation, time) {
         if (!this.textAnimMatrix) {

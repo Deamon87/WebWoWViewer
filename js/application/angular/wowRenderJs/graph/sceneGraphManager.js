@@ -246,9 +246,6 @@ class GraphManager {
     /*
      * Update function
      * */
-    sortM2 (a, b) {
-        return b.getCurrentDistance() - a.getCurrentDistance() > 0 ? 1 : -1;
-    }
     update(deltaTime) {
         //1. Update all wmo and m2 objects
         var i;
@@ -269,6 +266,11 @@ class GraphManager {
             var map = {};
             for (var j = 0; j < this.m2Objects.length; j++) {
                 var m2Object = this.m2Objects[j];
+
+                if (!m2Object.m2Geom) continue;
+                if (m2Object.getHasBillboarded()) continue;
+                if (!m2Object.getIsRendered()) continue;
+
                 var fileIdent = m2Object.getFileNameIdent();
 
                 if (map[fileIdent] != undefined) {
