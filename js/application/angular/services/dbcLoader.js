@@ -1,5 +1,6 @@
 import $q from 'q';
-import fileLoader from 'fileLoader.js';
+import fileLoader from './fileLoader.js';
+import fileReadHelper from './fileReadHelper.js';
 
 export default function (dbcFilePath) {
     var deferred = $q.defer();
@@ -29,7 +30,7 @@ export default function (dbcFilePath) {
             var textOffs = fileReader.readUint32(offs);
 
             var result = textSectionStart + textOffs;
-            return result;
+            return {offs : result};
         }
 
 
@@ -46,11 +47,15 @@ export default function (dbcFilePath) {
             },
             readInt32 : function (row, col) {
                 var offs = calcOffset(row, col);
-                return fileReader.readInt32(offs, true);
+                return fileReader.readInt32(offs);
+            },
+            readFloat32 : function (row, col) {
+                var offs = calcOffset(row, col);
+                return fileReader.readFloat32(offs);
             },
             readUInt32 : function (row, col){
                 var offs = calcOffset(row, col);
-                return fileReader.readUint32(offs, true);
+                return fileReader.readUint32(offs);
             },
             readText : function (row, col) {
                 var textOffs = getTextOffset(row, col);

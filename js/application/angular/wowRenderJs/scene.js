@@ -27,6 +27,19 @@ import firstPersonCamera from './camera/firstPersonCamera.js'
 
 import {mat4, vec4, vec3, glMatrix} from 'gl-matrix'
 
+/* DBC stuff */
+import characterFacialHairStylesDBC from './../services/dbc/characterFacialHairStylesDBC.js'
+import charHairGeosetsDBC           from './../services/dbc/charHairGeosetsDBC.js'
+import charSectionsDBC              from './../services/dbc/charSectionsDBC.js'
+import creatureDisplayInfoDBC       from './../services/dbc/creatureDisplayInfoDBC.js'
+import creatureDisplayInfoExtraDBC  from './../services/dbc/creatureDisplayInfoExtraDBC.js'
+import creatureModelDataDBC         from './../services/dbc/creatureModelDataDBC.js'
+import gameObjectDisplayInfoDBC     from './../services/dbc/gameObjectDisplayInfoDBC.js'
+import itemDisplayInfoDBC           from './../services/dbc/itemDisplayInfoDBC.js'
+import mapDBC                       from './../services/dbc/mapDBC.js'
+
+/*************/
+
 glMatrix.setMatrixArrayType(Array);
 
 
@@ -78,6 +91,16 @@ class Scene {
         self.initBoxVBO();
         self.initCaches();
         self.initCamera(canvas, document);
+
+        //characterFacialHairStylesDBC();
+        //charHairGeosetsDBC();
+        //charSectionsDBC();
+        //creatureDisplayInfoDBC();
+        //creatureDisplayInfoExtraDBC();
+        //creatureModelDataDBC();
+        //gameObjectDisplayInfoDBC();
+       // itemDisplayInfoDBC();
+        mapDBC();
 
     }
 

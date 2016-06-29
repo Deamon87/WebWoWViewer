@@ -1,5 +1,4 @@
 import configService from './config.js';
-import fileReadHelper from './fileReadHelper.js';
 import FileWorker from 'worker?inline=true!./fileSystem/fileLoader-worker.js';
 //import $log;
 import $q from 'q';
