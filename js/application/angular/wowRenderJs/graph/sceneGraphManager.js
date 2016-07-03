@@ -69,19 +69,27 @@ class InstanceManager {
     }
     drawInstancedNonTransparentMeshes(opaqueMap) {
         if (!this.mdxObjectList[0]) return;
+        var lastDrawn;
         for (var i = 0; i < this.mdxObjectList.length; i++) {
             opaqueMap[this.mdxObjectList[i].sceneNumber] = true;
+            if (this.mdxObjectList[i].getIsRendered()) {
+                lastDrawn = this.mdxObjectList[i];
+            }
         }
 
-        this.mdxObjectList[0].drawInstancedNonTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
+        lastDrawn.drawInstancedNonTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
     }
     drawInstancedTransparentMeshes(transparentMap) {
         if (!this.mdxObjectList[0]) return;
+        var lastDrawn;
         for (var i = 0; i < this.mdxObjectList.length; i++) {
             transparentMap[this.mdxObjectList[i].sceneNumber] = true;
+            if (this.mdxObjectList[i].getIsRendered()) {
+                lastDrawn = this.mdxObjectList[i];
+            }
         }
 
-        this.mdxObjectList[0].drawInstancedTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
+        lastDrawn.drawInstancedTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
     }
 }
 
@@ -275,6 +283,9 @@ class GraphManager {
 
                 if (map[fileIdent] != undefined) {
                     this.addM2ObjectToInstanceManager(m2Object)
+                    if (!map[fileIdent].instanceManager) {
+                        this.addM2ObjectToInstanceManager(map[fileIdent]);
+                    }
                 } else {
                     map[fileIdent] = m2Object;
                 }

@@ -18,8 +18,8 @@ export default function characterFacialHairStylesDBC(){
                 record.gender      = dbcObject.readInt32(i, 1);
                 record.hairStyle   = dbcObject.readInt32(i, 2);
                 record.geoset = [];
-                for( var j = 0; i < 5; j++)
-                    record.geoset[j] = dbcObject.readInt32(3+i);
+                for( var j = 0; j < 5; j++)
+                    record.geoset[j] = dbcObject.readInt32(i, 3+j);
 
                 characterFacialHairStylesDBCFile[i] = record;
             }

@@ -20,9 +20,9 @@ attribute vec2 aTexCoord2;
 
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
-uniform int isBillboard;
 uniform mat4 uBoneMatrixes[59]; //Max 59 for ANGLE implementation and max 120? bones in Wotlk client
 uniform int isEnviroment;
+uniform int isTransparent;
 
 #ifdef INSTANCED
 attribute vec4 aDiffuseColor;
@@ -83,11 +83,16 @@ void main() {
     vTexCoord = texCoord;
     vTexCoord2 = aTexCoord2;
 
+    if (isTransparent == 0) {
+
 #ifdef INSTANCED
     vDiffuseColor = aDiffuseColor;
 #else
     vDiffuseColor = uDiffuseColor;
 #endif
+    } else {
+        vDiffuseColor = vec4(1.0, 1.0, 1.0, 1.0);
+    }
 
 #ifndef drawBuffersIsSupported
     gl_Position = uPMatrix * cameraPoint;
@@ -118,6 +123,7 @@ uniform vec4 uColor;
 
 //uniform vec4  uGlobalLighting;
 uniform float uAlphaTest;
+uniform float uTransparency;
 uniform sampler2D uTexture;
 uniform sampler2D uTexture2;
 
@@ -139,8 +145,12 @@ void main() {
     vec4 tex = texture2D(uTexture, texCoord).rgba;
     vec4 tex2 = texture2D(uTexture2, texCoord2).rgba;
 
-    vec4 finalColor = vec4((tex.rgb * tex2.rgb * uColor.bgr * vDiffuseColor.bgr ), 1.0);
-    finalColor.a = tex.a * uColor.a;
+    //vec4 finalColor = vec4((tex.rgb * tex2.rgb * uColor.bgr * vDiffuseColor.bgr ), 1.0);
+    //finalColor.rgb = uColor.rgb;
+    vec4 finalColor = vec4((tex.rgb * tex2.rgb * vDiffuseColor.bgr), 1.0);
+    finalColor.rgb = finalColor.rgb * uColor.rgb;
+    finalColor.a = tex.a * uColor.a* uTransparency;
+
 
     if(tex.a < uAlphaTest)
         discard;

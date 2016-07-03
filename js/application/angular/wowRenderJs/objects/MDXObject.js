@@ -452,29 +452,24 @@ class MDXObject {
             return null;
         }
     }
-    getCombinedColor(skinData, materialData, subMeshColors, transperencies) {
+    getCombinedColor(skinData, materialData, subMeshColors) {
         var colorIndex = skinData.texs[materialData.texUnit1TexIndex].colorIndex;
         var submeshColor = new Float32Array([1,1,1,1]);
         if ((colorIndex >= 0) && (subMeshColors)) {
             var color = subMeshColors[colorIndex];
             submeshColor = color;
         }
+
+        return submeshColor;
+    }
+    getTransparency(skinData, materialData,transperencies) {
         var transperency = 1.0;
         var transpIndex = skinData.texs[materialData.texUnit1TexIndex].transpIndex;
         if ((transpIndex >= 0) && (transperencies)) {
             transperency = transperencies[transpIndex];
         }
 
-        //Don't draw meshes with 0 transp
-        if (transperency == 0) {
-            return null;
-        }
-        //submeshColor[0] = submeshColor[0] * transperency;
-        //submeshColor[1] = submeshColor[1] * transperency;
-        //submeshColor[2] = submeshColor[2] * transperency;
-        submeshColor[3] = submeshColor[3] * transperency;
-
-        return submeshColor;
+        return transperency;
     }
     getMeshesToRender() {
         var meshesToRender = [];
@@ -957,10 +952,13 @@ class MDXObject {
                     }
                 }
             }
-            var meshColor = this.getCombinedColor(skinData, materialData, this.subMeshColors, this.transperencies);
-            if (!meshColor) continue;
+            var meshColor = this.getCombinedColor(skinData, materialData, this.subMeshColors);
+            var transparency = this.getTransparency(skinData, materialData, this.transperencies)
 
-            this.m2Geom.drawMesh(i, materialData, this.skinGeom, meshColor, textureMatrix1, textureMatrix2, instanceCount)
+            //Don't draw meshes with 0 transp
+            if (transparency < 0.0001) continue;
+
+            this.m2Geom.drawMesh(i, materialData, this.skinGeom, meshColor, transparency, textureMatrix1, textureMatrix2, instanceCount)
         }
     }
     drawInstanced(drawTransparent, instanceCount, placementVBO) {
@@ -968,7 +966,7 @@ class MDXObject {
 
         this.m2Geom.setupAttributes(this.skinGeom);
         var combinedMatrix = this.boneMatrix;
-        this.m2Geom.setupUniforms(null, combinedMatrix, null);
+        this.m2Geom.setupUniforms(null, combinedMatrix, null, drawTransparent);
         this.m2Geom.setupPlacementAttribute(placementVBO);
         this.drawMeshes(drawTransparent, instanceCount);
     }
@@ -982,7 +980,7 @@ class MDXObject {
         }
 
         var combinedMatrix = this.boneMatrix;
-        this.m2Geom.setupUniforms(placementMatrix, combinedMatrix, diffuseColor);
+        this.m2Geom.setupUniforms(placementMatrix, combinedMatrix, diffuseColor, drawTransparent);
 
         this.drawMeshes(drawTransparent, -1);
 

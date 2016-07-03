@@ -28,6 +28,7 @@ import firstPersonCamera from './camera/firstPersonCamera.js'
 import {mat4, vec4, vec3, glMatrix} from 'gl-matrix'
 
 /* DBC stuff */
+import $q from 'q';
 import characterFacialHairStylesDBC from './../services/dbc/characterFacialHairStylesDBC.js'
 import charHairGeosetsDBC           from './../services/dbc/charHairGeosetsDBC.js'
 import charSectionsDBC              from './../services/dbc/charSectionsDBC.js'
@@ -92,15 +93,13 @@ class Scene {
         self.initCaches();
         self.initCamera(canvas, document);
 
-        //characterFacialHairStylesDBC();
-        //charHairGeosetsDBC();
-        //charSectionsDBC();
-        //creatureDisplayInfoDBC();
-        //creatureDisplayInfoExtraDBC();
-        //creatureModelDataDBC();
-        //gameObjectDisplayInfoDBC();
-       // itemDisplayInfoDBC();
-        mapDBC();
+
+        $q.all([characterFacialHairStylesDBC(),charHairGeosetsDBC(),charSectionsDBC(),
+                creatureDisplayInfoDBC(), creatureDisplayInfoExtraDBC(), creatureModelDataDBC(),
+                gameObjectDisplayInfoDBC(), itemDisplayInfoDBC(), mapDBC()])
+            .then(function success(a) {
+                console.log("test dbc load", a);
+            }, function error(b){})
 
     }
 
