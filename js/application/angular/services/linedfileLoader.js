@@ -161,6 +161,9 @@ export default function (filePath , arrayBuffer) {
                 } else if (typeof sectionDefinition.len == "function") {
                     len = sectionDefinition.len(parentObject);
                 }
+                if (sectionDefinition.condition) {
+                    if (!sectionDefinition.condition(parentObject)) return;
+                }
 
                 if (offset && offs) {
                     offset =  {offs : offs};

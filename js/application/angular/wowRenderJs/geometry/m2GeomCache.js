@@ -166,6 +166,8 @@ class M2Geom {
 
                 var renderFlagIndex = skinData.texs[materialData.texUnit1TexIndex].renderFlagIndex;
                 var renderFlag = m2File.renderFlags[renderFlagIndex];
+
+                gl.uniform1i(uniforms.uBlendMode, renderFlag.blend);
                 switch (renderFlag.blend) {
                     case 0 : //BM_OPAQUE
                         gl.disable(gl.BLEND);
@@ -193,7 +195,7 @@ class M2Geom {
                         break;
 
                     case 6:
-                        gl.uniform1f(uniforms.uAlphaTest, 0.903921569);
+                        gl.uniform1f(uniforms.uAlphaTest, 0.00392157);
                         gl.enable(gl.BLEND);
                         gl.blendFunc(gl.DST_COLOR, gl.SRC_COLOR);
                         break;

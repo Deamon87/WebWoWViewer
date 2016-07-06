@@ -22,7 +22,7 @@ uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 uniform mat4 uBoneMatrixes[59]; //Max 59 for ANGLE implementation and max 120? bones in Wotlk client
 uniform int isEnviroment;
-uniform int isTransparent;
+uniform lowp int isTransparent;
 
 #ifdef INSTANCED
 attribute vec4 aDiffuseColor;
@@ -38,6 +38,9 @@ varying vec2 vTexCoord2;
 varying vec3 vNormal;
 varying vec3 vPosition;
 varying vec4 vDiffuseColor;
+
+
+
 
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;
@@ -94,6 +97,7 @@ void main() {
         vDiffuseColor = vec4(1.0, 1.0, 1.0, 1.0);
     }
 
+
 #ifndef drawBuffersIsSupported
     gl_Position = uPMatrix * cameraPoint;
     vNormal = normal;
@@ -118,6 +122,10 @@ varying vec2 vTexCoord2;
 varying vec3 vPosition;
 
 varying vec4 vDiffuseColor;
+
+uniform lowp int isTransparent;
+
+uniform int uBlendMode;
 
 uniform vec4 uColor;
 
@@ -145,12 +153,78 @@ void main() {
     vec4 tex = texture2D(uTexture, texCoord).rgba;
     vec4 tex2 = texture2D(uTexture2, texCoord2).rgba;
 
-    //vec4 finalColor = vec4((tex.rgb * tex2.rgb * uColor.bgr * vDiffuseColor.bgr ), 1.0);
-    //finalColor.rgb = uColor.rgb;
-    vec4 finalColor = vec4((tex.rgb * tex2.rgb * vDiffuseColor.bgr), 1.0);
-    finalColor.rgb = finalColor.rgb * uColor.rgb;
-    finalColor.a = tex.a * uColor.a* uTransparency;
+    vec4 meshColor = uColor;
+    if (uBlendMode == 6) {
+       meshColor.rbg *= vec3(0.5);
+    }
 
+    vec4 finalColor = vec4((tex.rgb * tex2.rgb), 1.0);
+    finalColor.rgb = finalColor.rgb * meshColor.rgb * vDiffuseColor.bgr;
+    finalColor.a = tex.a * tex2.a * uColor.a* uTransparency;
+
+    if (isTransparent == 0) {
+        vec3 fogColor = vec3(0.117647, 0.207843, 0.392157);
+        float fog_start = 1.0;
+        float fog_end = 200.0;
+        float fog_rate = 1.5;
+        float fog_bias = 0.01;
+    
+        //vec4 fogHeightPlane = pc_fog.heightPlane;
+        float heightRate = pc_fog.color_and_heightRate.w;
+
+        float distanceToCamera = length(vPosition.xyz);
+        float z_depth = (distanceToCamera - fog_bias);
+        float expFog = 1.0 / (exp((max(0.0, (z_depth - fog_start)) * fog_rate)));
+        //float height = (dot(fogHeightPlane.xyz, vPosition.xyz) + fogHeightPlane.w);
+        //float heightFog = clamp((height * heightRate), 0, 1);
+        float heightFog = 1.0;
+        expFog = (expFog + heightFog);
+        float endFadeFog = clamp(((fog_end - distanceToCamera) / (0.699999988 * fog_end)), 0.0, 1.0);
+
+        finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, vec3(min(expFog, endFadeFog)));
+    }
+    /*
+    vec3 matDiffuse_575 = (tex.rgb * tex2.rgb * meshColor.rgb);
+    vec3 S_570 = vec3(mix(vec3(0.699999988), vec3(1.0), 1.0));
+    vec3 lDiffuse_578 = vec3((1.0 * S_570));
+    float mag_257 = length(lDiffuse_578);
+    vec3 l_702;
+    if ((mag_257 > 1.0))
+    {
+        // Block 258
+        vec3 t265 = vec3(mag_257);
+        vec3 l_266 = ((lDiffuse_578 * (1.0 + log(mag_257))) / t265);
+        l_702 = l_266;
+    }
+    else
+    {
+        // Block 259
+        l_702 = lDiffuse_578;
+    }
+    // Block 625
+    vec3 l_267 = l_702;
+    vec3 diffTerm_580 = (matDiffuse_575 * l_267);
+    vec3 specTerm_583 = (vec3(0.0) * (S_570 * 1.0));
+    vec4 final_599 = vec4(((diffTerm_580 + specTerm_583) + vec3(0.0)), (((tex.a * tex.b * meshColor.a) * 1.0) * 1.0));
+    vec4 final_705;
+    if ((vDiffuseColor.w != 0.0))
+    {
+        // Block 600
+        vec3 t606 = final_599.xyz;
+        vec3 t612 = vec3(dot(t606, vDiffuseColor.bgr));
+        vec3 t613 = vec3(vDiffuseColor.w);
+        vec4 final_615 = vec4(mix(t606, t612, t613), final_599.w);
+        final_705 = final_615;
+    }
+    else
+    {
+        // Block 601
+        final_705 = final_599;
+    }
+
+
+    vec4 finalColor = final_705;
+    */
 
     if(tex.a < uAlphaTest)
         discard;

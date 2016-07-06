@@ -77,10 +77,10 @@ varying vec2 vTexCoord;
 varying vec2 vTexCoord2;
 varying vec4 vColor;
 varying vec4 vColor2;
+varying vec3 vPosition;
 
 #ifdef drawBuffersIsSupported
 varying vec3 vNormal;
-varying vec3 vPosition;
 varying float fs_Depth;
 #endif
 
@@ -96,6 +96,7 @@ void main() {
 
 #ifndef drawBuffersIsSupported
     gl_Position = uPMatrix * cameraPoint;
+    vPosition = cameraPoint.xyz;
 #else
     gl_Position = uPMatrix * cameraPoint;
     fs_Depth = gl_Position.z / gl_Position.w;
@@ -133,6 +134,27 @@ void main() {
     vec4 tex2 = texture2D(uTexture2, vTexCoord2).rgba * uMeshColor2*0.00001;
 
     vec4 finalColor = vec4(tex.rgb * vColor.bgr + tex2.rgb*vColor2.bgr, tex.a);
+
+    vec3 fogColor = vec3(0.117647, 0.207843, 0.392157);
+    float fog_start = 1.0;
+    float fog_end = 200.0;
+    float fog_rate = 1.5;
+    float fog_bias = 0.01;
+
+    //vec4 fogHeightPlane = pc_fog.heightPlane;
+    float heightRate = pc_fog.color_and_heightRate.w;
+
+    float distanceToCamera = length(vPosition.xyz);
+    float z_depth = (distanceToCamera - fog_bias);
+    float expFog = 1.0 / (exp((max(0.0, (z_depth - fog_start)) * fog_rate)));
+    //float height = (dot(fogHeightPlane.xyz, vPosition.xyz) + fogHeightPlane.w);
+    //float heightFog = clamp((height * heightRate), 0, 1);
+    float heightFog = 1.0;
+    expFog = (expFog + heightFog);
+    float endFadeFog = clamp(((fog_end - distanceToCamera) / (0.699999988 * fog_end)), 0.0, 1.0);
+
+    finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, vec3(min(expFog, endFadeFog)));
+
 
     if(finalColor.a < uAlphaTest)
         discard;

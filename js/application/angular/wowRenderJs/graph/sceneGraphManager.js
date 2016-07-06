@@ -254,6 +254,9 @@ class GraphManager {
     /*
      * Update function
      * */
+    sortM2 (a, b) {
+        return b.getCurrentDistance() - a.getCurrentDistance() > 0 ? 1 : -1;
+    }
     update(deltaTime) {
         //1. Update all wmo and m2 objects
         var i;
@@ -290,7 +293,7 @@ class GraphManager {
                     map[fileIdent] = m2Object;
                 }
             }
-             /*
+
             for (var j = 0; j < this.m2Objects.length; j++) {
                 //if (this.m2Objects[j].getIsRendered()) {
                     this.m2Objects[j].calcDistance(self.position);
@@ -299,7 +302,7 @@ class GraphManager {
 
             //Sort by distance
             this.m2Objects.sort(this.sortM2);
-            */
+
         }
         //Update placement matrix buffers
 

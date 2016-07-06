@@ -87,10 +87,10 @@ export default function initCamera(canvas, document) {
         if (mleft_pressed === 1) {
             ah = ah + (x - m_x) / 4.0;
             av = av + (y - m_y) / 4.0;
-            if (av < -89) {
-                av = -89
-            } else if (av > 89) {
-                av = 89;
+            if (av < -100) {
+                av = -100
+            } else if (av > 100) {
+                av = 100;
             }
             m_x = x;
             m_y = y;
@@ -107,10 +107,10 @@ export default function initCamera(canvas, document) {
         if (mleft_pressed === 1) {
             ah = ah + (event.pageX - m_x) / 4.0;
             av = av + (event.pageY - m_y) / 4.0;
-            if (av < -89) {
-                av = -89
-            } else if (av > 89) {
-                av = 89;
+            if (av < -89.99999) {
+                av = -89.99999
+            } else if (av > 89.99999) {
+                av = 89.99999;
             }
             m_x = event.pageX;
             m_y = event.pageY;
@@ -158,7 +158,7 @@ export default function initCamera(canvas, document) {
             var dTime = timeDelta;
 
             /* Calc look at position */
-
+            //av = 90;
             dir = vec3.rotateY(dir, dir, [0, 0, 0], degToRad(av));
             dir = vec3.rotateZ(dir, dir, [0, 0, 0], degToRad(-ah));
             vec3.normalize(dir,dir);

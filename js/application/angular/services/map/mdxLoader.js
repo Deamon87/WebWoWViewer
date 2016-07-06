@@ -72,6 +72,8 @@ const mdx_ver264 = {
         {name: "ofsRibbonEmitters",     type: "int32"},
         {name: "nParticleEmitters",     type: "int32"},
         {name: "ofsParticleEmitters",   type: "int32"},
+        {name: "nBlendOverrides",     type: "int32"},
+        {name: "ofsBlendOverrides",   type: "int32"},
         {
             name : "vertexes",
             offset: "ofsVertexes",
@@ -244,6 +246,15 @@ const mdx_ver264 = {
             offset: "ofsTexAnimLookup",
             count: "nTexAnimLookup",
             type: "int16"
+        },
+        {
+            name : "blendOverrides",
+            offset: "ofsBlendOverrides",
+            count: "nBlendOverrides",
+            type: "int16",
+            condition: function(a) {
+                return (a.ModelType & 0x8) > 0
+            }
         },
         {
             name : "texAnims",
