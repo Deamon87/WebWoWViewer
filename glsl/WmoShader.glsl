@@ -142,7 +142,7 @@ void main() {
     float fog_bias = 0.01;
 
     //vec4 fogHeightPlane = pc_fog.heightPlane;
-    float heightRate = pc_fog.color_and_heightRate.w;
+    //float heightRate = pc_fog.color_and_heightRate.w;
 
     float distanceToCamera = length(vPosition.xyz);
     float z_depth = (distanceToCamera - fog_bias);
