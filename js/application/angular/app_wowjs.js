@@ -169,10 +169,10 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 sceneType: 'm2',
                 modelName: 'WORLD\\GENERIC\\GNOME\\PASSIVE DOODADS\\GNOMEMACHINE\\GNOMESUBWAYGLASS.m2'
             },            {
-                name: 'Hazard red light(Wotlk)',
+                name: 'S4bway car',
                 source: 'http',
                 sceneType: 'm2',
-                modelName: 'world\\generic\\gnome\\passive doodads\\hazardlights\\gnomehazardlightred.m2'
+                modelName: 'world\\generic\\gnome\\passive doodads\\subway\\subwaycar.m2'
             },
             {
                 name: 'Volumetric Light',

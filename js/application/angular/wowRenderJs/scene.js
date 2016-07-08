@@ -33,6 +33,10 @@ import characterFacialHairStylesDBC from './../services/dbc/characterFacialHairS
 import charHairGeosetsDBC           from './../services/dbc/charHairGeosetsDBC.js'
 import charSectionsDBC              from './../services/dbc/charSectionsDBC.js'
 import creatureDisplayInfoDBC       from './../services/dbc/creatureDisplayInfoDBC.js'
+import lightDBC                     from './../services/dbc/lightDBC.js'
+import lightParamsDBC               from './../services/dbc/lightParamsDBC.js'
+import lightFloatBandDBC            from './../services/dbc/lightFloatBandDBC.js'
+import lightIntBandDBC              from './../services/dbc/lightIntBandDBC.js'
 import creatureDisplayInfoExtraDBC  from './../services/dbc/creatureDisplayInfoExtraDBC.js'
 import creatureModelDataDBC         from './../services/dbc/creatureModelDataDBC.js'
 import gameObjectDisplayInfoDBC     from './../services/dbc/gameObjectDisplayInfoDBC.js'
@@ -93,13 +97,50 @@ class Scene {
         self.initCaches();
         self.initCamera(canvas, document);
 
+        /* Unit and Player data */
+        characterFacialHairStylesDBC().then(function success(a) {
+            self.characterFacialHairStylesDBC = a;
+        });
+        charHairGeosetsDBC().then(function success(a) {
+            self.charHairGeosetsDBC = a;
+        });
+        charSectionsDBC().then(function success(a) {
+            self.charSectionsDBC = a;
+        });
+        creatureDisplayInfoDBC().then(function success(a) {
+            self.creatureDisplayInfoDBC = a;
+        });
+        creatureDisplayInfoExtraDBC().then(function success(a) {
+            self.creatureDisplayInfoExtraDBC = a;
+        });
+        creatureModelDataDBC().then(function success(a) {
+            self.creatureModelDataDBC = a;
+        });
+        gameObjectDisplayInfoDBC().then(function success(a) {
+            self.gameObjectDisplayInfoDBC = a;
+        });
+        itemDisplayInfoDBC().then(function success(a) {
+            self.itemDisplayInfoDBC = a;
+        });
 
-        $q.all([characterFacialHairStylesDBC(),charHairGeosetsDBC(),charSectionsDBC(),
-                creatureDisplayInfoDBC(), creatureDisplayInfoExtraDBC(), creatureModelDataDBC(),
-                gameObjectDisplayInfoDBC(), itemDisplayInfoDBC(), mapDBC()])
-            .then(function success(a) {
-                console.log("test dbc load", a);
-            }, function error(b){})
+        /* Map and area data */
+        mapDBC().then(function success(a) {
+            self.mapDBC = a;
+        });
+
+        /* Lights information */
+        lightDBC().then(function success(a) {
+            self.lightDBC = a;
+        });
+        lightFloatBandDBC().then(function success(a) {
+            self.lightFloatBandDBC = a;
+        });
+        lightIntBandDBC().then(function success(a) {
+            self.lightIntBandDBC = a;
+        });
+        lightParamsDBC().then(function success(a) {
+            self.lightParamsDBC = a;
+        });
 
     }
 
@@ -624,7 +665,8 @@ class Scene {
         gl.depthFunc(gl.LESS);
 
         gl.disable(gl.BLEND);
-        gl.clearColor(0.6, 0.95, 1.0, 1);
+        //gl.clearColor(0.6, 0.95, 1.0, 1);
+        gl.clearColor(0.117647, 0.207843, 0.392157, 1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.CULL_FACE);
     }

@@ -523,6 +523,11 @@ class MDXObject {
         this.calcAnimMatrixes(animation, this.currentTime + deltaTime);
 
         var skinData = this.skinGeom.skinFile.header;
+
+        var cameraInlocalPos = vec4.create();
+        vec4.copy(cameraInlocalPos, cameraPos);
+        vec4.transformMat4(cameraInlocalPos, cameraInlocalPos, invPlacementMat);
+
         this.materialArray.sort(function(a, b) {
             var result = a.layer - b.layer;
             if (result == 0) {
@@ -530,10 +535,10 @@ class MDXObject {
                 var mesh2Pos = skinData.subMeshes[b.meshIndex].pos;
 
                 var mesh1Vec = vec3.create();
-                vec3.subtract(mesh1Vec, [mesh1Pos.x, mesh1Pos.y, mesh1Pos.z], cameraPos);
+                vec3.subtract(mesh1Vec, [mesh1Pos.x, mesh1Pos.y, mesh1Pos.z], cameraInlocalPos);
 
                 var mesh2Vec = vec3.create();
-                vec3.subtract(mesh2Vec, [mesh2Pos.x, mesh2Pos.y, mesh2Pos.z], cameraPos);
+                vec3.subtract(mesh2Vec, [mesh2Pos.x, mesh2Pos.y, mesh2Pos.z], cameraInlocalPos);
 
                 var distMesh1 = vec3.length(mesh1Vec)
                 var distMesh2 = vec3.length(mesh2Vec);

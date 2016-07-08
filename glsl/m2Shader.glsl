@@ -155,7 +155,7 @@ void main() {
 
     vec4 meshColor = uColor;
     if (uBlendMode == 6) {
-       meshColor.rbg *= vec3(0.5);
+       meshColor.rbg *= vec3(0.65);
     }
 
     vec4 finalColor = vec4((tex.rgb * tex2.rgb), 1.0);

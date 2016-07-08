@@ -238,6 +238,9 @@ function wmoLoader(wmoFilePath){
 
             wmoObj.groupInfos = groupInfos;
         },
+        "MLIQ" : function (wmoObj, chunk) {
+
+        },
         "MOPV": function (wmoObj, chunk) {
             var offset = {offs: 0};
             var arrayLen = chunk.chunkLen/4;
@@ -385,6 +388,36 @@ function wmoLoader(wmoFilePath){
             }
 
             wmoObj.modd = doodads;
+        },
+        "MFOG": function (wmoObj,chunk) {
+            var offset = {offs: 0};
+            var fogInfo = {};
+
+            fogInfo.flag =              chunk.readInt32(offset);
+            fogInfo.pos =               chunk.readVector3f(offset);
+
+            fogInfo.smaller_radius =    chunk.readFloat32(offset);
+            fogInfo.larger_radius =     chunk.readFloat32(offset);
+
+            fogInfo.fog_end =           chunk.readFloat32(offset);
+            fogInfo.fog_startScalar =   chunk.readFloat32(offset);
+            fogInfo.fog_color =         chunk.readUint32(offset);
+            fogInfo.fog_colorF =
+                [(fogInfo.fog_color & 0xff) / 255.0,
+                ((fogInfo.fog_color>> 8 ) & 0xff) / 255.0,
+                ((fogInfo.fog_color>> 16) & 0xff) / 255.0,
+                ((fogInfo.fog_color>> 24) & 0xff) / 255.0];
+
+            fogInfo.underwater_fog_end =         chunk.readFloat32(offset);
+            fogInfo.underwater_fog_startScalar = chunk.readFloat32(offset);
+            fogInfo.underwater_fog_color =         chunk.readUint32(offset);
+            fogInfo.underwater_fog_colorF =
+                [(fogInfo.underwater_fog_color & 0xff) / 255.0,
+                ((fogInfo.underwater_fog_color>> 8 ) & 0xff) / 255.0,
+                ((fogInfo.underwater_fog_color>> 16) & 0xff) / 255.0,
+                ((fogInfo.underwater_fog_color>> 24) & 0xff) / 255.0];
+
+            wmoObj.mfog = fogInfo;
         }
     };
 

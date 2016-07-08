@@ -253,12 +253,14 @@ export default class PortalCullingAlgo {
             }
             //frustumPlanes.push(thisPortalPlanes);
 
-            var nearPlane = vec4.fromValues(portalInfo.plane.x, portalInfo.plane.y, portalInfo.plane.z, portalInfo.plane.w)
+            /*var nearPlane = vec4.fromValues(portalInfo.plane.x, portalInfo.plane.y, portalInfo.plane.z, portalInfo.plane.w)
             if (!flip) {
                 vec4.scale(nearPlane, nearPlane, -1)
             }
             thisPortalPlanes.push(nearPlane);
-
+              */
+            //thisPortalPlanes.push(frustumPlanes[frustumPlanes.length-2]);
+            //thisPortalPlanes.push(frustumPlanes[frustumPlanes.length-1]);
 
             //5. Traverse next
             if ((wmoObject.wmoObj.groupInfos[nextGroup].flags & 0x2000) > 0) {
