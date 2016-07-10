@@ -17,7 +17,7 @@ class WorldUnit {
 
         var modelFilename = cmdd[displayInf.model1].modelName;
         var modelScale = cmdd[displayInf.model1].modelScale;
-
+             12
 
 
 

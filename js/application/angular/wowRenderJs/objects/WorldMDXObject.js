@@ -42,7 +42,7 @@ class WmoM2Object extends MDXObject {
         this.placementMatrix = placementMatrix;
     }
     createPlacementMatrixFromParent (parentM2, attachment, pos, f, scale){
-
+12
     }
 
     /* Draw functions */
