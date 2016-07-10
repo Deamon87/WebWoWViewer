@@ -471,34 +471,7 @@ class MDXObject {
 
         return transperency;
     }
-    getMeshesToRender() {
-        var meshesToRender = [];
-        if (this.materialArray) {
-            for (var i = 0; i < this.materialArray.length; i++) {
-                if (!this.materialArray[i].isRendered) continue;
-                if (this.materialArray[i].texUnit1TexIndex === undefined) continue;
 
-                var colorIndex = this.skinGeom.skinFile.header.texs[this.materialArray[i].texUnit1TexIndex].colorIndex;
-                var renderFlagIndex = this.skinGeom.skinFile.header.texs[this.materialArray[i].texUnit1TexIndex].renderFlagIndex;
-                var isTransparent = this.m2Geom.m2File.renderFlags[renderFlagIndex].blend > 0;
-                var meshColor = (colorIndex > -1 && this.subMeshColors) ? this.subMeshColors[colorIndex] : null;
-
-                var mesh = {
-                    m2Object: this,
-                    skin: this.skinGeom,
-                    meshIndex: i,
-                    color: meshColor,
-                    transparency: 0,
-                    isTransparent: isTransparent,
-                    animationMatrix: null
-                };
-
-                meshesToRender.push(mesh);
-            }
-        }
-
-        return meshesToRender;
-    }
     getBoundingBox () {
         if (!this.m2Geom) return null;
 

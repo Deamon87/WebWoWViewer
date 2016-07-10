@@ -307,6 +307,23 @@ const mdx_ver264 = {
                 {name: "flags",         type : "uint16"},
                 {name: "blend",         type : "uint16"}
             ]
+        },
+        {
+            name : "attachments",
+            offset: "ofsAttachments",
+            count: "nAttachments",
+            type: "layout",
+            layout: [
+                {name : "id",   type : "uint32"},
+                {name : "bone", type : "uint16"},
+                {name : "unk",  type : "uint16"},
+                {name : "pos",  type : "vector3f"},
+                {
+                    name: "animate_attached",
+                    type: "ablock",
+                    valType: "uint8"
+                }
+            ]
         }
     ]
 };

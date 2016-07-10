@@ -563,7 +563,51 @@ class Scene {
                     return self.currentShaderProgram.shaderAttributes;
                 }
             },
+            dbc : {
+                getCharacterFacialHairStylesDBC : function() {
+                    self.characterFacialHairStylesDBC = a;
+                },
+                getCharHairGeosetsDBC : function() {
+                    self.charHairGeosetsDBC = a;
+                },
+                getCharSectionsDBC : function () {
+                    self.charSectionsDBC = a;
+                },
+                getCreatureDisplayInfoDBC : function () {
+                    self.creatureDisplayInfoDBC = a;
+                },
+                getCreatureDisplayInfoExtraDBC : function () {
+                    self.creatureDisplayInfoExtraDBC = a;
+                },
+                getCreatureModelDataDBC : function () {
+                    self.creatureModelDataDBC = a;
+                },
+                getGameObjectDisplayInfoDBC : function () {
+                    self.gameObjectDisplayInfoDBC = a;
+                },
+                getItemDisplayInfoDBC : function () {
+                    self.itemDisplayInfoDBC = a;
+                },
 
+                /* Map and area data */
+                getMapDBC : function () {
+                    self.mapDBC = a;
+                },
+
+                /* Lights information */
+                getLightDBC : function () {
+                    self.lightDBC = a;
+                },
+                getLightFloatBandDBC : function () {
+                    self.lightFloatBandDBC = a;
+                },
+                getLightIntBandDBC : function () {
+                    self.lightIntBandDBC = a;
+                },
+                getLightParamsDBC : function () {
+                    self.lightParamsDBC = a;
+                }
+            },
             objects : {
                 loadAdtM2Obj : function (doodad){
                     return self.graphManager.addAdtM2Object(doodad);

@@ -14,9 +14,6 @@ class AdtM2Object extends MDXObject {
         self.isRendered = true;
     }
 
-    getMeshesToRender () {
-        return this.getMeshesToRender();
-    }
     getDiffuseColor() {
         return this.diffuseColor;
     }

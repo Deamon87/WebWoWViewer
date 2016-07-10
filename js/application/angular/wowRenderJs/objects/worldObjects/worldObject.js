@@ -1,3 +1,5 @@
-/**
- * Created by Deamon on 7/10/2016.
- */
+class WorldObject {
+    constructor(){
+    }
+}
+
