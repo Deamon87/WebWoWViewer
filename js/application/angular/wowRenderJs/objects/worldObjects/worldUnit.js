@@ -6,6 +6,8 @@ const UNIT_MAINHAND_SLOT = 1;
 const UNIT_OFFHAND_SLOT  = 2;
 const UNIT_RANGED_SLOT   = 3;
 
+const virtualItemMap = [1, 2, 1];
+
 function extractFilePath(filePath) {
     for (var i = filePath.length-1; i >0; i-- ) {
         if (filePath[i] == '\\' || filePath[i] == '/') {
@@ -66,10 +68,27 @@ class WorldUnit {
 
         /* 2. Update position for all models */
         if (this.mountModel) {
-            this.mountModel.update()
+            /* Update placement matrix */
+            this.mountModel.createPlacementMatrix([0,0,0], 0, 1.0);
+
+            /* Update bone matrices */
+            this.mountModel.objectUpdate(deltaTime, cameraPos);
+
+            /* Update main model */
+            this.objectModel.createPlacementMatrixFromParent(this.mountModel, 0, 1.0);
+        } else {
+            this.objectModel.createPlacementMatrix([0,0,0], 0, 1.0);
         }
+        /* Update bone matrices */
+        this.objectModel.objectUpdate(deltaTime, cameraPos);
 
-
+        //3. Update placement matrices for items
+        for (var i = 0; i < this.items.length; i++) {
+             if (this.items[i]) {
+                 this.items[i].createPlacementMatrixFromParent(this.objectModel, virtualItemMap[i], 1.0);
+                 this.items[i].objectUpdate(deltaTime, cameraPos);
+             }
+        }
     }
 
     setVirtualItemSlot(slot, displayId) {
@@ -142,16 +161,15 @@ class WorldUnit {
                 meshIds[0] = charHair.geoset;
 
             //FaceHair
+            var charSect = findSectionRec(csd, displayExtraInfo.race,displayExtraInfo.gender,2,displayExtraInfo.faceHairStyle,displayExtraInfo.hairStyle);
+            if (charSect != null) {
+                replaceTextures[8] = charSect.texture1;
+            }
             var charFHStyle = findFaceHairStyleRec(displayExtraInfo.race,displayExtraInfo.gender,displayExtraInfo.faceHairStyle);
             if (charFHStyle != null) {
                 for (var i = 0; i < 3; i++)
                     if (charFHStyle.geoset[i] != 0)
                         meshIds[fHairGeoset[i]] = charFHStyle.geoset[i];
-            }
-
-            var charSect = findSectionRec(csd, displayExtraInfo.race,displayExtraInfo.gender,2,displayExtraInfo.faceHairStyle,displayExtraInfo.hairStyle);
-            if (charSect != null) {
-                replaceTextures[8] = charSect.texture1;
             }
 
             /* Items */

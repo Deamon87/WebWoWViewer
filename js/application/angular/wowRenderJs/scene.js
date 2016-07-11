@@ -12,6 +12,7 @@ import drawPortalShader        from 'drawPortalShader.glsl';
 import drawFrustumShader       from 'drawFrustum.glsl';
 
 import GraphManager from './manager/sceneGraphManager.js'
+import WorldObjectManager from './manager/worldObjectManager.js'
 import config from './../services/config.js'
 
 import wdtLoader from './../services/map/wdtLoader.js';
@@ -483,6 +484,7 @@ class Scene {
     }
     initSceneGraph () {
         this.graphManager = new GraphManager(this.sceneApi);
+        this.worldObjectManager = new WorldObjectManager();
     }
     initSceneApi () {
         var self = this;
@@ -1112,14 +1114,13 @@ class Scene {
         this.viewCameraForRender = viewCameraForRender;
         if (!this.isShadersLoaded) return;
 
-        this.graphManager.setCameraPos(
-            vec4.fromValues(
-                this.mainCamera[0],
-                this.mainCamera[1],
-                this.mainCamera[2],
-                1
-            )
+        var cameraPos = vec4.fromValues(
+            this.mainCamera[0],
+            this.mainCamera[1],
+            this.mainCamera[2],
+            1
         );
+        this.graphManager.setCameraPos(cameraPos);
 
         //Matrixes from previous frame
         if (this.perspectiveMatrix && this.lookAtMat4) {
@@ -1128,6 +1129,7 @@ class Scene {
 
         this.graphManager.setLookAtMat(lookAtMat4);
 
+        this.worldObjectManager.update(deltaTime, cameraPos);
         var updateRes = this.graphManager.update(deltaTime);
         this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4);
 

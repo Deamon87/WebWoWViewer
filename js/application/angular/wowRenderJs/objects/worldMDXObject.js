@@ -29,6 +29,9 @@ class WorldMDXObject extends MDXObject {
         super.update(deltaTime, cameraPos, this.placementInvertMatrix);
         */
     }
+    objectUpdate (deltaTime, cameraPos) {
+        super.update(deltaTime, cameraPos, this.placementInvertMatrix);
+    }
     createPlacementMatrix (pos, f, scale){
         var placementMatrix = mat4.create();
         mat4.identity(placementMatrix);
