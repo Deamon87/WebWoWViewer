@@ -3,7 +3,7 @@ import config from './../../services/config.js'
 import mathHelper from './../math/mathHelper.js';
 import {mat4, vec4, vec3} from 'gl-matrix';
 
-class WmoM2Object extends MDXObject {
+class WorldMDXObject extends MDXObject {
     constructor(){
         super();
         this.diffuseColor = new Float32Array([1,1,1,1]);
@@ -41,8 +41,26 @@ class WmoM2Object extends MDXObject {
         this.placementInvertMatrix = placementInvertMatrix;
         this.placementMatrix = placementMatrix;
     }
-    createPlacementMatrixFromParent (parentM2, attachment, pos, f, scale){
-12
+    createPlacementMatrixFromParent (parentM2, attachment, scale){
+        var m2File = parentM2.m2Geom.m2File;
+        var attIndex = m2File.attachLookups[attachment];
+        var attachInfo = m2File.attachments[attIndex];
+
+        var boneId = attachInfo.bone;
+        var boneTransMat = this.bones[boneId].tranformMat;
+
+        var placementMatrix = mat4.create();
+        mat4.identity(placementMatrix);
+        mat4.multiply(placementMatrix, parentM2.placementMatrix, boneTransMat);
+        mat4.scale(placementMatrix, placementMatrix, [
+                scale,
+                scale,
+                scale
+            ]
+        );
+
+        this.placementInvertMatrix = placementInvertMatrix;
+        this.placementMatrix = placementMatrix;
     }
 
     /* Draw functions */

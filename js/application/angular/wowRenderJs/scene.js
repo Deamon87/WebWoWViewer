@@ -618,6 +618,9 @@ class Scene {
                 loadWmoM2Obj : function (doodadDef, placementMatrix, useLocalLightning){
                     return self.graphManager.addWmoM2Object(doodadDef, placementMatrix, useLocalLightning);
                 },
+                loadWorldM2Obj : function (modelName){
+                    return self.graphManager.addWorldMDXObject(modelName);
+                },
                 loadAdtChunk: function(fileName) {
                     return self.graphManager.addADTObject(fileName)
                 }

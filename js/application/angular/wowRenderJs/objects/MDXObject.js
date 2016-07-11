@@ -49,7 +49,7 @@ class MDXObject {
                 m2Geom.createVAO(skinGeom);
                 self.hasBillboarded = self.checkIfHasBillboarded();
 
-                self.makeTextureArray(m2Geom, skinGeom, submeshRenderData)
+                self.makeTextureArray(submeshRenderData)
             }
             return true;
         });
@@ -207,8 +207,10 @@ class MDXObject {
 
         return { vertex: vertexShader, pixel : pixelShader }
     }
-    makeTextureArray (mdxObject, skinObject, submeshRenderData) {
+    makeTextureArray (meshIds, replaceTextures) {
         var self = this;
+        var mdxObject = this.m2Geom;
+        var skinObject = this.skinGeom;
 
         /* 1. Free previous subMeshArray */
 
@@ -226,10 +228,14 @@ class MDXObject {
             };
         }
 
-        var subMeshes = this.skinGeom.skinFile.header.subMeshes;
+        var subMeshes = skinObject.skinFile.header.subMeshes;
         for (var i = 0; i < skinObject.skinFile.header.texs.length ; i++) {
             var skinTextureDefinition = skinObject.skinFile.header.texs[i];
-            var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
+            var subMesh = subMeshes[skinTextureDefinition.submeshIndex];
+
+            if (meshIds && (meshIds[subMesh.submesh_id / 100] != (submesh_id % 100))) {
+                continue;
+            }
 
             var op_count = skinTextureDefinition.op_count;
 
@@ -237,8 +243,6 @@ class MDXObject {
             var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2;
 
             var materialData = materialArray[i];
-
-            var subMesh = subMeshes[skinTextureDefinition.submeshIndex];
 
             var shaderNames = this.getShaderNames(subMesh);
 
@@ -264,7 +268,11 @@ class MDXObject {
                 materialData.xWrapTex1 = mdxTextureDefinition.flags & 1 > 0;
                 materialData.yWrapTex1 = mdxTextureDefinition.flags & 2 > 0;
 
-                materialData.textureUnit1TexName = mdxTextureDefinition.textureName;
+                if (mdxTextureDefinition.texType == 0) {
+                    materialData.textureUnit1TexName = mdxTextureDefinition.textureName;
+                } else {
+                    materialData.textureUnit1TexName = replaceTextures[mdxTextureDefinition.texType];
+                }
             }
             if (op_count > 1) {
                 var mdxTextureIndex1 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 1];
@@ -272,7 +280,12 @@ class MDXObject {
                 materialData.xWrapTex2 = mdxTextureDefinition.flags & 1 > 0;
                 materialData.yWrapTex2 = mdxTextureDefinition.flags & 2 > 0;
                 materialData.texUnit2TexIndex = i;
-                materialData.textureUnit2TexName = mdxTextureDefinition1.textureName;
+
+                if (mdxTextureDefinition1.texType == 0) {
+                    materialData.textureUnit2TexName = mdxTextureDefinition1.textureName;
+                } else {
+                    materialData.textureUnit2TexName = replaceTextures[mdxTextureDefinition1.texType];
+                }
             }
             if (op_count > 2) {
                 var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 2];
@@ -280,7 +293,12 @@ class MDXObject {
                 materialData.xWrapTex3 = mdxTextureDefinition.flags & 1 > 0;
                 materialData.yWrapTex3 = mdxTextureDefinition.flags & 2 > 0;
                 materialData.texUnit3TexIndex = i;
-                materialData.textureUnit3TexName = mdxTextureDefinition2.textureName;
+
+                if (mdxTextureDefinition2.texType == 0) {
+                    materialData.textureUnit3TexName = mdxTextureDefinition2.textureName;
+                } else {
+                    materialData.textureUnit3TexName = replaceTextures[mdxTextureDefinition2.texType];
+                }
             }
         }
 

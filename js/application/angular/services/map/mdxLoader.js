@@ -324,6 +324,12 @@ const mdx_ver264 = {
                     valType: "uint8"
                 }
             ]
+        },
+        {
+            name: "attachLookups",
+            offset: "ofsAttachLookup",
+            count: "nAttachLookup",
+            type: "int16"
         }
     ]
 };

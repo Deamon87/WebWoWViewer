@@ -2,7 +2,7 @@
 import adtObjectFactory from './../objects/adtObject.js';
 import adtM2ObjectFactory from './../objects/adtM2Object.js';
 import wmoM2ObjectFactory from './../objects/wmoM2ObjectFactory.js';
-import MDXObject from './../objects/MDXObject.js';
+import worldMDXObject from './../objects/WorldMDXObject.js';
 import wmoObjectFactory from './../objects/wmoObjectFactory.js';
 
 import mathHelper from './../math/mathHelper.js';
@@ -120,13 +120,13 @@ class GraphManager {
         this.m2Objects.push(adtM2);
         return adtM2;
     }
-    //addM2Object(modelName) {
-    //    var mdxObject = new MDXObject(this.sceneApi);
-    //    mdxObject.load(modelName, 0, null);
-    //    mdxObject.sceneNumber = this.globalM2Counter++;
-    //    this.m2Objects.push(mdxObject);
-    //    return mdxObject;
-    //}
+    addWorldMDXObject(modelName) {
+        var worldMdxObject = new WorldMDXObject(this.sceneApi);
+        worldMdxObject.load(modelName, 0, null);
+        worldMdxObject.sceneNumber = this.globalM2Counter++;
+        this.m2Objects.push(worldMdxObject);
+        return mdxObject;
+    }
     addWmoM2Object(doodadDef, placementMatrix, useLocalLighting) {
         var wmoM2Object = new wmoM2ObjectFactory(this.sceneApi);
         var promise = wmoM2Object.load(doodadDef, placementMatrix, useLocalLighting);
