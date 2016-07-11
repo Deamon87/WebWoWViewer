@@ -7,7 +7,7 @@ export default function characterFacialHairStylesDBC(){
     var deferred = $q.defer();
 
     if (characterFacialHairStylesDBCFile === null) {
-        characterFacialHairStylesDBCFile = {};
+        characterFacialHairStylesDBCFile = [];
         var promise = loadDBC("DBFilesClient/CharacterFacialHairStyles.dbc");
 
         promise.then(function(dbcObject){

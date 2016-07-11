@@ -2,6 +2,10 @@ import MDXObject from './worldObject.js';
 
 const fHairGeoset = [1, 3, 2];
 
+const UNIT_MAINHAND_SLOT = 1;
+const UNIT_OFFHAND_SLOT  = 2;
+const UNIT_RANGED_SLOT   = 3;
+
 function extractFilePath(filePath) {
     for (var i = filePath.length-1; i >0; i-- ) {
         if (filePath[i] == '\\' || filePath[i] == '/') {
@@ -11,15 +15,89 @@ function extractFilePath(filePath) {
 
     return '';
 }
+function findSectionRec(csd, race, gender, section, type, color) {
+    for (var i = 0; i < csd.length; i++) {
+        if (csd[i].race == race &&
+            csd[i].gender == gender &&
+            csd[i].section == section &&
+            csd[i].type == type &&
+            csd[i].color == color
+        ) {
+            return csd[i];
+        }
+    }
+    return null;
+}
+function findHairGeosetRec(chgd, race, gender, type ) {
+    for (var i = 0; i < chgd.length; i++) {
+        if (chgd[i].race == race &&
+            chgd[i].gender == gender &&
+            chgd[i].hairStyle == type
+        ) {
+            return chgd[i];
+        }
+    }
+    return null;
+}
+
+function findFaceHairStyleRec(cfhsd, race, gender, type ) {
+    for (var i = 0; i < cfhsd.length; i++) {
+        if (cfhsd[i].race == race &&
+            cfhsd[i].gender == gender &&
+            cfhsd[i].hairStyle == type
+        ) {
+            return cfhsd[i];
+        }
+    }
+    return null;
+}
 
 class WorldUnit {
     constructor(sceneApi){
         this.sceneApi = sceneApi;
-        this.m2Object = null;
+
+        this.objectModel = null;
+        this.mountModel = null;
+        this.items = new Array(3);
+    }
+
+    update (deltaTime, cameraPos) {
+        /* 1. Calculate current position */
+
+        /* 2. Update position for all models */
+        if (this.mountModel) {
+            this.mountModel.update()
+        }
+
 
     }
 
+    setVirtualItemSlot(slot, displayId) {
+        var idid = this.sceneApi.getItemDisplayInfoDBC();
+
+        /* 1. Free previous model */
+
+        /* 2. Configure new model */
+        var ItemDInfo = idid[displayId];
+        if (ItemDInfo) {
+            var modelName;
+            if (slot == UNIT_MAINHAND_SLOT || UNIT_MAINHAND_SLOT == UNIT_RANGED_SLOT) {
+                modelName = ItemDInfo.leftModel
+            } else {
+                modelName = ItemDInfo.rightModel
+            }
+
+            var model = this.sceneApi.loadWorldM2Obj(modelName);
+            model.makeTextureArray(null, null);
+
+            this.items[slot] = model;
+        }
+    }
+
     setDisplayId( value ) {
+        var csd = this.sceneApi.getCharSectionsDBC();
+        var chgd = this.sceneApi.getCharHairGeosetsDBC();
+
         var cdid = this.sceneApi.getCreatureDisplayInfoDBC();
         var cdied = this.sceneApi.getCreatureDisplayInfoExtraDBC();
         var cmdd = this.sceneApi.getCreatureModelDataDBC();
@@ -54,12 +132,12 @@ class WorldUnit {
             replaceTextures[1] = 'Textures\\BakedNpcTextures\\'+displayExtraInfo.skin;
 
             //Hair
-            var charSect = findSectionRec(displayExtraInfo.race,displayExtraInfo.gender, 3,
+            var charSect = findSectionRec(csd, displayExtraInfo.race,displayExtraInfo.gender, 3,
                 displayExtraInfo.hairType, displayExtraInfo.hairStyle);
             if (charSect != null)
                 replaceTextures[6] = charSect.texture1;
 
-            var charHair = findHairGeosetRec( displayExtraInfo.race, displayExtraInfo.gender, displayExtraInfo.hairType);
+            var charHair = findHairGeosetRec(chgd, displayExtraInfo.race, displayExtraInfo.gender, displayExtraInfo.hairType);
             if ((charHair != null) && (charHair.geoset != 0))
                 meshIds[0] = charHair.geoset;
 
@@ -71,7 +149,7 @@ class WorldUnit {
                         meshIds[fHairGeoset[i]] = charFHStyle.geoset[i];
             }
 
-            var charSect = findSectionRec(displayExtraInfo.race,displayExtraInfo.gender,2,displayExtraInfo.faceHairStyle,displayExtraInfo.hairStyle);
+            var charSect = findSectionRec(csd, displayExtraInfo.race,displayExtraInfo.gender,2,displayExtraInfo.faceHairStyle,displayExtraInfo.hairStyle);
             if (charSect != null) {
                 replaceTextures[8] = charSect.texture1;
             }
@@ -129,8 +207,7 @@ class WorldUnit {
 
         model.makeTextureArray(meshIds, replaceTextures);
 
-
-        this.model = model;
+        this.objectModel = model;
     }
     setEntry ( value ) {
         this.entry = value;

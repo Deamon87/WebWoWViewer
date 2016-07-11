@@ -11,6 +11,8 @@ class WorldMDXObject extends MDXObject {
     }
 
     update (deltaTime, cameraPos) {
+        //Only manual update from World Objects Manager
+        /*
         if (!this.aabb) {
             var bb = super.getBoundingBox();
             if (bb) {
@@ -25,6 +27,7 @@ class WorldMDXObject extends MDXObject {
         }
         if (!this.getIsRendered()) return;
         super.update(deltaTime, cameraPos, this.placementInvertMatrix);
+        */
     }
     createPlacementMatrix (pos, f, scale){
         var placementMatrix = mat4.create();

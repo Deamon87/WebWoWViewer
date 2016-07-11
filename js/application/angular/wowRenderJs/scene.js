@@ -11,7 +11,7 @@ import adtShader               from 'adtShader.glsl';
 import drawPortalShader        from 'drawPortalShader.glsl';
 import drawFrustumShader       from 'drawFrustum.glsl';
 
-import GraphManager from './graph/sceneGraphManager.js'
+import GraphManager from './manager/sceneGraphManager.js'
 import config from './../services/config.js'
 
 import wdtLoader from './../services/map/wdtLoader.js';

@@ -7,7 +7,7 @@ export default function charSectionsDBC(){
     var deferred = $q.defer();
 
     if (charSectionsDBCFile === null) {
-        charSectionsDBCFile = {}
+        charSectionsDBCFile = []
         var promise = loadDBC("DBFilesClient/CharSections.dbc");
 
         promise.then(function(dbcObject){
