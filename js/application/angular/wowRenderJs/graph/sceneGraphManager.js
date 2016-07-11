@@ -2,7 +2,7 @@
 import adtObjectFactory from './../objects/adtObject.js';
 import adtM2ObjectFactory from './../objects/adtM2Object.js';
 import wmoM2ObjectFactory from './../objects/wmoM2ObjectFactory.js';
-import worldMDXObject from './../objects/WorldMDXObject.js';
+import worldMDXObject from './../objects/worldMDXObject.js';
 import wmoObjectFactory from './../objects/wmoObjectFactory.js';
 
 import mathHelper from './../math/mathHelper.js';
