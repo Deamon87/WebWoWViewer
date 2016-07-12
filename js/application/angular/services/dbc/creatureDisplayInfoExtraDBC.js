@@ -18,7 +18,7 @@ export default function creatureDisplayInfoExtraDBC(){
 
                 record.race           = dbcObject.readInt32(i, 1);
                 record.gender         = dbcObject.readInt32(i, 2);
-                record.skin           = dbcObject.readText(i, 3);
+                record.skin           = dbcObject.readInt32(i, 3);
                 record.face           = dbcObject.readInt32(i, 4);
                 record.hairType       = dbcObject.readInt32(i, 5);
                 record.hairStyle      = dbcObject.readInt32(i, 6);
@@ -34,6 +34,8 @@ export default function creatureDisplayInfoExtraDBC(){
                 record.glovesItem     = dbcObject.readInt32(i, 16);
                 record.tabardItem     = dbcObject.readInt32(i, 17);
                 record.capeItem       = dbcObject.readInt32(i, 18);
+                record.CanEquip       = dbcObject.readInt32(i, 19);
+                record.skinTexture    = dbcObject.readText(i, 20);
 
                 creatureDisplayInfoExtraDBCFile[id] = record;
             }

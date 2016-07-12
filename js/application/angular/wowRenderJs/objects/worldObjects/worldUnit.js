@@ -151,7 +151,7 @@ class WorldUnit {
         if (displayInf.displayExtra > 0) {
             var displayExtraInfo = cdied[displayInf.displayExtra];
 
-            replaceTextures[1] = 'Textures\\BakedNpcTextures\\'+displayExtraInfo.skin;
+            replaceTextures[1] = 'Textures\\BakedNpcTextures\\'+displayExtraInfo.skinTexture;
 
             //Hair
             var charSect = findSectionRec(csd, displayExtraInfo.race,displayExtraInfo.gender, 3,
@@ -177,50 +177,50 @@ class WorldUnit {
 
             /* Items */
             var ItemDInfo = idid[displayExtraInfo.helmItem];
-            if (ItemDInfo && ItemDInfo.id >0) {
+            if (ItemDInfo) {
 
             }
             ItemDInfo = idid[displayExtraInfo.shoulderItem];
-            if (ItemDInfo && ItemDInfo.id > 0) {
+            if (ItemDInfo) {
 
             }
             ItemDInfo = idid[displayExtraInfo.shirtItem];
-            if (ItemDInfo && ItemDInfo.id >0 ){
+            if (ItemDInfo){
 
             }
             ItemDInfo = idid[displayExtraInfo.cuirassItem];
-            if (ItemDInfo && ItemDInfo.id > 0) {
+            if (ItemDInfo) {
                 meshIds[8] = 1 + ItemDInfo.geosetGroup_1;
             }
 
             ItemDInfo = idid[displayExtraInfo.beltItem];
-            if (ItemDInfo && ItemDInfo.id > 0) {
+            if (ItemDInfo) {
                 meshIds[18] = 1 + ItemDInfo.geosetGroup_3;
             }
             ItemDInfo = idid[displayExtraInfo.legsItem];
-            if (ItemDInfo && ItemDInfo.id >0) {
+            if (ItemDInfo) {
                 if (meshIds[8] > 1)
                     meshIds[13] = 1 + ItemDInfo.geosetGroup_3;
             }
             ItemDInfo = idid[displayExtraInfo.bootsItem];
-            if (ItemDInfo && ItemDInfo.id > 0) {
+            if (ItemDInfo) {
                 meshIds[5] = 1 + ItemDInfo.geosetGroup_1;
             }
             ItemDInfo = idid[displayExtraInfo.ringsItem];
-            if (ItemDInfo && ItemDInfo.id > 0){
+            if (ItemDInfo){
 
             }
             ItemDInfo = idid[displayExtraInfo.glovesItem];
-            if (ItemDInfo && ItemDInfo.id >0) {
+            if (ItemDInfo) {
                 meshIds[4] = 1 + ItemDInfo.geosetGroup_1;
             }
             ItemDInfo = idid[displayExtraInfo.tabardItem];
-            if (ItemDInfo && ItemDInfo.id > 0) {
+            if (ItemDInfo) {
                 if (meshIds[8] == 1)
                     meshIds[12] = 1 + ItemDInfo.geosetGroup_1;
             }
             ItemDInfo = idid[displayExtraInfo.capeItem];
-            if (ItemDInfo && ItemDInfo.id > 0) {
+            if (ItemDInfo) {
                 replaceTextures[2] ='Item\\ObjectComponents\\Cape\\'+ ItemDInfo.leftTextureModel + '.BLP';
                 meshIds[15] = 1 + ItemDInfo.geosetGroup_1;
             }

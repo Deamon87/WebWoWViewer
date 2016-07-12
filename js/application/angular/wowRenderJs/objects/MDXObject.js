@@ -48,6 +48,9 @@ class MDXObject {
             if (!m2Geom) {
                 $log.log("m2 file failed to load : "+ modelName);
             } else {
+                if (modelFileName.indexOf("humanmale.m2") > 0) {
+                    debugger;
+                }
                 var gl = self.sceneApi.getGlContext();
                 m2Geom.createVAO(skinGeom);
                 self.hasBillboarded = self.checkIfHasBillboarded();
