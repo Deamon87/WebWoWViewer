@@ -18,7 +18,7 @@ export default function creatureDisplayInfoExtraDBC(){
 
                 record.race           = dbcObject.readInt32(i, 1);
                 record.gender         = dbcObject.readInt32(i, 2);
-                record.skin           = dbcObject.readInt32(i, 3);
+                record.skin           = dbcObject.readText(i, 3);
                 record.face           = dbcObject.readInt32(i, 4);
                 record.hairType       = dbcObject.readInt32(i, 5);
                 record.hairStyle      = dbcObject.readInt32(i, 6);

@@ -162,7 +162,7 @@ void main() {
     finalColor.rgb = finalColor.rgb * meshColor.rgb * vDiffuseColor.bgr;
     finalColor.a = tex.a * tex2.a * uColor.a* uTransparency;
 
-    if (isTransparent == 0) {
+   /* if (isTransparent == 0) {
         vec3 fogColor = vec3(0.117647, 0.207843, 0.392157);
         float fog_start = 1.0;
         float fog_end = 200.0;
@@ -182,7 +182,7 @@ void main() {
         float endFadeFog = clamp(((fog_end - distanceToCamera) / (0.699999988 * fog_end)), 0.0, 1.0);
 
         finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, vec3(min(expFog, endFadeFog)));
-    }
+    }*/
     /*
     vec3 matDiffuse_575 = (tex.rgb * tex2.rgb * meshColor.rgb);
     vec3 S_570 = vec3(mix(vec3(0.699999988), vec3(1.0), 1.0));

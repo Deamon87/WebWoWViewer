@@ -714,8 +714,8 @@ class Scene {
         gl.depthFunc(gl.LESS);
 
         gl.disable(gl.BLEND);
-        //gl.clearColor(0.6, 0.95, 1.0, 1);
-        gl.clearColor(0.117647, 0.207843, 0.392157, 1);
+        gl.clearColor(0.6, 0.95, 1.0, 1);
+        //gl.clearColor(0.117647, 0.207843, 0.392157, 1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.CULL_FACE);
     }
@@ -1218,6 +1218,9 @@ class Scene {
     setCameraPos (x, y, z) {
         this.mainCamera = [x,y,z];
         //this.camera.setCameraPos(x,y,z);
+    }
+    loadPackets() {
+        this.worldObjectManager.loadAllPacket();
     }
 }
 

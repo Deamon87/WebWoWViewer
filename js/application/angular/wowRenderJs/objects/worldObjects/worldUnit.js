@@ -143,13 +143,14 @@ class WorldUnit {
             replaceTextures[13] = extractFilePath(modelFilename)+displayInf.skin3+'.blp';
 
         var meshIds = [];
+        for (var i = 0; i < 19; i++)
+            meshIds[i] = 1;
+
+        meshIds[7] = -1;
+
         if (displayInf.displayExtra > 0) {
             var displayExtraInfo = cdied[displayInf.displayExtra];
 
-            for (var i = 0; i < 19; i++)
-                meshIds[i] = 1;
-
-            meshIds[7] = -1;
             replaceTextures[1] = 'Textures\\BakedNpcTextures\\'+displayExtraInfo.skin;
 
             //Hair

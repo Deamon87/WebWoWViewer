@@ -7,10 +7,13 @@ class WorldMDXObject extends MDXObject {
     constructor(sceneApi){
         super(sceneApi);
         this.diffuseColor = new Float32Array([1,1,1,1]);
-
+        this.aabb = {}
     }
     calcDistance (position) {
         this.currentDistance = 0;
+    }
+    getIsInstancable() {
+        return false;
     }
     getCurrentDistance(){
         return 0;
@@ -64,7 +67,7 @@ class WorldMDXObject extends MDXObject {
         mat4.translate(placementMatrix, placementMatrix, pos);
         mat4.rotateZ(placementMatrix, placementMatrix, glMatrix.toRadian(f));
 
-        mat4.scale(placementMatrix, placementMatrix, [scale / 1024, scale / 1024, scale / 1024]);
+        mat4.scale(placementMatrix, placementMatrix, [scale , scale , scale ]);
 
         var placementInvertMatrix = mat4.create();
         mat4.invert(placementInvertMatrix, placementMatrix);
@@ -89,6 +92,9 @@ class WorldMDXObject extends MDXObject {
                 scale
             ]
         );
+
+        var placementInvertMatrix = mat4.create();
+        mat4.invert(placementInvertMatrix, placementMatrix);
 
         this.placementInvertMatrix = placementInvertMatrix;
         this.placementMatrix = placementMatrix;

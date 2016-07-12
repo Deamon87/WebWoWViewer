@@ -288,7 +288,7 @@ class GraphManager {
                 var m2Object = this.m2Objects[j];
 
                 if (!m2Object.m2Geom) continue;
-                if (m2Object.getHasBillboarded()) continue;
+                if (m2Object.getHasBillboarded() || !m2Object.getIsInstancable()) continue;
                 if (!m2Object.getIsRendered()) continue;
 
                 var fileIdent = m2Object.getFileNameIdent();

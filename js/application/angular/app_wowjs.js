@@ -58,24 +58,25 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 z: 0
             },
             {
-                name: 'Dalaran crater',
+                name: 'Sniff',
                 source: 'http',
                 sceneType: 'map',
-                mapId: 0,
+                mapId: 12,
                 mapName: 'Azeroth',
-                x: 122.61,
-                y: 397.96,
-                z: 136.88
+                x: -8949.9501953125,
+                y: -132.4929962158203,
+                z: 83.53119659423828
             },
             {
                 name: 'Stormwind',
                 source: 'http',
                 sceneType: 'map',
-                mapId: 0,
+                mapId: 1,
                 mapName: 'Azeroth',
                 x: -9008,
                 y: 482,
                 z: 137
+
             },
             {
                 name: 'Ulduar Raid',

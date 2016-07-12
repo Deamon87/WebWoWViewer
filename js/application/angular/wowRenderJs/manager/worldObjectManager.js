@@ -21,16 +21,18 @@ class WorldObjectManager {
                 var updates = packet[i].payload.updates;
                 for (var j = 0; j < updates.length; j++) {
                     if (updates[j].updateType == 'UPDATE_TYPE_CREATE_FULL' &&
-                        updates[j].updateFields['OBJECT_FIELD_TYPE'] == 9){
+                        (updates[j].obj_type == 3 || updates[j].obj_type == 4 )){
 
                         var updateFields = updates[j].updateFields;
 
-                        var newWorldUnit = new WorldUnit(this.sceneApi);
                         var guid = 0;
                         for (var k = 0; k < updateFields['OBJECT_FIELD_GUID'].length; k++) {
                             guid += updateFields['OBJECT_FIELD_GUID'][k].index*0xFFFFFFFF +
                                 updateFields['OBJECT_FIELD_GUID'][k].value;
                         }
+                        if (this.objectMap[guid]) continue;
+
+                        var newWorldUnit = new WorldUnit(this.sceneApi);
 
                         this.objectMap[guid] = newWorldUnit;
 

@@ -19,6 +19,9 @@ class MDXObject {
     getHasBillboarded() {
         return this.hasBillboarded;
     }
+    getIsInstancable() {
+        return true;
+    }
 
     load (modelName, skinNum, meshIds,replaceTextures){
         var self = this;
@@ -215,9 +218,12 @@ class MDXObject {
         /* 1. Free previous subMeshArray */
 
         /* 2. Fill the materialArray */
-        var materialArray = new Array(skinObject.skinFile.header.texs.length);
-        for (var i = 0; i < materialArray.length; i++) {
-            materialArray[i] = {
+        var materialArray = new Array();
+
+
+        var subMeshes = skinObject.skinFile.header.subMeshes;
+        for (var i = 0; i < skinObject.skinFile.header.texs.length ; i++) {
+            var materialData = {
                 isRendered: false,
                 isTransparent : false,
                 isEnviromentMapping : false,
@@ -226,23 +232,19 @@ class MDXObject {
                 textureTexUnit2: null,
                 textureTexUnit3: null
             };
-        }
 
-        var subMeshes = skinObject.skinFile.header.subMeshes;
-        for (var i = 0; i < skinObject.skinFile.header.texs.length ; i++) {
             var skinTextureDefinition = skinObject.skinFile.header.texs[i];
             var subMesh = subMeshes[skinTextureDefinition.submeshIndex];
 
-            if (meshIds && (meshIds[subMesh.submesh_id / 100] != (subMesh.submesh_id % 100))) {
+            if (meshIds && (meshIds.length > 0) && (subMesh.meshID > 0) && (meshIds[(subMesh.meshID / 100)] != (subMesh.meshID % 100))) {
                 continue;
             }
+            materialArray.push(materialData);
 
             var op_count = skinTextureDefinition.op_count;
 
             var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
             var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2;
-
-            var materialData = materialArray[i];
 
             var shaderNames = this.getShaderNames(subMesh);
 

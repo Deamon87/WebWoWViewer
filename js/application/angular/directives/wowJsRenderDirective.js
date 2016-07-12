@@ -9,21 +9,27 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
     return {
         restrict: 'E',
         template:
-            '<div class=""><canvas width = "1024" height = "768" ></canvas>' +
+            '<div class="canvas-form-container" style="width: 100%; height: 100%">' +
+            '<canvas width = "79%" height = "768" style="float:left"></canvas>' +
+            '<div style="display: inline-block;float: left; width: 225px">' +
             '<div>camera = ( {{cameraVecs.cameraVec3[0]}}, {{cameraVecs.cameraVec3[1]}}, {{cameraVecs.cameraVec3[2]}} )</div>' +
             '<div>lookAt = ( {{cameraVecs.lookAtVec3[0]}}, {{cameraVecs.lookAtVec3[1]}}, {{cameraVecs.lookAtVec3[2]}} )</div>' +
             '<div>Group number = {{updateResult.interiorGroupNum}}</div>'+
             '<div>BSP Node Id = {{updateResult.nodeId}}</div>'+
-            '<input type="checkbox" ng-model="drawM2" >Draw M2 objects</input>' +
-            '<input type="checkbox" ng-model="drawPortals">Draw portals</input>' +
-            '<input type="checkbox" ng-model="drawM2BB">Draw M2 BB</input>' +
-            '<input type="checkbox" ng-model="drawWmoBB">Draw Wmo BB</input>' +
-            '<input type="checkbox" ng-model="drawBSP">Draw BSP leafs</input>' +
-            '<input type="checkbox" ng-model="usePortalCulling">Use portal culling</input>' +
-            '<div><input type="checkbox" ng-model="useSecondCamera">Use second camera</input></div>'+
+            '<div style="display: block"><input type="checkbox" ng-model="drawM2" >Draw M2 objects</div>' +
+            '<div style="display: block"><input type="checkbox" ng-model="drawPortals">Draw portals</div>' +
+            '<div style="display: block"><input type="checkbox" ng-model="drawM2BB">Draw M2 BB</div>' +
+            '<div style="display: block"><input type="checkbox" ng-model="drawWmoBB">Draw Wmo BB</div>' +
+            '<div style="display: block"><input type="checkbox" ng-model="drawBSP">Draw BSP leafs</div>' +
+            '<div style="display: block"><input type="checkbox" ng-model="usePortalCulling">Use portal culling</div>' +
+            '<div style="display: block"><input type="checkbox" ng-model="useSecondCamera">Use second camera</div>'+
+            '<div style="display: block"><button ng-click="loadPacket()">Load packets</button></div>'+
+            '</div>'+
             '</div>',
         link: function postLink(scope, element, attrs) {
             var canvas = element.find('canvas')[0];
+            canvas.width =  element.children()[0].clientWidth * 0.79;
+            canvas.height =  element.children()[0].clientHeight;
 
             var sceneParams = config.getSceneParams();
             var sceneObj = new Scene(canvas);
@@ -76,6 +82,9 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             scope.$watch('useSecondCamera', function (newValue) {
                 config.setUseSecondCamera(newValue);
             });
+            scope.loadPacket = function () {
+                sceneObj.loadPackets();
+            };
             var renderfunc = function(){
                 var currentTimeStamp = new Date().getTime();
                 var timeDelta = 0;
