@@ -7,6 +7,9 @@ const UNIT_OFFHAND_SLOT  = 2;
 const UNIT_RANGED_SLOT   = 3;
 
 const virtualItemMap = [1, 2, 1];
+const helm_race_names = ['', 'hu', 'or', 'dw', 'ni', 'sc', 'ta', 'gn', 'tr', 'go',
+'be', 'dr', 'fo', 'na', 'br', 'sk', 'vr', 'tu', 'ft', 'wt', 'ns', 'it'];
+const helm_gender = ['m', 'f'];
 
 function extractFilePath(filePath) {
     for (var i = filePath.length-1; i >0; i-- ) {
@@ -64,6 +67,7 @@ class WorldUnit {
         this.objectModel = null;
         this.mountModel = null;
         this.items = new Array(3);
+        this.helmet = null;
     }
 
     createModelFromDisplayId(value){
@@ -128,12 +132,10 @@ class WorldUnit {
                         meshIds[fHairGeoset[i]] = charFHStyle.geoset[i];
             }
 
-
-
             /* Items */
             var ItemDInfo = idid[displayExtraInfo.helmItem];
             if (ItemDInfo) {
-
+                this.helmet = this.createHelmetFromItemDisplayInfo(displayExtraInfo.race, displayExtraInfo.gender, ItemDInfo)
             }
             ItemDInfo = idid[displayExtraInfo.shoulderItem];
             if (ItemDInfo) {
@@ -185,6 +187,22 @@ class WorldUnit {
         var model = this.sceneApi.objects.loadWorldM2Obj(modelFilename,meshIds,replaceTextures);
         return model;
     }
+    createHelmetFromItemDisplayInfo(race, gender, ItemDInfo) {
+        var helmPath = "Item\\ObjectComponents\\head\\";
+        var suffix = "_" + helm_race_names[race] + helm_gender[gender];
+
+        var modelName = helmPath + ItemDInfo.leftModel;
+        var nameTemplate = modelName.split('.')[0];
+        modelName = nameTemplate + suffix + '.m2';
+
+        var replaceTextures = [];
+        if (ItemDInfo.leftTextureModel)
+            replaceTextures[2] = helmPath + ItemDInfo.leftTextureModel + '.blp';
+
+
+        var model = this.sceneApi.objects.loadWorldM2Obj(modelName, null, replaceTextures);
+        return model
+    }
 
     setPosition(pos) {
         this.pos = pos;
@@ -205,7 +223,10 @@ class WorldUnit {
             properScale = this.displayIDScale * this.scale;
         }
 
-        if (this.mountModel && this.mountModel.m2Geom != null && this.mountModel.m2Geom.m2File != null) {
+        if (this.mountModel && this.mountModel.m2Geom != null && this.mountModel.m2Geom.m2File != null &&
+            this.objectModel && this.objectModel.m2Geom != null && this.objectModel.m2Geom.m2File != null &&
+            this.objectModel.bones
+        ) {
             /* Update placement matrix */
             this.mountModel.createPlacementMatrix(this.pos, this.f, properScale);
 
@@ -213,17 +234,33 @@ class WorldUnit {
             this.mountModel.objectUpdate(deltaTime, cameraPos);
 
             /* Update main model */
-            this.objectModel.createPlacementMatrixFromParent(this.mountModel, 0, this.modelScale * this.displayIDScale);
+            this.objectModel.createPlacementMatrixFromParent(this.mountModel, 0, properScale);
+
+            var m2File = this.objectModel.m2Geom.m2File;
+            var animationId = m2File.animationLookup[91]; //Mounted animation
+            if (animationId > -1) {
+                this.objectModel.currentAnimation = animationId;
+            }
+            //this.objectModel.animation
         } else {
             this.objectModel.createPlacementMatrix(this.pos, this.f, properScale);
         }
         /* Update bone matrices */
         this.objectModel.objectUpdate(deltaTime, cameraPos);
 
+        if (this.objectModel && this.objectModel.m2Geom != null && this.objectModel.m2Geom.m2File != null &&
+            this.helmet && this.helmet.m2Geom != null && this.helmet.m2Geom.m2File != null) {
+            /* Update helm model */
+            this.helmet.createPlacementMatrixFromParent(this.objectModel, 11, properScale);
+
+            this.helmet.objectUpdate(deltaTime, cameraPos);
+        }
+
+
         //3. Update placement matrices for items
         for (var i = 0; i < this.items.length; i++) {
              if (this.items[i]) {
-                 this.items[i].createPlacementMatrixFromParent(this.objectModel, virtualItemMap[i], this.modelScale * this.displayIDScale);
+                 this.items[i].createPlacementMatrixFromParent(this.objectModel, virtualItemMap[i], properScale);
                  this.items[i].objectUpdate(deltaTime, cameraPos);
              }
         }

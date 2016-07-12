@@ -330,7 +330,19 @@ const mdx_ver264 = {
             offset: "ofsAttachLookup",
             count: "nAttachLookup",
             type: "int16"
+        }, {
+            name: "animationLookup",
+            offset: "ofsAnimationLookup",
+            count: "nAnimationLookup",
+            type: "int16"
+        },
+        {
+            name: "boneLookup",
+            offset: "ofsGroupBoneIDs",
+            count: "nGroupBoneIDs",
+            type: "int16"
         }
+
     ]
 };
 const mdx_ver274 = {

@@ -1,5 +1,6 @@
 import WorldUnit from '../objects/worldObjects/worldUnit.js'
 import packet from '../../../packet.json'
+//import packet from '../../../femaleGuardWithHelm.json'
 import {vec3} from 'gl-matrix'
 
 class WorldObjectManager {
