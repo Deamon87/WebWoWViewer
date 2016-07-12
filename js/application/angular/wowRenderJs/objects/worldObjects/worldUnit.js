@@ -18,6 +18,8 @@ function extractFilePath(filePath) {
     return '';
 }
 
+
+
 function findSectionRec(csd, race, gender, section, type, color) {
     for (var i = 0; i < csd.length; i++) {
         if (csd[i].race == race &&
@@ -63,63 +65,11 @@ class WorldUnit {
         this.mountModel = null;
         this.items = new Array(3);
     }
-    setPosition(pos) {
-        this.pos = pos;
-    }
 
-    update (deltaTime, cameraPos) {
-        /* 1. Calculate current position */
-
-        /* 2. Update position for all models */
-        if (this.mountModel) {
-            /* Update placement matrix */
-            this.mountModel.createPlacementMatrix(this.pos, 0, 1.0);
-
-            /* Update bone matrices */
-            this.mountModel.objectUpdate(deltaTime, cameraPos);
-
-            /* Update main model */
-            this.objectModel.createPlacementMatrixFromParent(this.mountModel, 0, 1.0);
-        } else {
-            this.objectModel.createPlacementMatrix(this.pos, 0, 1.0);
-        }
-        /* Update bone matrices */
-        this.objectModel.objectUpdate(deltaTime, cameraPos);
-
-        //3. Update placement matrices for items
-        for (var i = 0; i < this.items.length; i++) {
-             if (this.items[i]) {
-                 this.items[i].createPlacementMatrixFromParent(this.objectModel, virtualItemMap[i], 1.0);
-                 this.items[i].objectUpdate(deltaTime, cameraPos);
-             }
-        }
-    }
-
-    setVirtualItemSlot(slot, displayId) {
-        var idid = this.sceneApi.getItemDisplayInfoDBC();
-
-        /* 1. Free previous model */
-
-        /* 2. Configure new model */
-        var ItemDInfo = idid[displayId];
-        if (ItemDInfo) {
-            var modelName;
-            if (slot == UNIT_MAINHAND_SLOT || UNIT_MAINHAND_SLOT == UNIT_RANGED_SLOT) {
-                modelName = ItemDInfo.leftModel
-            } else {
-                modelName = ItemDInfo.rightModel
-            }
-
-            var model = this.sceneApi.loadWorldM2Obj(modelName);
-            model.makeTextureArray(null, null);
-
-            this.items[slot] = model;
-        }
-    }
-
-    setDisplayId( value ) {
+    createModelFromDisplayId(value){
         var csd = this.sceneApi.dbc.getCharSectionsDBC();
         var chgd = this.sceneApi.dbc.getCharHairGeosetsDBC();
+        var cfhsd = this.sceneApi.dbc.getCharacterFacialHairStylesDBC();
 
         var cdid = this.sceneApi.dbc.getCreatureDisplayInfoDBC();
         var cdied = this.sceneApi.dbc.getCreatureDisplayInfoExtraDBC();
@@ -128,9 +78,11 @@ class WorldUnit {
 
         var displayInf = cdid[value];
         var displayIDScale = displayInf.modelScale;
+        this.displayIDScale = displayIDScale;
 
         var modelFilename = cmdd[displayInf.model1].modelName;
         var modelScale = cmdd[displayInf.model1].modelScale;
+        this.modelScale = modelScale;
 
         var replaceTextures = [];
         if (displayInf.skin1 != '')
@@ -164,16 +116,19 @@ class WorldUnit {
                 meshIds[0] = charHair.geoset;
 
             //FaceHair
-            var charSect = findSectionRec(csd, displayExtraInfo.race,displayExtraInfo.gender,2,displayExtraInfo.faceHairStyle,displayExtraInfo.hairStyle);
+            var charSect = findSectionRec(csd, displayExtraInfo.race,displayExtraInfo.gender, 2,displayExtraInfo.faceHairStyle,displayExtraInfo.hairStyle);
             if (charSect != null) {
                 replaceTextures[8] = charSect.texture1;
             }
-            var charFHStyle = findFaceHairStyleRec(displayExtraInfo.race,displayExtraInfo.gender,displayExtraInfo.faceHairStyle);
+            var charFHStyle = findFaceHairStyleRec(cfhsd, displayExtraInfo.race,
+                displayExtraInfo.gender, displayExtraInfo.faceHairStyle);
             if (charFHStyle != null) {
                 for (var i = 0; i < 3; i++)
                     if (charFHStyle.geoset[i] != 0)
                         meshIds[fHairGeoset[i]] = charFHStyle.geoset[i];
             }
+
+
 
             /* Items */
             var ItemDInfo = idid[displayExtraInfo.helmItem];
@@ -228,7 +183,81 @@ class WorldUnit {
 
 
         var model = this.sceneApi.objects.loadWorldM2Obj(modelFilename,meshIds,replaceTextures);
-        //model.makeTextureArray(, );
+        return model;
+    }
+
+    setPosition(pos) {
+        this.pos = pos;
+    }
+    setRotation(f) {
+        this.f = f;
+    }
+    setScale(scale) {
+        this.scale = scale;
+    }
+
+    update (deltaTime, cameraPos) {
+        /* 1. Calculate current position */
+
+        /* 2. Update position for all models */
+        var properScale = this.displayIDScale;
+        if (this.scale > 0.0001) {
+            properScale = this.displayIDScale * this.scale;
+        }
+
+        if (this.mountModel && this.mountModel.m2Geom != null && this.mountModel.m2Geom.m2File != null) {
+            /* Update placement matrix */
+            this.mountModel.createPlacementMatrix(this.pos, this.f, properScale);
+
+            /* Update bone matrices */
+            this.mountModel.objectUpdate(deltaTime, cameraPos);
+
+            /* Update main model */
+            this.objectModel.createPlacementMatrixFromParent(this.mountModel, 0, this.modelScale * this.displayIDScale);
+        } else {
+            this.objectModel.createPlacementMatrix(this.pos, this.f, properScale);
+        }
+        /* Update bone matrices */
+        this.objectModel.objectUpdate(deltaTime, cameraPos);
+
+        //3. Update placement matrices for items
+        for (var i = 0; i < this.items.length; i++) {
+             if (this.items[i]) {
+                 this.items[i].createPlacementMatrixFromParent(this.objectModel, virtualItemMap[i], this.modelScale * this.displayIDScale);
+                 this.items[i].objectUpdate(deltaTime, cameraPos);
+             }
+        }
+    }
+
+    setVirtualItemSlot(slot, displayId) {
+        var idid = this.sceneApi.getItemDisplayInfoDBC();
+
+        /* 1. Free previous model */
+
+        /* 2. Configure new model */
+        var ItemDInfo = idid[displayId];
+        if (ItemDInfo) {
+            var modelName;
+            if (slot == UNIT_MAINHAND_SLOT || UNIT_MAINHAND_SLOT == UNIT_RANGED_SLOT) {
+                modelName = ItemDInfo.leftModel
+            } else {
+                modelName = ItemDInfo.rightModel
+            }
+
+            var model = this.sceneApi.loadWorldM2Obj(modelName);
+            model.makeTextureArray(null, null);
+
+            this.items[slot] = model;
+        }
+    }
+
+    setMountDisplayId(value) {
+        var model = this.createModelFromDisplayId(value);
+
+        this.mountModel = model;
+    }
+    setDisplayId( value ) {
+        var model = this.createModelFromDisplayId(value);
 
         this.objectModel = model;
     }

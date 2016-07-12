@@ -48,9 +48,6 @@ class MDXObject {
             if (!m2Geom) {
                 $log.log("m2 file failed to load : "+ modelName);
             } else {
-                if (modelFileName.indexOf("humanmale.m2") > 0) {
-                    debugger;
-                }
                 var gl = self.sceneApi.getGlContext();
                 m2Geom.createVAO(skinGeom);
                 self.hasBillboarded = self.checkIfHasBillboarded();
@@ -214,135 +211,140 @@ class MDXObject {
         return { vertex: vertexShader, pixel : pixelShader }
     }
     makeTextureArray (meshIds, replaceTextures) {
-        var self = this;
-        var mdxObject = this.m2Geom;
-        var skinObject = this.skinGeom;
+       try {
+           var self = this;
+           var mdxObject = this.m2Geom;
+           var skinObject = this.skinGeom;
 
-        /* 1. Free previous subMeshArray */
+           /* 1. Free previous subMeshArray */
 
-        /* 2. Fill the materialArray */
-        var materialArray = new Array();
+           /* 2. Fill the materialArray */
+           var materialArray = new Array();
 
 
-        var subMeshes = skinObject.skinFile.header.subMeshes;
-        for (var i = 0; i < skinObject.skinFile.header.texs.length ; i++) {
-            var materialData = {
-                isRendered: false,
-                isTransparent : false,
-                isEnviromentMapping : false,
-                meshIndex : -1,
-                textureTexUnit1: null,
-                textureTexUnit2: null,
-                textureTexUnit3: null
-            };
+           var subMeshes = skinObject.skinFile.header.subMeshes;
+           for (var i = 0; i < skinObject.skinFile.header.texs.length; i++) {
+               var materialData = {
+                   isRendered: false,
+                   isTransparent: false,
+                   isEnviromentMapping: false,
+                   meshIndex: -1,
+                   textureTexUnit1: null,
+                   textureTexUnit2: null,
+                   textureTexUnit3: null
+               };
 
-            var skinTextureDefinition = skinObject.skinFile.header.texs[i];
-            var subMesh = subMeshes[skinTextureDefinition.submeshIndex];
+               var skinTextureDefinition = skinObject.skinFile.header.texs[i];
+               var subMesh = subMeshes[skinTextureDefinition.submeshIndex];
 
-            if (meshIds && (meshIds.length > 0) && (subMesh.meshID > 0) && (meshIds[(subMesh.meshID / 100)] != (subMesh.meshID % 100))) {
-                continue;
-            }
-            materialArray.push(materialData);
+               if (meshIds && (meshIds.length > 0) && (subMesh.meshID > 0) && (meshIds[(subMesh.meshID / 100) | 0] != (subMesh.meshID % 100))) {
+                   continue;
+               }
+               materialArray.push(materialData);
 
-            var op_count = skinTextureDefinition.op_count;
+               var op_count = skinTextureDefinition.op_count;
 
-            var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
-            var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2;
+               var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
+               var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2;
 
-            var shaderNames = this.getShaderNames(subMesh);
+               var shaderNames = this.getShaderNames(subMesh);
 
-            materialData.layer =  skinTextureDefinition.layer;
-            materialData.isRendered = true;
-            materialData.isTransparent = isTransparent;
-            materialData.meshIndex = skinTextureDefinition.submeshIndex;
-            materialData.shaderNames = shaderNames;
+               materialData.layer = skinTextureDefinition.layer;
+               materialData.isRendered = true;
+               materialData.isTransparent = isTransparent;
+               materialData.meshIndex = skinTextureDefinition.submeshIndex;
+               materialData.shaderNames = shaderNames;
 
-            var textureUnit;
-            if (skinTextureDefinition.textureUnitNum <= mdxObject.m2File.textUnitLookup.length) {
-                textureUnit = mdxObject.m2File.textUnitLookup[skinTextureDefinition.textureUnitNum];
-                if (textureUnit == -1) {
-                    //Enviroment mapping
-                    materialData.isEnviromentMapping = true;
-                }
-            }
+               var textureUnit;
+               if (skinTextureDefinition.textureUnitNum <= mdxObject.m2File.textUnitLookup.length) {
+                   textureUnit = mdxObject.m2File.textUnitLookup[skinTextureDefinition.textureUnitNum];
+                   if (textureUnit == -1) {
+                       //Enviroment mapping
+                       materialData.isEnviromentMapping = true;
+                   }
+               }
 
-            if (op_count > 0) {
-                var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
-                var mdxTextureDefinition = mdxObject.m2File.textureDefinition[mdxTextureIndex];
-                materialData.texUnit1TexIndex = i;
-                materialData.xWrapTex1 = mdxTextureDefinition.flags & 1 > 0;
-                materialData.yWrapTex1 = mdxTextureDefinition.flags & 2 > 0;
+               if (op_count > 0) {
+                   var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
+                   var mdxTextureDefinition = mdxObject.m2File.textureDefinition[mdxTextureIndex];
+                   materialData.texUnit1TexIndex = i;
+                   materialData.xWrapTex1 = mdxTextureDefinition.flags & 1 > 0;
+                   materialData.yWrapTex1 = mdxTextureDefinition.flags & 2 > 0;
 
-                if (mdxTextureDefinition.texType == 0) {
-                    materialData.textureUnit1TexName = mdxTextureDefinition.textureName;
-                } else {
-                    materialData.textureUnit1TexName = replaceTextures[mdxTextureDefinition.texType];
-                }
-            }
-            if (op_count > 1) {
-                var mdxTextureIndex1 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 1];
-                var mdxTextureDefinition1 = mdxObject.m2File.textureDefinition[mdxTextureIndex1];
-                materialData.xWrapTex2 = mdxTextureDefinition.flags & 1 > 0;
-                materialData.yWrapTex2 = mdxTextureDefinition.flags & 2 > 0;
-                materialData.texUnit2TexIndex = i;
+                   if (mdxTextureDefinition.texType == 0) {
+                       materialData.textureUnit1TexName = mdxTextureDefinition.textureName;
+                   } else {
+                       materialData.textureUnit1TexName = replaceTextures[mdxTextureDefinition.texType];
+                   }
+               }
+               if (op_count > 1) {
+                   var mdxTextureIndex1 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 1];
+                   var mdxTextureDefinition1 = mdxObject.m2File.textureDefinition[mdxTextureIndex1];
+                   materialData.xWrapTex2 = mdxTextureDefinition.flags & 1 > 0;
+                   materialData.yWrapTex2 = mdxTextureDefinition.flags & 2 > 0;
+                   materialData.texUnit2TexIndex = i;
 
-                if (mdxTextureDefinition1.texType == 0) {
-                    materialData.textureUnit2TexName = mdxTextureDefinition1.textureName;
-                } else {
-                    materialData.textureUnit2TexName = replaceTextures[mdxTextureDefinition1.texType];
-                }
-            }
-            if (op_count > 2) {
-                var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 2];
-                var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex2];
-                materialData.xWrapTex3 = mdxTextureDefinition.flags & 1 > 0;
-                materialData.yWrapTex3 = mdxTextureDefinition.flags & 2 > 0;
-                materialData.texUnit3TexIndex = i;
+                   if (mdxTextureDefinition1.texType == 0) {
+                       materialData.textureUnit2TexName = mdxTextureDefinition1.textureName;
+                   } else {
+                       materialData.textureUnit2TexName = replaceTextures[mdxTextureDefinition1.texType];
+                   }
+               }
+               if (op_count > 2) {
+                   var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 2];
+                   var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex2];
+                   materialData.xWrapTex3 = mdxTextureDefinition.flags & 1 > 0;
+                   materialData.yWrapTex3 = mdxTextureDefinition.flags & 2 > 0;
+                   materialData.texUnit3TexIndex = i;
 
-                if (mdxTextureDefinition2.texType == 0) {
-                    materialData.textureUnit3TexName = mdxTextureDefinition2.textureName;
-                } else {
-                    materialData.textureUnit3TexName = replaceTextures[mdxTextureDefinition2.texType];
-                }
-            }
-        }
+                   if (mdxTextureDefinition2.texType == 0) {
+                       materialData.textureUnit3TexName = mdxTextureDefinition2.textureName;
+                   } else {
+                       materialData.textureUnit3TexName = replaceTextures[mdxTextureDefinition2.texType];
+                   }
+               }
+           }
 
-        for (var i = 0; i < materialArray.length; i++) {
-            var materialData = materialArray[i];
-            if (materialData.textureUnit1TexName) {
-                (function (materialData) {
-                    self.sceneApi.resources.loadTexture(materialData.textureUnit1TexName)
-                        .then(function success(textObject) {
-                            materialData.texUnit1Texture = textObject;
-                        }, function error() {
-                        });
-                })(materialData);
-            }
-            if (materialData.textureUnit2TexName) {
-                (function (materialData) {
-                    self.sceneApi.resources.loadTexture(materialData.textureUnit2TexName)
-                        .then(function success(textObject) {
-                            materialData.texUnit2Texture = textObject;
-                        }, function error() {
-                        });
-                })(materialData);
-            }
-            if (materialData.textureUnit3TexName) {
-                (function (materialData) {
-                    self.sceneApi.resources.loadTexture(materialData.textureUnit3TexName)
-                        .then(function success(textObject) {
-                            materialData.texUnit3Texture = textObject;
-                        }, function error() {
-                        });
-                })(materialData);
-            }
-        }
+           for (var i = 0; i < materialArray.length; i++) {
+               var materialData = materialArray[i];
+               if (materialData.textureUnit1TexName) {
+                   (function (materialData) {
+                       self.sceneApi.resources.loadTexture(materialData.textureUnit1TexName)
+                           .then(function success(textObject) {
+                               materialData.texUnit1Texture = textObject;
+                           }, function error() {
+                           });
+                   })(materialData);
+               }
+               if (materialData.textureUnit2TexName) {
+                   (function (materialData) {
+                       self.sceneApi.resources.loadTexture(materialData.textureUnit2TexName)
+                           .then(function success(textObject) {
+                               materialData.texUnit2Texture = textObject;
+                           }, function error() {
+                           });
+                   })(materialData);
+               }
+               if (materialData.textureUnit3TexName) {
+                   (function (materialData) {
+                       self.sceneApi.resources.loadTexture(materialData.textureUnit3TexName)
+                           .then(function success(textObject) {
+                               materialData.texUnit3Texture = textObject;
+                           }, function error() {
+                           });
+                   })(materialData);
+               }
+           }
 
-        materialArray.sort(function(a,b){
-            return a.layer - b.layer;
-        });
+           materialArray.sort(function (a, b) {
+               return a.layer - b.layer;
+           });
+           this.materialArray = materialArray;
 
-        this.materialArray = materialArray;
+       } catch(e) {
+           debugger;
+       }
+
     }
     checkFrustumCulling (cameraVec4, frustumPlanes, aabb, num_planes) {
         //1. Check if camera position is inside Bounding Box
@@ -505,6 +507,7 @@ class MDXObject {
     }
     update (deltaTime, cameraPos, invPlacementMat) {
         if (!this.m2Geom) return;
+        //if (!this.materialArray) return;
 
         var animation = this.currentAnimation;
         animation = this.checkCurrentAnimation(animation, this.currentTime + deltaTime);

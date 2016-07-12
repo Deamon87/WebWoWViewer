@@ -65,7 +65,7 @@ class WorldMDXObject extends MDXObject {
         mat4.identity(placementMatrix);
 
         mat4.translate(placementMatrix, placementMatrix, pos);
-        mat4.rotateZ(placementMatrix, placementMatrix, glMatrix.toRadian(f));
+        mat4.rotateZ(placementMatrix, placementMatrix, f);
 
         mat4.scale(placementMatrix, placementMatrix, [scale , scale , scale ]);
 
@@ -81,7 +81,7 @@ class WorldMDXObject extends MDXObject {
         var attachInfo = m2File.attachments[attIndex];
 
         var boneId = attachInfo.bone;
-        var boneTransMat = this.bones[boneId].tranformMat;
+        var boneTransMat = parentM2.bones[boneId].tranformMat;
 
         var placementMatrix = mat4.create();
         mat4.identity(placementMatrix);

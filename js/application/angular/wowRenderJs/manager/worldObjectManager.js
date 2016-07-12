@@ -38,10 +38,17 @@ class WorldObjectManager {
 
 
                         newWorldUnit.setPosition(vec3.fromValues(updates[j].x, updates[j].y, updates[j].z));
+                        newWorldUnit.setRotation(updates[j].f);
                         newWorldUnit.setDisplayId(updateFields["UNIT_FIELD_DISPLAYID"]);
-                        //if (updateFields.hasOwnProperty("UNIT_FIELD_MOUNTDISPLAYID")){
-                        //    updateFields["UNIT_FIELD_MOUNTDISPLAYID"]
-                        //}
+                        if (updateFields.hasOwnProperty("UNIT_FIELD_MOUNTDISPLAYID")){
+                            newWorldUnit.setMountDisplayId(updateFields["UNIT_FIELD_MOUNTDISPLAYID"])
+                        }
+
+                        if (updateFields.hasOwnProperty("OBJECT_FIELD_SCALE_X")){
+                            newWorldUnit.setScale(updateFields["OBJECT_FIELD_SCALE_X"])
+                        }
+
+
                     }
                 }
             }
