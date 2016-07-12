@@ -17,6 +17,7 @@ function extractFilePath(filePath) {
 
     return '';
 }
+
 function findSectionRec(csd, race, gender, section, type, color) {
     for (var i = 0; i < csd.length; i++) {
         if (csd[i].race == race &&
@@ -62,6 +63,9 @@ class WorldUnit {
         this.mountModel = null;
         this.items = new Array(3);
     }
+    setPosition(pos) {
+        this.pos = pos;
+    }
 
     update (deltaTime, cameraPos) {
         /* 1. Calculate current position */
@@ -69,7 +73,7 @@ class WorldUnit {
         /* 2. Update position for all models */
         if (this.mountModel) {
             /* Update placement matrix */
-            this.mountModel.createPlacementMatrix([0,0,0], 0, 1.0);
+            this.mountModel.createPlacementMatrix(this.pos, 0, 1.0);
 
             /* Update bone matrices */
             this.mountModel.objectUpdate(deltaTime, cameraPos);
@@ -77,7 +81,7 @@ class WorldUnit {
             /* Update main model */
             this.objectModel.createPlacementMatrixFromParent(this.mountModel, 0, 1.0);
         } else {
-            this.objectModel.createPlacementMatrix([0,0,0], 0, 1.0);
+            this.objectModel.createPlacementMatrix(this.pos, 0, 1.0);
         }
         /* Update bone matrices */
         this.objectModel.objectUpdate(deltaTime, cameraPos);
@@ -114,21 +118,19 @@ class WorldUnit {
     }
 
     setDisplayId( value ) {
-        var csd = this.sceneApi.getCharSectionsDBC();
-        var chgd = this.sceneApi.getCharHairGeosetsDBC();
+        var csd = this.sceneApi.dbc.getCharSectionsDBC();
+        var chgd = this.sceneApi.dbc.getCharHairGeosetsDBC();
 
-        var cdid = this.sceneApi.getCreatureDisplayInfoDBC();
-        var cdied = this.sceneApi.getCreatureDisplayInfoExtraDBC();
-        var cmdd = this.sceneApi.getCreatureModelDataDBC();
-        var idid = this.sceneApi.getItemDisplayInfoDBC();
+        var cdid = this.sceneApi.dbc.getCreatureDisplayInfoDBC();
+        var cdied = this.sceneApi.dbc.getCreatureDisplayInfoExtraDBC();
+        var cmdd = this.sceneApi.dbc.getCreatureModelDataDBC();
+        var idid = this.sceneApi.dbc.getItemDisplayInfoDBC();
 
         var displayInf = cdid[value];
         var displayIDScale = displayInf.modelScale;
 
         var modelFilename = cmdd[displayInf.model1].modelName;
         var modelScale = cmdd[displayInf.model1].modelScale;
-
-        var model = this.sceneApi.loadWorldM2Obj(modelFilename);
 
         var replaceTextures = [];
         if (displayInf.skin1 != '')
@@ -141,8 +143,8 @@ class WorldUnit {
             replaceTextures[13] = extractFilePath(modelFilename)+displayInf.skin3+'.blp';
 
         var meshIds = [];
-        if (displayInf[value].displayExtra > 0) {
-            var displayExtraInfo = cdied[displayInf[value].displayExtra];
+        if (displayInf.displayExtra > 0) {
+            var displayExtraInfo = cdied[displayInf.displayExtra];
 
             for (var i = 0; i < 19; i++)
                 meshIds[i] = 1;
@@ -174,56 +176,58 @@ class WorldUnit {
 
             /* Items */
             var ItemDInfo = idid[displayExtraInfo.helmItem];
-            if (ItemDInfo.id >0) {
+            if (ItemDInfo && ItemDInfo.id >0) {
 
             }
             ItemDInfo = idid[displayExtraInfo.shoulderItem];
-            if (ItemDInfo.id > 0) {
+            if (ItemDInfo && ItemDInfo.id > 0) {
 
             }
             ItemDInfo = idid[displayExtraInfo.shirtItem];
-            if (ItemDInfo.id >0 ){
+            if (ItemDInfo && ItemDInfo.id >0 ){
 
             }
             ItemDInfo = idid[displayExtraInfo.cuirassItem];
-            if (ItemDInfo.id > 0) {
+            if (ItemDInfo && ItemDInfo.id > 0) {
                 meshIds[8] = 1 + ItemDInfo.geosetGroup_1;
             }
 
             ItemDInfo = idid[displayExtraInfo.beltItem];
-            if (ItemDInfo.id > 0) {
+            if (ItemDInfo && ItemDInfo.id > 0) {
                 meshIds[18] = 1 + ItemDInfo.geosetGroup_3;
             }
             ItemDInfo = idid[displayExtraInfo.legsItem];
-            if (ItemDInfo.id >0) {
+            if (ItemDInfo && ItemDInfo.id >0) {
                 if (meshIds[8] > 1)
                     meshIds[13] = 1 + ItemDInfo.geosetGroup_3;
             }
             ItemDInfo = idid[displayExtraInfo.bootsItem];
-            if (ItemDInfo.id > 0) {
+            if (ItemDInfo && ItemDInfo.id > 0) {
                 meshIds[5] = 1 + ItemDInfo.geosetGroup_1;
             }
             ItemDInfo = idid[displayExtraInfo.ringsItem];
-            if (ItemDInfo.id > 0){
+            if (ItemDInfo && ItemDInfo.id > 0){
 
             }
             ItemDInfo = idid[displayExtraInfo.glovesItem];
-            if (ItemDInfo.id >0) {
+            if (ItemDInfo && ItemDInfo.id >0) {
                 meshIds[4] = 1 + ItemDInfo.geosetGroup_1;
             }
             ItemDInfo = idid[displayExtraInfo.tabardItem];
-            if (ItemDInfo.id > 0) {
+            if (ItemDInfo && ItemDInfo.id > 0) {
                 if (meshIds[8] == 1)
                     meshIds[12] = 1 + ItemDInfo.geosetGroup_1;
             }
             ItemDInfo = idid[displayExtraInfo.capeItem];
-            if (ItemDInfo.id > 0) {
+            if (ItemDInfo && ItemDInfo.id > 0) {
                 replaceTextures[2] ='Item\\ObjectComponents\\Cape\\'+ ItemDInfo.leftTextureModel + '.BLP';
                 meshIds[15] = 1 + ItemDInfo.geosetGroup_1;
             }
         }//DisplayExtra
 
-        model.makeTextureArray(meshIds, replaceTextures);
+
+        var model = this.sceneApi.objects.loadWorldM2Obj(modelFilename,meshIds,replaceTextures);
+        //model.makeTextureArray(, );
 
         this.objectModel = model;
     }
@@ -237,3 +241,5 @@ class WorldUnit {
         this.setDisplayId(0)
     }
 }
+
+export default WorldUnit;

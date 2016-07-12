@@ -484,7 +484,7 @@ class Scene {
     }
     initSceneGraph () {
         this.graphManager = new GraphManager(this.sceneApi);
-        this.worldObjectManager = new WorldObjectManager();
+        this.worldObjectManager = new WorldObjectManager(this.sceneApi);
     }
     initSceneApi () {
         var self = this;
@@ -567,47 +567,47 @@ class Scene {
             },
             dbc : {
                 getCharacterFacialHairStylesDBC : function() {
-                    self.characterFacialHairStylesDBC = a;
+                    return self.characterFacialHairStylesDBC;
                 },
                 getCharHairGeosetsDBC : function() {
-                    self.charHairGeosetsDBC = a;
+                    return self.charHairGeosetsDBC;
                 },
                 getCharSectionsDBC : function () {
-                    self.charSectionsDBC = a;
+                    return self.charSectionsDBC;
                 },
                 getCreatureDisplayInfoDBC : function () {
-                    self.creatureDisplayInfoDBC = a;
+                    return self.creatureDisplayInfoDBC;
                 },
                 getCreatureDisplayInfoExtraDBC : function () {
-                    self.creatureDisplayInfoExtraDBC = a;
+                    return self.creatureDisplayInfoExtraDBC;
                 },
                 getCreatureModelDataDBC : function () {
-                    self.creatureModelDataDBC = a;
+                    return self.creatureModelDataDBC;
                 },
                 getGameObjectDisplayInfoDBC : function () {
-                    self.gameObjectDisplayInfoDBC = a;
+                    return self.gameObjectDisplayInfoDBC;
                 },
                 getItemDisplayInfoDBC : function () {
-                    self.itemDisplayInfoDBC = a;
+                    return self.itemDisplayInfoDBC;
                 },
 
                 /* Map and area data */
                 getMapDBC : function () {
-                    self.mapDBC = a;
+                    return self.mapDBC;
                 },
 
                 /* Lights information */
                 getLightDBC : function () {
-                    self.lightDBC = a;
+                    return self.lightDBC;
                 },
                 getLightFloatBandDBC : function () {
-                    self.lightFloatBandDBC = a;
+                    return self.lightFloatBandDBC;
                 },
                 getLightIntBandDBC : function () {
-                    self.lightIntBandDBC = a;
+                    return self.lightIntBandDBC;
                 },
                 getLightParamsDBC : function () {
-                    self.lightParamsDBC = a;
+                    return self.lightParamsDBC;
                 }
             },
             objects : {
@@ -620,8 +620,8 @@ class Scene {
                 loadWmoM2Obj : function (doodadDef, placementMatrix, useLocalLightning){
                     return self.graphManager.addWmoM2Object(doodadDef, placementMatrix, useLocalLightning);
                 },
-                loadWorldM2Obj : function (modelName){
-                    return self.graphManager.addWorldMDXObject(modelName);
+                loadWorldM2Obj : function (modelName, meshIds,replaceTextures){
+                    return self.graphManager.addWorldMDXObject(modelName, meshIds,replaceTextures);
                 },
                 loadAdtChunk: function(fileName) {
                     return self.graphManager.addADTObject(fileName)

@@ -1,13 +1,38 @@
 import MDXObject from './MDXObject.js';
 import config from './../../services/config.js'
 import mathHelper from './../math/mathHelper.js';
-import {mat4, vec4, vec3} from 'gl-matrix';
+import {mat4, vec4, vec3, glMatrix} from 'gl-matrix';
 
 class WorldMDXObject extends MDXObject {
-    constructor(){
-        super();
+    constructor(sceneApi){
+        super(sceneApi);
         this.diffuseColor = new Float32Array([1,1,1,1]);
 
+    }
+    calcDistance (position) {
+        this.currentDistance = 0;
+    }
+    getCurrentDistance(){
+        return 0;
+    }
+    setIsRendered (value) {
+        //if (value === undefined) return;
+
+        this.isRendered = true;
+    }
+    getIsRendered () {
+        return this.isRendered;
+    }
+    getDiameter () {
+        return 100;
+    }
+    checkFrustumCullingAndSet (cameraVec4, frustumPlanes, num_planes) {
+        //var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
+        //this.setIsRendered(this.getIsRendered() && inFrustum);
+        this.setIsRendered(true);
+    }
+    getDiffuseColor(){
+        return new Float32Array([1,1,1,1]);
     }
 
     update (deltaTime, cameraPos) {
@@ -85,3 +110,5 @@ class WorldMDXObject extends MDXObject {
     }
 
 }
+
+export default WorldMDXObject;

@@ -20,7 +20,7 @@ class MDXObject {
         return this.hasBillboarded;
     }
 
-    load (modelName, skinNum, submeshRenderData){
+    load (modelName, skinNum, meshIds,replaceTextures){
         var self = this;
 
         var nameTemplate = modelName.split('.')[0];
@@ -49,7 +49,7 @@ class MDXObject {
                 m2Geom.createVAO(skinGeom);
                 self.hasBillboarded = self.checkIfHasBillboarded();
 
-                self.makeTextureArray(submeshRenderData)
+                self.makeTextureArray(meshIds, replaceTextures)
             }
             return true;
         });
@@ -233,7 +233,7 @@ class MDXObject {
             var skinTextureDefinition = skinObject.skinFile.header.texs[i];
             var subMesh = subMeshes[skinTextureDefinition.submeshIndex];
 
-            if (meshIds && (meshIds[subMesh.submesh_id / 100] != (submesh_id % 100))) {
+            if (meshIds && (meshIds[subMesh.submesh_id / 100] != (subMesh.submesh_id % 100))) {
                 continue;
             }
 
