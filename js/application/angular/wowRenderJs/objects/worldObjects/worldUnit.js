@@ -1,12 +1,11 @@
-import MDXObject from './worldObject.js';
-
+import WorldObject from './worldObject.js'
 const fHairGeoset = [1, 3, 2];
 
-const UNIT_MAINHAND_SLOT = 1;
-const UNIT_OFFHAND_SLOT  = 2;
-const UNIT_RANGED_SLOT   = 3;
+const UNIT_MAINHAND_SLOT = 0;
+const UNIT_OFFHAND_SLOT  = 1;
+const UNIT_RANGED_SLOT   = 2;
 
-const virtualItemMap = [1, 2, 1];
+const virtualItemMap = [1, 0, 1];
 const helm_race_names = ['', 'hu', 'or', 'dw', 'ni', 'sc', 'ta', 'gn', 'tr', 'go',
 'be', 'dr', 'fo', 'na', 'br', 'sk', 'vr', 'tu', 'ft', 'wt', 'ns', 'it'];
 const helm_gender = ['m', 'f'];
@@ -60,8 +59,10 @@ function findFaceHairStyleRec(cfhsd, race, gender, type ) {
     return null;
 }
 
-class WorldUnit {
+class WorldUnit extends WorldObject {
     constructor(sceneApi){
+        super();
+
         this.sceneApi = sceneApi;
 
         this.objectModel = null;
@@ -204,16 +205,6 @@ class WorldUnit {
         return model
     }
 
-    setPosition(pos) {
-        this.pos = pos;
-    }
-    setRotation(f) {
-        this.f = f;
-    }
-    setScale(scale) {
-        this.scale = scale;
-    }
-
     update (deltaTime, cameraPos) {
         /* 1. Calculate current position */
 
@@ -248,7 +239,7 @@ class WorldUnit {
         /* Update bone matrices */
         this.objectModel.objectUpdate(deltaTime, cameraPos);
 
-        if (this.objectModel && this.objectModel.m2Geom != null && this.objectModel.m2Geom.m2File != null &&
+        if (this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File &&
             this.helmet && this.helmet.m2Geom != null && this.helmet.m2Geom.m2File != null) {
             /* Update helm model */
             this.helmet.createPlacementMatrixFromParent(this.objectModel, 11, properScale);
@@ -258,31 +249,45 @@ class WorldUnit {
 
 
         //3. Update placement matrices for items
-        for (var i = 0; i < this.items.length; i++) {
-             if (this.items[i]) {
-                 this.items[i].createPlacementMatrixFromParent(this.objectModel, virtualItemMap[i], properScale);
-                 this.items[i].objectUpdate(deltaTime, cameraPos);
-             }
+        if (this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File) {
+            for (var i = 0; i < this.items.length; i++) {
+                if (this.items[i] && this.items[i].m2Geom) {
+                    this.items[i].createPlacementMatrixFromParent(this.objectModel, virtualItemMap[i], properScale);
+                    this.items[i].objectUpdate(deltaTime, cameraPos);
+                }
+            }
         }
     }
 
     setVirtualItemSlot(slot, displayId) {
-        var idid = this.sceneApi.getItemDisplayInfoDBC();
+        var idid = this.sceneApi.dbc.getItemDisplayInfoDBC();
 
         /* 1. Free previous model */
 
         /* 2. Configure new model */
+        var modelPath;
+        if (slot == 0) {
+            modelPath = "item/objectcomponents/weapon/";
+        } else if (slot == 1)  {
+            modelPath = "item/objectcomponents/shield/";
+        } else if (slot == 2) {
+            modelPath = "item/objectcomponents/weapon/";
+        }
         var ItemDInfo = idid[displayId];
         if (ItemDInfo) {
             var modelName;
-            if (slot == UNIT_MAINHAND_SLOT || UNIT_MAINHAND_SLOT == UNIT_RANGED_SLOT) {
+            if (slot == UNIT_MAINHAND_SLOT || slot == UNIT_RANGED_SLOT) {
                 modelName = ItemDInfo.leftModel
             } else {
-                modelName = ItemDInfo.rightModel
+                modelName = ItemDInfo.leftModel
             }
+            modelName = modelPath + modelName;
 
-            var model = this.sceneApi.loadWorldM2Obj(modelName);
-            model.makeTextureArray(null, null);
+            var replaceTextures = [];
+            if (ItemDInfo.leftTextureModel)
+                replaceTextures[2] = modelPath + ItemDInfo.leftTextureModel + '.blp';
+
+            var model = this.sceneApi.objects.loadWorldM2Obj(modelName, null, replaceTextures);
 
             this.items[slot] = model;
         }

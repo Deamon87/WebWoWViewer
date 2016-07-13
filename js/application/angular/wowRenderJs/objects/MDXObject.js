@@ -342,6 +342,7 @@ class MDXObject {
            this.materialArray = materialArray;
 
        } catch(e) {
+           console.log(e);
            debugger;
        }
 

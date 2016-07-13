@@ -60,12 +60,15 @@ class WorldMDXObject extends MDXObject {
     objectUpdate (deltaTime, cameraPos) {
         super.update(deltaTime, cameraPos, this.placementInvertMatrix);
     }
-    createPlacementMatrix (pos, f, scale){
+    createPlacementMatrix (pos, f, scale, rotationMatrix){
         var placementMatrix = mat4.create();
         mat4.identity(placementMatrix);
 
         mat4.translate(placementMatrix, placementMatrix, pos);
         mat4.rotateZ(placementMatrix, placementMatrix, f);
+        if (rotationMatrix) {
+            mat4.multiply(placementMatrix,placementMatrix, rotationMatrix);
+        }
 
         mat4.scale(placementMatrix, placementMatrix, [scale , scale , scale ]);
 
