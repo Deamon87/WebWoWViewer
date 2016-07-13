@@ -68,7 +68,7 @@ class WorldObjectManager {
 
                             newWorldGameObject.setPosition(
                                 vec3.fromValues(updates[j].static_x, updates[j].static_y, updates[j].static_z));
-                            newWorldGameObject.setRotation(updates[j].f);
+                            newWorldGameObject.setRotation(updates[j].static_f);
                             newWorldGameObject.setDisplayId(updateFields["GAMEOBJECT_DISPLAYID"]);
 
                             var rotationQuaternion = [0, 0, 0, 0];

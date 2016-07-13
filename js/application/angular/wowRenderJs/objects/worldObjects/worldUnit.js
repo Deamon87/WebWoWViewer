@@ -215,22 +215,24 @@ class WorldUnit extends WorldObject {
         }
 
         if (this.mountModel && this.mountModel.m2Geom != null && this.mountModel.m2Geom.m2File != null &&
-            this.objectModel && this.objectModel.m2Geom != null && this.objectModel.m2Geom.m2File != null &&
-            this.objectModel.bones
+            this.objectModel && this.objectModel.m2Geom != null && this.objectModel.m2Geom.m2File != null
         ) {
+
             /* Update placement matrix */
             this.mountModel.createPlacementMatrix(this.pos, this.f, properScale);
 
             /* Update bone matrices */
             this.mountModel.objectUpdate(deltaTime, cameraPos);
 
-            /* Update main model */
-            this.objectModel.createPlacementMatrixFromParent(this.mountModel, 0, properScale);
+            if (this.mountModel.bones) {
+                /* Update main model */
+                this.objectModel.createPlacementMatrixFromParent(this.mountModel, 0, properScale);
 
-            var m2File = this.objectModel.m2Geom.m2File;
-            var animationId = m2File.animationLookup[91]; //Mounted animation
-            if (animationId > -1) {
-                this.objectModel.currentAnimation = animationId;
+                var m2File = this.objectModel.m2Geom.m2File;
+                var animationId = m2File.animationLookup[91]; //Mounted animation
+                if (animationId > -1) {
+                    this.objectModel.currentAnimation = animationId;
+                }
             }
             //this.objectModel.animation
         } else {
@@ -239,7 +241,7 @@ class WorldUnit extends WorldObject {
         /* Update bone matrices */
         this.objectModel.objectUpdate(deltaTime, cameraPos);
 
-        if (this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File &&
+        if (this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File && this.objectModel.bones &&
             this.helmet && this.helmet.m2Geom != null && this.helmet.m2Geom.m2File != null) {
             /* Update helm model */
             this.helmet.createPlacementMatrixFromParent(this.objectModel, 11, properScale);
@@ -249,7 +251,7 @@ class WorldUnit extends WorldObject {
 
 
         //3. Update placement matrices for items
-        if (this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File) {
+        if (this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File && this.objectModel.bones) {
             for (var i = 0; i < this.items.length; i++) {
                 if (this.items[i] && this.items[i].m2Geom) {
                     this.items[i].createPlacementMatrixFromParent(this.objectModel, virtualItemMap[i], properScale);

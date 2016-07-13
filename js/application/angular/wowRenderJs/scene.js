@@ -1100,7 +1100,7 @@ class Scene {
 
 
         var perspectiveMatrixForCulling = mat4.create();
-        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, 1, 1000);
+        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, 1, 150);
 
         //Camera for rendering
         var perspectiveMatrixForCameraRender = mat4.create();
