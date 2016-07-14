@@ -107,26 +107,10 @@ class WorldMDXObject extends MDXObject {
         var attachInfo = parentM2File.attachments[attIndex];
 
         var boneId = attachInfo.bone;
-        //var boneIndex = parentM2File.boneLookup[boneId];
         var parentBoneTransMat = parentM2.bones[boneId].tranformMat;
-        var parentBoneDef = parentM2File.bones[boneId];
 
         var placementMatrix = mat4.create();
         mat4.identity(placementMatrix);
-        /*mat4.translate(placementMatrix, , [
-            parentBoneDef.pivot.x,
-            parentBoneDef.pivot.y,
-            parentBoneDef.pivot.z,
-            0
-        ]); */
-
-        /*
-        mat4.scale(placementMatrix, parentM2.placementMatrix, [
-                scale,
-                scale,
-                scale
-            ]
-        );*/
         mat4.multiply(placementMatrix,placementMatrix, parentM2.placementMatrix);
 
         mat4.multiply(placementMatrix, placementMatrix, parentBoneTransMat);
@@ -139,8 +123,6 @@ class WorldMDXObject extends MDXObject {
 
         var placementInvertMatrix = mat4.create();
         mat4.invert(placementInvertMatrix, placementMatrix);
-
-
 
         this.placementInvertMatrix = placementInvertMatrix;
         this.placementMatrix = placementMatrix;

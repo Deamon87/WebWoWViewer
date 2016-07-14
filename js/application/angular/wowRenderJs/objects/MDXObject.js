@@ -512,15 +512,16 @@ class MDXObject {
 
         var animation = this.currentAnimation;
         animation = this.checkCurrentAnimation(animation, this.currentTime + deltaTime);
+        var animationTime = this.currentTime + deltaTime - this.currentAnimationStart;
 
-        var subMeshColors = this.getSubMeshColor(animation, this.currentTime + deltaTime);
+        var subMeshColors = this.getSubMeshColor(animation, animationTime);
         this.subMeshColors = subMeshColors;
 
-        var transperencies = this.getTransperencies(animation, this.currentTime + deltaTime);
+        var transperencies = this.getTransperencies(animation, animationTime);
         this.transperencies = transperencies;
 
-        this.calcBones(animation, this.currentTime + deltaTime, cameraPos, invPlacementMat);
-        this.calcAnimMatrixes(animation, this.currentTime + deltaTime);
+        this.calcBones(animation, animationTime, cameraPos, invPlacementMat);
+        this.calcAnimMatrixes(animation, animationTime);
 
         var skinData = this.skinGeom.skinFile.header;
 
