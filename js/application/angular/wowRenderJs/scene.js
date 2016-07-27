@@ -1145,26 +1145,26 @@ class Scene {
         var updateRes = this.graphManager.update(deltaTime);
         this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4);
 
-        //Draw static camera
 
-      /*  this.lookAtMat4 = secondLookAtMat;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
+        if (config.getDoubleCameraDebug()) {
+            //Draw static camera
+            this.lookAtMat4 = secondLookAtMat;
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 
-        this.glClearScreen(gl);
+            this.glClearScreen(gl, this.fogColor);
 
-        gl.activeTexture(gl.TEXTURE0);
-        gl.depthMask(true);
-        gl.enableVertexAttribArray(0);
-        this.graphManager.draw();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.depthMask(true);
+            gl.enableVertexAttribArray(0);
+            this.graphManager.draw();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-        //Render framebuffer texture into screen
-        this.glClearScreen(gl);
-        this.activateRenderFrameShader();
-        gl.enableVertexAttribArray(0);
-        this.drawFrameBuffer();
-
-        */
+            //Draw debug camera from framebuffer into screen
+            this.glClearScreen(gl, this.fogColor);
+            this.activateRenderFrameShader();
+            gl.enableVertexAttribArray(0);
+            this.drawFrameBuffer();
+        }
 
         //Render real camera
         this.lookAtMat4 = lookAtMat4;
@@ -1177,25 +1177,27 @@ class Scene {
         this.graphManager.draw();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
+        if (!config.getDoubleCameraDebug()) {
+            //Draw real camera into screen
 
-        this.glClearScreen(gl, this.fogColor);
-        gl.enableVertexAttribArray(0);
-        this.activateRenderFrameShader();
-        this.drawFrameBuffer();
+            this.glClearScreen(gl, this.fogColor);
+            gl.enableVertexAttribArray(0);
+            this.activateRenderFrameShader();
+            this.drawFrameBuffer();
+        } else {
+            //Draw real camera into square at bottom of screen
 
-        //Draw frameBuffer color texture into screen
-        /*
-        this.activateRenderDepthShader();
-        gl.enableVertexAttribArray(0);
-        this.drawTexturedQuad(gl, this.frameBufferColorTexture,
-            this.canvas.width * 0.60,
-            0,//this.canvas.height * 0.75,
+            this.activateRenderDepthShader();
+            gl.enableVertexAttribArray(0);
+            this.drawTexturedQuad(gl, this.frameBufferColorTexture,
+                this.canvas.width * 0.60,
+                0,//this.canvas.height * 0.75,
+                this.canvas.width * 0.40,
+                this.canvas.height * 0.40,
+                this.canvas.width, this.canvas.height);
+        }
 
-            this.canvas.width * 0.40,
-            this.canvas.height * 0.40,
 
-            this.canvas.width, this.canvas.height);
-          */
 
         this.stats.end();
         if (this.glext_ft && this.glext_ft.frameTerminator) {
@@ -1233,6 +1235,10 @@ class Scene {
     }
     loadPackets() {
         this.worldObjectManager.loadAllPacket();
+    }
+    copyFirstCameraToDebugCamera() {
+        this.secondCamera = this.mainCamera
+        this.secondCameraLookAt = this.mainCameraLookAt;
     }
 }
 

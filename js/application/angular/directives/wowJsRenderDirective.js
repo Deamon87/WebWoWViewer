@@ -22,7 +22,9 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<div style="display: block"><input type="checkbox" ng-model="drawWmoBB">Draw Wmo BB</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawBSP">Draw BSP leafs</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="usePortalCulling">Use portal culling</div>' +
-            '<div style="display: block"><input type="checkbox" ng-model="useSecondCamera">Use second camera</div>'+
+            '<div style="display: block"><input type="checkbox" ng-model="doubleCameraDebug">Double camera debug</div>'+
+            '<div style="display: block"><input type="checkbox" ng-model="useSecondCamera">Control debug camera</div>'+
+            '<div style="display: block"><button ng-click="copyToDebugCamera()">Copy main camera to debug camera</button></div>'+
             '<div style="display: block"><button ng-click="loadPacket()">Load packets</button></div>'+
             '</div>'+
             '</div>',
@@ -79,9 +81,16 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             scope.$watch('usePortalCulling', function (newValue) {
                 config.setUsePortalCulling(newValue);
             });
+            scope.$watch('doubleCameraDebug', function (newValue) {
+                config.setDoubleCameraDebug(newValue);
+            });
             scope.$watch('useSecondCamera', function (newValue) {
                 config.setUseSecondCamera(newValue);
             });
+            scope.copyToDebugCamera = function () {
+                sceneObj.copyFirstCameraToDebugCamera();
+            };
+
             scope.loadPacket = function () {
                 sceneObj.loadPackets();
             };

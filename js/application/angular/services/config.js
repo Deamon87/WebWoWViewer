@@ -12,6 +12,7 @@ var usePortalCulling = false;
 var drawWmoBB = false;
 var drawM2BB = false;
 var secondCamera = false;
+var doubleCameraDebug = false;
 
 var savedUrlForLoading = localStorage.getItem('urlForLoading');
 if (savedUrlForLoading) {
@@ -100,5 +101,11 @@ export default {
     },
     setUseSecondCamera : function(value) {
         secondCamera = value;
+    },
+    getDoubleCameraDebug : function () {
+        return doubleCameraDebug;
+    },
+    setDoubleCameraDebug : function (value) {
+        doubleCameraDebug = value;
     }
 }
