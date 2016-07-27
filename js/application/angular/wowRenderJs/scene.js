@@ -73,7 +73,7 @@ class Scene {
 
         this.mainCamera = [0,0,0];
         this.mainCameraLookAt = [0,0,0];
-
+        this.fogColor = [0.117647, 0.207843, 0.392157];
 
         self.initGlContext(canvas);
         self.initArrayInstancedExt();
@@ -501,6 +501,9 @@ class Scene {
             getBlackPixelTexture : function () {
                 return self.blackPixelTexture;
             },
+            setFogColor: function (color) {
+                self.fogColor = color;
+            },
             extensions : {
                 getInstancingExt : function (){
                     return self.instancing_ext;
@@ -708,14 +711,15 @@ class Scene {
         }
     }
 
-    glClearScreen (gl){
+    glClearScreen (gl, fogColor){
         gl.clearDepth(1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LESS);
 
         gl.disable(gl.BLEND);
-        gl.clearColor(0.6, 0.95, 1.0, 1);
+        //gl.clearColor(0.6, 0.95, 1.0, 1);
         //gl.clearColor(0.117647, 0.207843, 0.392157, 1);
+        gl.clearColor(fogColor[0], fogColor[1], fogColor[2], 1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.CULL_FACE);
     }
@@ -787,6 +791,8 @@ class Scene {
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer1, 2);
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer2, 3);
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer3, 4);
+
+            gl.uniform3fv(this.currentShaderProgram.shaderUniforms.uFogColor, this.fogColor);
         }
     }
     activateWMOShader () {
@@ -810,6 +816,8 @@ class Scene {
 
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
+
+            gl.uniform3fv(this.currentShaderProgram.shaderUniforms.uFogColor, this.fogColor);
 
             gl.activeTexture(gl.TEXTURE0);
         }
@@ -878,6 +886,8 @@ class Scene {
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
 
+            gl.uniform3fv(this.currentShaderProgram.shaderUniforms.uFogColor, this.fogColor);
+
 
             gl.activeTexture(gl.TEXTURE0);
         }
@@ -928,6 +938,8 @@ class Scene {
                 instExt.vertexAttribDivisorANGLE(shaderAttributes.aPlacementMat + 3, 1);
                 instExt.vertexAttribDivisorANGLE(shaderAttributes.aDiffuseColor, 1);
             }
+
+            gl.uniform3fv(this.currentShaderProgram.shaderUniforms.uFogColor, this.fogColor);
         }
 
     }
@@ -1157,7 +1169,7 @@ class Scene {
         //Render real camera
         this.lookAtMat4 = lookAtMat4;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
-        this.glClearScreen(gl);
+        this.glClearScreen(gl, this.fogColor);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.depthMask(true);
@@ -1166,7 +1178,7 @@ class Scene {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
 
-        this.glClearScreen(gl);
+        this.glClearScreen(gl, this.fogColor);
         gl.enableVertexAttribArray(0);
         this.activateRenderFrameShader();
         this.drawFrameBuffer();

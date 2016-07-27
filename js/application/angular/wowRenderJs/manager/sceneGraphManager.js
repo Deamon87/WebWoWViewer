@@ -5,94 +5,14 @@ import wmoM2ObjectFactory from './../objects/wmoM2ObjectFactory.js';
 import WorldMDXObject from './../objects/worldMDXObject.js';
 import wmoObjectFactory from './../objects/wmoObjectFactory.js';
 
+import InstanceManager from './instanceManager.js';
+
 import mathHelper from './../math/mathHelper.js';
 import PortalCullingAlgo from './../math/portalCullingAlgo.js';
 
 import config from './../../services/config.js';
 
 import {mat4} from 'gl-matrix';
-
-
-
-class InstanceManager {
-    constructor(sceneApi) {
-        this.sceneApi = sceneApi;
-        this.mdxObjectList = [];
-        this.sceneObjNumMap = {};
-        this.lastUpdatedNumber = 0;
-    }
-
-    addMDXObject(MDXObject) {
-        if (this.sceneObjNumMap[MDXObject.sceneNumber]) return; // The object has already been added to this manager
-
-        this.sceneObjNumMap[MDXObject.sceneNumber] = MDXObject;
-        this.mdxObjectList.push(MDXObject);
-    }
-    updatePlacementVBO() {
-        var gl = this.sceneApi.getGlContext();
-
-        var paramsVbo = this.placementVBO;
-        if (!paramsVbo) {
-            paramsVbo = gl.createBuffer();
-            this.maxAmountWritten = 0;
-        }
-        var written = 0;
-        var permanentBuffer = [];
-        for (var i = 0; i < this.mdxObjectList.length; i++) {
-            var mdxObject = this.mdxObjectList[i];
-            if (!mdxObject.getIsRendered()) continue;
-
-            var placementMatrix = mdxObject.placementMatrix;
-            var diffuseColor = mdxObject.getDiffuseColor();
-            for (var j = 0; j < 16; j++) {
-                permanentBuffer[written*20+j] = placementMatrix[j];
-            }
-            for (var j = 0; j < 4; j++) {
-                permanentBuffer[written*20+16+j] = diffuseColor[j];
-            }
-
-            written++;
-        }
-
-        if (written>0) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, paramsVbo);
-            if (written > this.maxAmountWritten) {
-                var typedBuf = new Float32Array(permanentBuffer);
-                gl.bufferData(gl.ARRAY_BUFFER, typedBuf, gl.DYNAMIC_DRAW);
-
-                this.maxAmountWritten = written;
-            } else {
-                gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(permanentBuffer));
-            }
-        }
-        this.placementVBO = paramsVbo;
-        this.lastUpdatedNumber = written;
-    }
-    drawInstancedNonTransparentMeshes(opaqueMap) {
-        if (!this.mdxObjectList[0]) return;
-        var lastDrawn;
-        for (var i = 0; i < this.mdxObjectList.length; i++) {
-            opaqueMap[this.mdxObjectList[i].sceneNumber] = true;
-            if (this.mdxObjectList[i].getIsRendered()) {
-                lastDrawn = this.mdxObjectList[i];
-            }
-        }
-
-        lastDrawn.drawInstancedNonTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
-    }
-    drawInstancedTransparentMeshes(transparentMap) {
-        if (!this.mdxObjectList[0]) return;
-        var lastDrawn;
-        for (var i = 0; i < this.mdxObjectList.length; i++) {
-            transparentMap[this.mdxObjectList[i].sceneNumber] = true;
-            if (this.mdxObjectList[i].getIsRendered()) {
-                lastDrawn = this.mdxObjectList[i];
-            }
-        }
-
-        lastDrawn.drawInstancedTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
-    }
-}
 
 
 class GraphManager {
@@ -104,8 +24,13 @@ class GraphManager {
         this.wmoObjects = [];
         this.adtObjects = [];
         this.skyDom = null;
+
         this.currentTime = 0;
         this.lastTimeSort = 0;
+        this.lastTimeDistanceCalc = 0;
+        this.lastInstanceCollect = 0;
+        this.lastFogParamCheck = 0;
+
         this.globalM2Counter = 0;
         this.portalCullingAlgo = new PortalCullingAlgo()
     }
@@ -279,10 +204,25 @@ class GraphManager {
             this.wmoObjects[i].update(deltaTime);
         }
 
-        //Sort every 500 ms
+        //2. Calc distance every 100 ms
+        if (this.currentTime + deltaTime - this.lastTimeDistanceCalc > 100) {
+            for (var j = 0; j < this.m2Objects.length; j++) {
+                //if (this.m2Objects[j].getIsRendered()) {
+                this.m2Objects[j].calcDistance(this.position);
+                //}
+            }
+
+            this.lastTimeDistanceCalc = this.currentTime;
+        }
+
+        //3. Sort m2 by distance every 500 ms
         if (this.currentTime + deltaTime - this.lastTimeSort > 500) {
-            var self = this;
-            //Collect m2 into insntaces
+            this.m2Objects.sort(this.sortM2);
+            this.lastTimeSort = this.currentTime;
+        }
+
+        //4. Collect m2 into instances every 400 ms
+        if (this.currentTime + deltaTime - this.lastInstanceCollect > 400) {
             var map = {};
             for (var j = 0; j < this.m2Objects.length; j++) {
                 var m2Object = this.m2Objects[j];
@@ -303,30 +243,16 @@ class GraphManager {
                 }
             }
 
-            for (var j = 0; j < this.m2Objects.length; j++) {
-                //if (this.m2Objects[j].getIsRendered()) {
-                    this.m2Objects[j].calcDistance(self.position);
-                //}
-            }
-
-            //Sort by distance
-            this.m2Objects.sort(this.sortM2);
-
-        }
-        //Update placement matrix buffers
-
-        if (this.currentTime + deltaTime - this.lastTimeSort > 1000) {
-            for (var i = 0; i < this.instanceList.length; i++) {
-                var instanceManager = this.instanceList[i];
+            //4.1 Update placement matrix buffers in Instance
+            for (var j = 0; j < this.instanceList.length; j++) {
+                var instanceManager = this.instanceList[j];
                 instanceManager.updatePlacementVBO();
             }
+
+            this.lastInstanceCollect = this.currentTime;
         }
 
-
-        //N. Collect non transparent and transparent meshes
-        //this.collectMeshes();
-
-        //Check what WMO instance we're in
+        //5. Check what WMO instance we're in
         this.currentInteriorGroup = -1;
         this.currentWMO = null;
         var bspNodeId = -1;
@@ -341,6 +267,13 @@ class GraphManager {
                 bspNodeId = result.nodeId;
                 break;
             }
+        }
+
+        //6. Check fog color every 2 seconds
+        if (this.currentTime + deltaTime - this.lastFogParamCheck > 2000) {
+            this.sceneApi
+
+            this.lastFogParamCheck = this.currentTime;
         }
 
         this.currentTime = this.currentTime + deltaTime;

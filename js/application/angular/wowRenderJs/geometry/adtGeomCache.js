@@ -239,6 +239,7 @@ class ADTGeom {
         var stripOffsets = this.triangleStrip.stripOffsets;
         var shaderUniforms = this.sceneApi.shaders.getShaderUniforms();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+        var blackPixelTexture = this.sceneApi.getBlackPixelTexture();
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.stripVBO);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.combinedVbo);
@@ -266,8 +267,12 @@ class ADTGeom {
                         //gl.enable(gl.TEXTURE_2D);
                         gl.bindTexture(gl.TEXTURE_2D, this.textureArray[i][j].texture);
                     } else {
-                        gl.bindTexture(gl.TEXTURE_2D, null);
+                        gl.bindTexture(gl.TEXTURE_2D, blackPixelTexture);
                     }
+                }
+                for (var j = this.textureArray[i].length; j < 4; j++) {
+                    gl.activeTexture(gl.TEXTURE1 + j);
+                    gl.bindTexture(gl.TEXTURE_2D, blackPixelTexture);
                 }
 
                 var stripLength = (i == 0) ? 0 : stripOffsets[i + 1] - stripOffsets[i];

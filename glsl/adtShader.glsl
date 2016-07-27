@@ -9,6 +9,7 @@ uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 
 varying vec2 vChunkCoords;
+varying vec3 vPosition;
 
 const float UNITSIZE =  533.3433333 / 16.0 / 8.0;
 
@@ -37,6 +38,8 @@ void main() {
         vChunkCoords.x = (iY-8.5);
     }
 
+    vPosition = (uLookAtMat * worldPoint).xyz;
+
     gl_Position = uPMatrix * uLookAtMat * worldPoint;
 }
 #endif //COMPILING_VS
@@ -45,6 +48,7 @@ void main() {
 precision lowp float;
 
 varying vec2 vChunkCoords;
+varying vec3 vPosition;
 
 uniform int uNewFormula;
 
@@ -53,12 +57,12 @@ uniform sampler2D uLayer1;
 uniform sampler2D uLayer2;
 uniform sampler2D uLayer3;
 uniform sampler2D uAlphaTexture;
+uniform vec3 uFogColor;
 
 /* Bicubic interpolation implementation */
 /* Taken from http://www.codeproject.com/Articles/236394/Bi-Cubic-and-Bi-Linear-Interpolation-with-GLSL#Triangular */
 
-float Triangular( float f )
-{
+float Triangular( float f ) {
 	f = f / 2.0;
 	if( f < 0.0 )
 	{
@@ -71,8 +75,7 @@ float Triangular( float f )
 	return 0.0;
 }
 
-float CatMullRom( float x )
-{
+float CatMullRom( float x ) {
     const float B = 0.0;
     const float C = 0.5;
     float f = x;
@@ -98,8 +101,7 @@ float CatMullRom( float x )
         return 0.0;
     }
 }
-vec4 BiCubic( sampler2D textureSampler, vec2 TexCoord, float widthMinClamp, float widthMaxClamp)
-{
+vec4 BiCubic( sampler2D textureSampler, vec2 TexCoord, float widthMinClamp, float widthMaxClamp) {
     float fWidth = 256.0;
     float fHeight = 64.0;
 
@@ -184,6 +186,30 @@ void main() {
         finalColor = vec4(mixTextures(mixTextures(mixTextures(tex1,tex2,a2),tex3, a3), tex4, a4), 1);
         //finalColor = vec4(a4 * tex4 - (a4  - 1.0) * ( (a3 - 1.0)*( tex1 * (a2 - 1.0) - a2*tex2) + a3*tex3), 1);
     }
+
+
+    // --- Fog start ---
+    vec3 fogColor = uFogColor;
+    float fog_start = 1.0;
+    float fog_end = 200.0;
+    float fog_rate = 1.5;
+    float fog_bias = 0.01;
+
+    //vec4 fogHeightPlane = pc_fog.heightPlane;
+    //float heightRate = pc_fog.color_and_heightRate.w;
+
+    float distanceToCamera = length(vPosition.xyz);
+    float z_depth = (distanceToCamera - fog_bias);
+    float expFog = 1.0 / (exp((max(0.0, (z_depth - fog_start)) * fog_rate)));
+    //float height = (dot(fogHeightPlane.xyz, vPosition.xyz) + fogHeightPlane.w);
+    //float heightFog = clamp((height * heightRate), 0, 1);
+    float heightFog = 1.0;
+    expFog = (expFog + heightFog);
+    float endFadeFog = clamp(((fog_end - distanceToCamera) / (0.699999988 * fog_end)), 0.0, 1.0);
+
+    finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, vec3(min(expFog, endFadeFog)));
+    // --- Fog end ---
+
 
     finalColor.a = 1.0;
     gl_FragColor = finalColor;
