@@ -206,6 +206,8 @@ class WorldUnit extends WorldObject {
     }
 
     update (deltaTime, cameraPos) {
+        var objectModelIsLoaded = this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File;
+        var objectModelHasBones = objectModelIsLoaded && this.objectModel.bones;
         /* 1. Calculate current position */
 
         /* 2. Update position for all models */
@@ -215,7 +217,7 @@ class WorldUnit extends WorldObject {
         }
 
         if (this.mountModel && this.mountModel.m2Geom != null && this.mountModel.m2Geom.m2File != null &&
-            this.objectModel && this.objectModel.m2Geom != null && this.objectModel.m2Geom.m2File != null
+            objectModelIsLoaded
         ) {
 
             /* Update placement matrix */
@@ -238,10 +240,21 @@ class WorldUnit extends WorldObject {
         } else {
             this.objectModel.createPlacementMatrix(this.pos, this.f, properScale);
         }
+
+        /* Configure hands */
+        if (objectModelIsLoaded) {
+            if (this.items[0] && this.items[0].m2Geom) {
+                this.objectModel.setRightHandClosed(true)
+            }
+            if (this.items[1] && this.items[1].m2Geom) {
+                this.objectModel.setLeftHandClosed(true)
+            }
+        }
+
         /* Update bone matrices */
         this.objectModel.objectUpdate(deltaTime, cameraPos);
 
-        if (this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File && this.objectModel.bones &&
+        if (objectModelIsLoaded && objectModelHasBones &&
             this.helmet && this.helmet.m2Geom != null && this.helmet.m2Geom.m2File != null) {
             /* Update helm model */
             this.helmet.createPlacementMatrixFromParent(this.objectModel, 11, properScale);
@@ -251,7 +264,7 @@ class WorldUnit extends WorldObject {
 
 
         //3. Update placement matrices for items
-        if (this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File && this.objectModel.bones) {
+        if ( objectModelIsLoaded && objectModelHasBones) {
             for (var i = 0; i < this.items.length; i++) {
                 if (this.items[i] && this.items[i].m2Geom) {
                     this.items[i].createPlacementMatrixFromParent(this.objectModel, virtualItemMap[i], properScale);

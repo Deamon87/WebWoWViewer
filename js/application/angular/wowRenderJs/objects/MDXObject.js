@@ -11,6 +11,8 @@ class MDXObject {
         this.isAnimated = false;
         this.subMeshColors = null;
         this.hasBillboarded = false;
+        this.rightHandClosed = false;
+        this.leftHandClosed = false;
     }
 
     getFileNameIdent(){
@@ -21,6 +23,12 @@ class MDXObject {
     }
     getIsInstancable() {
         return true;
+    }
+    setLeftHandClosed(value) {
+        this.leftHandClosed = value;
+    }
+    setRightHandClosed(value) {
+        this.rightHandClosed = value;
     }
 
     load (modelName, skinNum, meshIds,replaceTextures){
@@ -53,6 +61,7 @@ class MDXObject {
                 self.hasBillboarded = self.checkIfHasBillboarded();
 
                 self.makeTextureArray(meshIds, replaceTextures)
+                self.calculateBoneTree();
             }
             return true;
         });
@@ -558,6 +567,22 @@ class MDXObject {
     *
     * */
 
+    calculateBoneTree() {
+        var m2File = this.m2Geom.m2File;
+
+        var childBonesLookup = new Array(m2File.bones.length);
+        for (var i = 0; i < m2File.bones.length; i++) {
+            var childBones = [];
+            for (var j = 0; j < m2File.bones.length; j++) {
+                if (m2File.bones[j].parent_bone == i) {
+                    childBones.push(j)
+                }
+            }
+            childBonesLookup[i] = childBones;
+        }
+
+        this.childBonesLookup = childBonesLookup;
+    }
     interpolateValues (currentTime, interpolType, time1, time2, value1, value2, valueType){
         //Support and use only linear interpolation for now
         if (interpolType == 0) {
@@ -898,6 +923,7 @@ class MDXObject {
         mat4.invert(invertTransformMat, tranformMat);
         bone.tranformMat = tranformMat;
         bone.inverTransforMat = invertTransformMat;
+        bone.isCalculated = true;
     }
     combineBoneMatrixes () {
         var combinedMatrix = new Float32Array(this.bones.length * 16);
@@ -907,21 +933,79 @@ class MDXObject {
 
         return combinedMatrix;
     }
+    calcChildBones(bone, animation, time, cameraPos, invPlacementMat) {
+        var childBones = this.childBonesLookup[bone];
+        for (var i = 0; i < childBones.length; i++) {
+            var boneId = childBones[i];
+            this.bones[boneId].isCalculated = false;
+            this.calcBoneMatrix(boneId, this.bones[boneId], animation, time, cameraPos, invPlacementMat);
+            this.calcChildBones(boneId, animation, time, cameraPos, invPlacementMat);
+        }
+    }
     calcBones (animation, time, cameraPos, invPlacementMat) {
         if (!this.m2Geom) return null;
 
         var m2File = this.m2Geom.m2File;
+
         if (!this.bones) {
+            var mat4Ident = mat4.create();
+
             this.bones = new Array(m2File.nBones);
             for (var i = 0; i < m2File.nBones; i++) {
                 if (!this.bones[i]) this.bones[i] = {};
-                this.bones[i].isCalculated = false;
+                this.bones[i].tranformMat = mat4Ident;
             }
         }
 
+        for (var i = 0; i < m2File.nBones; i++) {
+            this.bones[i].isCalculated = false;
+        }
+
         if (!this.boneMatrix || this.isAnimated) {
+            //Animate everything with standard animation
             for (var i = 0; i < m2File.nBones; i++) {
                 this.calcBoneMatrix(i, this.bones[i], animation, time, cameraPos, invPlacementMat);
+            }
+
+            /* Animate mouth */
+            /*
+            if (m2File.keyBoneLookup[6] > -1) { // BONE_HEAD = 6
+                var boneId = m2File.keyBoneLookup[6];
+                this.calcBoneMatrix(boneId, this.bones[boneId], animation, time, cameraPos, invPlacementMat);
+            }
+            if (m2File.keyBoneLookup[7] > -1) { // BONE_JAW = 7
+                var boneId = m2File.keyBoneLookup[7];
+                this.calcBoneMatrix(boneId, this.bones[boneId], animation, time, cameraPos, invPlacementMat);
+            }
+            */
+
+            var closedHandAnimation = -1;
+            if (m2File.animationLookup.length > 15 && m2File.animationLookup[15] > 0) { //ANIMATION_HANDSCLOSED = 15
+                closedHandAnimation = m2File.animationLookup[15];
+            }
+
+            if (closedHandAnimation >= 0){
+                if (this.leftHandClosed) {
+                    for (var j = 0; j < 5; j++) {
+                        if (m2File.keyBoneLookup[13 + j] > -1) { // BONE_LFINGER1 = 13
+                            var boneId = m2File.keyBoneLookup[13 + j];
+                            this.bones[boneId].isCalculated = false;
+                            this.calcBoneMatrix(boneId, this.bones[boneId], closedHandAnimation, 1, cameraPos, invPlacementMat);
+                            this.calcChildBones(boneId, closedHandAnimation, 1, cameraPos, invPlacementMat)
+                        }
+                    }
+                }
+                if (this.rightHandClosed) {
+                    for (var j = 0; j < 5; j++) {
+                        if (m2File.keyBoneLookup[8 + j] > -1) { // BONE_RFINGER1 = 8
+                            var boneId = m2File.keyBoneLookup[8 + j];
+                            this.bones[boneId].isCalculated = false;
+                            this.calcBoneMatrix(boneId, this.bones[boneId], closedHandAnimation, 1, cameraPos, invPlacementMat);
+                            this.calcChildBones(boneId, closedHandAnimation, 1, cameraPos, invPlacementMat)
+                        }
+                    }
+                }
+
             }
         }
 

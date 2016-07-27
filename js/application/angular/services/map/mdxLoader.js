@@ -34,8 +34,8 @@ const mdx_ver264 = {
         {name: "ofsTexReplace",         type: "int32"},
         {name: "nRenderFlags",          type: "int32"},
         {name: "ofsRenderFlags",        type: "int32"},
-        {name: "nGroupBoneIDs",         type: "int32"},
-        {name: "ofsGroupBoneIDs",       type: "int32"},
+        {name: "nBoneLookupTable",      type: "int32"},
+        {name: "ofsBoneLookupTable",    type: "int32"},
         {name: "nTexLookup",            type: "int32"},
         {name: "ofsTexLookup",          type: "int32"},
         {name: "nTexUnits",             type: "int32"},
@@ -337,9 +337,15 @@ const mdx_ver264 = {
             type: "int16"
         },
         {
-            name: "boneLookup",
-            offset: "ofsGroupBoneIDs",
-            count: "nGroupBoneIDs",
+            name: "keyBoneLookup",
+            offset: "ofsKeyBoneLookup",
+            count: "nKeyBoneLookup",
+            type: "int16"
+        },
+        {
+            name: "boneLookupTable",
+            offset: "ofsBoneLookupTable",
+            count: "nBoneLookupTable",
             type: "int16"
         }
 
