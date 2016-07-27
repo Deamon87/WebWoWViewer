@@ -1,10 +1,10 @@
-import adtM2ObjectFactory from './../objects/adtM2Object.js';
-
 class ADTObject {
     constructor(sceneApi, wdtFile) {
         this.sceneApi = sceneApi;
         this.m2Array = [];
     }
+
+
 
     loadM2s() {
         var self = this;
@@ -18,13 +18,6 @@ class ADTObject {
             //this.loadM2(i, doodad);
             this.sceneApi.objects.loadAdtM2Obj(doodad);
         }
-    }
-
-    loadM2(index, doodad) {
-        var self = this;
-
-        self.m2Array[index] = new adtM2ObjectFactory(self.sceneApi);
-        self.m2Array[index].load(doodad, false)
     }
 
     loadWmos() {

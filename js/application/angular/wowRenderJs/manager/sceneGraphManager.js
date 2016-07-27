@@ -109,7 +109,6 @@ class GraphManager {
     * */
     checkCulling(frustumMat, lookAtMat4) {
         if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
-            //TODO: set not render for adt too
             for (var j = 0; j < this.m2Objects.length; j++) {
                 this.m2Objects[j].setIsRendered(false);
             }

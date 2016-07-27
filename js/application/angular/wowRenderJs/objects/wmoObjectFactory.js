@@ -258,76 +258,49 @@ class WmoObject {
             wmoGroupsInside++;
             lastWmoGroupInside = i;
 
-            //3. Check if inside portals
-            var isInsidePortals = true;
-            var moprIndex = this.wmoGroupArray[i].wmoGroupFile.mogp.moprIndex;
-            var numItems = this.wmoGroupArray[i].wmoGroupFile.mogp.numItems;
+            //3. Query bsp tree for leafs around the position of object(camera)
+            var cameraBBMin = vec3.fromValues(cameraLocal[0]-0.2, cameraLocal[1]-0.2, groupInfo.bb1.z);
+            var cameraBBMax = vec3.fromValues(cameraLocal[0]+0.2, cameraLocal[1]+0.2, groupInfo.bb2.z);
 
-            /*
-            for (var j = moprIndex; j < moprIndex+numItems; j++) {
-                var relation = this.wmoObj.portalRelations[j];
-                var portalInfo = this.wmoObj.portalInfos[relation.portal_index];
+            var nodeId = 0;
+            var nodes = this.wmoGroupArray[i].wmoGroupFile.nodes;
+            var bspLeafList = [];
+            this.queryBspTree([cameraBBMin, cameraBBMax], nodeId, nodes, bspLeafList);
+            var topBottom = this.getTopAndBottomTriangleFromBsp(cameraLocal, this.wmoGroupArray[i].wmoGroupFile, bspLeafList);
 
-                var plane = portalInfo.plane;
-                var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w),  cameraLocal));
-                var isInsidePortalThis = (relation.side < 0) ? (dotResult < 0) : (dotResult > 0);
-                isInsidePortals = isInsidePortals && isInsidePortalThis;
-            }
-            */
-
-            if (isInsidePortals) {
-                var cameraBBMin = vec3.fromValues(cameraLocal[0]-0.2, cameraLocal[1]-0.2, groupInfo.bb1.z);
-                var cameraBBMax = vec3.fromValues(cameraLocal[0]+0.2, cameraLocal[1]+0.2, groupInfo.bb2.z);
+            //4. Check min\max Z value. If object(camera) pos is not in range - the object do not belong this wmo group
+            if (topBottom.bottomZ > 99999 && topBottom.topZ < -99999) continue;
+            if (topBottom.bottomZ < 99999 && cameraLocal[2] < topBottom.bottomZ) continue;
+            if (topBottom.topZ > -99999 && cameraLocal[2] > topBottom.topZ) continue;
 
 
-                var nodeId = 0;
-                var nodes = this.wmoGroupArray[i].wmoGroupFile.nodes;
-                var bspLeafList = [];
-                this.queryBspTree([cameraBBMin, cameraBBMax], nodeId, nodes, bspLeafList);
-                var topBottom = this.getTopAndBottomTriangleFromBsp(cameraLocal, this.wmoGroupArray[i].wmoGroupFile, bspLeafList);
-
-                //if (topBottom.bottomZ == null) continue;
-                if (topBottom.bottomZ > 99999 && topBottom.topZ < -99999) continue;
-
-                if (topBottom.bottomZ < 99999 && cameraLocal[2] < topBottom.bottomZ) continue;
-                if (topBottom.topZ > -99999 && cameraLocal[2] > topBottom.topZ) continue;
-
-                while (nodeId >=0 && ((nodes[nodeId].planeType&0x4) == 0)){
-                    var prevNodeId = nodeId;
-                    if ((nodes[nodeId].planeType == 0)) {
-                        if (cameraLocal[0] < nodes[nodeId].fDist) {
-                            nodeId = nodes[nodeId].children1;
-                        } else {
-                            nodeId = nodes[nodeId].children2;
-                        }
-                    } else if ((nodes[nodeId].planeType == 1)) {
-                        if (cameraLocal[1] < nodes[nodeId].fDist) {
-                            nodeId = nodes[nodeId].children1;
-                        } else {
-                            nodeId = nodes[nodeId].children2;
-                        }
-                    } else if ((nodes[nodeId].planeType == 2)) {
-                        if (cameraLocal[2] < nodes[nodeId].fDist) {
-                            nodeId = nodes[nodeId].children1;
-                        } else {
-                            nodeId = nodes[nodeId].children2;
-                        }
+            //5. The object(camera) is inside WMO group. Get the actual nodeId
+            while (nodeId >=0 && ((nodes[nodeId].planeType&0x4) == 0)){
+                var prevNodeId = nodeId;
+                if ((nodes[nodeId].planeType == 0)) {
+                    if (cameraLocal[0] < nodes[nodeId].fDist) {
+                        nodeId = nodes[nodeId].children1;
+                    } else {
+                        nodeId = nodes[nodeId].children2;
+                    }
+                } else if ((nodes[nodeId].planeType == 1)) {
+                    if (cameraLocal[1] < nodes[nodeId].fDist) {
+                        nodeId = nodes[nodeId].children1;
+                    } else {
+                        nodeId = nodes[nodeId].children2;
+                    }
+                } else if ((nodes[nodeId].planeType == 2)) {
+                    if (cameraLocal[2] < nodes[nodeId].fDist) {
+                        nodeId = nodes[nodeId].children1;
+                    } else {
+                        nodeId = nodes[nodeId].children2;
                     }
                 }
-
-
                 candidateGroups.push({'topBottom' : topBottom, groupId : i, bspList : bspLeafList, nodeId: nodeId});
-
-                //if (nodeId != -1 && (nodes[nodeId].planeType&0x4) > 0 && (nodes[nodeId].numFaces > 0)) {
-                /*if (true) {
-                    this.currentNodeId = bspLeafList;
-                    this.currentGroupId = i;
-                    //return {nodeId : nodeId, node: nodes[nodeId]};
-                    return { groupId : i, nodeId : nodeId};
-                } */
             }
         }
 
+        //6. Iterate through result group list and find the one with maximal bottom z coordinate for object position
         var minDist = 999999;
         var resObj = null;
         for (var i = 0; i < candidateGroups.length; i++) {
@@ -342,13 +315,11 @@ class WmoObject {
             } else if (minDist > 9999) {
                 resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId}
             }
-
         }
         if (resObj != null){
             return resObj;
         }
 
-        //if (wmoGroupsInside == 1 && interiorGroups > 1) return lastWmoGroupInside;
         this.currentNodeId = -1;
         this.currentGroupId = -1;
 
