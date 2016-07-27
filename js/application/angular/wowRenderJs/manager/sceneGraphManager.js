@@ -439,6 +439,10 @@ class GraphManager {
                 }
             }
             this.drawM2s();
+
+            this.sceneApi.shaders.activateFrustumBoxShader();
+            //Draw Wmo portal frustums
+            this.sceneApi.drawCamera()
         } else {
             this.drawExterior();
             this.drawM2s();
