@@ -151,7 +151,7 @@ export default class AnimationManager {
         }
 
         if (globalSequence >=0) {
-            maxTime = this.m2Geom.m2File.globalSequences[globalSequence];
+            maxTime = this.m2File.globalSequences[globalSequence];
         }
 
         var times_len = times.length;
@@ -335,8 +335,8 @@ export default class AnimationManager {
                         if (m2File.keyBoneLookup[13 + j] > -1) { // BONE_LFINGER1 = 13
                             var boneId = m2File.keyBoneLookup[13 + j];
                             this.bones[boneId].isCalculated = false;
-                            this.calcBoneMatrix(boneId, this.bones[boneId], closedHandAnimation, 1, cameraPosInLocal);
-                            this.calcChildBones(boneId, closedHandAnimation, 1, cameraPosInLocal)
+                            this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal);
+                            this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal)
                         }
                     }
                 }
@@ -345,8 +345,8 @@ export default class AnimationManager {
                         if (m2File.keyBoneLookup[8 + j] > -1) { // BONE_RFINGER1 = 8
                             var boneId = m2File.keyBoneLookup[8 + j];
                             this.bones[boneId].isCalculated = false;
-                            this.calcBoneMatrix(boneId, this.bones[boneId], closedHandAnimation, 1, cameraPosInLocal);
-                            this.calcChildBones(boneId, closedHandAnimation, 1, cameraPosInLocal)
+                            this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal);
+                            this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal)
                         }
                     }
                 }
@@ -370,16 +370,16 @@ export default class AnimationManager {
         tranformMat = mat4.identity(tranformMat);
 
         if (parentBone>=0) {
-            this.calcBoneMatrix(parentBone, parentBone, animationIndex, time, cameraPosInLocal);
+            this.calcBoneMatrix(boneMatrices, parentBone, animationIndex, time, cameraPosInLocal);
             mat4.multiply(tranformMat, tranformMat, boneMatrices[parentBone]);
         }
-        var pivotPoint = vec4.create(
+        var pivotPoint = vec4.fromValues(
             boneDefinition.pivot.x,
             boneDefinition.pivot.y,
             boneDefinition.pivot.z,
             0
         );
-        var negatePivotPoint = vec4.create(
+        var negatePivotPoint = vec4.fromValues(
             -boneDefinition.pivot.x,
             -boneDefinition.pivot.y,
             -boneDefinition.pivot.z,
@@ -448,13 +448,13 @@ export default class AnimationManager {
 
         this.bonesIsCalculated[boneIndex] = true;
     }
-    calcChildBones(bone, animation, time, cameraPosInLocal) {
+    calcChildBones(boneMatrices, bone, animation, time, cameraPosInLocal) {
         var childBones = this.childBonesLookup[bone];
         for (var i = 0; i < childBones.length; i++) {
             var boneId = childBones[i];
             this.bones[boneId].isCalculated = false;
-            this.calcBoneMatrix(boneId, this.bones[boneId], animation, time, cameraInlocalPos);
-            this.calcChildBones(boneId, animation, time, cameraPosInLocal);
+            this.calcBoneMatrix(boneMatrices, boneId, animation, time, cameraInlocalPos);
+            this.calcChildBones(boneMatrices, boneId, animation, time, cameraPosInLocal);
         }
     }
 
