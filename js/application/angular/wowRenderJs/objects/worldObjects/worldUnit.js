@@ -229,12 +229,7 @@ class WorldUnit extends WorldObject {
             if (this.mountModel.bones) {
                 /* Update main model */
                 this.objectModel.createPlacementMatrixFromParent(this.mountModel, 0, properScale);
-
-                var m2File = this.objectModel.m2Geom.m2File;
-                var animationId = m2File.animationLookup[91]; //Mounted animation
-                if (animationId > -1) {
-                    this.objectModel.currentAnimation = animationId;
-                }
+                this.objectModel.setAnimationId(91);
             }
             //this.objectModel.animation
         } else {

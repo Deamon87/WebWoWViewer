@@ -30,6 +30,7 @@ import {mat4, vec4, vec3, glMatrix} from 'gl-matrix'
 
 /* DBC stuff */
 import $q from 'q';
+import animationDataDBC             from './../services/dbc/animationDataDBC.js'
 import characterFacialHairStylesDBC from './../services/dbc/characterFacialHairStylesDBC.js'
 import charHairGeosetsDBC           from './../services/dbc/charHairGeosetsDBC.js'
 import charSectionsDBC              from './../services/dbc/charSectionsDBC.js'
@@ -99,6 +100,9 @@ class Scene {
         self.initCamera(canvas, document);
 
         /* Unit and Player data */
+        animationDataDBC().then(function success(a) {
+            self.animationDataDBC = a;
+        });
         characterFacialHairStylesDBC().then(function success(a) {
             self.characterFacialHairStylesDBC = a;
         });
