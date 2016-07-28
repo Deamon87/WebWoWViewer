@@ -207,7 +207,7 @@ class WorldUnit extends WorldObject {
 
     update (deltaTime, cameraPos) {
         var objectModelIsLoaded = this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File;
-        var objectModelHasBones = objectModelIsLoaded && this.objectModel.bones;
+        var objectModelHasBones = objectModelIsLoaded && this.objectModel.bonesMatrices;
         /* 1. Calculate current position */
 
         /* 2. Update position for all models */
@@ -226,7 +226,7 @@ class WorldUnit extends WorldObject {
             /* Update bone matrices */
             this.mountModel.objectUpdate(deltaTime, cameraPos);
 
-            if (this.mountModel.bones) {
+            if (this.mountModel.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      bonesMatrices) {
                 /* Update main model */
                 this.objectModel.createPlacementMatrixFromParent(this.mountModel, 0, properScale);
                 this.objectModel.setAnimationId(91);

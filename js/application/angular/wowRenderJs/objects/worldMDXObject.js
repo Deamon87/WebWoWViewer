@@ -107,7 +107,7 @@ class WorldMDXObject extends MDXObject {
         var attachInfo = parentM2File.attachments[attIndex];
 
         var boneId = attachInfo.bone;
-        var parentBoneTransMat = parentM2.bones[boneId].tranformMat;
+        var parentBoneTransMat = parentM2.bonesMatrices[boneId];
 
         var placementMatrix = mat4.create();
         mat4.identity(placementMatrix);

@@ -17,7 +17,8 @@ export default class AnimationManager {
 
         this.firstCalc = true;
 
-        this.initBonesIsCalc()
+        this.initBonesIsCalc();
+        this.calculateBoneTree();
         this.setAnimationId(0);
     }
 
@@ -305,8 +306,7 @@ export default class AnimationManager {
         for (var i = 0; i < m2File.nBones; i++) {
             this.bonesIsCalculated[i] = false;
         }
-
-        if (this.firstCalc || this.isAnimated) {
+        if (true /*this.firstCalc || this.isAnimated */) {
             //Animate everything with standard animation
             for (var i = 0; i < m2File.nBones; i++) {
                 this.calcBoneMatrix(boneMatrices, i, animation, time, cameraPosInLocal);
@@ -334,7 +334,7 @@ export default class AnimationManager {
                     for (var j = 0; j < 5; j++) {
                         if (m2File.keyBoneLookup[13 + j] > -1) { // BONE_LFINGER1 = 13
                             var boneId = m2File.keyBoneLookup[13 + j];
-                            this.bones[boneId].isCalculated = false;
+                            this.bonesIsCalculated[boneId] = false;
                             this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal);
                             this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal)
                         }
@@ -344,7 +344,7 @@ export default class AnimationManager {
                     for (var j = 0; j < 5; j++) {
                         if (m2File.keyBoneLookup[8 + j] > -1) { // BONE_RFINGER1 = 8
                             var boneId = m2File.keyBoneLookup[8 + j];
-                            this.bones[boneId].isCalculated = false;
+                            this.bonesIsCalculated[boneId] = false;
                             this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal);
                             this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal)
                         }
@@ -369,6 +369,10 @@ export default class AnimationManager {
         var tranformMat = boneMatrices[boneIndex];
         tranformMat = mat4.identity(tranformMat);
 
+        if (boneDefinition.flags & 0x278 == 0) {
+            this.bonesIsCalculated[boneIndex] = true;
+            return
+        }
         if (parentBone>=0) {
             this.calcBoneMatrix(boneMatrices, parentBone, animationIndex, time, cameraPosInLocal);
             mat4.multiply(tranformMat, tranformMat, boneMatrices[parentBone]);
@@ -452,7 +456,7 @@ export default class AnimationManager {
         var childBones = this.childBonesLookup[bone];
         for (var i = 0; i < childBones.length; i++) {
             var boneId = childBones[i];
-            this.bones[boneId].isCalculated = false;
+            this.bonesIsCalculated[boneId] = false;
             this.calcBoneMatrix(boneMatrices, boneId, animation, time, cameraInlocalPos);
             this.calcChildBones(boneMatrices, boneId, animation, time, cameraPosInLocal);
         }

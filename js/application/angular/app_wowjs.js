@@ -176,10 +176,10 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 modelName: 'world\\generic\\gnome\\passive doodads\\subway\\subwaycar.m2'
             },
             {
-                name: 'Volumetric Light',
+                name: 'elwyn forest tree',
                 source: 'http',
                 sceneType: 'm2',
-                modelName: 'WORLD\\NODXT\\GENERIC\\PASSIVEDOODADS\\VOLUMETRICLIGHTS\\LD_LIGHTSHAFT01.m2'
+                modelName: 'world\\azeroth\\elwynn\\passivedoodads\\trees\\elwynntreecanopy03.m2'
             },
             {
                 name: 'Ironforge garage machine',
