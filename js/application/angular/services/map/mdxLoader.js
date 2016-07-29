@@ -229,7 +229,7 @@ const mdx_ver264 = {
                 {
                     name: "rotation",
                     type: "ablock",
-                    valType: "int16Array",
+                    valType: "uint16Array",
                     len: 4
                 },
                 {

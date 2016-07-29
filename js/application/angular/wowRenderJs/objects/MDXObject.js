@@ -26,10 +26,10 @@ class MDXObject {
         return true;
     }
     setLeftHandClosed(value) {
-        this.leftHandClosed = value;
+        this.animationManager.setLeftHandClosed(value);
     }
     setRightHandClosed(value) {
-        this.rightHandClosed = value;
+        this.animationManager.setRightHandClosed(value);
     }
 
     load (modelName, skinNum, meshIds,replaceTextures){
@@ -584,7 +584,7 @@ class MDXObject {
         if (!this.m2Geom || !this.skinGeom) return;
 
         this.m2Geom.setupAttributes(this.skinGeom);
-        var combinedMatrix = this.boneMatrix;
+        var combinedMatrix = this.combinedBoneMatrix;
         this.m2Geom.setupUniforms(null, combinedMatrix, null, drawTransparent);
         this.m2Geom.setupPlacementAttribute(placementVBO);
         this.drawMeshes(drawTransparent, instanceCount);

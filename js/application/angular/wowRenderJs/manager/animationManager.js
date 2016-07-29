@@ -35,18 +35,28 @@ export default class AnimationManager {
 
             this.nextSubAnimationIndex = -1;
             this.nextSubAnimationTime = 0;
+            this.nextSubAnimationActive = false;
 
             this.firstCalc = true; //TODO: reset this on going to next subAnimation too
         }
     }
+
+    setLeftHandClosed(value) {
+        this.leftHandClosed = value;
+    }
+    setRightHandClosed(value) {
+        this.rightHandClosed = value;
+    }
+
 
     update(deltaTime, cameraPosInLocal, bonesMatrices, textAnimMatrices, subMeshColors, transparencies) {
         var mainAnimationRecord = this.m2File.animations[this.mainAnimationIndex];
         var currentAnimationRecord = this.m2File.animations[this.currentAnimationIndex];
 
         this.currentAnimationTime += deltaTime;
-        /* Pick next animation if there is one and no nex animation was picked before */
+        /* Pick next animation if there is one and no next animation was picked before */
         if (this.nextSubAnimationIndex < 0 && mainAnimationRecord.next_animation > -1) {
+            if (currentAnimationPlayedTimes)
             var probability = Math.floor(Math.random() * (0x7fff + 1));
             var calcProb = 0;
 
@@ -64,13 +74,37 @@ export default class AnimationManager {
             this.nextSubAnimationIndex = currentSubAnimIndex;
             this.nextSubAnimationTime = 0;
         }
+        var currAnimLeft = currentAnimationRecord.length - this.currentAnimationTime;
 
-        if (this.nextSubAnimationIndex > 0) {
-            //TODO: check blend time
-
+        /*if (this.nextSubAnimationActive) {
+            this.nextSubAnimationTime += deltaTime;
         }
+        */
+
+        var subAnimBlendTime = 0;
+        var blendAlpha = 1;
+        if (this.nextSubAnimationIndex > -1) {
+            subAnimRecord = this.m2File.animations[this.nextSubAnimationIndex];
+            subAnimBlendTime = subAnimRecord.blend_time;
+        }
+
+        if ((subAnimBlendTime > 0) && (currAnimLeft < subAnimBlendTime)) {
+            this.nextSubAnimationActive = true;
+            this.nextSubAnimationTime = subAnimBlendTime - currAnimLeft;
+            blendAlpha = currAnimLeft / subAnimBlendTime;
+        }
+
+
         if (this.currentAnimationTime > currentAnimationRecord.length) {
-            this.currentAnimationTime = this.currentAnimationTime % currentAnimationRecord.length;
+            if (this.nextSubAnimationIndex > -1) {
+                this.currentAnimationIndex = this.nextSubAnimationIndex;
+                this.currentAnimationTime = this.nextSubAnimationTime;
+
+                this.nextSubAnimationIndex = -1;
+                this.nextSubAnimationActive = false;
+            } else {
+                this.currentAnimationTime = this.currentAnimationTime % currentAnimationRecord.length;
+            }
         }
 
 
@@ -115,19 +149,18 @@ export default class AnimationManager {
         }
     }
     getTimedValue (value_type, currTime, maxTime, animation, animationBlock) {
-        function convertInt16ToFloat(value){
-            return (((value < 0) ? value + 32768 : value - 32767)/ 32767.0);
-            //return (value / 32768) - 1.0
+        function convertUint16ToFloat(value){
+            return (value * 0.000030518044) - 1.0;
         }
 
         function convertValueTypeToVec4(value, type){
             if (type == 0) {
                 return [value.x, value.y, value.z, 0];
             } else if (type == 1) {
-                return [convertInt16ToFloat(value[0]),
-                    convertInt16ToFloat(value[1]),
-                    convertInt16ToFloat(value[2]),
-                    convertInt16ToFloat(value[3])];
+                return [convertUint16ToFloat(value[0]),
+                    convertUint16ToFloat(value[1]),
+                    convertUint16ToFloat(value[2]),
+                    convertUint16ToFloat(value[3])];
             } else if (type == 2) {
                 return [value/32767,value/32767, value/32767, value/32767];
             } else if (type == 3) {
@@ -306,7 +339,7 @@ export default class AnimationManager {
         for (var i = 0; i < m2File.nBones; i++) {
             this.bonesIsCalculated[i] = false;
         }
-        if (true /*this.firstCalc || this.isAnimated */) {
+        if (this.firstCalc || this.isAnimated) {
             //Animate everything with standard animation
             for (var i = 0; i < m2File.nBones; i++) {
                 this.calcBoneMatrix(boneMatrices, i, animation, time, cameraPosInLocal);
@@ -457,7 +490,7 @@ export default class AnimationManager {
         for (var i = 0; i < childBones.length; i++) {
             var boneId = childBones[i];
             this.bonesIsCalculated[boneId] = false;
-            this.calcBoneMatrix(boneMatrices, boneId, animation, time, cameraInlocalPos);
+            this.calcBoneMatrix(boneMatrices, boneId, animation, time, cameraPosInLocal);
             this.calcChildBones(boneMatrices, boneId, animation, time, cameraPosInLocal);
         }
     }
