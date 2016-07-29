@@ -56,7 +56,7 @@ export default class AnimationManager {
         this.currentAnimationTime += deltaTime;
         /* Pick next animation if there is one and no next animation was picked before */
         if (this.nextSubAnimationIndex < 0 && mainAnimationRecord.next_animation > -1) {
-            if (currentAnimationPlayedTimes)
+            //if (currentAnimationPlayedTimes)
             var probability = Math.floor(Math.random() * (0x7fff + 1));
             var calcProb = 0;
 
@@ -82,20 +82,23 @@ export default class AnimationManager {
         */
 
         var subAnimBlendTime = 0;
-        var blendAlpha = 1;
+        var blendAlpha = 1.0;
         if (this.nextSubAnimationIndex > -1) {
             subAnimRecord = this.m2File.animations[this.nextSubAnimationIndex];
             subAnimBlendTime = subAnimRecord.blend_time;
         }
 
+        var blendAnimationIndex = -1;
         if ((subAnimBlendTime > 0) && (currAnimLeft < subAnimBlendTime)) {
             this.nextSubAnimationActive = true;
             this.nextSubAnimationTime = subAnimBlendTime - currAnimLeft;
             blendAlpha = currAnimLeft / subAnimBlendTime;
+            blendAnimationIndex = this.nextSubAnimationIndex
         }
 
 
-        if (this.currentAnimationTime > currentAnimationRecord.length) {
+
+        if (this.currentAnimationTime >= currentAnimationRecord.length) {
             if (this.nextSubAnimationIndex > -1) {
                 this.currentAnimationIndex = this.nextSubAnimationIndex;
                 this.currentAnimationTime = this.nextSubAnimationTime;
@@ -109,10 +112,10 @@ export default class AnimationManager {
 
 
         /* Update animated values */
-        this.calcAnimMatrixes(textAnimMatrices, this.currentAnimationIndex, this.currentAnimationTime);
-        this.calcBones(bonesMatrices, this.currentAnimationIndex, this.currentAnimationTime, cameraPosInLocal);
-        this.calcSubMeshColors(subMeshColors, this.currentAnimationIndex, this.currentAnimationTime);
-        this.calcTransparencies(transparencies, this.currentAnimationIndex, this.currentAnimationTime);
+        this.calcAnimMatrixes(textAnimMatrices, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha);
+        this.calcBones(bonesMatrices, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha, cameraPosInLocal);
+        this.calcSubMeshColors(subMeshColors, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha);
+        this.calcTransparencies(transparencies, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha);
     }
 
     /* Init function */
@@ -137,6 +140,7 @@ export default class AnimationManager {
             if (valueType == 1 || valueType == 3) {
                 var result = vec4.create();
                 quat.slerp(result, value1, value2, (currentTime - time1)/(time2 - time1));
+                vec4.normalize(result, result); //quaternion has to be normalized after lerp operation
             } else {
                 var diff = vec4.create();
                 vec4.subtract(diff, value2, value1);
@@ -212,10 +216,6 @@ export default class AnimationManager {
                         result = this.interpolateValues(animTime,
                             interpolType, time1, time2, value1, value2, value_type);
 
-                        if (value_type == 1 || value_type == 3) {
-                            vec4.normalize(result, result); //quaternion has to be normalized after lerp operation
-                        }
-
                         break;
                     }
                 }
@@ -230,10 +230,12 @@ export default class AnimationManager {
     /* Calculate animation transform */
     calcAnimationTransform(tranformMat, isBone,
                             pivotPoint, negatePivotPoint,
-                            animationIndex, animationRecord, animationData,
-                            time,
+                            animationData,
+                            animationIndex, animationRecord, time,
+                            blendAnimationIndex, blendAnimationRecord, blendAnimationTime, blendAlpha,
                             billboardMatrix)
     {
+
         transVec = mat4.translate(tranformMat, tranformMat, pivotPoint);
 
         if (animationData.translation.valuesPerAnimation.length > 0) {
@@ -244,14 +246,39 @@ export default class AnimationManager {
                 animationIndex,
                 animationData.translation);
 
+            var resultTrans1 = [0,0,0,0];
             if (transVec) {
-                mat4.translate(tranformMat, tranformMat, [
+                resultTrans1 = [
                     transVec[0],
                     transVec[1],
                     transVec[2],
                     0
-                ]);
+                ]
             }
+
+            if (blendAnimationRecord != null) {
+                transVec = this.getTimedValue(
+                    0,
+                    blendAnimationTime,
+                    blendAnimationRecord.length,
+                    blendAnimationIndex,
+                    animationData.translation);
+
+                var resultTrans2 = [0,0,0,0];
+                if (transVec) {
+                    resultTrans2 = [
+                        transVec[0],
+                        transVec[1],
+                        transVec[2],
+                        0
+                    ]
+                }
+                resultTrans1 = this.interpolateValues(1.0 - blendAlpha, 1, 0, 1, resultTrans1, resultTrans2, 0)
+            }
+
+            mat4.translate(tranformMat, tranformMat, resultTrans1);
+
+
             this.isAnimated = true;
         }
         if (billboardMatrix != null) {
@@ -259,17 +286,29 @@ export default class AnimationManager {
         } else if (animationData.rotation.valuesPerAnimation.length > 0) {
             var rotationType = (isBone)? 1: 3;
 
-            var quaternionVec4 = this.getTimedValue(
+            var quaternionResult1 = this.getTimedValue(
                 rotationType,
                 time,
                 animationRecord.length,
                 animationIndex,
                 animationData.rotation);
 
-            if (quaternionVec4) {
+            if (quaternionResult1) {
                 var orientMatrix = mat4.create();
 
-                mat4.fromQuat(orientMatrix, quaternionVec4 );
+                if (blendAnimationRecord != null) {
+                    var quaternionResult2 = this.getTimedValue(
+                        rotationType,
+                        blendAnimationTime,
+                        blendAnimationRecord.length,
+                        blendAnimationIndex,
+                        animationData.rotation);
+                    if (quaternionResult2) {
+                        quaternionResult1 = this.interpolateValues(1.0 - blendAlpha, 1, 0, 1, quaternionResult1, quaternionResult2, rotationType)
+                    }
+                }
+
+                mat4.fromQuat(orientMatrix, quaternionResult1 );
                 mat4.multiply(tranformMat, tranformMat, orientMatrix);
             }
             this.isAnimated = true;
@@ -277,18 +316,30 @@ export default class AnimationManager {
 
         if (animationData.scale.valuesPerAnimation.length > 0) {
 
-            var scaleVec3 = this.getTimedValue(
+            var scaleResult1 = this.getTimedValue(
                 0,
                 time,
                 animationRecord.length,
                 animationIndex,
                 animationData.scale);
 
-            if (scaleVec3) {
+            if (scaleResult1) {
+                if (blendAnimationRecord != null) {
+                    var scaleResult2 = this.getTimedValue(
+                        0,
+                        blendAnimationTime,
+                        blendAnimationRecord.length,
+                        blendAnimationIndex,
+                        animationData.scale);
+                    if (scaleResult2) {
+                        scaleResult1 = this.interpolateValues(1.0 - blendAlpha, 1, 0, 1, scaleResult1, scaleResult2, 0)
+                    }
+                }
+
                 mat4.scale(tranformMat, tranformMat, [
-                        scaleVec3[0],
-                        scaleVec3[1],
-                        scaleVec3[2]
+                        scaleResult1[0],
+                        scaleResult1[1],
+                        scaleResult1[2]
                     ]
                 );
             }
@@ -298,7 +349,7 @@ export default class AnimationManager {
     }
 
     /* Texture function */
-    calcAnimMatrixes (textAnimMatrices, animationIndex, time) {
+    calcAnimMatrixes (textAnimMatrices, animationIndex, time, blendAnimationIndex, blendAnimationTime, blendAlpha) {
         var m2File = this.m2File;
 
         var pivotPoint = vec4.create(0.5, 0.5, 0, 0);
@@ -306,11 +357,20 @@ export default class AnimationManager {
         vec4.negate(negatePivotPoint, pivotPoint);
 
         var animationRecord = m2File.animations[animationIndex];
+        var blendAnimationRecord = null;
+        if (blendAnimationIndex > -1) {
+            blendAnimationRecord = this.m2File.animations[blendAnimationIndex];
+        }
         for (var i = 0; i < m2File.texAnims.length; i++) {
             var textAnimData = m2File.texAnims[i];
 
             mat4.identity(textAnimMatrices[i]);
-            this.calcAnimationTransform(textAnimMatrices[i], false, pivotPoint, negatePivotPoint, animationIndex, animationRecord, textAnimData, time, null);
+            this.calcAnimationTransform(textAnimMatrices[i], false,
+                pivotPoint, negatePivotPoint,
+                textAnimData,
+                animationIndex, animationRecord, time,
+                blendAnimationIndex, blendAnimationRecord, blendAnimationTime,
+                blendAlpha, null);
         }
     }
 
@@ -333,7 +393,7 @@ export default class AnimationManager {
     }
 
     /* Bone animation functons */
-    calcBones (boneMatrices, animation, time, cameraPosInLocal) {
+    calcBones (boneMatrices, animation, time, blendAnimationIndex, blendAnimationTime, blendAlpha, cameraPosInLocal) {
         var m2File = this.m2File;
 
         for (var i = 0; i < m2File.nBones; i++) {
@@ -342,7 +402,7 @@ export default class AnimationManager {
         if (this.firstCalc || this.isAnimated) {
             //Animate everything with standard animation
             for (var i = 0; i < m2File.nBones; i++) {
-                this.calcBoneMatrix(boneMatrices, i, animation, time, cameraPosInLocal);
+                this.calcBoneMatrix(boneMatrices, i, animation, time, blendAnimationIndex, blendAnimationTime, blendAlpha, cameraPosInLocal);
             }
 
             /* Animate mouth */
@@ -368,8 +428,8 @@ export default class AnimationManager {
                         if (m2File.keyBoneLookup[13 + j] > -1) { // BONE_LFINGER1 = 13
                             var boneId = m2File.keyBoneLookup[13 + j];
                             this.bonesIsCalculated[boneId] = false;
-                            this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal);
-                            this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal)
+                            this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, -1, 0, 1, cameraPosInLocal);
+                            this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, -1, 0, 1, cameraPosInLocal)
                         }
                     }
                 }
@@ -378,8 +438,8 @@ export default class AnimationManager {
                         if (m2File.keyBoneLookup[8 + j] > -1) { // BONE_RFINGER1 = 8
                             var boneId = m2File.keyBoneLookup[8 + j];
                             this.bonesIsCalculated[boneId] = false;
-                            this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal);
-                            this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal)
+                            this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, -1, 0, 1, cameraPosInLocal);
+                            this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, -1, 0, 1, cameraPosInLocal)
                         }
                     }
                 }
@@ -388,12 +448,17 @@ export default class AnimationManager {
         }
         this.firstCalc = false;
     }
-    calcBoneMatrix (boneMatrices, boneIndex, animationIndex, time, cameraPosInLocal){
+    calcBoneMatrix (boneMatrices, boneIndex, animationIndex, time, blendAnimationIndex, blendAnimationTime, blendAlpha, cameraPosInLocal){
         if (this.bonesIsCalculated[boneIndex]) return;
 
         var m2File = this.m2File;
 
         var animationRecord = m2File.animations[animationIndex];
+        var blendAnimationRecord = null;
+        if (blendAnimationIndex > -1) {
+            blendAnimationRecord = m2File.animations[blendAnimationIndex];
+        }
+
         var boneDefinition = m2File.bones[boneIndex];
 
         var parentBone = boneDefinition.parent_bone;
@@ -481,23 +546,32 @@ export default class AnimationManager {
         }
 
         /* 3. Calculate matrix */
-        this.calcAnimationTransform(tranformMat, true, pivotPoint, negatePivotPoint, animationIndex, animationRecord, boneDefinition, time, billboardMatrix);
+        this.calcAnimationTransform(tranformMat, true,
+            pivotPoint, negatePivotPoint,
+            boneDefinition,
+            animationIndex, animationRecord, time,
+            blendAnimationIndex, blendAnimationRecord, blendAnimationTime, blendAlpha,
+            billboardMatrix);
 
         this.bonesIsCalculated[boneIndex] = true;
     }
-    calcChildBones(boneMatrices, bone, animation, time, cameraPosInLocal) {
-        var childBones = this.childBonesLookup[bone];
+    calcChildBones(boneMatrices, boneIndex, animationIndex, time, blendAnimationIndex, blendAnimationTime, blendAlpha, cameraPosInLocal) {
+        var childBones = this.childBonesLookup[boneIndex];
         for (var i = 0; i < childBones.length; i++) {
-            var boneId = childBones[i];
-            this.bonesIsCalculated[boneId] = false;
-            this.calcBoneMatrix(boneMatrices, boneId, animation, time, cameraPosInLocal);
-            this.calcChildBones(boneMatrices, boneId, animation, time, cameraPosInLocal);
+            var childBoneIndex = childBones[i];
+            this.bonesIsCalculated[childBoneIndex] = false;
+            this.calcBoneMatrix(boneMatrices, childBoneIndex, animationIndex, time, blendAnimationIndex, blendAnimationTime, blendAlpha, cameraPosInLocal);
+            this.calcChildBones(boneMatrices, childBoneIndex, animationIndex, time, blendAnimationIndex, blendAnimationTime, blendAlpha, cameraPosInLocal);
         }
     }
 
-    calcSubMeshColors (subMeshColors, animationIndex, time) {
+    calcSubMeshColors (subMeshColors, animationIndex, time, blendAnimationIndex, blendAnimationTime, blendAlpha) {
         var colors = this.m2File.colors;
         var animationRecord = this.m2File.animations[animationIndex];
+        var blendAnimationRecord = null;
+        if (blendAnimationIndex > -1) {
+            blendAnimationRecord = this.m2File.animations[blendAnimationIndex];
+        }
 
         for (var i = 0; i < colors.length; i++) {
             var colorVec = this.getTimedValue(
@@ -506,6 +580,30 @@ export default class AnimationManager {
                 animationRecord.length,
                 animationIndex,
                 colors[i].color);
+
+            var colorResult1 = [1.0, 1.0, 1.0, 1.0];
+            if (colorVec) {
+                colorResult1 = [colorVec[0], colorVec[1], colorVec[2],1]
+            }
+
+            // Support for blend
+            if (blendAnimationRecord != null) {
+                colorVec = this.getTimedValue(
+                    0,
+                    blendAnimationTime,
+                    blendAnimationRecord.length,
+                    blendAnimationIndex,
+                    colors[i].color);
+                var colorResult2 = [1.0, 1.0, 1.0, 1.0];
+                if (colorVec) {
+                    colorResult2 = [colorVec[0], colorVec[1], colorVec[2],1]
+                }
+
+                colorResult1 = this.interpolateValues(1.0 - blendAlpha, 1, 0, 1, colorResult1, colorResult2, 0)
+            }
+
+            subMeshColors[i] = colorResult1;
+
             var alpha = this.getTimedValue(
                 2,
                 time,
@@ -513,19 +611,38 @@ export default class AnimationManager {
                 animationIndex,
                 colors[i].alpha);
 
-            if (colorVec) {
-                subMeshColors[i] = [colorVec[0], colorVec[1], colorVec[2],1]
-            } else {
-                subMeshColors[i] = [1.0, 1.0, 1.0, 1.0]
-            }
+            var resultAlpha1 = 1.0;
             if (alpha) {
-                subMeshColors[i][3] = alpha[0];
+                resultAlpha1 = alpha[0];
             }
+
+            // Support for blend
+            if (blendAnimationRecord != null) {
+                alpha = this.getTimedValue(
+                    2,
+                    time,
+                    animationRecord.length,
+                    animationIndex,
+                    colors[i].alpha);
+
+                var resultAlpha2 = 1.0;
+                if (alpha) {
+                    resultAlpha2 = alpha[0];
+                }
+
+                resultAlpha1 = (resultAlpha1 * blendAlpha) + ((1-blendAlpha) * resultAlpha2)
+            }
+
+            subMeshColors[i][3] = resultAlpha1;
         }
     }
-    calcTransparencies(transparencies, animationIndex, time) {
+    calcTransparencies(transparencies, animationIndex, time, blendAnimationIndex, blendAnimationTime, blendAlpha) {
         var transparencyRecords = this.m2File.transparencies;
         var animationRecord = this.m2File.animations[animationIndex];
+        var blendAnimationRecord = null;
+        if (blendAnimationIndex > -1) {
+            blendAnimationRecord = this.m2File.animations[blendAnimationIndex];
+        }
 
         for (var i = 0; i < transparencyRecords.length; i++) {
             var transparency = this.getTimedValue(
@@ -535,11 +652,27 @@ export default class AnimationManager {
                 animationIndex,
                 transparencyRecords[i].values);
 
+            var result1 = 1.0;
             if (transparency) {
-                transparencies[i] = transparency[0];
-            } else {
-                transparencies[i] = 1.0;
+                result1 = transparency[0];
             }
+            // Support for blend
+            if (blendAnimationRecord != null) {
+                transparency = this.getTimedValue(
+                    2,
+                    blendAnimationTime,
+                    blendAnimationRecord.length,
+                    blendAnimationIndex,
+                    transparencyRecords[i].values);
+
+                var result2 = 1.0;
+                if (transparency) {
+                    result2 = transparency[0];
+                }
+                result1 = (result1 * blendAlpha) + ((1-blendAlpha) * result2)
+            }
+
+            transparencies[i] = result1;
         }
     }
 }
