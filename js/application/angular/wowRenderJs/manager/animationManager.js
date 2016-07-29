@@ -18,6 +18,7 @@ export default class AnimationManager {
         this.firstCalc = true;
 
         this.initBonesIsCalc();
+        this.initBlendBonesMatrices();
         this.calculateBoneTree();
         this.setAnimationId(0);
     }
@@ -50,8 +51,9 @@ export default class AnimationManager {
 
 
     update(deltaTime, cameraPosInLocal, bonesMatrices, textAnimMatrices, subMeshColors, transparencies) {
-        var mainAnimationRecord = this.m2File.animations[this.mainAnimationIndex];
-        var currentAnimationRecord = this.m2File.animations[this.currentAnimationIndex];
+        var m2File = this.m2File;
+        var mainAnimationRecord = m2File.animations[this.mainAnimationIndex];
+        var currentAnimationRecord = m2File.animations[this.currentAnimationIndex];
 
         this.currentAnimationTime += deltaTime;
         /* Pick next animation if there is one and no next animation was picked before */
@@ -62,11 +64,11 @@ export default class AnimationManager {
 
             /* First iteration is out of loop */
             var currentSubAnimIndex = this.mainAnimationIndex;
-            var subAnimRecord = this.m2File.animations[currentSubAnimIndex];
+            var subAnimRecord = m2File.animations[currentSubAnimIndex];
             calcProb += subAnimRecord.probability;
             while ((calcProb < probability) && (subAnimRecord.next_animation > -1)) {
                 currentSubAnimIndex = subAnimRecord.next_animation;
-                subAnimRecord = this.m2File.animations[currentSubAnimIndex];
+                subAnimRecord = m2File.animations[currentSubAnimIndex];
 
                 calcProb += subAnimRecord.probability;
             }
@@ -84,7 +86,7 @@ export default class AnimationManager {
         var subAnimBlendTime = 0;
         var blendAlpha = 1.0;
         if (this.nextSubAnimationIndex > -1) {
-            subAnimRecord = this.m2File.animations[this.nextSubAnimationIndex];
+            subAnimRecord = m2File.animations[this.nextSubAnimationIndex];
             subAnimBlendTime = subAnimRecord.blend_time;
         }
 
@@ -113,7 +115,28 @@ export default class AnimationManager {
 
         /* Update animated values */
         this.calcAnimMatrixes(textAnimMatrices, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha);
+        for (var i = 0; i < m2File.nBones; i++) {
+            this.bonesIsCalculated[i] = false;
+        }
         this.calcBones(bonesMatrices, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha, cameraPosInLocal);
+        if (blendAnimationIndex > -1){
+            for (var i = 0; i < m2File.nBones; i++) {
+                this.bonesIsCalculated[i] = false;
+            }
+            this.calcBones(this.blendMatrixArray, blendAnimationIndex, this.nextSubAnimationTime, cameraPosInLocal);
+
+            //Actual blend
+            for (var i = 0; i < m2File.nBones; i++) {
+                var blendTransformMatrix = this.blendMatrixArray[i];
+                var tranformMat = bonesMatrices[i];
+                mat4.subtract(blendTransformMatrix, blendTransformMatrix, tranformMat);
+                mat4.scale(blendTransformMatrix, blendTransformMatrix, [blendAlpha, blendAlpha, blendAlpha]);
+                mat4.add(tranformMat, blendTransformMatrix, tranformMat);
+            }
+
+        }
+
+
         this.calcSubMeshColors(subMeshColors, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha);
         this.calcTransparencies(transparencies, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha);
     }
@@ -129,6 +152,17 @@ export default class AnimationManager {
 
         this.bonesIsCalculated = bonesIsCalculated;
     }
+    initBlendBonesMatrices() {
+        var m2File = this.m2File;
+        var blendMatrixArray = new Array(m2File.nBones)
+
+        for (var i = 0; i < m2File.nBones; i++) {
+            blendMatrixArray[i] = mat4.create();
+        }
+
+        this.blendMatrixArray = blendMatrixArray;
+    }
+
 
     /* Interpolate functions */
     interpolateValues (currentTime, interpolType, time1, time2, value1, value2, valueType){
@@ -232,7 +266,6 @@ export default class AnimationManager {
                             pivotPoint, negatePivotPoint,
                             animationData,
                             animationIndex, animationRecord, time,
-                            blendAnimationIndex, blendAnimationRecord, blendAnimationTime, blendAlpha,
                             billboardMatrix)
     {
 
@@ -256,28 +289,7 @@ export default class AnimationManager {
                 ]
             }
 
-            if (blendAnimationRecord != null) {
-                transVec = this.getTimedValue(
-                    0,
-                    blendAnimationTime,
-                    blendAnimationRecord.length,
-                    blendAnimationIndex,
-                    animationData.translation);
-
-                var resultTrans2 = [0,0,0,0];
-                if (transVec) {
-                    resultTrans2 = [
-                        transVec[0],
-                        transVec[1],
-                        transVec[2],
-                        0
-                    ]
-                }
-                resultTrans1 = this.interpolateValues(1.0 - blendAlpha, 1, 0, 1, resultTrans1, resultTrans2, 0)
-            }
-
             mat4.translate(tranformMat, tranformMat, resultTrans1);
-
 
             this.isAnimated = true;
         }
@@ -296,18 +308,6 @@ export default class AnimationManager {
             if (quaternionResult1) {
                 var orientMatrix = mat4.create();
 
-                if (blendAnimationRecord != null) {
-                    var quaternionResult2 = this.getTimedValue(
-                        rotationType,
-                        blendAnimationTime,
-                        blendAnimationRecord.length,
-                        blendAnimationIndex,
-                        animationData.rotation);
-                    if (quaternionResult2) {
-                        quaternionResult1 = this.interpolateValues(1.0 - blendAlpha, 1, 0, 1, quaternionResult1, quaternionResult2, rotationType)
-                    }
-                }
-
                 mat4.fromQuat(orientMatrix, quaternionResult1 );
                 mat4.multiply(tranformMat, tranformMat, orientMatrix);
             }
@@ -324,19 +324,7 @@ export default class AnimationManager {
                 animationData.scale);
 
             if (scaleResult1) {
-                if (blendAnimationRecord != null) {
-                    var scaleResult2 = this.getTimedValue(
-                        0,
-                        blendAnimationTime,
-                        blendAnimationRecord.length,
-                        blendAnimationIndex,
-                        animationData.scale);
-                    if (scaleResult2) {
-                        scaleResult1 = this.interpolateValues(1.0 - blendAlpha, 1, 0, 1, scaleResult1, scaleResult2, 0)
-                    }
-                }
-
-                mat4.scale(tranformMat, tranformMat, [
+               mat4.scale(tranformMat, tranformMat, [
                         scaleResult1[0],
                         scaleResult1[1],
                         scaleResult1[2]
@@ -369,8 +357,7 @@ export default class AnimationManager {
                 pivotPoint, negatePivotPoint,
                 textAnimData,
                 animationIndex, animationRecord, time,
-                blendAnimationIndex, blendAnimationRecord, blendAnimationTime,
-                blendAlpha, null);
+                null);
         }
     }
 
@@ -393,16 +380,14 @@ export default class AnimationManager {
     }
 
     /* Bone animation functons */
-    calcBones (boneMatrices, animation, time, blendAnimationIndex, blendAnimationTime, blendAlpha, cameraPosInLocal) {
+    calcBones (boneMatrices, animation, time, cameraPosInLocal) {
         var m2File = this.m2File;
 
-        for (var i = 0; i < m2File.nBones; i++) {
-            this.bonesIsCalculated[i] = false;
-        }
+
         if (this.firstCalc || this.isAnimated) {
             //Animate everything with standard animation
             for (var i = 0; i < m2File.nBones; i++) {
-                this.calcBoneMatrix(boneMatrices, i, animation, time, blendAnimationIndex, blendAnimationTime, blendAlpha, cameraPosInLocal);
+                this.calcBoneMatrix(boneMatrices, i, animation, time, cameraPosInLocal);
             }
 
             /* Animate mouth */
@@ -428,8 +413,8 @@ export default class AnimationManager {
                         if (m2File.keyBoneLookup[13 + j] > -1) { // BONE_LFINGER1 = 13
                             var boneId = m2File.keyBoneLookup[13 + j];
                             this.bonesIsCalculated[boneId] = false;
-                            this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, -1, 0, 1, cameraPosInLocal);
-                            this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, -1, 0, 1, cameraPosInLocal)
+                            this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal);
+                            this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal)
                         }
                     }
                 }
@@ -438,8 +423,8 @@ export default class AnimationManager {
                         if (m2File.keyBoneLookup[8 + j] > -1) { // BONE_RFINGER1 = 8
                             var boneId = m2File.keyBoneLookup[8 + j];
                             this.bonesIsCalculated[boneId] = false;
-                            this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, -1, 0, 1, cameraPosInLocal);
-                            this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, -1, 0, 1, cameraPosInLocal)
+                            this.calcBoneMatrix(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal);
+                            this.calcChildBones(boneMatrices, boneId, closedHandAnimation, 1, cameraPosInLocal)
                         }
                     }
                 }
@@ -448,17 +433,66 @@ export default class AnimationManager {
         }
         this.firstCalc = false;
     }
-    calcBoneMatrix (boneMatrices, boneIndex, animationIndex, time, blendAnimationIndex, blendAnimationTime, blendAlpha, cameraPosInLocal){
+    calcBoneBillboardMatrix(boneMatrices, boneDefinition, parentBone, pivotPoint, cameraPosInLocal) {
+        var modelForward = vec3.create();
+
+        var cameraPoint = vec4.create();
+        vec4.copy(cameraPoint, cameraPosInLocal);
+        if (parentBone>=0) {
+            var parentMatrix = boneMatrices[parentBone];
+            var invertParentMat = mat4.create();
+            mat4.invert(invertParentMat, parentMatrix);
+
+
+            vec4.transformMat4(cameraPoint, cameraPoint, invertParentMat);
+        }
+
+        vec4.subtract(cameraPoint, cameraPoint, pivotPoint);
+
+        vec3.normalize(modelForward, cameraPoint);
+
+        if ((boneDefinition.flags & 0x40) > 0) {
+            //Cylindrical billboard
+
+            var modelUp = vec3.fromValues(0,0,1);
+
+            var modelRight = vec3.create();
+            vec3.cross(modelRight, modelUp, modelForward);
+            vec3.normalize(modelRight, modelRight);
+
+            vec3.cross(modelForward, modelRight, modelUp);
+            vec3.normalize(modelForward, modelForward);
+
+            vec3.cross(modelRight, modelUp, modelForward);
+            vec3.normalize(modelRight, modelRight);
+
+        } else {
+            //Spherical billboard
+            var modelRight = vec3.create();
+            vec3.cross(modelRight, [0, 0, 1], modelForward);
+            vec3.normalize(modelRight, modelRight);
+
+            var modelUp = vec3.create();
+            vec3.cross(modelUp, modelForward, modelRight);
+            vec3.normalize(modelUp, modelUp);
+        }
+
+
+        var billboardMatrix = mat4.fromValues(
+            modelForward[0],modelForward[1],modelForward[2],0,
+            modelRight[0],modelRight[1],modelRight[2],0,
+            modelUp[0],modelUp[1],modelUp[2],0,
+            0,0,0,1
+        );
+
+        return billboardMatrix;
+    }
+    calcBoneMatrix (boneMatrices, boneIndex, animationIndex, time, cameraPosInLocal){
         if (this.bonesIsCalculated[boneIndex]) return;
 
         var m2File = this.m2File;
 
         var animationRecord = m2File.animations[animationIndex];
-        var blendAnimationRecord = null;
-        if (blendAnimationIndex > -1) {
-            blendAnimationRecord = m2File.animations[blendAnimationIndex];
-        }
-
         var boneDefinition = m2File.bones[boneIndex];
 
         var parentBone = boneDefinition.parent_bone;
@@ -492,56 +526,7 @@ export default class AnimationManager {
         var billboardMatrix = null;
         if (((boneDefinition.flags & 0x8) > 0) || ((boneDefinition.flags & 0x40) > 0)) {
             //From http://gamedev.stackexchange.com/questions/112270/calculating-rotation-matrix-for-an-object-relative-to-a-planets-surface-in-monog
-            var modelForward = vec3.create();
-
-            var cameraPoint = cameraPosInLocal;
-            if (parentBone>=0) {
-                var parentMatrix = boneMatrices[parentBone];
-                var invertParentMat = mat4.create();
-                mat4.invert(invertParentMat, parentMatrix);
-
-                cameraPoint = vec4.create();
-
-                vec4.transformMat4(cameraPoint, cameraPosInLocal, invertParentMat);
-            }
-
-            vec4.subtract(cameraPoint, cameraPoint, pivotPoint);
-
-            vec3.normalize(modelForward, cameraPoint);
-
-            if ((boneDefinition.flags & 0x40) > 0) {
-                //Cylindrical billboard
-
-                var modelUp = vec3.fromValues(0,0,1);
-
-                var modelRight = vec3.create();
-                vec3.cross(modelRight, modelUp, modelForward);
-                vec3.normalize(modelRight, modelRight);
-
-                vec3.cross(modelForward, modelRight, modelUp);
-                vec3.normalize(modelForward, modelForward);
-
-                vec3.cross(modelRight, modelUp, modelForward);
-                vec3.normalize(modelRight, modelRight);
-
-            } else {
-                //Spherical billboard
-                var modelRight = vec3.create();
-                vec3.cross(modelRight, [0, 0, 1], modelForward);
-                vec3.normalize(modelRight, modelRight);
-
-                var modelUp = vec3.create();
-                vec3.cross(modelUp, modelForward, modelRight);
-                vec3.normalize(modelUp, modelUp);
-            }
-
-
-            billboardMatrix = mat4.fromValues(
-                    modelForward[0],modelForward[1],modelForward[2],0,
-                    modelRight[0],modelRight[1],modelRight[2],0,
-                    modelUp[0],modelUp[1],modelUp[2],0,
-                    0,0,0,1
-                );
+            billboardMatrix = this.calcBoneBillboardMatrix(boneMatrices, boneDefinition, parentBone, pivotPoint, cameraPosInLocal);
             this.isAnimated = true;
         }
 
@@ -550,7 +535,6 @@ export default class AnimationManager {
             pivotPoint, negatePivotPoint,
             boneDefinition,
             animationIndex, animationRecord, time,
-            blendAnimationIndex, blendAnimationRecord, blendAnimationTime, blendAlpha,
             billboardMatrix);
 
         this.bonesIsCalculated[boneIndex] = true;
