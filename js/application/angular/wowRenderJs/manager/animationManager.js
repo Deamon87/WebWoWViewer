@@ -130,7 +130,11 @@ export default class AnimationManager {
                 var blendTransformMatrix = this.blendMatrixArray[i];
                 var tranformMat = bonesMatrices[i];
                 mat4.subtract(blendTransformMatrix, blendTransformMatrix, tranformMat);
-                mat4.scale(blendTransformMatrix, blendTransformMatrix, [1.0 - blendAlpha, 1.0 - blendAlpha, 1.0 - blendAlpha]);
+
+                for (var j = 0; j < 16; j++ ){
+                    blendTransformMatrix[j] = blendTransformMatrix[j] * (1.0 - blendAlpha);
+                }
+                //mat4.scale(blendTransformMatrix, blendTransformMatrix, [1.0 - blendAlpha, 1.0 - blendAlpha, 1.0 - blendAlpha]);
                 mat4.add(tranformMat, blendTransformMatrix, tranformMat);
             }
 
