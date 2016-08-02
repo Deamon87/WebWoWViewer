@@ -153,7 +153,6 @@ class GraphManager {
         /* 1. First check wmo's */
         /* Checking group wmo will significatly decrease the amount of m2wmo */
         for (var i = 0; i < this.wmoObjects.length; i++) {
-            this.wmoObjects[i].resetDrawnForAllGroups(true);
             if (config.getUsePortalCulling() && this.wmoObjects[i].hasPortals()) {
                 if (this.currentInteriorGroup >= 0 && this.currentWMO == this.wmoObjects[i]) continue;
 
@@ -161,6 +160,7 @@ class GraphManager {
                 this.portalCullingAlgo.checkAllDoodads(this.wmoObjects[i], this.position);
                 //this.wmoObjects[i].setIsRenderedForDoodads();
             } else {
+                this.wmoObjects[i].resetDrawnForAllGroups(true);
                 this.wmoObjects[i].checkFrustumCulling(this.position, frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
                 this.wmoObjects[i].setIsRenderedForDoodads();
             }

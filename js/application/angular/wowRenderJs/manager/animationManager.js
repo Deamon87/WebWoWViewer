@@ -20,17 +20,32 @@ export default class AnimationManager {
         this.initBonesIsCalc();
         this.initBlendBonesMatrices();
         this.calculateBoneTree();
-        this.setAnimationId(0);
+
+        if (!this.setAnimationId(0)) { // try Stand(0) animation
+            this.setAnimationId(147); // otherwise try Closed(147) animation
+        }
     }
 
     setAnimationId(animationId) {
-        var animation = this.m2File.animationLookup[animationId]; //Mounted animation
-        if (animation > -1) {
+        var m2File = this.m2File;
+        var animationIndex = -1;
+        if ((m2File.nAnimationLookup == 0) && (m2File.nAnimations > 0)) {
+            for (var i = 0; i < m2File.nAnimations; i++) {
+                var animationRecord = m2File.animations[i];
+                if (animationRecord.animation_id == animationId) {
+                    animationIndex = i;
+                    break;
+                }
+            }
+        } else if (animationId < m2File.nAnimationLookup) {
+            animationIndex = m2File.animationLookup[animationId];
+        }
+        if (animationIndex > -1) {
             //Reset animation
             this.mainAnimationId = animationId;
-            this.mainAnimationIndex = animation;
+            this.mainAnimationIndex = animationIndex;
 
-            this.currentAnimationIndex = animation;
+            this.currentAnimationIndex = animationIndex;
             this.currentAnimationTime = 0;
             this.currentAnimationPlayedTimes = 0;
 
@@ -40,6 +55,7 @@ export default class AnimationManager {
 
             this.firstCalc = true; //TODO: reset this on going to next subAnimation too
         }
+        return (animationIndex > -1)
     }
 
     setLeftHandClosed(value) {
@@ -92,18 +108,18 @@ export default class AnimationManager {
 
         var blendAnimationIndex = -1;
         if ((subAnimBlendTime > 0) && (currAnimLeft < subAnimBlendTime)) {
-            this.nextSubAnimationActive = true;
-            this.nextSubAnimationTime = subAnimBlendTime - currAnimLeft;
+            this.firstCalc = true;
+            this.nextSubAnimationTime = (subAnimBlendTime - currAnimLeft) % subAnimRecord.length;
             blendAlpha = currAnimLeft / subAnimBlendTime;
             blendAnimationIndex = this.nextSubAnimationIndex
         }
-
-
 
         if (this.currentAnimationTime >= currentAnimationRecord.length) {
             if (this.nextSubAnimationIndex > -1) {
                 this.currentAnimationIndex = this.nextSubAnimationIndex;
                 this.currentAnimationTime = this.nextSubAnimationTime;
+
+                this.firstCalc = true;
 
                 this.nextSubAnimationIndex = -1;
                 this.nextSubAnimationActive = false;
@@ -118,7 +134,7 @@ export default class AnimationManager {
         for (var i = 0; i < m2File.nBones; i++) {
             this.bonesIsCalculated[i] = false;
         }
-        this.calcBones(bonesMatrices, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha, cameraPosInLocal);
+        this.calcBones(bonesMatrices, this.currentAnimationIndex, this.currentAnimationTime, cameraPosInLocal);
         if (blendAnimationIndex > -1){
             for (var i = 0; i < m2File.nBones; i++) {
                 this.bonesIsCalculated[i] = false;
@@ -505,7 +521,7 @@ export default class AnimationManager {
         var tranformMat = boneMatrices[boneIndex];
         tranformMat = mat4.identity(tranformMat);
 
-        if (boneDefinition.flags & 0x278 == 0) {
+        if ((boneDefinition.flags & 0x278) == 0) {
             this.bonesIsCalculated[boneIndex] = true;
             return
         }
@@ -582,12 +598,10 @@ export default class AnimationManager {
                     blendAnimationRecord.length,
                     blendAnimationIndex,
                     colors[i].color);
-                var colorResult2 = [1.0, 1.0, 1.0, 1.0];
                 if (colorVec) {
-                    colorResult2 = [colorVec[0], colorVec[1], colorVec[2],1]
+                    var colorResult2 = [colorVec[0], colorVec[1], colorVec[2],1]
+                    colorResult1 = this.interpolateValues(1.0 - blendAlpha, 1, 0, 1, colorResult1, colorResult2, 0)
                 }
-
-                colorResult1 = this.interpolateValues(1.0 - blendAlpha, 1, 0, 1, colorResult1, colorResult2, 0)
             }
 
             subMeshColors[i] = colorResult1;
@@ -613,12 +627,10 @@ export default class AnimationManager {
                     animationIndex,
                     colors[i].alpha);
 
-                var resultAlpha2 = 1.0;
                 if (alpha) {
-                    resultAlpha2 = alpha[0];
+                    var resultAlpha2 = alpha[0];
+                    resultAlpha1 = (resultAlpha1 * blendAlpha) + ((1-blendAlpha) * resultAlpha2)
                 }
-
-                resultAlpha1 = (resultAlpha1 * blendAlpha) + ((1-blendAlpha) * resultAlpha2)
             }
 
             subMeshColors[i][3] = resultAlpha1;
@@ -653,11 +665,10 @@ export default class AnimationManager {
                     blendAnimationIndex,
                     transparencyRecords[i].values);
 
-                var result2 = 1.0;
                 if (transparency) {
-                    result2 = transparency[0];
+                    var result2 = transparency[0];
+                    result1 = (result1 * blendAlpha) + ((1-blendAlpha) * result2)
                 }
-                result1 = (result1 * blendAlpha) + ((1-blendAlpha) * result2)
             }
 
             transparencies[i] = result1;

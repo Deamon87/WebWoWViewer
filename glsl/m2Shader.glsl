@@ -161,7 +161,12 @@ void main() {
 
     vec4 finalColor = vec4((tex.rgb * tex2.rgb), 1.0);
     finalColor.rgb = finalColor.rgb * meshColor.rgb * vDiffuseColor.bgr;
+
+
     finalColor.a = tex.a * tex2.a * uColor.a* uTransparency;
+
+    if(finalColor.a < uAlphaTest)
+        discard;
 
     if (isTransparent == 0) {
         vec3 fogColor = uFogColor;
@@ -226,9 +231,6 @@ void main() {
 
     vec4 finalColor = final_705;
     */
-
-    if(tex.a < uAlphaTest)
-        discard;
 
     //Apply global lighting
 /*
