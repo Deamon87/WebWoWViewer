@@ -134,6 +134,7 @@ class WmoObject {
         var nodes = groupFile.nodes;
         var topZ = -999999;
         var bottomZ = 999999;
+        var minPositiveDistanceToCamera = 99999;
         for (var i = 0; i < bspLeafList.length; i++) {
             var node = nodes[bspLeafList[i]];
 
@@ -207,7 +208,9 @@ class WmoObject {
                 var normal_avg = bary[0]*normal1[2]+bary[1]*normal2[2]+bary[2]*normal3[2];
                 if (normal_avg > 0) {
                     //Bottom
-                    bottomZ = Math.min(z, bottomZ);
+                    var distanceToCamera = cameraLocal[2] - z;
+                    if ((distanceToCamera > 0) && (distanceToCamera < minPositiveDistanceToCamera))
+                        bottomZ = z;
                 } else {
                     //Top
                     topZ = Math.max(z, topZ);
@@ -271,6 +274,13 @@ class WmoObject {
             //4. Check min\max Z value. If object(camera) pos is not in range - the object do not belong this wmo group
             if (topBottom.bottomZ > 99999 && topBottom.topZ < -99999) continue;
             if (topBottom.bottomZ < 99999 && cameraLocal[2] < topBottom.bottomZ) continue;
+            if (topBottom.bottomZ > topBottom.topZ){
+                if (cameraLocal[2] > topBottom.bottomZ) {
+                    topBottom.topZ = -99999;
+                } else {
+                    topBottom.bottomZ = 99999;
+                }
+            }
             if (topBottom.topZ > -99999 && cameraLocal[2] > topBottom.topZ) continue;
 
 
