@@ -24,6 +24,8 @@ uniform mat4 uBoneMatrixes[59]; //Max 59 for ANGLE implementation and max 120? b
 uniform int isEnviroment;
 uniform lowp int isTransparent;
 
+uniform int uUseDiffuseColor;
+
 #ifdef INSTANCED
 attribute vec4 aDiffuseColor;
 attribute mat4 aPlacementMat;
@@ -86,7 +88,7 @@ void main() {
     vTexCoord = texCoord;
     vTexCoord2 = aTexCoord2;
 
-    if (isTransparent == 0) {
+    if ((uUseDiffuseColor == 1)) {
 
 #ifdef INSTANCED
     vDiffuseColor = aDiffuseColor;

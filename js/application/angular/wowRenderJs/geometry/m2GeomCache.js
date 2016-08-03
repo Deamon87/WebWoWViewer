@@ -109,6 +109,7 @@ class M2Geom {
     setupUniforms(placementMatrix, boneMatrix, diffuseColor, drawTransparent) {
         var gl = this.gl;
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
+        var m2File = this.m2File;
         if (placementMatrix) {
             gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
         }
@@ -126,7 +127,6 @@ class M2Geom {
         } else {
             gl.uniform1i(uniforms.isTransparent, 0);
         }
-
     }
 
     bindVao() {
@@ -209,6 +209,12 @@ class M2Geom {
                 //}catch (e) {
                 //    debugger;
                 //}
+
+                if ((renderFlag.flags & 0x1) > 0) {
+                    gl.uniform1i(uniforms.uUseDiffuseColor, 0)
+                } else {
+                    gl.uniform1i(uniforms.uUseDiffuseColor, 1)
+                }
 
                 if ((renderFlag.flags & 0x8) > 0) {
                     //gl.uniform1i(uniforms.isBillboard, 1);
