@@ -3,6 +3,29 @@ import AnimationManager from './../manager/animationManager.js'
 import mathHelper from './../math/mathHelper.js';
 import {vec4, mat4, vec3, quat} from 'gl-matrix';
 
+const pixelShaderTable = {
+    "Combiners_Opaque" : 0,
+    "Combiners_Decal" : 1,
+    "Combiners_Add" : 2,
+    "Combiners_Mod2x" : 3,
+    "Combiners_Fade" : 4,
+    "Combiners_Mod" : 5,
+    "Combiners_Opaque_Opaque" : 6,
+    "Combiners_Opaque_Add" : 7,
+    "Combiners_Opaque_Mod2x" : 8,
+    "Combiners_Opaque_Mod2xNA" : 9,
+    "Combiners_Opaque_AddNA" : 10,
+    "Combiners_Opaque_Mod" : 11,
+    "Combiners_Mod_Opaque" : 12,
+    "Combiners_Mod_Add" : 13,
+    "Combiners_Mod_Mod2x" : 14,
+    "Combiners_Mod_Mod2xNA" : 15,
+    "Combiners_Mod_AddNA" : 16,
+    "Combiners_Mod_Mod" : 17,
+    "Combiners_Add_Mod" : 18,
+    "Combiners_Mod2x_Mod2x" : 19
+}
+
 class MDXObject {
     constructor(sceneApi){
         this.sceneApi = sceneApi;
@@ -53,6 +76,9 @@ class MDXObject {
 
             self.m2Geom = m2Geom;
             self.skinGeom = skinGeom;
+
+            skinGeom.fixShaderIdBasedOnBlendOverride(m2Geom.m2File);
+            skinGeom.fixShaderIdBasedOnLayer(m2Geom.m2File);
 
             if (!m2Geom) {
                 $log.log("m2 file failed to load : "+ modelName);
@@ -199,9 +225,9 @@ class MDXObject {
         var vertexShader;
         var pixelShader;
         if ( !(shaderId & 0x8000) ) {
-            shaderNames = getTabledShaderNames(shaderId, m2Batch.op_count, m2Batch.tex_unit_number2);
+            shaderNames = getTabledShaderNames(shaderId, m2Batch.op_count, m2Batch.textureUnitNum);
             if ( !shaderNames )
-                shaderNames = getTabledShaderNames(shaderId, m2Batch.op_count, 0x11, m2Batch.tex_unit_number2);
+                shaderNames = getTabledShaderNames(shaderId, m2Batch.op_count, 0x11, m2Batch.textureUnitNum);
             return shaderNames;
         }
         switch ( shaderId & 0x7FFF ) {
@@ -262,7 +288,7 @@ class MDXObject {
                var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
                var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2;
 
-               var shaderNames = this.getShaderNames(subMesh);
+               var shaderNames = this.getShaderNames(skinTextureDefinition);
 
                materialData.layer = skinTextureDefinition.layer;
                materialData.isRendered = true;
@@ -273,7 +299,7 @@ class MDXObject {
                var textureUnit;
                if (skinTextureDefinition.textureUnitNum <= mdxObject.m2File.textUnitLookup.length) {
                    textureUnit = mdxObject.m2File.textUnitLookup[skinTextureDefinition.textureUnitNum];
-                   if (textureUnit == -1) {
+                   if (textureUnit == 0xFFFF) {
                        //Enviroment mapping
                        materialData.isEnviromentMapping = true;
                    }
@@ -575,9 +601,10 @@ class MDXObject {
             var transparency = this.getTransparency(skinData, materialData, this.transparencies)
 
             //Don't draw meshes with 0 transp
-            if (transparency < 0.0001) continue;
+            if ((transparency < 0.0001) || (meshColor[3] < 0.001)) continue;
 
-            this.m2Geom.drawMesh(i, materialData, this.skinGeom, meshColor, transparency, textureMatrix1, textureMatrix2, instanceCount)
+            var pixelShaderIndex = pixelShaderTable[materialData.shaderNames.pixel];
+            this.m2Geom.drawMesh(i, materialData, this.skinGeom, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, instanceCount)
         }
     }
     drawInstanced(drawTransparent, instanceCount, placementVBO) {

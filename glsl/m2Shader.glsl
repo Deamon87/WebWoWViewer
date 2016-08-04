@@ -128,6 +128,7 @@ varying vec4 vDiffuseColor;
 uniform lowp int isTransparent;
 
 uniform int uBlendMode;
+uniform int uPixelShader;
 
 uniform vec4 uColor;
 uniform vec3 uFogColor;
@@ -146,8 +147,6 @@ varying float fs_Depth;
 #endif
 
 void main() {
-
-
     /* Animation support */
     vec2 texCoord = (uTextMat1 * vec4(vTexCoord, 0, 1)).xy;
     vec2 texCoord2 = (uTextMat2 * vec4(vTexCoord2, 0, 1)).xy;
@@ -161,11 +160,67 @@ void main() {
        meshColor.rbg *= vec3(0.65);
     }
 
-    vec4 finalColor = vec4((tex.rgb * tex2.rgb), 1.0);
-    finalColor.rgb = finalColor.rgb * meshColor.rgb * vDiffuseColor.bgr;
+    vec4 finalColor = vec4(0);
+    //finalColor = vec4((tex.rgb * tex2.rgb), 1.0);
+    //finalColor.rgb = finalColor.rgb * meshColor.rgb * vDiffuseColor.bgr;
+    //finalColor.a = tex.a * tex2.a * uColor.a* uTransparency;
+    vec4 meshResColor = vec4(meshColor.rgb * vDiffuseColor.bgr, uColor.a* uTransparency);
 
-
-    finalColor.a = tex.a * tex2.a * uColor.a* uTransparency;
+    if (uPixelShader == 0) { //Combiners_Opaque
+        finalColor.rgb = tex.rgb * meshResColor.rgb;
+        finalColor.a = meshResColor.a;
+    } else if (uPixelShader == 1) { // Combiners_Decal
+        finalColor.rgb = (meshResColor.rgb - tex.rgb) * meshResColor.a + tex.rgb;
+        finalColor.a = meshResColor.a;
+    } else if (uPixelShader == 2) { // Combiners_Add
+        finalColor.rgba = tex.rgba + meshResColor.rgba;
+    } else if (uPixelShader == 3) { // Combiners_Mod2x
+        finalColor.rgb = tex.rgb * meshResColor.rgb * vec3(2.0);
+        finalColor.a = tex.a * meshResColor.a * 2.0;
+    } else if (uPixelShader == 4) { // Combiners_Fade
+        finalColor.rgb = (tex.rgb - meshResColor.rgb) * meshResColor.a + meshResColor.rgb;
+        finalColor.a = meshResColor.a;
+    } else if (uPixelShader == 5) { // Combiners_Mod
+        finalColor.rgba = tex.rgba * meshResColor.rgba;
+    } else if (uPixelShader == 6) { // Combiners_Opaque_Opaque
+        finalColor.rgb = tex.rgb * tex2.rgb * meshResColor.rgb;
+        finalColor.a = meshResColor.a;
+    } else if (uPixelShader == 7) { // Combiners_Opaque_Add
+        finalColor.rgb = tex2.rgb + tex.rgb * meshResColor.rgb;
+        finalColor.a = meshResColor.a + tex.a;
+    } else if (uPixelShader == 8) { // Combiners_Opaque_Mod2x
+        finalColor.rgb = tex.rgb * meshResColor.rgb * tex2.rgb * vec3(2.0);
+        finalColor.a  = tex2.a * meshResColor.a * 2.0;
+    } else if (uPixelShader == 9) { // Combiners_Opaque_Mod2xNA
+        finalColor.rgb = tex.rgb * meshResColor.rgb * tex2.rgb * vec3(2.0);
+        finalColor.a  = meshResColor.a;
+    } else if (uPixelShader == 10) { // Combiners_Opaque_AddNA
+        finalColor.rgb = tex2.rgb + tex.rgb * meshResColor.rgb;
+        finalColor.a = meshResColor.a;
+    } else if (uPixelShader == 11) { // Combiners_Opaque_Mod
+        finalColor.rgb = tex.rgb * tex2.rgb * meshResColor.rgb;
+        finalColor.a = tex2.a * meshResColor.a;
+    } else if (uPixelShader == 12) { // Combiners_Mod_Opaque
+        finalColor.rgb = tex.rgb * tex2.rgb * meshResColor.rgb;
+        finalColor.a = tex.a;
+    } else if (uPixelShader == 13) { // Combiners_Mod_Add
+        finalColor.rgba = tex2.rgba + tex.rgba * meshResColor.rgba;
+    } else if (uPixelShader == 14) { // Combiners_Mod_Mod2x
+        finalColor.rgba = tex.rgba * tex2.rgba * meshResColor.rgba * vec4(2.0);
+    } else if (uPixelShader == 15) { // Combiners_Mod_Mod2xNA
+        finalColor.rgb = tex.rgb * tex2.rgb * meshResColor.rgb * vec3(2.0);
+        finalColor.a = tex.a * meshResColor.a;
+    } else if (uPixelShader == 16) { // Combiners_Mod_AddNA
+        finalColor.rgb = tex2.rgb + tex.rgb * meshResColor.rgb;
+        finalColor.a = tex.a * meshResColor.a;
+    } else if (uPixelShader == 17) { // Combiners_Mod_Mod
+        finalColor.rgba = tex.rgba * tex2.rgba * meshResColor.rgba;
+    } else if (uPixelShader == 18) { // Combiners_Add_Mod
+        finalColor.rgb = (tex.rgb + meshResColor.rgb) * tex2.a;
+        finalColor.a = (tex.a + meshResColor.a) * tex2.a;
+    } else if (uPixelShader == 19) { // Combiners_Mod2x_Mod2x
+        finalColor.rgba = tex.rgba * tex2.rgba * meshResColor.rgba * vec4(4.0);
+    }
 
     if(finalColor.a < uAlphaTest)
         discard;

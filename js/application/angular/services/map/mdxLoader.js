@@ -634,7 +634,7 @@ const mdx_ver274 = {
             name : "textUnitLookup",
             offset: "ofsTexUnits",
             count : "nTexUnits",
-            type: "int16"
+            type: "uint16"
         },
         {
             name : "renderFlags",

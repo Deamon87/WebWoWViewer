@@ -144,7 +144,7 @@ class M2Geom {
         }
     }
 
-   drawMesh(meshIndex, materialData, skinObject, meshColor, transparency, textureMatrix1, textureMatrix2, instanceCount) {
+   drawMesh(meshIndex, materialData, skinObject, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, instanceCount) {
         var gl = this.gl;
         var m2File = this.m2File;
         var instExt = this.sceneApi.extensions.getInstancingExt();
@@ -158,6 +158,7 @@ class M2Geom {
         gl.uniformMatrix4fv(uniforms.uTextMat2, false, textureMatrix2);
         gl.uniform4fv(uniforms.uColor, meshColor);
         gl.uniform1f(uniforms.uTransparency, transparency);
+        gl.uniform1i(uniforms.uPixelShader, pixelShaderIndex);
 
         if (materialData.isRendered) {
             if (materialData.texUnit1Texture) {

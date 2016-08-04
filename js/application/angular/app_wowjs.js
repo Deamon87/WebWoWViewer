@@ -58,6 +58,34 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 z: 0
             },
             {
+                name: 'Azeroth mage tower',
+                source: 'http',
+                sceneType: 'map',
+                mapId: 0,
+                mapName: 'Azeroth',
+                x: -9555.484,
+                y: -714.772,
+                z: 88.098
+            },
+            /*{
+                name: 'Ulduar statue 03',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'world\\expansion02\\doodads\\ulduar\\ul_statue_03.m2'
+            },*/
+            /*{
+                name: 'ul_statue_02',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'world\\expansion02\\doodads\\ulduar\\ul_statue_02.m2'
+            },*/
+            {
+                name: 'forsakencatapult',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'creature\\forsakencatapult\\forsakencatapult.m2'
+            },
+            {
                 name: 'Sniff',
                 source: 'http',
                 sceneType: 'map',
