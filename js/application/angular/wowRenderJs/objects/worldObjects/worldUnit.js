@@ -263,7 +263,7 @@ class WorldUnit extends WorldObject {
                 var result = this.pointsTotalPath[0]
 
                 for (var i = 1; i < this.pointsArray.length; i++) {
-                    if (currentPath > this.pointsTotalPath[i]) {
+                    if (currentPath < this.pointsTotalPath[i]) {
                         var value1 = this.pointsArray[i - 1];
                         var value2 = this.pointsArray[i];
 
@@ -271,10 +271,11 @@ class WorldUnit extends WorldObject {
                         var path2 = this.pointsTotalPath[i];
 
                         var diff = vec4.create();
-                        vec4.subtract(diff, value2, value1);
-                        vec4.scale(diff, diff, (currentPath - path1)/(path2 - path1));
+                        vec3.subtract(diff, value2, value1);
+                        vec3.scale(diff, diff, (currentPath - path1)/(path2 - path1));
                         var result = vec3.create();
                         vec3.add(result, value1, diff);
+                        break;
                     }
                 }
 

@@ -1,8 +1,8 @@
 import WorldUnit from '../objects/worldObjects/worldUnit.js'
 import WorldGameObject from '../objects/worldObjects/worldGameObject.js'
 //import packetList from '../../../mountedNpc.json'
-import packetList from '../../../packet.json'
-//import packetList from '../../../femaleGuardWithHelm.json'
+//import packetList from '../../../packet.json'
+import packetList from '../../../attacketdMinion1.json'
 import {vec3} from 'gl-matrix'
 
 class WorldObjectManager {
@@ -21,10 +21,14 @@ class WorldObjectManager {
 
             this.clientTime += deltaTime;
 
-            for (var i = this.lastPacketIndex; (i < packetList.length) && (packetList[i].tickcount < this.clientTime); i++) {
-                this.processPacket(packetList[i]);
+            for (var i = this.lastPacketIndex; i < packetList.length; i++) {
+                if (this.clientTime > packetList[i].tickcount) {
+                    this.processPacket(packetList[i]);
+                    this.lastPacketIndex = i+1;
+                } else {
+                    break;
+                }
             }
-            this.lastPacketIndex = i;
         }
 
         /* 2. Update models */
@@ -44,14 +48,15 @@ class WorldObjectManager {
                     var update = updates[j];
                     var updateFields = update.updateFields;
 
-                    var guid = 0;
+                    var guid = update.objectGuid;
+                    /*
                     for (var k = 0; k < updateFields['OBJECT_FIELD_GUID'].length; k++) {
-                        guid += updateFields['OBJECT_FIELD_GUID'][k].index*0xFFFFFFFF +
-                            updateFields['OBJECT_FIELD_GUID'][k].value;
-                    }
+                        guid += updateFields['OBJECT_FIELD_GUID'][k].value << (updateFields['OBJECT_FIELD_GUID'][k].index*32);
+                    }*/
+
                     if (this.objectMap[guid]) continue;
 
-                    if (updates[j].obj_type == 3) {
+                    if (update.obj_type == 3) {
 
                         var newWorldUnit = new WorldUnit(this.sceneApi);
                         this.objectMap[guid] = newWorldUnit;
@@ -95,7 +100,7 @@ class WorldObjectManager {
                             }
                         }
 
-                    } else if (updates[j].obj_type == 5) {
+                    } else if (update.obj_type == 5) {
                         var newWorldGameObject = new WorldGameObject(this.sceneApi);
 
                         this.objectMap[guid] = newWorldGameObject;
@@ -129,40 +134,42 @@ class WorldObjectManager {
 
             var packetPoints = [];
             packetPoints.push([payload.m_x, payload.m_y, payload.m_z]);
-            if ( (payload.m_move_flag & 0x300) > 0){
-                //packed
-                var halfVector = [
-                    (payload.m_x + payload.m_end_x) * 0.5,
-                    (payload.m_y + payload.m_end_y) * 0.5,
-                    (payload.m_z + payload.m_end_z) * 0.5,
-                ];
-                for (var i = 0; i < payload.m_move_point_run.length; i++) {
-                    var uint32 = payload.m_move_point_run[i];
-                    var x = (((uint32 & 0x7FFF) << (21+32)) >> (21+32)) * 0.25;
-                    var y = ((((uint32 & 0xFFFF) >> 11) << (21+32)) >> (21+32)) * 0.25;
-                    var z = ((((uint32 & 0xFFFF) >> 22) << (22+32)) >> (22+32)) * 0.25;
+            if (payload.m_stop_flag != 1) {
+                if ((payload.m_move_flag & 0x200) == 0) {
+                    //packed
+                    var halfVector = [
+                        (payload.m_x + payload.m_end_x) * 0.5,
+                        (payload.m_y + payload.m_end_y) * 0.5,
+                        (payload.m_z + payload.m_end_z) * 0.5,
+                    ];
+                    for (var i = 0; i < payload.m_move_point_run.length; i++) {
+                        var uint32 = payload.m_move_point_run[i];
+                        var x = (((uint32 & 0x7FFF) << (21 + 32)) >> (21 + 32)) * 0.25;
+                        var y = ((((uint32 & 0xFFFF) >> 11) << (21 + 32)) >> (21 + 32)) * 0.25;
+                        var z = ((((uint32 & 0xFFFF) >> 22) << (22 + 32)) >> (22 + 32)) * 0.25;
 
-                    packetPoints.push([
-                            halfVector[i][0] - x,
-                            halfVector[i][1] - y,
-                            halfVector[i][2] - z
-                        ]
-                    );
+                        packetPoints.push([
+                                halfVector[0] - x,
+                                halfVector[1] - y,
+                                halfVector[2] - z
+                            ]
+                        );
+                    }
+                } else {
+                    for (var i = 0; i < payload.m_move_point_run.length; i++) {
+                        var pointObj = payload.m_move_point_run[i]
+                        packetPoints.push([pointObj.x, pointObj.y, pointObj.z]);
+                    }
                 }
-            } else {
-                for (var i = 0; i < payload.m_move_point_run.length; i++) {
-                    var pointObj = payload.m_move_point_run[i]
-                    packetPoints.push([pointObj.x, pointObj.y, pointObj.z]);
-                }
+                packetPoints.push([payload.m_end_x, payload.m_end_y, payload.m_end_z]);
             }
-            packetPoints.push([payload.m_end_x, payload.m_end_y, payload.m_end_z]);
-
             this.objectMap[guid].setMovingData(0, payload.m_move_time, packetPoints);
         }
     }
     startPlayingPackets() {
         this.serverTime = 0;
         this.clientTime = packetList[0].tickcount - 500;
+        this.lastPacketIndex = 0;
 
         this.playPackets = true;
     }

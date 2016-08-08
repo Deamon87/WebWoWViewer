@@ -57,6 +57,16 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 y: 0,
                 z: 0
             },
+            {
+                name: 'Attacked mob',
+                source: 'http',
+                sceneType: 'map',
+                mapId: 0,
+                mapName: 'test',
+                "x": -8966.7626953125,
+                "y": -78.48555755615234,
+                "z": 88.66773223876953,
+            },
             /*{
                 name: 'Azeroth mage tower',
                 source: 'http',
