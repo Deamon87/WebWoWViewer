@@ -76,7 +76,7 @@ class WorldObjectManager {
                                 var pointObj = update.points[i];
                                 vectorArray[i] = [pointObj.x, pointObj.y, pointObj.z];
                             }
-                            newWorldUnit.setMovingData(update.curr_time, update.total_time, vectorArray);
+                            newWorldUnit.setMovingData(update.curr_time, update.total_time, update.movementflag, vectorArray);
                         }
 
                         newWorldUnit.setCurrentTime(update.timestamp);
@@ -163,7 +163,7 @@ class WorldObjectManager {
                 }
                 packetPoints.push([payload.m_end_x, payload.m_end_y, payload.m_end_z]);
             }
-            this.objectMap[guid].setMovingData(0, payload.m_move_time, packetPoints);
+            this.objectMap[guid].setMovingData(0, payload.m_move_time, payload.m_move_flag, packetPoints);
         }
     }
     startPlayingPackets() {

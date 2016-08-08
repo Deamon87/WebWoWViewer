@@ -70,6 +70,8 @@ class WorldUnit extends WorldObject {
 
         this.currentTime = 0;
 
+        this.movementFlag = 0;
+
         /* Speed block */
         this.speedWalk = 0;
         this.speedRun = 0;
@@ -111,6 +113,16 @@ class WorldUnit extends WorldObject {
     }
     setSpeedTurnRate(value) {
         this.speedTurnRate = value; // rads per second?
+    }
+    getAnimationIdByMovementFlag(){
+        var animationId = 0;
+        if ((this.movementFlag & 0x100) > 0) {
+            animationId = 5;
+        } else {
+            animationId = 4;
+        }
+
+        return animationId;
     }
 
     createModelFromDisplayId(value){
@@ -275,6 +287,16 @@ class WorldUnit extends WorldObject {
                         vec3.scale(diff, diff, (currentPath - path1)/(path2 - path1));
                         var result = vec3.create();
                         vec3.add(result, value1, diff);
+
+                        //CalcF
+                        //vec3.scale(diff, diff, -1)
+                        vec3.normalize(diff, diff);
+                        if (diff[1] < 0) {
+                            this.setRotation(2 * Math.PI - Math.acos(diff[0]));
+                        } else {
+                            this.setRotation(Math.acos(diff[0]));
+                        }
+
                         break;
                     }
                 }
@@ -293,6 +315,10 @@ class WorldUnit extends WorldObject {
         if (this.mountModel && this.mountModel.m2Geom != null && this.mountModel.m2Geom.m2File != null &&
             objectModelIsLoaded
         ) {
+            if (this.isMoving) {
+                var animationId = this.getAnimationIdByMovementFlag()
+                this.mountModel.setAnimationId(animationId, false);
+            }
 
             /* Update placement matrix */
             this.mountModel.createPlacementMatrix(this.pos, this.f, properScale);
@@ -303,10 +329,14 @@ class WorldUnit extends WorldObject {
             if (this.mountModel.bonesMatrices) {
                 /* Update main model */
                 this.objectModel.createPlacementMatrixFromParent(this.mountModel, 0, properScale);
-                this.objectModel.setAnimationId(91);
+                this.objectModel.setAnimationId(91, false);
             }
             //this.objectModel.animation
-        } else {
+        } else if (objectModelIsLoaded){
+            if (this.isMoving) {
+                var animationId = this.getAnimationIdByMovementFlag()
+                this.objectModel.setAnimationId(animationId, false);
+            }
             this.objectModel.createPlacementMatrix(this.pos, this.f, properScale);
         }
 
@@ -344,7 +374,7 @@ class WorldUnit extends WorldObject {
 
         this.currentTime += deltaTime;
     }
-    setMovingData(currentMovingTime, totalMovingTime, points) {
+    setMovingData(currentMovingTime, totalMovingTime, movementFlag, points) {
         this.currentMovingTime = currentMovingTime;
         this.totalMovingTime = totalMovingTime;
         this.pointsArray = points;
@@ -364,7 +394,7 @@ class WorldUnit extends WorldObject {
             prevPoint = this.pointsArray[i];
         }
         this.pointsTotalPath = pointsTotalPath;
-
+        this.movementFlag = movementFlag;
 
         this.isMoving = true;
     }

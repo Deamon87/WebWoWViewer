@@ -26,7 +26,7 @@ export default class AnimationManager {
         }
     }
 
-    setAnimationId(animationId) {
+    setAnimationId(animationId, reset) {
         var m2File = this.m2File;
         var animationIndex = -1;
         if ((m2File.nAnimationLookup == 0) && (m2File.nAnimations > 0)) {
@@ -40,7 +40,7 @@ export default class AnimationManager {
         } else if (animationId < m2File.nAnimationLookup) {
             animationIndex = m2File.animationLookup[animationId];
         }
-        if (animationIndex > -1) {
+        if ((animationIndex > - 1)&& (reset || (animationIndex != this.mainAnimationIndex) )) {
             //Reset animation
             this.mainAnimationId = animationId;
             this.mainAnimationIndex = animationIndex;
