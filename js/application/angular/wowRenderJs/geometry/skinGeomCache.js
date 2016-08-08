@@ -6,6 +6,7 @@ class SkinGeom {
         this.gl = sceneApi.getGlContext();
 
         this.indexVBO = null;
+        this.fixedAlready = false;
     }
 
     assign(skinFile) {
@@ -171,6 +172,15 @@ class SkinGeom {
                     prevRenderFlagIndex = renderFlagIndex;
                 }
             }
+        }
+    }
+
+    fixData(m2File) {
+        if (!this.fixedAlready) {
+            this.fixShaderIdBasedOnBlendOverride(m2File);
+            this.fixShaderIdBasedOnLayer(m2File);
+
+            this.fixedAlready = true;
         }
     }
 

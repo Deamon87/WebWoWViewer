@@ -262,8 +262,9 @@ class WmoObject {
             lastWmoGroupInside = i;
 
             //3. Query bsp tree for leafs around the position of object(camera)
-            var cameraBBMin = vec3.fromValues(cameraLocal[0]-0.2, cameraLocal[1]-0.2, groupInfo.bb1.z);
-            var cameraBBMax = vec3.fromValues(cameraLocal[0]+0.2, cameraLocal[1]+0.2, groupInfo.bb2.z);
+            var epsilon = 0.4;
+            var cameraBBMin = vec3.fromValues(cameraLocal[0]-epsilon, cameraLocal[1]-epsilon, groupInfo.bb1.z-epsilon);
+            var cameraBBMax = vec3.fromValues(cameraLocal[0]+epsilon, cameraLocal[1]+epsilon, groupInfo.bb2.z+epsilon);
 
             var nodeId = 0;
             var nodes = this.wmoGroupArray[i].wmoGroupFile.nodes;
@@ -375,7 +376,7 @@ class WmoObject {
             cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
         );
 
-        var drawGroup = isInside || mathHelper.checkFrustum(frustumPlanes,bbArray, frustumPlanes.length);
+        var drawGroup = isInside || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length);
         return [drawDoodads, drawGroup];
     }
     checkFrustumCulling (cameraVec4, perspectiveMat, lookat, frustumPlanes) {

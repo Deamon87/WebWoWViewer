@@ -216,9 +216,10 @@ class M2Geom {
                 } else {
                     gl.uniform1i(uniforms.uUseDiffuseColor, 1)
                 }
-
-                if ((renderFlag.flags & 0x8) > 0) {
-                    //gl.uniform1i(uniforms.isBillboard, 1);
+                if ((renderFlag.flags & 0x2) > 0) {
+                    gl.uniform1i(uniforms.uUnFogged, 1)
+                } else {
+                    gl.uniform1i(uniforms.uUnFogged, 0)
                 }
 
                 if ((renderFlag.flags & 0x4) > 0) {
@@ -226,6 +227,11 @@ class M2Geom {
                 } else {
                     gl.enable(gl.CULL_FACE);
                 }
+
+                if ((renderFlag.flags & 0x8) > 0) {
+                    //gl.uniform1i(uniforms.isBillboard, 1);
+                }
+
 
                 if ((renderFlag.flags & 0x10) > 0) {
                     gl.depthMask(false);

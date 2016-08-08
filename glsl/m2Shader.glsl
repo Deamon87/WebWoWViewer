@@ -129,6 +129,7 @@ uniform lowp int isTransparent;
 
 uniform int uBlendMode;
 uniform int uPixelShader;
+uniform int uUnFogged;
 
 uniform vec4 uColor;
 uniform vec3 uFogColor;
@@ -156,9 +157,9 @@ void main() {
     vec4 tex2 = texture2D(uTexture2, texCoord2).rgba;
 
     vec4 meshColor = uColor;
-    if (uBlendMode == 6) {
+    /*if (uBlendMode == 6) {
        meshColor.rbg *= vec3(0.65);
-    }
+    }*/
 
     vec4 finalColor = vec4(0);
     //finalColor = vec4((tex.rgb * tex2.rgb), 1.0);
@@ -225,7 +226,7 @@ void main() {
     if(finalColor.a < uAlphaTest)
         discard;
 
-    if (isTransparent == 0) {
+    if (uUnFogged == 0) {
         vec3 fogColor = uFogColor;
         float fog_start = 1.0;
         float fog_end = 200.0;

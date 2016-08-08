@@ -1238,7 +1238,8 @@ class Scene {
         //this.camera.setCameraPos(x,y,z);
     }
     loadPackets() {
-        this.worldObjectManager.loadAllPacket();
+        //this.worldObjectManager.loadAllPacket();
+        this.worldObjectManager.startPlayingPackets();
     }
     copyFirstCameraToDebugCamera() {
         this.secondCamera = this.mainCamera

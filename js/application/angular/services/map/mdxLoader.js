@@ -296,7 +296,7 @@ const mdx_ver264 = {
             name : "textUnitLookup",
             offset: "ofsTexUnits",
             count : "nTexUnits",
-            type: "int16"
+            type: "uint16"
         },
         {
             name : "renderFlags",

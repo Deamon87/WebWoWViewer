@@ -521,13 +521,14 @@ export default class AnimationManager {
         var tranformMat = boneMatrices[boneIndex];
         tranformMat = mat4.identity(tranformMat);
 
-        if ((boneDefinition.flags & 0x278) == 0) {
-            this.bonesIsCalculated[boneIndex] = true;
-            return
-        }
         if (parentBone>=0) {
             this.calcBoneMatrix(boneMatrices, parentBone, animationIndex, time, cameraPosInLocal);
             mat4.multiply(tranformMat, tranformMat, boneMatrices[parentBone]);
+        }
+
+        if ((boneDefinition.flags & 0x278) == 0) {
+            this.bonesIsCalculated[boneIndex] = true;
+            return
         }
         var pivotPoint = vec4.fromValues(
             boneDefinition.pivot.x,

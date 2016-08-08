@@ -1,4 +1,7 @@
 import WorldObject from './worldObject.js'
+import {vec4, mat4, vec3, quat} from 'gl-matrix';
+
+
 const fHairGeoset = [1, 3, 2];
 
 const UNIT_MAINHAND_SLOT = 0;
@@ -65,10 +68,49 @@ class WorldUnit extends WorldObject {
 
         this.sceneApi = sceneApi;
 
+        this.currentTime = 0;
+
+        /* Speed block */
+        this.speedWalk = 0;
+        this.speedRun = 0;
+        this.speedRunBack = 0;
+        this.speedSwim = 0;
+        this.speedSwimBack = 0;
+        this.speedFly = 0;
+        this.speedFlyBack = 0;
+        this.speedTurnRate = 0;
+
+        this.isMoving = false;
+
+
         this.objectModel = null;
         this.mountModel = null;
         this.items = new Array(3);
         this.helmet = null;
+    }
+    setSpeedWalk(value){
+        this.speedWalk = value;
+    }
+    setSpeedRun(value) {
+        this.speedRun = value;
+    }
+    setSpeedRunBack(value) {
+        this.speedRunBack = value;
+    }
+    setSpeedSwim(value) {
+        this.speedSwim = value;
+    }
+    setSpeedSwimBack(value) {
+        this.speedSwimBack = value;
+    }
+    setSpeedFly(value) {
+        this.speedFly = value;
+    }
+    setSpeedFlyBack(value) {
+        this.speedFlyBack = value;
+    }
+    setSpeedTurnRate(value) {
+        this.speedTurnRate = value; // rads per second?
     }
 
     createModelFromDisplayId(value){
@@ -103,7 +145,7 @@ class WorldUnit extends WorldObject {
         for (var i = 0; i < 19; i++)
             meshIds[i] = 1;
 
-        meshIds[7] = -1;
+        meshIds[7] = 1; // ears
 
         if (displayInf.displayExtra > 0) {
             var displayExtraInfo = cdied[displayInf.displayExtra];
@@ -205,10 +247,41 @@ class WorldUnit extends WorldObject {
         return model
     }
 
-    update (deltaTime, cameraPos) {
+    update (deltaTime, cameraPos, debugServerTime) {
         var objectModelIsLoaded = this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File;
         var objectModelHasBones = objectModelIsLoaded && this.objectModel.bonesMatrices;
         /* 1. Calculate current position */
+        if (this.isMoving) {
+            if ((this.currentMovingTime + deltaTime) >= this.totalMovingTime) {
+                this.setPosition(this.pointsArray[this.pointsArray.length - 1]);
+                this.isMoving = false;
+            } else {
+                //Take the totalPath by last point
+                var totalPath = this.pointsTotalPath[this.pointsTotalPath.length - 1];
+                var currentPath = (totalPath / this.totalMovingTime) * (this.currentMovingTime + deltaTime);
+                var pointIndex = 0;
+                var result = this.pointsTotalPath[0]
+
+                for (var i = 1; i < this.pointsArray.length; i++) {
+                    if (currentPath > this.pointsTotalPath[i]) {
+                        var value1 = this.pointsArray[i - 1];
+                        var value2 = this.pointsArray[i];
+
+                        var path1 = this.pointsTotalPath[i - 1];
+                        var path2 = this.pointsTotalPath[i];
+
+                        var diff = vec4.create();
+                        vec4.subtract(diff, value2, value1);
+                        vec4.scale(diff, diff, (currentPath - path1)/(path2 - path1));
+                        var result = vec3.create();
+                        vec3.add(result, value1, diff);
+                    }
+                }
+
+                this.setPosition(result);
+            }
+            this.currentMovingTime += deltaTime;
+        }
 
         /* 2. Update position for all models */
         var properScale = this.displayIDScale;
@@ -267,8 +340,37 @@ class WorldUnit extends WorldObject {
                 }
             }
         }
+
+        this.currentTime += deltaTime;
+    }
+    setMovingData(currentMovingTime, totalMovingTime, points) {
+        this.currentMovingTime = currentMovingTime;
+        this.totalMovingTime = totalMovingTime;
+        this.pointsArray = points;
+
+        //Calculate total path for points
+        var totalPath = 0;
+        var pointsTotalPath = new Array(this.pointsArray.length);
+        var prevPoint = this.pointsArray[0];
+        for (var i = 0; i < this.pointsArray.length; i++) {
+            var deltaX = prevPoint[0] - this.pointsArray[i][0];
+            var deltaY = prevPoint[1] - this.pointsArray[i][1];
+            var deltaZ = prevPoint[2] - this.pointsArray[i][2];
+
+            totalPath += Math.sqrt(deltaX*deltaX + deltaY*deltaY + deltaZ * deltaZ);
+            pointsTotalPath[i] = totalPath;
+
+            prevPoint = this.pointsArray[i];
+        }
+        this.pointsTotalPath = pointsTotalPath;
+
+
+        this.isMoving = true;
     }
 
+    setCurrentTime(value){
+        this.currentTime = value;
+    }
     setVirtualItemSlot(slot, displayId) {
         var idid = this.sceneApi.dbc.getItemDisplayInfoDBC();
 

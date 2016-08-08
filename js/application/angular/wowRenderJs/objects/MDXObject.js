@@ -77,8 +77,7 @@ class MDXObject {
             self.m2Geom = m2Geom;
             self.skinGeom = skinGeom;
 
-            skinGeom.fixShaderIdBasedOnBlendOverride(m2Geom.m2File);
-            skinGeom.fixShaderIdBasedOnLayer(m2Geom.m2File);
+            skinGeom.fixData(m2Geom.m2File);
 
             if (!m2Geom) {
                 $log.log("m2 file failed to load : "+ modelName);
