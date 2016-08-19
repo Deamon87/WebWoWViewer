@@ -5,8 +5,8 @@ import {mat4, vec4, vec3, glMatrix} from 'gl-matrix';
 
 
 class AdtM2Object extends MDXObject {
-    constructor(sceneApi){
-        super(sceneApi);
+    constructor(sceneApi, localBB){
+        super(sceneApi, localBB);
 
         var self = this;
         self.sceneApi = sceneApi;
@@ -67,25 +67,16 @@ class AdtM2Object extends MDXObject {
         this.setIsRendered(this.getIsRendered() && inFrustum);
     }
     checkFrustumCulling (cameraVec4, frustumPlanes, num_planes) {
-        var inFrustum = this.aabb && super.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb, num_planes);
+        if (!this.loaded) {
+            return true;
+        }
+        var inFrustum = super.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
         return inFrustum;
     }
     checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, getDepth) {
         this.setIsRendered(this.getIsRendered() && super.checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, this.placementMatrix, getDepth));
     }
     update (deltaTime, cameraPos) {
-        if (!this.aabb) {
-            var bb = super.getBoundingBox();
-            if (bb) {
-                var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
-                var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
-
-                var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [a_ab, a_cd]);
-
-                this.diameter = vec3.distance(worldAABB[0],worldAABB[1]);
-                this.aabb = worldAABB;
-            }
-        }
         if (!this.getIsRendered()) return;
         super.update(deltaTime, cameraPos, this.placementInvertMatrix);
     }
@@ -155,8 +146,10 @@ class AdtM2Object extends MDXObject {
         self.diffuseColor = new Float32Array([1,1,1,1]);
 
         self.createPlacementMatrix(mddf);
+        self.createAABB();
         self.calcOwnPosition();
-        return super.load(mddf.fileName, 0);
+
+        return super.setLoadParams(mddf.fileName, 0);
     }
 }
 
