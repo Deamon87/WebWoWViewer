@@ -6,6 +6,7 @@ import $q from 'q';
 var messageId = 0;
 var messageTable = {};
 var worker = new FileWorker();
+
 worker.onmessage = function(e) {
     //debugger;
 
@@ -19,7 +20,7 @@ worker.onmessage = function(e) {
         var fileName = messageTable[recv_messageId].fileName;
 
         if (message) {
-            defer.resolve(message.buffer);
+            defer.onResolve(message);
         } else {
             //$log.info("Could not load file = " + fileName);
         }
@@ -39,12 +40,17 @@ export default function (fileName) {
         inited = true;
     }
 
-
-    var defer = $q.defer();
+    var defer = {};
+    var promise = new Promise(function(resolve, reject) {
+        defer.onResolve = function (value) {
+            "use strict";
+            resolve(value)
+        }
+    });
     worker.postMessage({opcode: 'loadFile', messageId: messageId, message: fileName});
     messageTable[messageId] = {defer: defer, fileName : fileName};
     messageId++;
 
-    return defer.promise;
+    return promise;
 }
 

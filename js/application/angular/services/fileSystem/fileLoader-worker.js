@@ -35,7 +35,7 @@ self.addEventListener('message', function(e) {
             promise.then(function success(a){
                 //console.log("Worker sent file = "+a);
                 //debugger;
-                self.postMessage({ opcode: 'fileLoaded', messageId: messageId, message: a}, [a.buffer]);
+                self.postMessage({ opcode: 'fileLoaded', messageId: messageId, message: a.buffer}, [a.buffer]);
             }, function error() {
                 //debugger;
             })

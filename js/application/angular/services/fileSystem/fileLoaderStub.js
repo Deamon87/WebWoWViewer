@@ -65,7 +65,18 @@ export default function (configService, $q) {
     var initDefers = [];
 
     function initZipEntries() {
-        var defer = $q.pending();
+        var defer = {};
+        defer.promise = new Promise(function(resolve, reject) {
+            defer.onResolve = function (value) {
+                "use strict";
+                resolve(value)
+            }
+            defer.onReject = function (value) {
+                "use strict";
+                resolve(value)
+            }
+        });
+
         initDefers.push(defer);
 
         var zipFile = configService.getArchiveFile();
@@ -88,7 +99,7 @@ export default function (configService, $q) {
                     //2. Return map
                     var len = initDefers.length;
                     for (var i = 0; i < len; i++) {
-                        initDefers[i].resolve(map);
+                        initDefers[i].onResolve(map);
                     }
                     initDefers = [];
                 });
@@ -96,7 +107,7 @@ export default function (configService, $q) {
                 // onerror callback
                 var len = initDefers.length;
                 for (var i = 0; i < len; i++) {
-                    initDefers[i].reject(error);
+                    initDefers[i].onReject(error);
                 }
                 initDefers = [];
             });
@@ -106,7 +117,18 @@ export default function (configService, $q) {
     }
 
     function readZipFile(fileName) {
-        var defer = $q.defer();
+        var defer = {};
+        defer.promise = new Promise(function(resolve, reject) {
+            defer.onResolve = function (value) {
+                "use strict";
+                resolve(value)
+            }
+            defer.onReject = function (value) {
+                "use strict";
+                resolve(value)
+            }
+        });
+
         fileName = fileName.replace(/\u0000/g, '');
         fileName = fileName.toLowerCase();
         fileName = fileName.replace(/\\/g, "/").toLowerCase()
@@ -128,10 +150,10 @@ export default function (configService, $q) {
 
         if (result) {
             result.getData(new ArrayBufferWriterSync(), function (data) {
-                defer.resolve(data);
+                defer.onResolve(data);
             });
         } else {
-            defer.reject(null);
+            defer.onReject(null);
         }
 
         return defer.promise;
