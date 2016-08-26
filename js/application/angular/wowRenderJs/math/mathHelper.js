@@ -1,4 +1,4 @@
-import {vec4, vec3} from 'gl-matrix';
+import {vec4, vec3, mat4} from 'gl-matrix';
 
 class MathHelper {
     static getFrustumClipsFromMatrix(mat) {
@@ -43,10 +43,10 @@ class MathHelper {
         return planes;
     }
     static fixNearPlane(planes, camera) {
-        var nearPlane = planes[5];
-        var cameraVec4 = vec4.fromValues(camera[0], camera[1],camera[2],1);
-        var dist = vec4.dot(nearPlane, cameraVec4);
-        nearPlane[3] -= dist;
+        //var nearPlane = planes[5];
+        //var cameraVec4 = vec4.fromValues(camera[0], camera[1],camera[2],1);
+        //var dist = vec4.dot(nearPlane, cameraVec4);
+        //nearPlane[3] -= dist;
     }
     static sortVec3ArrayAgainstPlane(thisPortalVertices, plane) {
         var center = vec3.fromValues(0, 0, 0);
@@ -250,7 +250,7 @@ class MathHelper {
         var u = 1.0 - v - w;
         return vec3.fromValues(u, v, w)
     }
-    static checkFrustum (planes, box, num_planes) {
+    static checkFrustum (planes, box, num_planes, points) {
       // check box outside/inside of frustum
         for(var i=0; i< num_planes; i++ )
         {
@@ -267,16 +267,43 @@ class MathHelper {
         }
 
         // check frustum outside/inside box
-        /*
-        out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].x > box.mMaxX)?1:0); if( out==8 ) return false;
-        out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].x < box.mMinX)?1:0); if( out==8 ) return false;
-        out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].y > box.mMaxY)?1:0); if( out==8 ) return false;
-        out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].y < box.mMinY)?1:0); if( out==8 ) return false;
-        out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].z > box.mMaxZ)?1:0); if( out==8 ) return false;
-        out=0; for(var i=0; i<8; i++ ) out += ((fru.mPoints[i].z < box.mMinZ)?1:0); if( out==8 ) return false;
-*/
+        if (points) {
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][0] > box[1][0]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][0] < box[0][0]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][1] > box[1][1]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][1] < box[0][1]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][2] > box[1][2]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][2] < box[0][2]) ? 1 : 0); if (out == 8) return false;
+        }
 
         return true;
+    }
+    static getFrustumPoints(perspectiveMatrix, viewMatrix){
+        const frustumPoints =
+            [
+                [-1, -1, -1], //0
+                [1, -1, -1],  //1
+                [1, -1, 1],   //2
+                [-1, -1, 1],  //3
+                [-1, 1, 1],   //4
+                [1, 1, 1],    //5
+                [1, 1, -1],   //6
+                [-1, 1, -1]   //7
+            ];
+
+
+        var inverseMat = mat4.create();
+        mat4.multiply(inverseMat, perspectiveMatrix, viewMatrix);
+        mat4.invert(inverseMat, inverseMat);
+
+        var points = [];
+        for (var i = 0; i < 8; i++) {
+            points[i] = vec4.fromValues(frustumPoints[i][0], frustumPoints[i][1], frustumPoints[i][2], 1);
+            vec4.transformMat4(points[i], points[i], inverseMat);
+            vec4.scale(points[i], points[i], 1/points[i][3])
+        }
+
+        return points;
     }
     static transformAABBWithMat4 (mat4,aabb) {
         //Adapted from http://dev.theomader.com/transform-bounding-boxes/

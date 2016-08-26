@@ -1,8 +1,8 @@
 import WorldUnit from '../objects/worldObjects/worldUnit.js'
 import WorldGameObject from '../objects/worldObjects/worldGameObject.js'
 //import packetList from '../../../mountedNpc.json'
-//import packetList from '../../../packet.json'
-import packetList from '../../../attacketdMinion1.json'
+import packetList from '../../../packet.json'
+//import packetList from '../../../attacketdMinion1.json'
 import {vec3} from 'gl-matrix'
 
 class WorldObjectManager {
@@ -134,6 +134,7 @@ class WorldObjectManager {
 
             var packetPoints = [];
             packetPoints.push([payload.m_x, payload.m_y, payload.m_z]);
+            var moveTime = payload.m_move_time;
             if (payload.m_stop_flag != 1) {
                 if ((payload.m_move_flag & 0x200) == 0) {
                     //packed
@@ -162,8 +163,10 @@ class WorldObjectManager {
                     }
                 }
                 packetPoints.push([payload.m_end_x, payload.m_end_y, payload.m_end_z]);
+            } else {
+
             }
-            this.objectMap[guid].setMovingData(0, payload.m_move_time, payload.m_move_flag, packetPoints);
+            this.objectMap[guid].setMovingData(0, moveTime, payload.m_move_flag, packetPoints);
         }
     }
     startPlayingPackets() {

@@ -67,7 +67,7 @@ export default class PortalCullingAlgo {
         wmoObject.exteriorPortals = this.exteriorPortals;
         wmoObject.interiorPortals = this.interiorPortals;
     }
-    startTraversingFromExterior(wmoObject, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
+    startTraversingFromExterior(wmoObject, cameraVec4, perspectiveMat, lookat, frustumPlanes, points) {
         var cameraLocal = vec4.create();
         vec4.transformMat4(cameraLocal, cameraVec4, wmoObject.placementInvertMatrix);
 
@@ -89,7 +89,7 @@ export default class PortalCullingAlgo {
 
         for (var i = 0; i< wmoObject.wmoGroupArray.length; i++) {
             if ((wmoObject.wmoObj.groupInfos[i].flags & 0x8) > 0) { //exterior
-                if (wmoObject.checkGroupFrustum(cameraVec4, i, frustumPlanes)[1]) {
+                if (wmoObject.checkGroupFrustum(cameraVec4, i, frustumPlanes, points)[1]) {
                     this.exteriorPortals.push({groupId: i, portalIndex : -1, frustumPlanes: [frustumPlanes], level : 0});
                     this.transverseGroupWMO(wmoObject, i, false, cameraVec4, cameraLocal, perspectiveMat, lookat, [frustumPlanes], 0)
                 }
@@ -123,7 +123,8 @@ export default class PortalCullingAlgo {
         }
         for (var i = 0; i < this.exteriorPortals.length; i++) {
             var portalInfo = this.exteriorPortals[i];
-            this.setVisibleGrouoDoodads(wmoObject, portalInfo.groupId);
+            //this.setVisibleGroupDoodads(wmoObject, portalInfo.groupId);
+            this.checkGroupDoodads(wmoObject, portalInfo.groupId, cameraVec4, portalInfo.frustumPlanes, portalInfo.level);
         }
 
         for (var i = 0; i< traverseDoodadsVis.length; i++) {
@@ -132,7 +133,7 @@ export default class PortalCullingAlgo {
 
 
     }
-    setVisibleGrouoDoodads(wmoObject, groupId){
+    setVisibleGroupDoodads(wmoObject, groupId){
         if (wmoObject.wmoGroupArray[groupId]) {
             var doodadRefs = wmoObject.wmoGroupArray[groupId].wmoGroupFile.doodadRefs;
             var doodadsSet = wmoObject.currentDoodadSet;

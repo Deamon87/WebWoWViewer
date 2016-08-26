@@ -37,6 +37,10 @@ class MDXObject {
         this.hasBillboarded = false;
         this.rightHandClosed = false;
         this.leftHandClosed = false;
+        this.localBB = null;
+
+        this.loaded = false;
+        this.loading = false;
     }
 
     getFileNameIdent(){
@@ -55,8 +59,24 @@ class MDXObject {
         this.animationManager.setRightHandClosed(value);
     }
 
-    load (modelName, skinNum, meshIds,replaceTextures){
-        var self = this;
+    createAABB(){
+        var bb = this.getBoundingBox();
+        if (bb) {
+            var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
+            var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
+
+            var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [a_ab, a_cd]);
+
+            this.diameter = vec3.distance(worldAABB[0],worldAABB[1]);
+            this.aabb = worldAABB;
+        }
+    }
+
+    setLoadParams (modelName, skinNum, meshIds, replaceTextures) {
+        this.modelName = modelName;
+        this.skinNum = skinNum;
+        this.meshIds = meshIds;
+        this.replaceTextures = replaceTextures;
 
         var nameTemplate = modelName.split('.')[0];
         var modelFileName = nameTemplate + '.m2';
@@ -64,11 +84,19 @@ class MDXObject {
         modelFileName = modelFileName.toLowerCase();
         skinFileName = skinFileName.toLowerCase();
 
-        var m2Promise = this.sceneApi.resources.loadM2Geom(modelFileName);
-        var skinPromise = this.sceneApi.resources.loadSkinGeom(skinFileName);
-
         this.fileIdent = modelFileName + " " +skinFileName;
         this.fileIdent = this.fileIdent.replace(/\0/g, '');
+    }
+
+    load() {
+        var self = this;
+
+        var nameTemplate = this.modelName.split('.')[0];
+        var modelFileName = nameTemplate + '.m2';
+        var skinFileName = nameTemplate + '00.skin';
+
+        var m2Promise = this.sceneApi.resources.loadM2Geom(modelFileName);
+        var skinPromise = this.sceneApi.resources.loadSkinGeom(skinFileName);
 
         return $q.all([m2Promise,skinPromise]).then(function(result){
             var m2Geom = result[0];
@@ -86,16 +114,26 @@ class MDXObject {
                 m2Geom.createVAO(skinGeom);
                 self.hasBillboarded = self.checkIfHasBillboarded();
 
-                self.makeTextureArray(meshIds, replaceTextures)
+                self.makeTextureArray(self.meshIds, self.replaceTextures);
+                self.updateLocalBB( [self.m2Geom.m2File.BoundingCorner1, self.m2Geom.m2File.BoundingCorner2]);
+
+                self.createAABB();
 
                 self.initAnimationManager(m2Geom.m2File);
                 self.initBoneAnimMatrices();
                 self.initSubmeshColors();
                 self.initTextureAnimMatrices();
                 self.initTransparencies();
+
+                self.postLoad();
+                self.loaded = true;
             }
+
             return true;
         });
+    }
+    postLoad(){
+
     }
     getShaderNames(m2Batch){
         function getTabledShaderNames(shaderId, op_count, tex_unit_number2){
@@ -387,7 +425,9 @@ class MDXObject {
        }
 
     }
-    checkFrustumCulling (cameraVec4, frustumPlanes, aabb, num_planes) {
+    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes) {
+        var aabb = this.aabb;
+
         //1. Check if camera position is inside Bounding Box
         if (
             cameraVec4[0] > aabb[0][0] && cameraVec4[0] < aabb[1][0] &&
@@ -456,16 +496,17 @@ class MDXObject {
         return transparency;
     }
 
+    updateLocalBB(localBB) {
+        this.localBB = localBB
+    }
     getBoundingBox () {
-        if (!this.m2Geom) return null;
-
         return {
-            ab : this.m2Geom.m2File.BoundingCorner1,
-            cd : this.m2Geom.m2File.BoundingCorner2
+            ab: this.localBB[0],
+            cd: this.localBB[1]
         }
     }
     update (deltaTime, cameraPos, invPlacementMat) {
-        if (!this.m2Geom) return;
+        if (!this.loaded) return;
         //if (!this.materialArray) return;
 
         /* 1. Calc local camera */
@@ -617,7 +658,13 @@ class MDXObject {
     }
 
     draw(drawTransparent, placementMatrix, diffuseColor) {
-        if (!this.m2Geom || !this.skinGeom) return;
+        if (!this.loaded) {
+            if (!this.loading) {
+                this.loading = true;
+                MDXObject.prototype.load.apply(this);
+            }
+            return;
+        }
 
         var vaoBinded = this.m2Geom.bindVao();
         if (!vaoBinded) {

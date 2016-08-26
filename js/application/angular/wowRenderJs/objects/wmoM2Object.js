@@ -1,4 +1,4 @@
-import MDXObject from './MDXObject.js';
+import MDXObject from './M2Object.js';
 import config from './../../services/config.js'
 import mathHelper from './../math/mathHelper.js';
 import {mat4, vec4, vec3} from 'gl-matrix';
@@ -12,8 +12,12 @@ class WmoM2Object extends MDXObject {
         self.currentDistance = 0;
         self.isRendered = true;
         self.useLocalLighting = true;
+        self.wmoObject = null;
     }
 
+    setWmoObject(value) {
+        this.wmoObject = value;
+    }
     getDiffuseColor() {
         return (this.useLocalLighting) ? this.diffuseColor : new Float32Array([1,1,1,1])
     }
@@ -23,23 +27,14 @@ class WmoM2Object extends MDXObject {
         this.setIsRendered(this.getIsRendered() && inFrustum);
     }
     checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, fromPortal) {
-        var inFrustum = this.aabb && super.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb, num_planes);
+        if (!this.loaded) {
+            return true;
+        }
+        var inFrustum = super.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
         return inFrustum;
     }
     checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, getDepth) {
         this.setIsRendered(this.getIsRendered() && super.checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, this.placementMatrix, getDepth));
-    }
-    updateAABB (){
-        var bb = super.getBoundingBox();
-        if (bb) {
-            var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
-            var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
-
-            var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [a_ab, a_cd]);
-
-            this.diameter = vec3.distance(worldAABB[0], worldAABB[1]);
-            this.aabb = worldAABB;
-        }
     }
     update(deltaTime, cameraPos) {
         if (!this.getIsRendered()) return;
@@ -128,7 +123,7 @@ class WmoM2Object extends MDXObject {
             return Math.sqrt(dx*dx + dy*dy + dz*dz);
         }
 
-        if (this.aabb) {
+        if (this.loaded) {
             this.currentDistance = distance(this.aabb, position);
         }
     }
@@ -164,9 +159,10 @@ class WmoM2Object extends MDXObject {
         self.createPlacementMatrix(doodad, wmoPlacementMatrix);
         self.calcOwnPosition();
 
-        return super.load(doodad.modelName, 0).then(function success(){
-            self.updateAABB();
-        }, function error(){});
+        return super.setLoadParams(doodad.modelName, 0);
+    }
+    postLoad() {
+        this.wmoObject.needUpdateWorldGroupBB()
     }
 }
 
