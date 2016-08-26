@@ -1109,18 +1109,18 @@ class Scene {
         mat4.lookAt(secondLookAtMat, this.secondCamera, this.secondCameraLookAt, [0,0,1]);
 
         var perspectiveMatrix = mat4.create();
-        mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1000);
+        mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 300);
         //var o_height = (this.canvas.height * (533.333/256/* zoom 7 in Alram viewer */))/ 2 ;
         //var o_width = o_height * this.canvas.width / this.canvas.height;
         //mat4.ortho(perspectiveMatrix, -o_width, o_width, -o_height, o_height, 1, 1000);
 
 
         var perspectiveMatrixForCulling = mat4.create();
-        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, 1, 1000);
+        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, 1, 300);
 
         //Camera for rendering
         var perspectiveMatrixForCameraRender = mat4.create();
-        mat4.perspective(perspectiveMatrixForCameraRender, 45.0, this.canvas.width / this.canvas.height, 1, 200);
+        mat4.perspective(perspectiveMatrixForCameraRender, 45.0, this.canvas.width / this.canvas.height, 1, 300);
 
         var viewCameraForRender = mat4.create();
         mat4.multiply(viewCameraForRender, perspectiveMatrixForCameraRender,lookAtMat4)

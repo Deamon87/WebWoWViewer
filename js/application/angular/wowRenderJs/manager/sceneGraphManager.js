@@ -1,9 +1,9 @@
 
 import adtObjectFactory from './../objects/adtObject.js';
 import adtM2ObjectFactory from './../objects/adtM2Object.js';
-import wmoM2ObjectFactory from './../objects/wmoM2ObjectFactory.js';
-import WorldMDXObject from './../objects/worldMDXObject.js';
-import wmoObjectFactory from './../objects/wmoObjectFactory.js';
+import wmoM2ObjectFactory from '../objects/wmoM2Object.js';
+import WorldMDXObject from '../objects/worldM2Object.js';
+import wmoObjectFactory from '../objects/wmoObject.js';
 
 import InstanceManager from './instanceManager.js';
 
@@ -23,6 +23,7 @@ class GraphManager {
         this.instanceList = [];
         this.wmoObjects = [];
         this.adtObjects = [];
+        this.m2RenderedThisFrame = []
         this.skyDom = null;
 
         this.currentTime = 0;
@@ -47,7 +48,7 @@ class GraphManager {
     }
     addWorldMDXObject(modelName, meshIds,replaceTextures) {
         var worldMdxObject = new WorldMDXObject(this.sceneApi);
-        worldMdxObject.load(modelName, 0, meshIds,replaceTextures);
+        worldMdxObject.setLoadParams(modelName, 0, meshIds,replaceTextures);
         worldMdxObject.sceneNumber = this.globalM2Counter++;
         this.m2Objects.push(worldMdxObject);
         return worldMdxObject;
@@ -59,10 +60,7 @@ class GraphManager {
         wmoM2Object.sceneNumber = this.globalM2Counter++;
         this.m2Objects.push(wmoM2Object);
 
-        return promise.then(function success() {
-            return wmoM2Object;
-        }, function error() {
-        });
+        return wmoM2Object;
     }
     addWmoObject(wmoDef) {
         var wmoObject = new wmoObjectFactory(this.sceneApi);
@@ -150,13 +148,15 @@ class GraphManager {
         var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
         mathHelper.fixNearPlane(frustumPlanes, this.position);
 
+        var points = mathHelper.getFrustumPoints(frustumMat, lookAtMat4);
+
         /* 1. First check wmo's */
         /* Checking group wmo will significatly decrease the amount of m2wmo */
         for (var i = 0; i < this.wmoObjects.length; i++) {
             if (config.getUsePortalCulling() && this.wmoObjects[i].hasPortals()) {
                 if (this.currentInteriorGroup >= 0 && this.currentWMO == this.wmoObjects[i]) continue;
 
-                this.portalCullingAlgo.startTraversingFromExterior(this.wmoObjects[i], this.position, frustumMat, lookAtMat4, frustumPlanes);
+                this.portalCullingAlgo.startTraversingFromExterior(this.wmoObjects[i], this.position, frustumMat, lookAtMat4, frustumPlanes, points);
                 this.portalCullingAlgo.checkAllDoodads(this.wmoObjects[i], this.position);
                 //this.wmoObjects[i].setIsRenderedForDoodads();
             } else {
@@ -168,12 +168,12 @@ class GraphManager {
 
 
         /* 3. Additionally check if distance to object is more than 100 time of it's diameter */
-        for (var j = 0; j < this.m2Objects.length; j++) {
+        /*for (var j = 0; j < this.m2Objects.length; j++) {
             var currentObj = this.m2Objects[j];
-            if (currentObj.getIsRendered()) {
+            if (currentObj.loaded && currentObj.getIsRendered()) {
                 currentObj.setIsRendered(currentObj.getDiameter() * 100 > currentObj.getCurrentDistance());
             }
-        }
+        }*/
 
         /* 2. If m2Object is renderable after prev phase - check it against frustrum */
         for (var j = 0; j < this.m2Objects.length; j++) {
@@ -215,10 +215,15 @@ class GraphManager {
         }
 
         //3. Sort m2 by distance every 500 ms
-        if (this.currentTime + deltaTime - this.lastTimeSort > 500) {
-            this.m2Objects.sort(this.sortM2);
+
+
+        //if (this.currentTime + deltaTime - this.lastTimeSort > 500) {
+            var m2RenderedThisFrame = this.m2Objects.filter((a) => (a.loaded && a.getIsRendered()));
+            m2RenderedThisFrame.sort(this.sortM2);
+            this.m2RenderedThisFrame = m2RenderedThisFrame;
+
             this.lastTimeSort = this.currentTime;
-        }
+        //}
 
         //4. Collect m2 into instances every 400 ms
 
@@ -341,12 +346,10 @@ class GraphManager {
         if (config.getRenderM2()) {
             var lastWasDrawInstanced = false;
             this.sceneApi.shaders.activateM2Shader();
-            for (var i = 0; i < this.m2Objects.length; i++) {
-                var m2Object = this.m2Objects[i];
+            for (var i = 0; i < this.m2RenderedThisFrame.length; i++) {
+                var m2Object = this.m2RenderedThisFrame[i];
                 if (this.m2OpaqueRenderedThisFrame[m2Object.sceneNumber]) continue;
-
                 if (!m2Object.getIsRendered()) continue;
-                if (!m2Object.aabb) continue;
 
                 if (m2Object.instanceManager) {
                     if (!lastWasDrawInstanced) {
@@ -380,9 +383,7 @@ class GraphManager {
             for (var i = 0; i < this.m2Objects.length; i++) {
                 var m2Object = this.m2Objects[i];
                 if (this.m2TranspRenderedThisFrame[m2Object.sceneNumber]) continue;
-
                 if (!m2Object.getIsRendered()) continue;
-                if (!m2Object.aabb) continue;
 
                 if (m2Object.instanceManager) {
                     if (!lastWasDrawInstanced) {

@@ -316,8 +316,10 @@ class WorldUnit extends WorldObject {
             objectModelIsLoaded
         ) {
             if (this.isMoving) {
-                var animationId = this.getAnimationIdByMovementFlag()
+                var animationId = this.getAnimationIdByMovementFlag();
                 this.mountModel.setAnimationId(animationId, false);
+            } else {
+                this.mountModel.setAnimationId(0); //Stand(0) animation
             }
 
             /* Update placement matrix */

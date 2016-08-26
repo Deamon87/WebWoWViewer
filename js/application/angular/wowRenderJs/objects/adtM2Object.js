@@ -1,4 +1,4 @@
-import MDXObject from './MDXObject.js';
+import MDXObject from './M2Object.js';
 import mathHelper from './../math/mathHelper.js';
 
 import {mat4, vec4, vec3, glMatrix} from 'gl-matrix';
@@ -121,7 +121,7 @@ class AdtM2Object extends MDXObject {
             return Math.sqrt(dx*dx + dy*dy + dz*dz);
         }
 
-        if (this.aabb) {
+        if (this.loaded) {
             this.currentDistance = distance(this.aabb, position);
         }
     }
@@ -146,7 +146,6 @@ class AdtM2Object extends MDXObject {
         self.diffuseColor = new Float32Array([1,1,1,1]);
 
         self.createPlacementMatrix(mddf);
-        self.createAABB();
         self.calcOwnPosition();
 
         return super.setLoadParams(mddf.fileName, 0);

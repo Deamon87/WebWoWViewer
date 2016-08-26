@@ -1,4 +1,4 @@
-import MDXObject from './MDXObject.js';
+import MDXObject from './M2Object.js';
 import config from './../../services/config.js'
 import mathHelper from './../math/mathHelper.js';
 import {mat4, vec4, vec3} from 'gl-matrix';
@@ -12,8 +12,12 @@ class WmoM2Object extends MDXObject {
         self.currentDistance = 0;
         self.isRendered = true;
         self.useLocalLighting = true;
+        self.wmoObject = null;
     }
 
+    setWmoObject(value) {
+        this.wmoObject = value;
+    }
     getDiffuseColor() {
         return (this.useLocalLighting) ? this.diffuseColor : new Float32Array([1,1,1,1])
     }
@@ -26,7 +30,7 @@ class WmoM2Object extends MDXObject {
         if (!this.loaded) {
             return true;
         }
-        var inFrustum = super.checkFrustumCulling(cameraVec4, frustumPlanes, this.aabb, num_planes);
+        var inFrustum = super.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
         return inFrustum;
     }
     checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, getDepth) {
@@ -119,7 +123,7 @@ class WmoM2Object extends MDXObject {
             return Math.sqrt(dx*dx + dy*dy + dz*dz);
         }
 
-        if (this.aabb) {
+        if (this.loaded) {
             this.currentDistance = distance(this.aabb, position);
         }
     }
@@ -153,11 +157,12 @@ class WmoM2Object extends MDXObject {
 
 
         self.createPlacementMatrix(doodad, wmoPlacementMatrix);
-        self.updateLocalBB();
-
         self.calcOwnPosition();
 
-        return super.load(doodad.modelName, 0);
+        return super.setLoadParams(doodad.modelName, 0);
+    }
+    postLoad() {
+        this.wmoObject.needUpdateWorldGroupBB()
     }
 }
 

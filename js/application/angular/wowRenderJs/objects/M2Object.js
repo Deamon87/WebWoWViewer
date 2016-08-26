@@ -37,7 +37,7 @@ class MDXObject {
         this.hasBillboarded = false;
         this.rightHandClosed = false;
         this.leftHandClosed = false;
-        this.localBB = localBB;
+        this.localBB = null;
 
         this.loaded = false;
         this.loading = false;
@@ -124,11 +124,16 @@ class MDXObject {
                 self.initSubmeshColors();
                 self.initTextureAnimMatrices();
                 self.initTransparencies();
-                this.loaded = true;
+
+                self.postLoad();
+                self.loaded = true;
             }
 
             return true;
         });
+    }
+    postLoad(){
+
     }
     getShaderNames(m2Batch){
         function getTabledShaderNames(shaderId, op_count, tex_unit_number2){
@@ -656,7 +661,7 @@ class MDXObject {
         if (!this.loaded) {
             if (!this.loading) {
                 this.loading = true;
-                this.load();
+                MDXObject.prototype.load.apply(this);
             }
             return;
         }

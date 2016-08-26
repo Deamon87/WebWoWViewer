@@ -358,7 +358,7 @@ class WmoObject {
         }
     }
 
-    checkGroupFrustum(cameraVec4, groupId, frustumPlanes) {
+    checkGroupFrustum(cameraVec4, groupId, frustumPlanes, points) {
         var bbArray = this.worldGroupBorders[groupId];
 
         var isInside = (
@@ -367,7 +367,7 @@ class WmoObject {
             cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
         );
 
-        var drawDoodads = isInside || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length);
+        var drawDoodads = isInside || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length, points);
 
         var bbArray = this.volumeWorldGroupBorders[groupId];
         var isInside = (
@@ -376,7 +376,7 @@ class WmoObject {
             cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
         );
 
-        var drawGroup = isInside || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length);
+        var drawGroup = isInside || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length, points);
         return [drawDoodads, drawGroup];
     }
     checkFrustumCulling (cameraVec4, perspectiveMat, lookat, frustumPlanes) {
@@ -404,7 +404,16 @@ class WmoObject {
      */
 
     update () {
+        if (this.updateWorldGroupBB) {
+            /* Update group WMO AABB when all m2 and group WMO are loaded */
+            //credits to schlumpf for idea
+            this.updateWorldGroupBBWithM2();
+            this.updateWorldGroupBB = false;
+        }
+    }
 
+    needUpdateWorldGroupBB() {
+        this.updateWorldGroupBB = true;
     }
 
     /*
@@ -434,26 +443,20 @@ class WmoObject {
         var doodadsSet = self.wmoObj.mods[doodadsInd];
         var doodadDefArray = self.wmoObj.modd;
 
-        var doodadsPromiseArray =  new Array(doodadsSet.number);
         this.doodadsArray =  new Array(doodadsSet.number);
         for (var i = 0; i < doodadsSet.number; i++) {
             //for (var i = 0; i < (doodadsSet.doodads.length > 10) ? 10 : doodadsSet.doodads.length; i++) {
             var doodad = doodadDefArray[doodadsSet.index + i];
-            doodadsPromiseArray[i] = this.loadDoodad(i, doodad);
+            this.doodadsArray[i] = this.loadDoodad(i, doodad);
         }
-
-        return $q.all(doodadsPromiseArray).then(function success(arrayOfDoodads){
-            for (var i = 0; i < self.doodadsArray.length; i++){
-                self.doodadsArray[i] = arrayOfDoodads[i];
-            }
-        },function error(){});
     }
     loadDoodad (index, doodad) {
         var self = this;
 
         //var useLocalLighting = self.checkIfUseLocalLighting(doodad.pos);
-        var promise = self.sceneApi.objects.loadWmoM2Obj(doodad, self.placementMatrix, false);
-        return promise;
+        var wmoM2Object = self.sceneApi.objects.loadWmoM2Obj(doodad, self.placementMatrix, false);
+        wmoM2Object.setWmoObject(this);
+        return wmoM2Object;
     }
     load (modf){
         var deferred = $q.defer();
@@ -495,14 +498,6 @@ class WmoObject {
 
             /* 3. Create AABB for group WMO from MOGI chunk */
             self.createWorldGroupBB();
-
-            /* 4. Update group WMO AABB when all m2 and group WMO are loaded */
-            //credits to schlumpf for idea
-            $q.all(groupPromises.concat([m2_loaded_promise])).then(function success(){
-                self.updateWorldGroupBBWithM2();
-
-            }, function error(){
-            });
 
             deferred.resolve(self);
         }, function error (){
