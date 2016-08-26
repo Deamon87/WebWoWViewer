@@ -18,7 +18,8 @@ export default class AnimationManager {
         this.firstCalc = true;
 
         this.initBonesIsCalc();
-        this.initBlendBonesMatrices();
+        this.initBlendMatrices();
+        this.initGlobalSequenceTimes();
         this.calculateBoneTree();
 
         if (!this.setAnimationId(0)) { // try Stand(0) animation
@@ -65,6 +66,17 @@ export default class AnimationManager {
         this.rightHandClosed = value;
     }
 
+    blendMatrices(origMat, blendMat, count, blendAlpha) {
+        //Actual blend
+        for (var i = 0; i < count; i++) {
+            var blendTransformMatrix = blendMat[i];
+            var tranformMat = origMat[i];
+            mat4.subtract(blendTransformMatrix, blendTransformMatrix, tranformMat);
+
+            mat4.multiplyScalar(blendTransformMatrix[i], blendTransformMatrix[i], (1.0 - blendAlpha));
+            mat4.add(tranformMat, blendTransformMatrix, tranformMat);
+        }
+    }
 
     update(deltaTime, cameraPosInLocal, bonesMatrices, textAnimMatrices, subMeshColors, transparencies) {
         var m2File = this.m2File;
@@ -72,6 +84,12 @@ export default class AnimationManager {
         var currentAnimationRecord = m2File.animations[this.currentAnimationIndex];
 
         this.currentAnimationTime += deltaTime;
+        //Update global sequences
+        for (var i = 0; i < this.globalSequenceTimes.length; i++) {
+            this.globalSequenceTimes[i] += deltaTime;
+            this.globalSequenceTimes[i] = this.globalSequenceTimes[i] % m2File.globalSequences[i];
+        }
+
         /* Pick next animation if there is one and no next animation was picked before */
         if (this.nextSubAnimationIndex < 0 && mainAnimationRecord.next_animation > -1) {
             //if (currentAnimationPlayedTimes)
@@ -92,6 +110,7 @@ export default class AnimationManager {
             this.nextSubAnimationIndex = currentSubAnimIndex;
             this.nextSubAnimationTime = 0;
         }
+
         var currAnimLeft = currentAnimationRecord.length - this.currentAnimationTime;
 
         /*if (this.nextSubAnimationActive) {
@@ -130,7 +149,13 @@ export default class AnimationManager {
 
 
         /* Update animated values */
-        this.calcAnimMatrixes(textAnimMatrices, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha);
+
+        this.calcAnimMatrixes(textAnimMatrices, this.currentAnimationIndex, this.currentAnimationTime);
+        if (blendAnimationIndex > -1) {
+            this.calcAnimMatrixes(this.blendMatrixArray, blendAnimationIndex, this.nextSubAnimationTime);
+            this.blendMatrices(textAnimMatrices, this.blendMatrixArray, m2File.nTexAnims, blendAlpha);
+        }
+
         for (var i = 0; i < m2File.nBones; i++) {
             this.bonesIsCalculated[i] = false;
         }
@@ -139,21 +164,9 @@ export default class AnimationManager {
             for (var i = 0; i < m2File.nBones; i++) {
                 this.bonesIsCalculated[i] = false;
             }
+
             this.calcBones(this.blendMatrixArray, blendAnimationIndex, this.nextSubAnimationTime, cameraPosInLocal);
-
-            //Actual blend
-            for (var i = 0; i < m2File.nBones; i++) {
-                var blendTransformMatrix = this.blendMatrixArray[i];
-                var tranformMat = bonesMatrices[i];
-                mat4.subtract(blendTransformMatrix, blendTransformMatrix, tranformMat);
-
-                for (var j = 0; j < 16; j++ ){
-                    blendTransformMatrix[j] = blendTransformMatrix[j] * (1.0 - blendAlpha);
-                }
-                //mat4.scale(blendTransformMatrix, blendTransformMatrix, [1.0 - blendAlpha, 1.0 - blendAlpha, 1.0 - blendAlpha]);
-                mat4.add(tranformMat, blendTransformMatrix, tranformMat);
-            }
-
+            this.blendMatrices(bonesMatrices, this.blendMatrixArray, m2File.nBones, blendAlpha)
         }
 
 
@@ -162,6 +175,16 @@ export default class AnimationManager {
     }
 
     /* Init function */
+    initGlobalSequenceTimes() {
+        var m2File = this.m2File;
+
+        var globalSequenceTimes = new Array(m2File.nGlobalSequences > 0 ? m2File.nGlobalSequences : 0);
+        for (var i = 0; i < globalSequenceTimes.length; i++) {
+            globalSequenceTimes[i] = 0;
+        }
+
+        this.globalSequenceTimes = globalSequenceTimes;
+    }
     initBonesIsCalc() {
         var m2File = this.m2File;
         var bonesIsCalculated = new Array(m2File.nBones);
@@ -172,11 +195,12 @@ export default class AnimationManager {
 
         this.bonesIsCalculated = bonesIsCalculated;
     }
-    initBlendBonesMatrices() {
+    initBlendMatrices() {
         var m2File = this.m2File;
-        var blendMatrixArray = new Array(m2File.nBones)
+        var matCount = Math.max(m2File.nBones, m2File.nTexAnims)
+        var blendMatrixArray = new Array(matCount);
 
-        for (var i = 0; i < m2File.nBones; i++) {
+        for (var i = 0; i < matCount; i++) {
             blendMatrixArray[i] = mat4.create();
         }
 
@@ -243,6 +267,7 @@ export default class AnimationManager {
         }
 
         if (globalSequence >=0) {
+            currTime = this.globalSequenceTimes[globalSequence];
             maxTime = this.m2File.globalSequences[globalSequence];
         }
 
@@ -357,7 +382,7 @@ export default class AnimationManager {
     }
 
     /* Texture function */
-    calcAnimMatrixes (textAnimMatrices, animationIndex, time, blendAnimationIndex, blendAnimationTime, blendAlpha) {
+    calcAnimMatrixes (textAnimMatrices, animationIndex, time) {
         var m2File = this.m2File;
 
         var pivotPoint = vec4.create(0.5, 0.5, 0, 0);
@@ -365,10 +390,6 @@ export default class AnimationManager {
         vec4.negate(negatePivotPoint, pivotPoint);
 
         var animationRecord = m2File.animations[animationIndex];
-        var blendAnimationRecord = null;
-        if (blendAnimationIndex > -1) {
-            blendAnimationRecord = this.m2File.animations[blendAnimationIndex];
-        }
         for (var i = 0; i < m2File.texAnims.length; i++) {
             var textAnimData = m2File.texAnims[i];
 

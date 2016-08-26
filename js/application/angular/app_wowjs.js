@@ -117,6 +117,13 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
 
             },
             {
+                name: 'Lava pots',
+                source: 'zip',
+                url: 'http://deamon87.github.io/WoWFiles/ironforge.zip',
+                sceneType: 'm2',
+                modelName: 'world\\khazmodan\\ironforge\\passivedoodads\\lavasteam\\lavapots.m2'
+            },
+            {
                 name: 'Ulduar Raid',
                 source: 'http',
                 sceneType: 'map',
@@ -225,6 +232,7 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 sceneType: 'm2',
                 modelName: 'WORLD\\KHAZMODAN\\IRONFORGE\\PASSIVEDOODADS\\GARAGEMACHINE\\GARAGEMACHINE.m2'
             },
+
             {
                 name: 'mainmenu_warlords',
                 source: 'http',
