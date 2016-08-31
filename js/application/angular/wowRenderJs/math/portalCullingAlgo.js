@@ -196,6 +196,11 @@ export default class PortalCullingAlgo {
 
         if (level > 8) return;
 
+        if (!wmoObject.wmoGroupArray[groupId]) {
+            //The group have not been loaded yet
+            return ;
+        }
+
         //2. Loop through portals of current group
         var moprIndex = wmoObject.wmoGroupArray[groupId].wmoGroupFile.mogp.moprIndex;
         var numItems = wmoObject.wmoGroupArray[groupId].wmoGroupFile.mogp.numItems;

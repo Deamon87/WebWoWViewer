@@ -43,10 +43,10 @@ class MathHelper {
         return planes;
     }
     static fixNearPlane(planes, camera) {
-        //var nearPlane = planes[5];
-        //var cameraVec4 = vec4.fromValues(camera[0], camera[1],camera[2],1);
-        //var dist = vec4.dot(nearPlane, cameraVec4);
-        //nearPlane[3] -= dist;
+        var nearPlane = planes[5];
+        var cameraVec4 = vec4.fromValues(camera[0], camera[1],camera[2],1);
+        var dist = vec4.dot(nearPlane, cameraVec4);
+        nearPlane[3] -= dist;
     }
     static sortVec3ArrayAgainstPlane(thisPortalVertices, plane) {
         var center = vec3.fromValues(0, 0, 0);
