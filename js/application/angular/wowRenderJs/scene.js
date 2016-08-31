@@ -1160,7 +1160,7 @@ class Scene {
             gl.activeTexture(gl.TEXTURE0);
             gl.depthMask(true);
             gl.enableVertexAttribArray(0);
-            this.graphManager.draw();
+            this.graphManager.draw(true);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
             //Draw debug camera from framebuffer into screen
@@ -1178,7 +1178,7 @@ class Scene {
         gl.activeTexture(gl.TEXTURE0);
         gl.depthMask(true);
         gl.enableVertexAttribArray(0);
-        this.graphManager.draw();
+        this.graphManager.draw(false);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         if (!config.getDoubleCameraDebug()) {

@@ -16,16 +16,15 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<div>lookAt = ( {{cameraVecs.lookAtVec3[0]}}, {{cameraVecs.lookAtVec3[1]}}, {{cameraVecs.lookAtVec3[2]}} )</div>' +
             '<div>Group number = {{updateResult.interiorGroupNum}}</div>'+
             '<div>BSP Node Id = {{updateResult.nodeId}}</div>'+
+            '<div>Controls: W - forward, S - backward, A - left, D - right, Q - up, E - down, Mouse - move camera</p>'+
             '<div style="display: block"><input type="checkbox" ng-model="drawM2" >Draw M2 objects</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawPortals">Draw portals</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawM2BB">Draw M2 BB</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawWmoBB">Draw Wmo BB</div>' +
-            '<div style="display: block"><input type="checkbox" ng-model="drawBSP">Draw BSP leafs</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="usePortalCulling">Use portal culling</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="doubleCameraDebug">Double camera debug</div>'+
-            '<div style="display: block"><input type="checkbox" ng-model="useSecondCamera">Control debug camera</div>'+
-            '<div style="display: block"><button ng-click="copyToDebugCamera()">Copy main camera to debug camera</button></div>'+
-            '<div style="display: block"><button ng-click="loadPacket()">Load packets</button></div>'+
+            '<div style="display: block"><input type="checkbox" ng-disabled="!doubleCameraDebug" ng-model="useSecondCamera">Control debug camera</div>'+
+            '<div style="display: block;"><button ng-disabled="!doubleCameraDebug" ng-style="{color: (doubleCameraDebug) ? 0 : \'rgb(200,200,200)\'};" ng-click="copyToDebugCamera()">Copy main camera to debug camera</button></div>'+
             '</div>'+
             '</div>',
         link: function postLink(scope, element, attrs) {
@@ -61,9 +60,21 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                     scale    : 1024
                 });
             }
+
+            scope.drawM2BB = config.getDrawM2BB();
+            scope.drawWmoBB = config.getDrawWmoBB();
+            scope.drawBSP = config.getRenderBSP();
+            scope.drawM2 = config.getRenderM2();
+            scope.drawPortals = config.getRenderPortals();
+            scope.usePortalCulling = config.getUsePortalCulling();
+            scope.useSecondCamera = config.getUseSecondCamera();
+            scope.doubleCameraDebug = config.getDoubleCameraDebug();
+
+
             scope.$watch('drawM2BB', function (newValue) {
                 config.setDrawM2BB(newValue);
             });
+
             scope.$watch('drawWmoBB', function (newValue) {
                 config.setDrawWmoBB(newValue);
             });
@@ -72,18 +83,28 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                 config.setRenderBSP(newValue);
             });
 
+
             scope.$watch('drawM2', function (newValue) {
                 config.setRenderM2(newValue);
             });
+
             scope.$watch('drawPortals', function (newValue) {
                 config.setRenderPortals(newValue);
             });
+
             scope.$watch('usePortalCulling', function (newValue) {
                 config.setUsePortalCulling(newValue);
             });
+
             scope.$watch('doubleCameraDebug', function (newValue) {
                 config.setDoubleCameraDebug(newValue);
+                if (!newValue) {
+                    config.setUseSecondCamera(false);
+                } else {
+                    config.setUseSecondCamera(scope.useSecondCamera);
+                }
             });
+
             scope.$watch('useSecondCamera', function (newValue) {
                 config.setUseSecondCamera(newValue);
             });

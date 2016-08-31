@@ -422,7 +422,7 @@ class GraphManager {
             }
         }
     }
-    draw() {
+    draw(debugCamera) {
         this.m2OpaqueRenderedThisFrame = {};
         this.m2TranspRenderedThisFrame = {};
 
@@ -442,8 +442,9 @@ class GraphManager {
             this.drawM2s();
 
             this.sceneApi.shaders.activateFrustumBoxShader();
-            //Draw Wmo portal frustums
-            this.sceneApi.drawCamera()
+            if (debugCamera) {
+                this.sceneApi.drawCamera()
+            }
         } else {
             this.drawExterior();
             this.drawM2s();
@@ -456,8 +457,9 @@ class GraphManager {
                 }
             }
             this.sceneApi.shaders.activateFrustumBoxShader();
-            //Draw Wmo portal frustums
-            this.sceneApi.drawCamera()
+            if (debugCamera) {
+                this.sceneApi.drawCamera()
+            }
         }
     }
 }

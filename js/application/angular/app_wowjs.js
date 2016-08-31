@@ -269,6 +269,7 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
         configService.setFileReadMethod(value.source);
     };
 
+    $scope.selectMode(parameters.predefined[1]);
 
 
     $scope.startApplication = function () {
@@ -291,6 +292,7 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
             $scope.isReadyForStart = true;
         }
     })
+    $scope.startApplication();
 }]);
 
 main.config(['$provide', '$httpProvider', function ($provide, $httpProvider) {
