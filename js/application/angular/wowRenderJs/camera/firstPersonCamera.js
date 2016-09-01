@@ -8,7 +8,11 @@ export default function initCamera(canvas, document) {
 
     var mleft_pressed = 0;
     var m_x = 0, m_y = 0;
+    var m_x2 = 0, m_y2 =0;
     var ah = 0, av = 0;
+
+    var touchDiff = 0;
+    var moveForwardTouch = 0;
     var _document = document;
     _document.cameraSpeed = 0.02;
 
@@ -76,15 +80,27 @@ export default function initCamera(canvas, document) {
 
     function touchStart(event) {
         mleft_pressed = 1;
-        m_x = event.pageX;
-        m_y = event.pageY;
+        if (event.touches.length == 1) {
+            m_x = event.touches[0].pageX;
+            m_y = event.touches[0].pageY;
+        } else if (event.touches.length > 1){
+            m_x = event.touches[0].pageX;
+            m_y = event.touches[0].pageY;
+
+            m_x2 = event.touches[0].pageX;
+            m_y2 = event.touches[0].pageY;
+
+            touchDiff = Math.sqrt((m_x - m_x2)*(m_x - m_x2) + (m_y - m_y2)*(m_y - m_y2));
+        }
+
+
     }
 
     function touchMove(event) {
         var x = event.touches[0].pageX; // Собираем данные
         var y = event.touches[0].pageY; // и еще
 
-        if (mleft_pressed === 1) {
+        if (event.touches.length === 1) {
             ah = ah + (x - m_x) / 4.0;
             av = av + (y - m_y) / 4.0;
             if (av < -100) {
@@ -94,6 +110,12 @@ export default function initCamera(canvas, document) {
             }
             m_x = x;
             m_y = y;
+        } else if (event.touches.length > 1){
+            var x2 = event.touches[1].pageX;
+            var y2 = event.touches[1].pageY;
+            var difference = Math.sqrt((x - x2)*(x - x2) + (y - y2)*(y - y2));
+            moveForwardTouch = touchDiff - difference;
+            touchDiff = difference;
         }
     }
 
@@ -166,30 +188,39 @@ export default function initCamera(canvas, document) {
             var lookat = [];
 
             /* Calc camera position */
-            if (MDHorizontal !== 0) {
-                var right = [];
-                vec3.rotateZ(right, dir, [0, 0, 0], degToRad(-90));
-                right[2] = 0;
-
-                vec3.normalize(right, right);
-                vec3.scale(right, right, dTime * moveSpeed * MDHorizontal);
-
-                vec3.add(camera, camera, right);
-            }
-
-            if (MDDepth !== 0) {
+            if (moveForwardTouch > 0)  {
                 var movDir = [];
                 vec3.copy(movDir, dir);
 
-                vec3.scale(movDir, movDir, dTime * moveSpeed * MDDepth);
+                vec3.scale(movDir, movDir, moveSpeed * moveForwardTouch);
                 vec3.add(camera, camera, movDir);
-            }
-            if (MDVertical !== 0) {
-                camera[2] = camera[2] + dTime * moveSpeed * MDVertical;
+            } else {
+                if (MDHorizontal !== 0) {
+                    var right = [];
+                    vec3.rotateZ(right, dir, [0, 0, 0], degToRad(-90));
+                    right[2] = 0;
+
+                    vec3.normalize(right, right);
+                    vec3.scale(right, right, dTime * moveSpeed * MDHorizontal);
+
+                    vec3.add(camera, camera, right);
+                }
+
+                if (MDDepth !== 0) {
+                    var movDir = [];
+                    vec3.copy(movDir, dir);
+
+                    vec3.scale(movDir, movDir, dTime * moveSpeed * MDDepth);
+                    vec3.add(camera, camera, movDir);
+                }
+                if (MDVertical !== 0) {
+                    camera[2] = camera[2] + dTime * moveSpeed * MDVertical;
+                }
             }
 
             vec3.add(lookat, camera, dir);
 
+            moveForwardTouch = 0;
             return {
                 lookAtVec3: lookat,
                 cameraVec3: camera,
