@@ -33,11 +33,29 @@ class M2Geom {
 
     createVBO() {
         var gl = this.gl;
-        var m2Object = this.m2File;
+        var m2File = this.m2File;
 
         this.vertexVBO = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexVBO);
-        gl.bufferData(gl.ARRAY_BUFFER, m2Object.vertexes, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, m2File.vertexes, gl.STATIC_DRAW);
+
+        this.baryCentricVBO = gl.createBuffer();
+        var baryCentricCoords = [];
+        for (var i = 0; i < m2File.nVertexes/3; i++) {
+            baryCentricCoords[i*9 + 0] = 1;
+            baryCentricCoords[i*9 + 1] = 0;
+            baryCentricCoords[i*9 + 2] = 0;
+
+            baryCentricCoords[i*9 + 3 + 0] = 0;
+            baryCentricCoords[i*9 + 3 + 1] = 1;
+            baryCentricCoords[i*9 + 3 + 2] = 0;
+
+            baryCentricCoords[i*9 + 6 + 0] = 0;
+            baryCentricCoords[i*9 + 6 + 1] = 0;
+            baryCentricCoords[i*9 + 6 + 2] = 1;
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.baryCentricVBO);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(baryCentricCoords), gl.STATIC_DRAW);
 
         /* Index is taken from skin object */
     }
@@ -72,7 +90,6 @@ class M2Geom {
         gl.vertexAttribPointer(shaderAttributes.aPlacementMat + 2, 4, gl.FLOAT, false, 16 * 5, 32);  // position
         gl.vertexAttribPointer(shaderAttributes.aPlacementMat + 3, 4, gl.FLOAT, false, 16 * 5, 48);  // position
         gl.vertexAttribPointer(shaderAttributes.aDiffuseColor, 4, gl.FLOAT, false, 16 * 5, 64); //Diffuse color
-
     }
 
 
@@ -103,6 +120,10 @@ class M2Geom {
         }
         gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 48, 32); // texcoord
         gl.vertexAttribPointer(shaderAttributes.aTexCoord2, 2, gl.FLOAT, false, 48, 40); // texcoord
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.baryCentricVBO);
+        gl.vertexAttribPointer(shaderAttributes.aBaryCentric, 3, gl.FLOAT, false, 12, 0); // texcoord
+
     }
 
 

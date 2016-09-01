@@ -17,6 +17,7 @@ attribute vec4 bones;
 attribute vec4 boneWeights;
 attribute vec2 aTexCoord;
 attribute vec2 aTexCoord2;
+attribute vec3 aBaryCentric;
 
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
@@ -40,7 +41,7 @@ varying vec2 vTexCoord2;
 varying vec3 vNormal;
 varying vec3 vPosition;
 varying vec4 vDiffuseColor;
-
+varying vec3 vBaryCentric;
 
 
 
@@ -112,6 +113,8 @@ void main() {
     vPosition = cameraPoint.xyz;
 #endif //drawBuffersIsSupported
 
+    gl_PointSize = 5.0;
+    vBaryCentric = aBaryCentric;
 }
 #endif //COMPILING_VS
 
@@ -124,6 +127,7 @@ varying vec2 vTexCoord2;
 varying vec3 vPosition;
 
 varying vec4 vDiffuseColor;
+varying vec3 vBaryCentric;
 
 uniform lowp int isTransparent;
 
@@ -148,6 +152,15 @@ varying float fs_Depth;
 #endif
 
 void main() {
+    float wireframeThickness = 1.0;
+    //if ( /*wireframe*/ true ) {
+          if ( vBaryCentric.x < wireframeThickness ||
+             vBaryCentric.y < wireframeThickness ||
+             vBaryCentric.z < wireframeThickness ) {
+          discard;
+        }
+    //}
+
     /* Animation support */
     vec2 texCoord = (uTextMat1 * vec4(vTexCoord, 0, 1)).xy;
     vec2 texCoord2 = (uTextMat2 * vec4(vTexCoord2, 0, 1)).xy;
