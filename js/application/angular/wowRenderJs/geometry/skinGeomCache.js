@@ -188,18 +188,76 @@ class SkinGeom {
         var gl = this.gl;
         var skinObject = this.skinFile;
 
-        var indicies = [];
+
         var skinFileHeader = this.skinFile.header;
-        indicies.length = skinFileHeader.triangles.length;
+        var indicies = new Array(skinFileHeader.triangles.length);
 
         for (var i = 0; i < indicies.length; i++) {
             indicies[i] = skinFileHeader.indexes[skinFileHeader.triangles[i]];
         }
+        this.indicies = indicies;
+
 
         this.indexVBO = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indicies), gl.STATIC_DRAW);
     };
+    createBaricentricVBO() {
+        var gl = this.gl;
+        var indicies = this.indicies;
+
+        this.baryCentricVBO = gl.createBuffer();
+        var baryCentricCoords = new Array(indicies.length * 3);
+        for (var i = 0; i < indicies.length; i += 3) {
+
+            var vertIndexes = [indicies[i] * 3, indicies[i + 1] * 3, indicies[i + 2] * 3];
+
+            var map = [-1, -1, -1];
+            for (var j = 0; j < 3; j++) {
+                if (baryCentricCoords[vertIndexes[j]] == 1)     map[0] = j;
+                if (baryCentricCoords[vertIndexes[j] + 1] == 1) map[1] = j;
+                if (baryCentricCoords[vertIndexes[j] + 2] == 1) map[2] = j;
+            }
+
+            if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1)) {
+                debugger;
+            }
+
+            for (var k = 0; k < 3; k++) {
+                var valueFound = false;
+                for (var j = 0; j < 3; j++) {
+                    if (map[j] == k) {
+                        valueFound = true;
+                        break;
+                    }
+                }
+
+                if (!valueFound) {
+                    for (var j = 0; j < 3; j++) {
+                        if (map[j] == -1) {
+                            map[j] = k;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            baryCentricCoords[vertIndexes[map[0]]    ] = 1;
+            baryCentricCoords[vertIndexes[map[0]] + 1] = 0;
+            baryCentricCoords[vertIndexes[map[0]] + 2] = 0;
+
+            baryCentricCoords[vertIndexes[map[1]] + 0] = 0;
+            baryCentricCoords[vertIndexes[map[1]] + 1] = 1;
+            baryCentricCoords[vertIndexes[map[1]] + 2] = 0;
+
+            baryCentricCoords[vertIndexes[map[2]] + 0] = 0;
+            baryCentricCoords[vertIndexes[map[2]] + 1] = 0;
+            baryCentricCoords[vertIndexes[map[2]] + 2] = 1;
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.baryCentricVBO);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(baryCentricCoords), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    }
 }
 
 class SkinGeomCache {
@@ -212,6 +270,7 @@ class SkinGeomCache {
             var skinGeomObj = new SkinGeom(sceneApi);
             skinGeomObj.assign(skinFile);
             skinGeomObj.createVBO();
+            skinGeomObj.createBaricentricVBO();
             return skinGeomObj;
         });
     }

@@ -85,6 +85,7 @@ class Scene {
         self.initRenderBuffers();
         self.initAnisotropicExt();
         self.initVertexArrayObjectExt();
+        self.initOESStandardDerivativesExt();
         self.initCompressedTextureS3tcExt();
         self.initFrameTerminatorExt();
 
@@ -302,6 +303,15 @@ class Scene {
             this.vao_ext = vao_ext;
         }
     }
+    initOESStandardDerivativesExt() {
+        var gl = this.gl;
+        var ext = gl.getExtension("OES_standard_derivatives");
+
+        if (ext) {
+            this.standard_derivatives_ext = ext;
+        }
+    }
+
     initCompressedTextureS3tcExt () {
         var gl = this.gl;
         var ext = (

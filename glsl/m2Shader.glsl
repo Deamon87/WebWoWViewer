@@ -119,6 +119,9 @@ void main() {
 #endif //COMPILING_VS
 
 #ifdef COMPILING_FS
+#ifdef GL_OES_standard_derivatives
+    #extension GL_OES_standard_derivatives : enable
+#endif
 
 precision highp float;
 varying vec3 vNormal;
@@ -150,16 +153,26 @@ uniform mat4 uTextMat2;
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;
 #endif
-
+float edgeFactor(){
+      vec3 d = fwidth(vBaryCentric);
+      vec3 a3 = smoothstep(vec3(0.0), d*1.5, vBaryCentric);
+      return min(min(a3.x, a3.y), a3.z);
+  }
 void main() {
-    float wireframeThickness = 1.0;
-    //if ( /*wireframe*/ true ) {
-          if ( vBaryCentric.x < wireframeThickness ||
-             vBaryCentric.y < wireframeThickness ||
-             vBaryCentric.z < wireframeThickness ) {
-          discard;
-        }
+
+    //float thikness = (1.0-edgeFactor())*0.95;
+    //if (thikness < 0.1) {
+    //    discard;
     //}
+
+    gl_FragColor = vec4(vBaryCentric.xyz, 0.5);
+/*      if(gl_FrontFacing){
+                gl_FragColor = vec4(0.0, 0.5, 0.0, (1.0-edgeFactor())*0.95);
+            }
+            else{
+                gl_FragColor = vec4(0.5, 0.0, 0.0, (1.0-edgeFactor())*0.7);
+            }*/
+    return;
 
     /* Animation support */
     vec2 texCoord = (uTextMat1 * vec4(vTexCoord, 0, 1)).xy;
