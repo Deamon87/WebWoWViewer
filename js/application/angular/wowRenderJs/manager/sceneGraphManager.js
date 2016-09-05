@@ -150,6 +150,10 @@ class GraphManager {
 
         var points = mathHelper.getFrustumPoints(frustumMat, lookAtMat4);
 
+        for (var i = 0; i < this.adtObjects.length; i++) {
+            this.adtObjects[0].checkFrustumCulling(this.position, frustumPlanes, 6);
+        }
+
         /* 1. First check wmo's */
         /* Checking group wmo will significatly decrease the amount of m2wmo */
         for (var i = 0; i < this.wmoObjects.length; i++) {

@@ -86,8 +86,10 @@ export default class AnimationManager {
         this.currentAnimationTime += deltaTime;
         //Update global sequences
         for (var i = 0; i < this.globalSequenceTimes.length; i++) {
-            this.globalSequenceTimes[i] += deltaTime;
-            this.globalSequenceTimes[i] = this.globalSequenceTimes[i] % m2File.globalSequences[i];
+            if (m2File.globalSequences[i] > 0) { // Global sequence values can be 0's
+                this.globalSequenceTimes[i] += deltaTime;
+                this.globalSequenceTimes[i] = this.globalSequenceTimes[i] % m2File.globalSequences[i];
+            }
         }
 
         /* Pick next animation if there is one and no next animation was picked before */
@@ -385,7 +387,7 @@ export default class AnimationManager {
     calcAnimMatrixes (textAnimMatrices, animationIndex, time) {
         var m2File = this.m2File;
 
-        var pivotPoint = vec4.create(0.5, 0.5, 0, 0);
+        var pivotPoint = vec4.fromValues(0.5, 0.5, 0, 0);
         var negatePivotPoint = vec4.create();
         vec4.negate(negatePivotPoint, pivotPoint);
 

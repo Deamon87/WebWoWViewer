@@ -188,9 +188,9 @@ class SkinGeom {
         var gl = this.gl;
         var skinObject = this.skinFile;
 
-        var indicies = [];
+
         var skinFileHeader = this.skinFile.header;
-        indicies.length = skinFileHeader.triangles.length;
+        var indicies = new Array(skinFileHeader.triangles.length);
 
         for (var i = 0; i < indicies.length; i++) {
             indicies[i] = skinFileHeader.indexes[skinFileHeader.triangles[i]];

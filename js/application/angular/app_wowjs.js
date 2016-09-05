@@ -56,6 +56,15 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 x: 0,
                 y: 0,
                 z: 0
+            },{
+                name: 'Caverns of Time',
+                source: 'http',
+                sceneType: 'map',
+                mapId: 0,
+                mapName: 'Kalimdor',
+                x: -8181.35,
+                y: -4596.92,
+                z: -125.34
             },
             {
                 name: 'Attacked mob',

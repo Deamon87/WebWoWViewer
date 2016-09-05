@@ -1,10 +1,62 @@
+import mathHelper from './../math/mathHelper.js';
+
 class ADTObject {
     constructor(sceneApi, wdtFile) {
         this.sceneApi = sceneApi;
         this.m2Array = [];
+        this.drawChunk = new Array(256);
+        this.aabbs = [];
+        for (var i = 0; i < 256; i++) this.drawChunk[i] = true;
     }
 
+    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes) {
+        for (var i = 0; i < 256; i++) {
+            var aabb = this.aabbs[i];
+            if (!aabb) continue;
 
+            //1. Check if camera position is inside Bounding Box
+            if (
+                cameraVec4[0] > aabb[0][0] && cameraVec4[0] < aabb[1][0] &&
+                cameraVec4[1] > aabb[0][1] && cameraVec4[1] < aabb[1][1] &&
+                cameraVec4[2] > aabb[0][2] && cameraVec4[2] < aabb[1][2]
+            ) {
+                this.drawChunk[i] = true;
+                continue;
+            }
+
+            //2. Check aabb is inside camera frustum
+            var result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes);
+            this.drawChunk[i] = result;
+        }
+    }
+
+    calcBoundingBoxes() {
+        var aabbs = new Array(256);
+        var adtFile = this.adtGeom.adtFile;
+        for(var i = 0 ; i < 256; i++) {
+            var mcnk = adtFile.mcnkObjs[i];
+
+            //Loop over heights
+            var minZ = 999999;
+            var maxZ = -999999;
+            for (var j = 0; j < mcnk.heights.length; j++) {
+                var heightVal = mcnk.heights[j];
+                if (minZ > heightVal) minZ = heightVal;
+                if (maxZ < heightVal) maxZ = heightVal;
+            }
+
+            var minX = mcnk.pos.x - (533.3433333 / 16.0);
+            var maxX = mcnk.pos.x;
+            var minY = mcnk.pos.y - (533.3433333 / 16.0);
+            var maxY = mcnk.pos.y;
+            minZ += mcnk.pos.z;
+            maxZ += mcnk.pos.z;
+
+            aabbs[i] = [[minX, minY, minZ], [maxX, maxY, maxZ]];
+        }
+
+        this.aabbs = aabbs;
+    }
 
     loadM2s() {
         var self = this;
@@ -41,12 +93,13 @@ class ADTObject {
 
             self.loadM2s();
             self.loadWmos();
+            self.calcBoundingBoxes();
         });
     }
 
     draw(deltaTime) {
         if (this.adtGeom) {
-            this.adtGeom.draw();
+            this.adtGeom.draw(this.drawChunk);
         }
     }
 }

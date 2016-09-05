@@ -33,14 +33,15 @@ class M2Geom {
 
     createVBO() {
         var gl = this.gl;
-        var m2Object = this.m2File;
+        var m2File = this.m2File;
 
         this.vertexVBO = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexVBO);
-        gl.bufferData(gl.ARRAY_BUFFER, m2Object.vertexes, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, m2File.vertexes, gl.STATIC_DRAW);
 
         /* Index is taken from skin object */
     }
+
     createVAO(skinObject){
         var gl = this.gl;
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();

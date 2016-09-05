@@ -234,7 +234,7 @@ class ADTGeom {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.stripVBO);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(this.triangleStrip.strips), gl.STATIC_DRAW);
     }
-    draw() {
+    draw(drawChunks) {
         var gl = this.gl;
         var stripOffsets = this.triangleStrip.stripOffsets;
         var shaderUniforms = this.sceneApi.shaders.getShaderUniforms();
@@ -249,6 +249,8 @@ class ADTGeom {
         //Draw
         var mcnkObjs = this.adtFile.mcnkObjs;
         for (var i = 0; i < 256; i++) {
+            if (!drawChunks[i]) continue;
+
             var mcnkObj = mcnkObjs[i];
             gl.vertexAttribPointer(shaderAttributes.aHeight, 1, gl.FLOAT, false, 0, (this.heightOffset + i * 145) * 4);
             gl.uniform3f(shaderUniforms.uPos, mcnkObj.pos.x, mcnkObj.pos.y, mcnkObj.pos.z);
