@@ -80,6 +80,11 @@ class M2Geom {
         var gl = this.gl;
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, skinObject.baryCentricVBO);
+        gl.vertexAttribPointer(shaderAttributes.aBaryCentric, 3, gl.FLOAT, false, 12, 0); // barycentric
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexVBO);
         //gl.vertexAttrib4f(shaderAttributes.aColor, 0.5, 0.5, 0.5, 0.5);
 
@@ -102,12 +107,6 @@ class M2Geom {
         }
         gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 48, 32); // texcoord
         gl.vertexAttribPointer(shaderAttributes.aTexCoord2, 2, gl.FLOAT, false, 48, 40); // texcoord
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, skinObject.baryCentricVBO);
-        gl.vertexAttribPointer(shaderAttributes.aBaryCentric, 3, gl.FLOAT, false, 0, 0); // barycentric
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
-
     }
 
 

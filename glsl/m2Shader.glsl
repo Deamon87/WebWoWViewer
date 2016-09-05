@@ -88,6 +88,7 @@ void main() {
 
     vTexCoord = texCoord;
     vTexCoord2 = aTexCoord2;
+        vBaryCentric = aBaryCentric;
 
     if ((uUseDiffuseColor == 1)) {
 
@@ -113,8 +114,7 @@ void main() {
     vPosition = cameraPoint.xyz;
 #endif //drawBuffersIsSupported
 
-    gl_PointSize = 5.0;
-    vBaryCentric = aBaryCentric;
+
 }
 #endif //COMPILING_VS
 
@@ -159,20 +159,6 @@ float edgeFactor(){
       return min(min(a3.x, a3.y), a3.z);
   }
 void main() {
-
-    //float thikness = (1.0-edgeFactor())*0.95;
-    //if (thikness < 0.1) {
-    //    discard;
-    //}
-
-    gl_FragColor = vec4(vBaryCentric.xyz, 0.5);
-/*      if(gl_FrontFacing){
-                gl_FragColor = vec4(0.0, 0.5, 0.0, (1.0-edgeFactor())*0.95);
-            }
-            else{
-                gl_FragColor = vec4(0.5, 0.0, 0.0, (1.0-edgeFactor())*0.7);
-            }*/
-    return;
 
     /* Animation support */
     vec2 texCoord = (uTextMat1 * vec4(vTexCoord, 0, 1)).xy;
@@ -258,7 +244,7 @@ void main() {
         float fog_end = 200.0;
         float fog_rate = 1.5;
         float fog_bias = 0.01;
-    
+
         //vec4 fogHeightPlane = pc_fog.heightPlane;
         //float heightRate = pc_fog.color_and_heightRate.w;
 
@@ -273,58 +259,15 @@ void main() {
 
         finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, vec3(min(expFog, endFadeFog)));
     }
-    /*
-    vec3 matDiffuse_575 = (tex.rgb * tex2.rgb * meshColor.rgb);
-    vec3 S_570 = vec3(mix(vec3(0.699999988), vec3(1.0), 1.0));
-    vec3 lDiffuse_578 = vec3((1.0 * S_570));
-    float mag_257 = length(lDiffuse_578);
-    vec3 l_702;
-    if ((mag_257 > 1.0))
-    {
-        // Block 258
-        vec3 t265 = vec3(mag_257);
-        vec3 l_266 = ((lDiffuse_578 * (1.0 + log(mag_257))) / t265);
-        l_702 = l_266;
-    }
-    else
-    {
-        // Block 259
-        l_702 = lDiffuse_578;
-    }
-    // Block 625
-    vec3 l_267 = l_702;
-    vec3 diffTerm_580 = (matDiffuse_575 * l_267);
-    vec3 specTerm_583 = (vec3(0.0) * (S_570 * 1.0));
-    vec4 final_599 = vec4(((diffTerm_580 + specTerm_583) + vec3(0.0)), (((tex.a * tex.b * meshColor.a) * 1.0) * 1.0));
-    vec4 final_705;
-    if ((vDiffuseColor.w != 0.0))
-    {
-        // Block 600
-        vec3 t606 = final_599.xyz;
-        vec3 t612 = vec3(dot(t606, vDiffuseColor.bgr));
-        vec3 t613 = vec3(vDiffuseColor.w);
-        vec4 final_615 = vec4(mix(t606, t612, t613), final_599.w);
-        final_705 = final_615;
-    }
-    else
-    {
-        // Block 601
-        final_705 = final_599;
-    }
 
 
-    vec4 finalColor = final_705;
-    */
+    if(!((vBaryCentric.x < 0.01) || (vBaryCentric.y < 0.01) || (vBaryCentric.z < 0.01))){
+       discard;
+    }
+    finalColor.rgb = mix(vec3(0.0), finalColor.rgb, edgeFactor());
 
-    //Apply global lighting
-/*
-    finalColor = vec4(
-        (finalColor.r + uGlobalLighting.r) ,
-        (finalColor.g + uGlobalLighting.g) ,
-        (finalColor.b + uGlobalLighting.b) ,
-        finalColor.a);
-  */
-    //finalColor.a = 1.0; //do I really need it now?
+    //finalColor = vec4(vBaryCentric.rgb, 1.0);
+
 
 #ifndef drawBuffersIsSupported
     //Forward rendering without lights

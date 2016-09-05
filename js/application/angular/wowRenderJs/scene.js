@@ -84,7 +84,7 @@ class Scene {
         }
         self.initRenderBuffers();
         self.initAnisotropicExt();
-        self.initVertexArrayObjectExt();
+        //self.initVertexArrayObjectExt();
         self.initOESStandardDerivativesExt();
         self.initCompressedTextureS3tcExt();
         self.initFrameTerminatorExt();
@@ -864,6 +864,7 @@ class Scene {
          gl.enableVertexAttribArray(shaderAttributes.bones);
          gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
          gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
+         gl.enableVertexAttribArray(shaderAttributes.aBaryCentric);
     }
     deactivateM2ShaderAttribs() {
         var gl = this.gl;
@@ -879,6 +880,7 @@ class Scene {
 
         gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
         gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
+        gl.disableVertexAttribArray(shaderAttributes.aBaryCentric);
         gl.enableVertexAttribArray(0);
     }
     activateM2Shader () {
@@ -939,6 +941,7 @@ class Scene {
             gl.enableVertexAttribArray(shaderAttributes.bones);
             gl.enableVertexAttribArray(shaderAttributes.aTexCoord);
             gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
+            gl.enableVertexAttribArray(shaderAttributes.aBaryCentric);
 
             gl.enableVertexAttribArray(shaderAttributes.aPlacementMat + 0);
             gl.enableVertexAttribArray(shaderAttributes.aPlacementMat + 1);
@@ -970,6 +973,7 @@ class Scene {
         gl.disableVertexAttribArray(shaderAttributes.bones);
         gl.disableVertexAttribArray(shaderAttributes.aTexCoord);
         gl.disableVertexAttribArray(shaderAttributes.aTexCoord2);
+        gl.disableVertexAttribArray(shaderAttributes.aBaryCentric);
 
         if (instExt) {
             instExt.vertexAttribDivisorANGLE(shaderAttributes.aPlacementMat + 0, 0);
