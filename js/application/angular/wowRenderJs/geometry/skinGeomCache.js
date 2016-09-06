@@ -205,58 +205,76 @@ class SkinGeom {
     createBaricentricVBO() {
         var gl = this.gl;
         var indicies = this.indicies;
+        var skinFile = this.skinFile.header;
 
         this.baryCentricVBO = gl.createBuffer();
+        var baryCentricCoords = new Array(indicies.length * 3);
+
+
+
         var maxInd = Math.max(...indicies);
 
 
         var baryCentricCoords = new Array((maxInd + 1) * 3);
-        for (var i = 0; i < indicies.length / 3; i++) {
+        for (var meshIndex = 0; meshIndex < skinFile.nSub; meshIndex++) {
+            for (var i = skinFile.subMeshes[meshIndex].StartTriangle, trisInd = 0; trisInd < skinFile.subMeshes[meshIndex].nTriangles/3; i+=3, trisInd++) {
 
-            var vertIndexes = [indicies[3*i], indicies[3*i + 1], indicies[3*i + 2]];
+                var vertIndexes = [indicies[i], indicies[i + 1], indicies[i + 2]];
 
-            var map = [-1, -1, -1];
-            for (var j = 0; j < 3; j++) {
-                if (baryCentricCoords[vertIndexes[j]*3] == 1)     map[0] = j;
-                if (baryCentricCoords[vertIndexes[j]*3 + 1] == 1) map[1] = j;
-                if (baryCentricCoords[vertIndexes[j]*3 + 2] == 1) map[2] = j;
-            }
-
-            if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1)) {
-                debugger;
-            }
-
-            for (var k = 0; k < 3; k++) {
-                var valueFound = false;
+                var map = [-1, -1, -1];
                 for (var j = 0; j < 3; j++) {
-                    if (map[j] == k) {
-                        valueFound = true;
-                        break;
+                    if (baryCentricCoords[vertIndexes[j] * 3] == 1)     {
+                        map[0] = j;
+                    }
+                    if (baryCentricCoords[vertIndexes[j] * 3 + 1] == 1) {
+                        map[1] = j;
+                    }
+                    if (baryCentricCoords[vertIndexes[j] * 3 + 2] == 1) {
+                        map[2] = j;
                     }
                 }
 
-                if (!valueFound) {
+                if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1) || (map[1] == map[2] && map[1] != -1)) {
+                    debugger;
+                }
+
+                for (var k = 0; k < 3; k++) {
+                    var valueFound = false;
                     for (var j = 0; j < 3; j++) {
-                        if (map[j] == -1) {
-                            map[j] = k;
+                        if (map[j] == k) {
+                            valueFound = true;
                             break;
                         }
                     }
+
+                    if (!valueFound) {
+                        for (var j = 0; j < 3; j++) {
+                            if (map[j] == -1) {
+                                map[j] = k;
+                                break;
+                            }
+                        }
+                    }
                 }
+
+                if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1) || (map[1] == map[2] && map[1] != -1)) {
+                    debugger;
+                }
+
+                baryCentricCoords[vertIndexes[map[0]] * 3] = 1;
+                baryCentricCoords[vertIndexes[map[0]] * 3 + 1] = 0;
+                baryCentricCoords[vertIndexes[map[0]] * 3 + 2] = 0;
+
+                baryCentricCoords[vertIndexes[map[1]] * 3 + 0] = 0;
+                baryCentricCoords[vertIndexes[map[1]] * 3 + 1] = 1;
+                baryCentricCoords[vertIndexes[map[1]] * 3 + 2] = 0;
+
+                baryCentricCoords[vertIndexes[map[2]] * 3 + 0] = 0;
+                baryCentricCoords[vertIndexes[map[2]] * 3 + 1] = 0;
+                baryCentricCoords[vertIndexes[map[2]] * 3 + 2] = 1;
             }
-
-            baryCentricCoords[vertIndexes[map[0]]*3    ] = 1;
-            baryCentricCoords[vertIndexes[map[0]]*3 + 1] = 0;
-            baryCentricCoords[vertIndexes[map[0]]*3 + 2] = 0;
-
-            baryCentricCoords[vertIndexes[map[1]]*3 + 0] = 0;
-            baryCentricCoords[vertIndexes[map[1]]*3 + 1] = 1;
-            baryCentricCoords[vertIndexes[map[1]]*3 + 2] = 0;
-
-            baryCentricCoords[vertIndexes[map[2]]*3 + 0] = 0;
-            baryCentricCoords[vertIndexes[map[2]]*3 + 1] = 0;
-            baryCentricCoords[vertIndexes[map[2]]*3 + 2] = 1;
         }
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.baryCentricVBO);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(baryCentricCoords), gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);

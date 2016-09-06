@@ -160,6 +160,14 @@ float edgeFactor(){
   }
 void main() {
 
+    if(!any(lessThan(vBaryCentric, vec3(0.01)))){
+       discard;
+    }
+
+    gl_FragColor = vec4(vBaryCentric.xyz, 1.0);
+
+    return;
+
     /* Animation support */
     vec2 texCoord = (uTextMat1 * vec4(vTexCoord, 0, 1)).xy;
     vec2 texCoord2 = (uTextMat2 * vec4(vTexCoord2, 0, 1)).xy;
@@ -261,10 +269,7 @@ void main() {
     }
 
 
-    if(!((vBaryCentric.x < 0.01) || (vBaryCentric.y < 0.01) || (vBaryCentric.z < 0.01))){
-       discard;
-    }
-    finalColor.rgb = mix(vec3(0.0), finalColor.rgb, edgeFactor());
+    //finalColor.rgb = mix(vec3(0.0), finalColor.rgb, edgeFactor());
 
     //finalColor = vec4(vBaryCentric.rgb, 1.0);
 
