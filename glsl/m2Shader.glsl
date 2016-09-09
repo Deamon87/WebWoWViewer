@@ -164,9 +164,7 @@ void main() {
        discard;
     }
 
-    gl_FragColor = vec4(vBaryCentric.xyz, 1.0);
 
-    return;
 
     /* Animation support */
     vec2 texCoord = (uTextMat1 * vec4(vTexCoord, 0, 1)).xy;
@@ -242,6 +240,9 @@ void main() {
     } else if (uPixelShader == 19) { // Combiners_Mod2x_Mod2x
         finalColor.rgba = tex.rgba * tex2.rgba * meshResColor.rgba * vec4(4.0);
     }
+
+    finalColor = vec4(vBaryCentric.xyz, 1.0);
+
 
     if(finalColor.a < uAlphaTest)
         discard;

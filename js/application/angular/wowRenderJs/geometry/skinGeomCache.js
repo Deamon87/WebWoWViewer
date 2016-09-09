@@ -208,31 +208,61 @@ class SkinGeom {
         var skinFile = this.skinFile.header;
 
         this.baryCentricVBO = gl.createBuffer();
-        var baryCentricCoords = new Array(indicies.length * 3);
-
-
 
         var maxInd = Math.max(...indicies);
-
-
         var baryCentricCoords = new Array((maxInd + 1) * 3);
+
         for (var meshIndex = 0; meshIndex < skinFile.nSub; meshIndex++) {
-            for (var i = skinFile.subMeshes[meshIndex].StartTriangle, trisInd = 0; trisInd < skinFile.subMeshes[meshIndex].nTriangles/3; i+=3, trisInd++) {
 
-                var vertIndexes = [indicies[i], indicies[i + 1], indicies[i + 2]];
+            var trianglesPerVerticle = new Array();
+            var startIndex = skinFile.subMeshes[meshIndex].StartTriangle;
 
-                var map = [-1, -1, -1];
+            for (var i = startIndex; i < startIndex + skinFile.subMeshes[meshIndex].nTriangles; i+=3) {
+                for (j = 0; j < 3; j++) {
+                    if (!trianglesPerVerticle[indicies[i + j]]) {
+                        trianglesPerVerticle[indicies[i + j]] = new Array();
+                    }
+                    trianglesPerVerticle[indicies[i + j]].push((i - startIndex) / 3);
+                }
+            }
+
+
+            var trianglesGraph = new Array(skinFile.subMeshes[meshIndex].nTriangles / 3);
+            for (var i = startIndex; i < startIndex + skinFile.subMeshes[meshIndex].nTriangles; i+=3) {
+                trianglesGraph[i] = new Array();
+            }
+
+
+            for (var i = startIndex; i < startIndex + skinFile.subMeshes[meshIndex].nTriangles; i+=3) {
+                var triangleInd = i - startIndex;
+
                 for (var j = 0; j < 3; j++) {
-                    if (baryCentricCoords[vertIndexes[j] * 3] == 1)     {
+                    for (var k = 0; k < trianglesPerVerticle[indicies[i + j]].length; k++) {
+                        var secondTrisInd = trianglesPerVerticle[indicies[i + j]][k];
+
+                        trianglesGraph[triangleInd][secondTrisInd] = triangleInd;
+                        trianglesGraph[secondTrisInd][triangleInd] = secondTrisInd;
+                    }
+                }
+            }
+
+
+            var maxIndexIndex = skinFile.subMeshes[meshIndex].StartTriangle + skinFile.subMeshes[meshIndex].nTriangles;
+            for (var i = skinFile.subMeshes[meshIndex].StartTriangle; i < maxIndexIndex; i+=3) {
+                var map = [-1, -1, -1];
+                if (i == 2493) debugger;
+                for (var j = 0; j < 3; j++) {
+                    if (baryCentricCoords[indicies[i + j] * 3] == 1)     {
                         map[0] = j;
                     }
-                    if (baryCentricCoords[vertIndexes[j] * 3 + 1] == 1) {
+                    if (baryCentricCoords[indicies[i + j] * 3 + 1] == 1) {
                         map[1] = j;
                     }
-                    if (baryCentricCoords[vertIndexes[j] * 3 + 2] == 1) {
+                    if (baryCentricCoords[indicies[i + j] * 3 + 2] == 1) {
                         map[2] = j;
                     }
                 }
+
 
                 if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1) || (map[1] == map[2] && map[1] != -1)) {
                     debugger;
@@ -257,21 +287,36 @@ class SkinGeom {
                     }
                 }
 
+                if (i == 2493) debugger;
+
                 if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1) || (map[1] == map[2] && map[1] != -1)) {
                     debugger;
                 }
 
-                baryCentricCoords[vertIndexes[map[0]] * 3] = 1;
-                baryCentricCoords[vertIndexes[map[0]] * 3 + 1] = 0;
-                baryCentricCoords[vertIndexes[map[0]] * 3 + 2] = 0;
 
-                baryCentricCoords[vertIndexes[map[1]] * 3 + 0] = 0;
-                baryCentricCoords[vertIndexes[map[1]] * 3 + 1] = 1;
-                baryCentricCoords[vertIndexes[map[1]] * 3 + 2] = 0;
 
-                baryCentricCoords[vertIndexes[map[2]] * 3 + 0] = 0;
-                baryCentricCoords[vertIndexes[map[2]] * 3 + 1] = 0;
-                baryCentricCoords[vertIndexes[map[2]] * 3 + 2] = 1;
+                baryCentricCoords[indicies[i + map[0]] * 3] = 1;
+                baryCentricCoords[indicies[i + map[0]] * 3 + 1] = 0;
+                baryCentricCoords[indicies[i + map[0]] * 3 + 2] = 0;
+
+                baryCentricCoords[indicies[i + map[1]] * 3 + 0] = 0;
+                baryCentricCoords[indicies[i + map[1]] * 3 + 1] = 1;
+                baryCentricCoords[indicies[i + map[1]] * 3 + 2] = 0;
+
+                baryCentricCoords[indicies[i + map[2]] * 3 + 0] = 0;
+                baryCentricCoords[indicies[i + map[2]] * 3 + 1] = 0;
+                baryCentricCoords[indicies[i + map[2]] * 3 + 2] = 1;
+
+                var problemTriangle = (function getTriangleColors(index) {
+                    function getVector(index) {
+                        return  [ baryCentricCoords[indicies[index]*3 ], baryCentricCoords[indicies[index]*3 +1], baryCentricCoords[indicies[index]*3 + 2]]
+                    }
+
+                    return [getVector(index), getVector(index+1), getVector(index+2)]
+                })(skinFile.subMeshes[1].StartTriangle + 9);
+                if (problemTriangle[1] !== undefined && problemTriangle[1][0] == 1){
+                    debugger;
+                }
             }
         }
 
