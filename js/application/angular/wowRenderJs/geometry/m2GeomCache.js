@@ -155,10 +155,6 @@ class M2Geom {
         var blackPixelText = this.sceneApi.getBlackPixelTexture();
         var skinData = skinObject.skinFile.header;
 
-        /*** DEBUG!!!! ***/
-        if (materialData.meshIndex != 1) return;
-
-
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
