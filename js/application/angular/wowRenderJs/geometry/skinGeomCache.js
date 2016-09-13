@@ -203,6 +203,63 @@ class SkinGeom {
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indicies), gl.STATIC_DRAW);
     };
     createBaricentricVBO() {
+        function checkTriangle(i) {
+            var map = [-1, -1, -1];
+
+            for (var j = 0; j < 3; j++) {
+                if (baryCentricCoords[indicies[i + j] * 3] == 1)     {
+                    map[0] = j;
+                }
+                if (baryCentricCoords[indicies[i + j] * 3 + 1] == 1) {
+                    map[1] = j;
+                }
+                if (baryCentricCoords[indicies[i + j] * 3 + 2] == 1) {
+                    map[2] = j;
+                }
+            }
+
+
+            if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1) || (map[1] == map[2] && map[1] != -1)) {
+                debugger;
+            }
+
+            for (var k = 0; k < 3; k++) {
+                var valueFound = false;
+                for (var j = 0; j < 3; j++) {
+                    if (map[j] == k) {
+                        valueFound = true;
+                        break;
+                    }
+                }
+
+                if (!valueFound) {
+                    for (var j = 0; j < 3; j++) {
+                        if (map[j] == -1) {
+                            map[j] = k;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1) || (map[1] == map[2] && map[1] != -1)) {
+                debugger;
+            }
+
+            baryCentricCoords[indicies[i + map[0]] * 3] = 1;
+            baryCentricCoords[indicies[i + map[0]] * 3 + 1] = 0;
+            baryCentricCoords[indicies[i + map[0]] * 3 + 2] = 0;
+
+            baryCentricCoords[indicies[i + map[1]] * 3 + 0] = 0;
+            baryCentricCoords[indicies[i + map[1]] * 3 + 1] = 1;
+            baryCentricCoords[indicies[i + map[1]] * 3 + 2] = 0;
+
+            baryCentricCoords[indicies[i + map[2]] * 3 + 0] = 0;
+            baryCentricCoords[indicies[i + map[2]] * 3 + 1] = 0;
+            baryCentricCoords[indicies[i + map[2]] * 3 + 2] = 1;
+        }
+
+
         var gl = this.gl;
         var indicies = this.indicies;
         var skinFile = this.skinFile.header;
@@ -229,95 +286,43 @@ class SkinGeom {
 
             var trianglesGraph = new Array(skinFile.subMeshes[meshIndex].nTriangles / 3);
             for (var i = startIndex; i < startIndex + skinFile.subMeshes[meshIndex].nTriangles; i+=3) {
-                trianglesGraph[i] = new Array();
+                trianglesGraph[(i - startIndex) /3] = new Array();
             }
 
 
             for (var i = startIndex; i < startIndex + skinFile.subMeshes[meshIndex].nTriangles; i+=3) {
-                var triangleInd = i - startIndex;
+                var triangleInd = (i - startIndex)/3;
 
                 for (var j = 0; j < 3; j++) {
                     for (var k = 0; k < trianglesPerVerticle[indicies[i + j]].length; k++) {
                         var secondTrisInd = trianglesPerVerticle[indicies[i + j]][k];
 
-                        trianglesGraph[triangleInd][secondTrisInd] = triangleInd;
-                        trianglesGraph[secondTrisInd][triangleInd] = secondTrisInd;
+                        trianglesGraph[triangleInd][secondTrisInd] = 1;
+                        trianglesGraph[secondTrisInd][triangleInd] = 1;
                     }
                 }
             }
 
+            var visitedTriangles = new Array(skinFile.subMeshes[meshIndex].nTriangles / 3);
+            var toBeVisitedNextLoop = new Array();
+            toBeVisitedNextLoop.push(0);
+            visitedTriangles[j] = 1;
+            do {
 
-            var maxIndexIndex = skinFile.subMeshes[meshIndex].StartTriangle + skinFile.subMeshes[meshIndex].nTriangles;
-            for (var i = skinFile.subMeshes[meshIndex].StartTriangle; i < maxIndexIndex; i+=3) {
-                var map = [-1, -1, -1];
-                if (i == 2493) debugger;
-                for (var j = 0; j < 3; j++) {
-                    if (baryCentricCoords[indicies[i + j] * 3] == 1)     {
-                        map[0] = j;
-                    }
-                    if (baryCentricCoords[indicies[i + j] * 3 + 1] == 1) {
-                        map[1] = j;
-                    }
-                    if (baryCentricCoords[indicies[i + j] * 3 + 2] == 1) {
-                        map[2] = j;
-                    }
-                }
+                var toBeVisitedThisLoop = toBeVisitedNextLoop;
+                toBeVisitedNextLoop = new Array();
+                for (var i = 0; i < toBeVisitedThisLoop.length; i++) {
+                    var triangleInd = toBeVisitedThisLoop[i];
 
-
-                if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1) || (map[1] == map[2] && map[1] != -1)) {
-                    debugger;
-                }
-
-                for (var k = 0; k < 3; k++) {
-                    var valueFound = false;
-                    for (var j = 0; j < 3; j++) {
-                        if (map[j] == k) {
-                            valueFound = true;
-                            break;
-                        }
-                    }
-
-                    if (!valueFound) {
-                        for (var j = 0; j < 3; j++) {
-                            if (map[j] == -1) {
-                                map[j] = k;
-                                break;
-                            }
+                    checkTriangle(triangleInd * 3 + startIndex);
+                    for (var j = 0; j < skinFile.subMeshes[meshIndex].nTriangles/3; j++) {
+                        if ((trianglesGraph[triangleInd][j] == 1) && (visitedTriangles[j] != 1)) {
+                            toBeVisitedNextLoop.push(j);
+                            visitedTriangles[j] = 1;
                         }
                     }
                 }
-
-                if (i == 2493) debugger;
-
-                if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1) || (map[1] == map[2] && map[1] != -1)) {
-                    debugger;
-                }
-
-
-
-                baryCentricCoords[indicies[i + map[0]] * 3] = 1;
-                baryCentricCoords[indicies[i + map[0]] * 3 + 1] = 0;
-                baryCentricCoords[indicies[i + map[0]] * 3 + 2] = 0;
-
-                baryCentricCoords[indicies[i + map[1]] * 3 + 0] = 0;
-                baryCentricCoords[indicies[i + map[1]] * 3 + 1] = 1;
-                baryCentricCoords[indicies[i + map[1]] * 3 + 2] = 0;
-
-                baryCentricCoords[indicies[i + map[2]] * 3 + 0] = 0;
-                baryCentricCoords[indicies[i + map[2]] * 3 + 1] = 0;
-                baryCentricCoords[indicies[i + map[2]] * 3 + 2] = 1;
-
-                var problemTriangle = (function getTriangleColors(index) {
-                    function getVector(index) {
-                        return  [ baryCentricCoords[indicies[index]*3 ], baryCentricCoords[indicies[index]*3 +1], baryCentricCoords[indicies[index]*3 + 2]]
-                    }
-
-                    return [getVector(index), getVector(index+1), getVector(index+2)]
-                })(skinFile.subMeshes[1].StartTriangle + 9);
-                if (problemTriangle[1] !== undefined && problemTriangle[1][0] == 1){
-                    debugger;
-                }
-            }
+            } while (toBeVisitedNextLoop.length > 0);
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.baryCentricVBO);

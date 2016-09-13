@@ -288,7 +288,7 @@ class M2Geom {
                 meshIndex = materialData.meshIndex;
                 if (instanceCount == -1) {
                     //var error = gl.getError(); // Drop error flag
-                    gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, (skinData.subMeshes[meshIndex].StartTriangle + 9) * 2);
+                    gl.drawElements(gl.TRIANGLES, skinData.subMeshes[meshIndex].nTriangles, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].StartTriangle * 2);
                 } else {
                     instExt.drawElementsInstancedANGLE(gl.TRIANGLES, skinData.subMeshes[meshIndex].nTriangles, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].StartTriangle * 2, instanceCount);
                 }
