@@ -104,21 +104,70 @@ export default function initCamera(canvas, document) {
     }
 
     function mouseMove(event) {
-        if (mleft_pressed === 1) {
-            ah = ah + (event.pageX - m_x) / 4.0;
-            av = av + (event.pageY - m_y) / 4.0;
+        if (!pointerIsLocked) {
+            if (mleft_pressed === 1) {
+                ah = ah + (event.pageX - m_x) / 4.0;
+                av = av + (event.pageY - m_y) / 4.0;
+                if (av < -89.99999) {
+                    av = -89.99999
+                } else if (av > 89.99999) {
+                    av = 89.99999;
+                }
+                m_x = event.pageX;
+                m_y = event.pageY;
+            }
+        } else {
+            var delta_x = event.movementX ||
+                event.mozMovementX          ||
+                event.webkitMovementX       ||
+                0;
+            var delta_y = event.movementY ||
+                event.mozMovementY      ||
+                event.webkitMovementY   ||
+                0;
+
+            ah = ah + (delta_x) / 4.0;
+            av = av + (delta_y) / 4.0;
             if (av < -89.99999) {
                 av = -89.99999
             } else if (av > 89.99999) {
                 av = 89.99999;
             }
-            m_x = event.pageX;
-            m_y = event.pageY;
+
         }
     }
 
     function mouseout(event) {
         mleft_pressed = 0;
+    }
+
+    //From http://www.html5rocks.com/en/tutorials/pointerlock/intro/
+    var havePointerLock = 'pointerLockElement' in document ||
+        'mozPointerLockElement' in document ||
+        'webkitPointerLockElement' in document;
+
+    if (havePointerLock) {
+        canvas.addEventListener("click", function () {
+            "use strict";
+            canvas.requestPointerLock = canvas.requestPointerLock ||
+                canvas.mozRequestPointerLock ||
+                canvas.webkitRequestPointerLock;
+            // Ask the browser to lock the pointer
+            canvas.requestPointerLock();
+        }, false);
+
+        var pointerIsLocked = false;
+        var pointerLockCallback = function (e) {
+            "use strict";
+
+            pointerIsLocked =
+                (document.pointerLockElement === canvas ||
+                document.mozPointerLockElement === canvas ||
+                document.webkitPointerLockElement === canvas);
+        };
+        document.addEventListener('pointerlockchange', pointerLockCallback, false);
+        document.addEventListener('mozpointerlockchange', pointerLockCallback, false);
+        document.addEventListener('webkitpointerlockchange', pointerLockCallback, false);
     }
 
     canvas.addEventListener('mousemove', mouseMove, false);
