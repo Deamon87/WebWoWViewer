@@ -1,4 +1,5 @@
 var BowerWebpackPlugin = require("bower-webpack-plugin");
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 var webpack = require("webpack");
 var path = require('path');
 
@@ -58,7 +59,17 @@ module.exports = {
     plugins: [
         new webpack.ResolverPlugin(
             new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin(".bower.json", ["main"])
-        )
+        ),
+        new CopyWebpackPlugin([
+            { from: 'index.html', to: path.resolve('./dist/index.html') },
+            { from: 'build/**/*', to: path.resolve('./dist/')}
+        ],
+        {
+            ignore: [
+                // Doesn't copy any files with a txt extension
+                '*.map',
+            ]
+        })
     ]
 };
 
