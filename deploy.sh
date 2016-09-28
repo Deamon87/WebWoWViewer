@@ -39,6 +39,14 @@ cd dist
 git config user.name "Travis CI"
 git config user.email "$COMMIT_AUTHOR_EMAIL"
 
+echo root
+cd ..
+ls -a
+
+echo dist
+cd dist
+ls -a
+
 # If there are no changes to the compiled out (e.g. this is a README update) then just bail.
 if [ -z "git diff --exit-code" ]; then
     echo "No changes to the output on this push; exiting."
@@ -49,14 +57,6 @@ fi
 # The delta will show diffs between new and old versions.
 git add --all
 git commit -m "Deploy to GitHub Pages: ${SHA}"
-
-echo root
-cd ..
-ls -a
-
-echo dist
-cd dist
-ls -a
 
 # Get the deploy key by using Travis's stored variables to decrypt deploy_key.enc
 ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
