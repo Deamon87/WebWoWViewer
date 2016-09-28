@@ -33,7 +33,7 @@ rm -rf dist/**/* || exit 0
 # Run our compile script
 doCompile
 cp -r build/ dist/
-rm dist/*.map
+rm -f dist/build/*.map
 
 # Now let's go have some fun with the cloned repo
 
