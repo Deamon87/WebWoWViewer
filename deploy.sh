@@ -50,6 +50,14 @@ fi
 git add --all
 git commit -m "Deploy to GitHub Pages: ${SHA}"
 
+echo root
+cd ..
+ls -a
+
+echo dist
+cd dist
+ls -a
+
 # Get the deploy key by using Travis's stored variables to decrypt deploy_key.enc
 ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
 ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
