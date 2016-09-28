@@ -32,20 +32,14 @@ rm -rf dist/**/* || exit 0
 
 # Run our compile script
 doCompile
+cp -r build/ dist/
+rm dist/*.map
 
 # Now let's go have some fun with the cloned repo
 
 cd dist
 git config user.name "Travis CI"
 git config user.email "$COMMIT_AUTHOR_EMAIL"
-
-echo root
-cd ..
-ls -a
-
-echo dist
-cd dist
-ls -a
 
 # If there are no changes to the compiled out (e.g. this is a README update) then just bail.
 if [ -z "git diff --exit-code" ]; then

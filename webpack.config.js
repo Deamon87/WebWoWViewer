@@ -59,17 +59,7 @@ module.exports = {
     plugins: [
         new webpack.ResolverPlugin(
             new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin(".bower.json", ["main"])
-        ),
-        new CopyWebpackPlugin([
-            { from: path.resolve('index.html'), to: path.resolve('./dist/index.html') },
-            { from: path.resolve('./build'), to: path.resolve('./dist')}
-        ],
-        {
-            ignore: [
-                // Doesn't copy any files with a txt extension
-                '*.map',
-            ]
-        })
+        )
     ]
 };
 
