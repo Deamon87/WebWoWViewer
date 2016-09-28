@@ -8,9 +8,13 @@ before_script:
   - npm install -g bower
   - npm install
   - bower install
+branches:
+  only:
+  - master
 
 script: bash ./deploy.sh
 env:
   global:
   - ENCRYPTION_LABEL: "eb269827b609"
   - COMMIT_AUTHOR_EMAIL: "Deamon87@travis.com"
+
