@@ -1,5 +1,4 @@
 var BowerWebpackPlugin = require("bower-webpack-plugin");
-var CopyWebpackPlugin = require('copy-webpack-plugin');
 var webpack = require("webpack");
 var path = require('path');
 
