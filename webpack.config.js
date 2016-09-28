@@ -61,8 +61,8 @@ module.exports = {
             new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin(".bower.json", ["main"])
         ),
         new CopyWebpackPlugin([
-            { from: 'index.html', to: path.resolve('./dist/index.html') },
-            { from: 'build/**/*', to: path.resolve('./dist/')}
+            { from: path.resolve('index.html'), to: path.resolve('./dist/index.html') },
+            { from: path.resolve('./build'), to: path.resolve('./dist')}
         ],
         {
             ignore: [
