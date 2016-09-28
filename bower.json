@@ -14,7 +14,13 @@
     "app/bower_components",
     "test"
   ],
+  "exportsOverride": {
+    "zip.js" : {
+      "js" : "WebContent/zip.js"
+    }
+  },
   "dependencies": {
-    "decodeDXT": "Deamon87/decodeDXT"
+    "decodeDXT": "Deamon87/decodeDXT",
+    "zip.js" : "gildas-lormeau/zip.js"
   }
 }

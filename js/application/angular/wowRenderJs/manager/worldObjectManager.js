@@ -1,8 +1,9 @@
 import WorldUnit from '../objects/worldObjects/worldUnit.js'
 import WorldGameObject from '../objects/worldObjects/worldGameObject.js'
 //import packetList from '../../../mountedNpc.json'
-import packetList from '../../../packet.json'
+//import packetList from '../../../packet.json'
 //import packetList from '../../../attacketdMinion1.json'
+let packetList = [];
 import {vec3} from 'gl-matrix'
 
 class WorldObjectManager {
