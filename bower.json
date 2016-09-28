@@ -14,23 +14,7 @@
     "app/bower_components",
     "test"
   ],
-  "exportsOverride": {
-    "Jcrop": {
-      "js": "js/jquery.Jcrop.js"
-    },
-    "hqx-js" : {
-      "js" : "src/hqx.js"
-    },
-    "zip.js" : {
-      "js" : "WebContent/zip.js"
-    }
-  },
   "dependencies": {
-    "bootstrap" : "3.1.1",
-    "jquery": "~1.11.1",
-    "text-encoding": "v0.5.1",
     "decodeDXT": "Deamon87/decodeDXT",
-    "q" : "q#1.0.1",
-    "zip.js" : "gildas-lormeau/zip.js"
   }
 }

@@ -1,0 +1,16 @@
+language: node_js # don't install any environment
+
+node_js:
+  - "node"
+before_script:
+  - npm install -g webpack
+  - npm install -g gulp
+  - npm install -g bower
+  - npm install
+  - bower install
+
+script: bash ./deploy.sh
+env:
+  global:
+  - ENCRYPTION_LABEL: "eb269827b609"
+  - COMMIT_AUTHOR_EMAIL: "Deamon87@travis.com"
