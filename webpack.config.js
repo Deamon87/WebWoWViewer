@@ -5,7 +5,7 @@ var path = require('path');
 
 module.exports = {
     debug: true,
-    devtool: 'source-map',
+    devtool: 'sourcemap',
 
     context: __dirname,
 
@@ -59,6 +59,10 @@ module.exports = {
         new webpack.ResolverPlugin(
             new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin(".bower.json", ["main"])
         )
-    ]
+    ],
+    devServer: {
+        contentBase: '.',
+        stats: 'minimal'
+    }
 };
 

@@ -76,8 +76,8 @@ export default function initCamera(canvas, document) {
 
     function touchStart(event) {
         mleft_pressed = 1;
-        m_x = event.pageX;
-        m_y = event.pageY;
+        m_x = event.touches[0].pageX;
+        m_y = event.touches[0].pageY;
     }
 
     function touchMove(event) {

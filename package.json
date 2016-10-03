@@ -10,6 +10,9 @@
   "window": {
     "toolbar": true
   },
+  "scripts": {
+    "server": "webpack-dev-server --debug --history-api-fallback --inline --progress --port 8888 --display-reasons --colors -p --display-error-details"
+  },
   "devDependencies": {
     "babel-core": "^6.7.2",
     "babel-loader": "^6.2.4",
@@ -38,7 +41,8 @@
     "url-loader": "^0.5.7",
     "webpack": "^1.12.14",
     "webpack-glsl-loader": "^1.0.1",
-    "worker-loader": "^0.7.0"
+    "worker-loader": "^0.7.0",
+    "webpack-dev-server": "^1.14.1"
   },
   "dependencies": {
     "angular": "^1.5.1",
