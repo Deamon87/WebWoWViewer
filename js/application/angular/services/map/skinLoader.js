@@ -46,8 +46,8 @@ const skinDefinition = {
                 {name : "boneInfluences", type: "uint16"},
                 {name : "rootBone",       type: "uint16"},
                 {name : "pos",            type: "vector3f"},
-                {name : "unkPos",         type: "vector3f"},
-                {name : "unkFloat",       type: "float32"},
+                {name : "centerBoundingBox",         type: "vector3f"},
+                {name : "radius",       type: "float32"},
             ]
         },
         {

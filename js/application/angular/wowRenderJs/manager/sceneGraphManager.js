@@ -218,20 +218,19 @@ class GraphManager {
             this.lastTimeDistanceCalc = this.currentTime;
         }
 
-        //3. Sort m2 by distance every 500 ms
+        //3. Sort m2 by distance every 100 ms
+        var m2RenderedThisFrame = this.m2Objects.filter((a) => (a.loaded && a.getIsRendered()));
+        this.m2RenderedThisFrame = m2RenderedThisFrame;
 
-
-        //if (this.currentTime + deltaTime - this.lastTimeSort > 500) {
-            var m2RenderedThisFrame = this.m2Objects.filter((a) => (a.loaded && a.getIsRendered()));
+        if (this.currentTime + deltaTime - this.lastTimeSort > 100) {
             m2RenderedThisFrame.sort(this.sortM2);
-            this.m2RenderedThisFrame = m2RenderedThisFrame;
 
             this.lastTimeSort = this.currentTime;
-        //}
+        }
 
-        //4. Collect m2 into instances every 400 ms
+        //4. Collect m2 into instances every 200 ms
 
-        if (this.currentTime + deltaTime - this.lastInstanceCollect > 400) {
+        if (this.currentTime + deltaTime - this.lastInstanceCollect > 200) {
             var map = {};
             for (var j = 0; j < this.m2Objects.length; j++) {
                 var m2Object = this.m2Objects[j];

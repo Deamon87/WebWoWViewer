@@ -5,6 +5,7 @@ export default class InstanceManager {
         this.mdxObjectList = [];
         this.sceneObjNumMap = {};
         this.lastUpdatedNumber = 0;
+        this.previousObjectList = [];
     }
 
     addMDXObject(MDXObject) {
@@ -23,6 +24,20 @@ export default class InstanceManager {
         }
         var written = 0;
         var permanentBuffer = [];
+
+        //1. Collect objects
+        var newList = [];
+        for (var i = 0; i < this.mdxObjectList.length; i++) {
+            var mdxObject = this.mdxObjectList[i];
+            if (mdxObject.getIsRendered()) {
+                newList.push(mdxObject);
+            }
+        }
+
+        if (this.previousObjectList) {
+            newList
+        }
+
         for (var i = 0; i < this.mdxObjectList.length; i++) {
             var mdxObject = this.mdxObjectList[i];
             if (!mdxObject.getIsRendered()) continue;

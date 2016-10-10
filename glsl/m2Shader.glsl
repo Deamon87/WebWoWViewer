@@ -1,6 +1,10 @@
 //https://www.khronos.org/registry/webgl/extensions/WEBGL_draw_buffers/
 //For drawbuffers in glsl of webgl you need to use GL_EXT_draw_buffers instead of WEBGL_draw_buffers
 
+#ifndef MAX_MATRIX_NUM
+#define MAX_MATRIX_NUM 59
+#endif
+
 #ifdef ENABLE_DEFERRED
 #ifdef GL_EXT_draw_buffers
     #extension GL_EXT_draw_buffers: require
@@ -244,8 +248,9 @@ void main() {
         float heightFog = 1.0;
         expFog = (expFog + heightFog);
         float endFadeFog = clamp(((fog_end - distanceToCamera) / (0.699999988 * fog_end)), 0.0, 1.0);
+        float fog_out = min(expFog, endFadeFog);
+        finalColor.rgba = vec4(mix(fogColor.rgb, finalColor.rgb, vec3(fog_out)), finalColor.a);
 
-        finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, vec3(min(expFog, endFadeFog)));
     }
     /*
     vec3 matDiffuse_575 = (tex.rgb * tex2.rgb * meshColor.rgb);

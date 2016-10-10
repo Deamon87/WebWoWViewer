@@ -133,6 +133,18 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 modelName: 'world\\khazmodan\\ironforge\\passivedoodads\\lavasteam\\lavapots.m2'
             },
             {
+                name: 'Wotlk opening screen',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'Interface\\GLUES\\MODELS\\UI_MainMenu_Northrend\\UI_MainMenu_Northrend.M2'
+            },
+            {
+                name: 'Vanilla Opening screen',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'Interface\\GLUES\\MODELS\\UI_MAINMENU\\UI_MainMenu.m2'
+            },
+            {
                 name: 'Ulduar Raid',
                 source: 'http',
                 sceneType: 'map',

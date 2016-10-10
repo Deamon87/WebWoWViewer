@@ -1,6 +1,7 @@
 import $q from 'q';
 import AnimationManager from './../manager/animationManager.js'
 import mathHelper from './../math/mathHelper.js';
+import QuickSort from './../math/quickSort';
 import {vec4, mat4, vec3, quat} from 'gl-matrix';
 
 const pixelShaderTable = {
@@ -541,6 +542,46 @@ class MDXObject {
 
             return result;
         });
+        QuickSort.multiQuickSort(
+            this.materialArray,
+            0, this.materialArray.length-1,
+            function firstSort(a,b) {
+                return a.layer - b.layer;
+            }, /*function secondSort(a,b) {
+                var mesh1Pos = skinData.subMeshes[a.meshIndex].pos;
+                var mesh2Pos = skinData.subMeshes[b.meshIndex].pos;
+
+                var mesh1Vec = vec3.create();
+                vec3.subtract(mesh1Vec, [mesh1Pos.x, mesh1Pos.y, mesh1Pos.z], cameraInlocalPos);
+
+                var mesh2Vec = vec3.create();
+                vec3.subtract(mesh2Vec, [mesh2Pos.x, mesh2Pos.y, mesh2Pos.z], cameraInlocalPos);
+
+                var distMesh1 = vec3.length(mesh1Vec)
+                var distMesh2 = vec3.length(mesh2Vec);
+
+                var result = distMesh1 - distMesh2;
+                return result;
+            }*/
+            function secondSort(a,b) {
+                var mesh1Pos = skinData.subMeshes[a.meshIndex].centerBoundingBox;
+                var mesh2Pos = skinData.subMeshes[b.meshIndex].centerBoundingBox;
+                var mesh1SphereRadius = skinData.subMeshes[a.meshIndex].radius;
+                var mesh2SphereRadius = skinData.subMeshes[b.meshIndex].radius;
+
+                var mesh1Vec = vec3.create();
+                vec3.subtract(mesh1Vec, [mesh1Pos.x, mesh1Pos.y, mesh1Pos.z], cameraInlocalPos);
+
+                var mesh2Vec = vec3.create();
+                vec3.subtract(mesh2Vec, [mesh2Pos.x, mesh2Pos.y, mesh2Pos.z], cameraInlocalPos);
+
+                var distMesh1 = vec3.length(mesh1Vec) - mesh1SphereRadius;
+                var distMesh2 = vec3.length(mesh2Vec) - mesh2SphereRadius;
+
+                var result = distMesh1 - distMesh2;
+                return result;
+            }
+        );
 
         this.currentTime += deltaTime;
     }
