@@ -217,7 +217,7 @@ class M2Geom {
                 } else {
                     gl.uniform1i(uniforms.uUseDiffuseColor, 1)
                 }
-                if ((renderFlag.flags & 0x2) > 0) {
+                if ((renderFlag.flags & 0x2) > 0 || (materialData.isTransparent)) {
                     gl.uniform1i(uniforms.uUnFogged, 1)
                 } else {
                     gl.uniform1i(uniforms.uUnFogged, 0)
