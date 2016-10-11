@@ -48,6 +48,12 @@ class MathHelper {
         var dist = vec4.dot(nearPlane, cameraVec4);
         nearPlane[3] -= dist;
     }
+    static distanceFromAABBToPoint(aabb, p) {
+        var dx = Math.max(aabb[0][0] - p[0], 0, p[0] - aabb[1][0]);
+        var dy = Math.max(aabb[0][1] - p[1], 0, p[1] - aabb[1][1]);
+        var dz = Math.max(aabb[0][2] - p[2], 0, p[2] - aabb[1][2]);
+        return Math.sqrt(dx*dx + dy*dy + dz*dz);
+    }
     static sortVec3ArrayAgainstPlane(thisPortalVertices, plane) {
         var center = vec3.fromValues(0, 0, 0);
         for (var j = 0; j < thisPortalVertices.length; j++) {

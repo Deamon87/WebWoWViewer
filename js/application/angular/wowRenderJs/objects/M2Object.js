@@ -1,4 +1,5 @@
 import $q from 'q';
+import config from './../../services/config';
 import AnimationManager from './../manager/animationManager.js'
 import mathHelper from './../math/mathHelper.js';
 import QuickSort from './../math/quickSort';
@@ -415,9 +416,6 @@ class MDXObject {
                }
            }
 
-           materialArray.sort(function (a, b) {
-               return a.layer - b.layer;
-           });
            this.materialArray = materialArray;
 
        } catch(e) {
@@ -522,30 +520,20 @@ class MDXObject {
         /* 3. Resort m2 meshes against distance to screen */
         var skinData = this.skinGeom.skinFile.header;
 
-        this.materialArray.sort(function(a, b) {
-            var result = a.layer - b.layer;
-            if (result == 0) {
-                var mesh1Pos = skinData.subMeshes[a.meshIndex].pos;
-                var mesh2Pos = skinData.subMeshes[b.meshIndex].pos;
 
-                var mesh1Vec = vec3.create();
-                vec3.subtract(mesh1Vec, [mesh1Pos.x, mesh1Pos.y, mesh1Pos.z], cameraInlocalPos);
-
-                var mesh2Vec = vec3.create();
-                vec3.subtract(mesh2Vec, [mesh2Pos.x, mesh2Pos.y, mesh2Pos.z], cameraInlocalPos);
-
-                var distMesh1 = vec3.length(mesh1Vec)
-                var distMesh2 = vec3.length(mesh2Vec);
-
-                result = distMesh2 - distMesh1;
-            }
-
-            return result;
-        });
         QuickSort.multiQuickSort(
             this.materialArray,
             0, this.materialArray.length-1,
-            function firstSort(a,b) {
+            function sortTransp(a,b) {
+                if (a.isTransparent == b.isTransparent) {
+                    return 0
+                } else if (a.isTransparent == false && b.isTransparent == true) {
+                    return -1
+                } else {
+                    return 1;
+                }
+            },
+            function sortLayers(a,b) {
                 return a.layer - b.layer;
             }, /*function secondSort(a,b) {
                 var mesh1Pos = skinData.subMeshes[a.meshIndex].pos;
@@ -560,9 +548,9 @@ class MDXObject {
                 var distMesh1 = vec3.length(mesh1Vec)
                 var distMesh2 = vec3.length(mesh2Vec);
 
-                var result = distMesh1 - distMesh2;
+                var result = distMesh2 - distMesh1;
                 return result;
-            }*/
+            }    */
             function secondSort(a,b) {
                 var mesh1Pos = skinData.subMeshes[a.meshIndex].centerBoundingBox;
                 var mesh2Pos = skinData.subMeshes[b.meshIndex].centerBoundingBox;
@@ -581,6 +569,30 @@ class MDXObject {
                 var result = distMesh1 - distMesh2;
                 return result;
             }
+            /*function secondSort(a,b) {
+                var mesh1Corner1 = skinData.subMeshes[a.meshIndex].pos;
+                var mesh1Corner2 = skinData.subMeshes[a.meshIndex].centerBoundingBox;
+
+                var aabb1 = [
+                    [mesh1Corner1.x, mesh1Corner1.y, mesh1Corner1.z],
+                    [mesh1Corner2.x, mesh1Corner2.y, mesh1Corner2.z]
+                ];
+
+                var mesh2Corner1 = skinData.subMeshes[b.meshIndex].pos;
+                var mesh2Corner2 = skinData.subMeshes[b.meshIndex].centerBoundingBox;
+
+                var aabb2 = [
+                    [mesh2Corner1.x, mesh2Corner1.y, mesh2Corner1.z],
+                    [mesh2Corner2.x, mesh2Corner2.y, mesh2Corner2.z]
+                ];
+
+
+                var distMesh1 = mathHelper.distanceFromAABBToPoint(aabb1, cameraInlocalPos);
+                var distMesh2 = mathHelper.distanceFromAABBToPoint(aabb2, cameraInlocalPos);
+
+                var result = distMesh2 - distMesh1;
+                return result;
+            } */
         );
 
         this.currentTime += deltaTime;
@@ -657,9 +669,12 @@ class MDXObject {
         var identMat = mat4.create();
         mat4.identity(identMat);
 
+        var meshIdsTobeRendered = window.meshestoBeRendered;
         for (var i = 0; i < this.materialArray.length; i++) {
             var materialData = this.materialArray[i];
             if (!(materialData.isTransparent ^ !drawTransparent)) continue;
+
+            if (meshIdsTobeRendered && !meshIdsTobeRendered[materialData.texUnit1TexIndex]) continue;
 
             /* Get right texture animation matrix */
             var textureMatrix1 = identMat;

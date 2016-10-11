@@ -166,7 +166,9 @@ class M2Geom {
                 //try {
                 gl.depthMask(true);
 
-                var renderFlagIndex = skinData.texs[materialData.texUnit1TexIndex].renderFlagIndex;
+
+                var textMaterial = skinData.texs[materialData.texUnit1TexIndex];
+                var renderFlagIndex = textMaterial.renderFlagIndex;
                 var renderFlag = m2File.renderFlags[renderFlagIndex];
 
                 gl.uniform1i(uniforms.uBlendMode, renderFlag.blend);
@@ -217,7 +219,7 @@ class M2Geom {
                 } else {
                     gl.uniform1i(uniforms.uUseDiffuseColor, 1)
                 }
-                if ((renderFlag.flags & 0x2) > 0 || (materialData.isTransparent)) {
+                if ((renderFlag.flags & 0x2) > 0 ) {
                     gl.uniform1i(uniforms.uUnFogged, 1)
                 } else {
                     gl.uniform1i(uniforms.uUnFogged, 0)
@@ -235,8 +237,10 @@ class M2Geom {
 
 
                 if ((renderFlag.flags & 0x10) > 0) {
+                    //gl.disable(gl.DEPTH_TEST);
                     gl.depthMask(false);
                 } else {
+                    // gl.enable(gl.DEPTH_TEST);
                     gl.depthMask(true);
                 }
 

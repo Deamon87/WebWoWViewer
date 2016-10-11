@@ -114,15 +114,8 @@ class AdtM2Object extends MDXObject {
         this.position = position;
     }
     calcDistance (position) {
-        function distance(aabb, p) {
-            var dx = Math.max(aabb[0][0] - p[0], 0, p[0] - aabb[1][0]);
-            var dy = Math.max(aabb[0][1] - p[1], 0, p[1] - aabb[1][1]);
-            var dz = Math.max(aabb[0][2] - p[2], 0, p[2] - aabb[1][2]);
-            return Math.sqrt(dx*dx + dy*dy + dz*dz);
-        }
-
         if (this.loaded) {
-            this.currentDistance = distance(this.aabb, position);
+            this.currentDistance = mathHelper.distanceFromAABBToPoint(this.aabb, position);
         }
     }
     getCurrentDistance (){

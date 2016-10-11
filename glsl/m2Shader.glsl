@@ -2,7 +2,7 @@
 //For drawbuffers in glsl of webgl you need to use GL_EXT_draw_buffers instead of WEBGL_draw_buffers
 
 #ifndef MAX_MATRIX_NUM
-#define MAX_MATRIX_NUM 59
+#define MAX_MATRIX_NUM 59 //Max 59 for ANGLE implementation and max 120? bones in Wotlk client
 #endif
 
 #ifdef ENABLE_DEFERRED
@@ -24,7 +24,7 @@ attribute vec2 aTexCoord2;
 
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
-uniform mat4 uBoneMatrixes[59]; //Max 59 for ANGLE implementation and max 120? bones in Wotlk client
+uniform mat4 uBoneMatrixes[MAX_MATRIX_NUM];
 uniform int isEnviroment;
 uniform lowp int isTransparent;
 

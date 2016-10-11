@@ -51,24 +51,37 @@ class QuickSort {
 
         return items;
     }
-    static multiQuickSort(items, left, right, firstCompareFunc, secondCompareFunc) {
-        QuickSort.quickSort(items, left, right, firstCompareFunc);
-        var newLeft = left;
-        var newRight = 1;
-        while (newRight <= right)  {
-            if (firstCompareFunc(items[newLeft], items[newRight]) != 0) {
-                if (newRight - newLeft > 1) {
-                    QuickSort.quickSort(items, newLeft, newRight - 1, secondCompareFunc)
-                }
-                newLeft = newRight;
-            }
-            newRight++
+    static multiQuickSort(items, left, right) {
+        var compareTimes = arguments.length - 3;
+        var compareFuncs = new Array(compareTimes);
+        for (var i = 0; i < compareFuncs.length; i++) {
+            compareFuncs[i] = arguments[3 + i];
         }
-        if (newRight - newLeft > 1) {
-            QuickSort.quickSort(items, newLeft, newRight - 1, secondCompareFunc)
+
+        QuickSort.quickSort(items, left, right, compareFuncs[0]);
+        if (compareFuncs.length > 1) {
+            for (var i = 1; i < compareTimes; i++) {
+                var newLeft = left;
+                var newRight = 1;
+                while (newRight <= right) {
+                    var compareResult = false;
+                    for (var j = 0; (j < i) && (!compareResult); j++) {
+                        compareResult = compareResult || (compareFuncs[j](items[newLeft], items[newRight]) != 0)
+                    }
+                    if (compareResult) {
+                        if (newRight - newLeft > 1) {
+                            QuickSort.quickSort(items, newLeft, newRight - 1, compareFuncs[i])
+                        }
+                        newLeft = newRight;
+                    }
+                    newRight++
+                }
+                if (newRight - newLeft > 1) {
+                    QuickSort.quickSort(items, newLeft, newRight - 1, compareFuncs[i])
+                }
+            }
         }
     }
-
 
 }
 export default QuickSort;
