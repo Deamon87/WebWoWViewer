@@ -108,6 +108,7 @@ class MDXObject {
             self.skinGeom = skinGeom;
 
             skinGeom.fixData(m2Geom.m2File);
+            skinGeom.calcBBForSkinSections(m2Geom.m2File);
 
             if (!m2Geom) {
                 $log.log("m2 file failed to load : "+ modelName);
@@ -335,6 +336,9 @@ class MDXObject {
                materialData.meshIndex = skinTextureDefinition.submeshIndex;
                materialData.shaderNames = shaderNames;
 
+               materialData.renderFlag =  mdxObject.m2File.renderFlags[renderFlagIndex].flags;
+               materialData.renderBlending = mdxObject.m2File.renderFlags[renderFlagIndex].blend;
+
                var textureUnit;
                if (skinTextureDefinition.textureUnitNum <= mdxObject.m2File.textUnitLookup.length) {
                    textureUnit = mdxObject.m2File.textUnitLookup[skinTextureDefinition.textureUnitNum];
@@ -519,6 +523,7 @@ class MDXObject {
 
         /* 3. Resort m2 meshes against distance to screen */
         var skinData = this.skinGeom.skinFile.header;
+        var skinGeom = this.skinGeom;
 
 
         QuickSort.multiQuickSort(
@@ -528,14 +533,12 @@ class MDXObject {
                 if (a.isTransparent == b.isTransparent) {
                     return 0
                 } else if (a.isTransparent == false && b.isTransparent == true) {
-                    return -1
+                    return 1
                 } else {
-                    return 1;
+                    return -1;
                 }
             },
-            function sortLayers(a,b) {
-                return a.layer - b.layer;
-            }, /*function secondSort(a,b) {
+/*            function secondSort(a,b) {
                 var mesh1Pos = skinData.subMeshes[a.meshIndex].pos;
                 var mesh2Pos = skinData.subMeshes[b.meshIndex].pos;
 
@@ -550,10 +553,10 @@ class MDXObject {
 
                 var result = distMesh2 - distMesh1;
                 return result;
-            }    */
-            function secondSort(a,b) {
-                var mesh1Pos = skinData.subMeshes[a.meshIndex].centerBoundingBox;
-                var mesh2Pos = skinData.subMeshes[b.meshIndex].centerBoundingBox;
+            }*/
+            /*function secondSort(a,b) {
+                var mesh1Pos = skinData.subMeshes[a.meshIndex].pos;
+                var mesh2Pos = skinData.subMeshes[b.meshIndex].pos;
                 var mesh1SphereRadius = skinData.subMeshes[a.meshIndex].radius;
                 var mesh2SphereRadius = skinData.subMeshes[b.meshIndex].radius;
 
@@ -568,9 +571,9 @@ class MDXObject {
 
                 var result = distMesh1 - distMesh2;
                 return result;
-            }
-            /*function secondSort(a,b) {
-                var mesh1Corner1 = skinData.subMeshes[a.meshIndex].pos;
+            }       */
+            function secondSort(a,b) {
+                /*var mesh1Corner1 = skinData.subMeshes[a.meshIndex].pos;
                 var mesh1Corner2 = skinData.subMeshes[a.meshIndex].centerBoundingBox;
 
                 var aabb1 = [
@@ -584,15 +587,16 @@ class MDXObject {
                 var aabb2 = [
                     [mesh2Corner1.x, mesh2Corner1.y, mesh2Corner1.z],
                     [mesh2Corner2.x, mesh2Corner2.y, mesh2Corner2.z]
-                ];
-
+                ];*/
+                var aabb1 = skinGeom.subMeshBBs[a.meshIndex];
+                var aabb2 = skinGeom.subMeshBBs[b.meshIndex];
 
                 var distMesh1 = mathHelper.distanceFromAABBToPoint(aabb1, cameraInlocalPos);
                 var distMesh2 = mathHelper.distanceFromAABBToPoint(aabb2, cameraInlocalPos);
 
-                var result = distMesh2 - distMesh1;
+                var result = distMesh1 - distMesh2;
                 return result;
-            } */
+            }
         );
 
         this.currentTime += deltaTime;

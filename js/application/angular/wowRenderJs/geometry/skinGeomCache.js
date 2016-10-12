@@ -184,6 +184,47 @@ class SkinGeom {
         }
     }
 
+    calcBBForSkinSections(m2File) {
+        var skinFile = this.skinFile.header;
+        var vertexes = m2File.vertexesDebug;
+        var indicies = this.indicies;
+
+        var subMeshBBs = new Array(skinFile.subMeshes.length);
+        for (var i = 0; i < skinFile.subMeshes.length; i++) {
+            var submesh = skinFile.subMeshes[i];
+
+            var subMeshBB = [[9999,9999,9999], [-9999, -9999, -9999]];
+            for (var j = submesh.StartTriangle; j < submesh.StartTriangle+submesh.nTriangles; j++) {
+
+                    //Min
+                    if (vertexes[indicies[j]].pos.x < subMeshBB[0][0]) {
+                        subMeshBB[0][0] = vertexes[indicies[j]].pos.x
+                    }
+                    if (vertexes[indicies[j]].pos.y < subMeshBB[0][1]) {
+                        subMeshBB[0][1] = vertexes[indicies[j]].pos.y
+                    }
+                    if (vertexes[indicies[j]].pos.z < subMeshBB[0][2]) {
+                        subMeshBB[0][2] = vertexes[indicies[j]].pos.z
+                    }
+
+                    //Max
+                    if (vertexes[indicies[j]].pos.x > subMeshBB[1][0]) {
+                        subMeshBB[1][0] = vertexes[indicies[j]].pos.x
+                    }
+                    if (vertexes[indicies[j]].pos.y > subMeshBB[1][1]) {
+                        subMeshBB[1][1] = vertexes[indicies[j]].pos.y
+                    }
+                    if (vertexes[indicies[j]].pos.z > subMeshBB[1][2]) {
+                        subMeshBB[1][2] = vertexes[indicies[j]].pos.z
+                    }
+            }
+
+            subMeshBBs[i] = subMeshBB;
+        }
+
+        this.subMeshBBs = subMeshBBs;
+    }
+
     createVBO() {
         var gl = this.gl;
         var skinObject = this.skinFile;
@@ -195,7 +236,7 @@ class SkinGeom {
         for (var i = 0; i < indicies.length; i++) {
             indicies[i] = skinFileHeader.indexes[skinFileHeader.triangles[i]];
         }
-
+        this.indicies = indicies;
         this.indexVBO = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indicies), gl.STATIC_DRAW);
