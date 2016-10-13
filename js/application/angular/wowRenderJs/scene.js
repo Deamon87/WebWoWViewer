@@ -1018,7 +1018,7 @@ class Scene {
             gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
         }
     }
-    drawTexturedQuad(gl, texture, x, y, width, height, canv_width, canv_height) {
+    drawTexturedQuad(gl, texture, x, y, width, height, canv_width, canv_height, drawDepth) {
         gl.disable(gl.DEPTH_TEST);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
@@ -1029,6 +1029,7 @@ class Scene {
         gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uHeight, height/canv_height);
         gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uX, x/canv_width);
         gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uY, y/canv_height);
+        gl.uniform1i(this.drawDepthBuffer.shaderUniforms.drawDepth, (drawDepth) ? 1 : 0);
 
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -1102,6 +1103,9 @@ class Scene {
 
         }
 
+        var farPlane = 1500;
+        var nearPlane = 1;
+
         var lookAtMat4 = [];
 
         mat4.lookAt(lookAtMat4, this.mainCamera, this.mainCameraLookAt, [0,0,1]);
@@ -1111,18 +1115,18 @@ class Scene {
         mat4.lookAt(secondLookAtMat, this.secondCamera, this.secondCameraLookAt, [0,0,1]);
 
         var perspectiveMatrix = mat4.create();
-        mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, 1, 1500);
+        mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, nearPlane, farPlane);
         //var o_height = (this.canvas.height * (533.333/256/* zoom 7 in Alram viewer */))/ 2 ;
         //var o_width = o_height * this.canvas.width / this.canvas.height;
         //mat4.ortho(perspectiveMatrix, -o_width, o_width, -o_height, o_height, 1, 1000);
 
 
         var perspectiveMatrixForCulling = mat4.create();
-        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, 1, 1500);
+        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, nearPlane, farPlane);
 
         //Camera for rendering
         var perspectiveMatrixForCameraRender = mat4.create();
-        mat4.perspective(perspectiveMatrixForCameraRender, 45.0, this.canvas.width / this.canvas.height, 1, 1500);
+        mat4.perspective(perspectiveMatrixForCameraRender, 45.0, this.canvas.width / this.canvas.height, nearPlane, farPlane);
 
         var viewCameraForRender = mat4.create();
         mat4.multiply(viewCameraForRender, perspectiveMatrixForCameraRender,lookAtMat4)
@@ -1201,6 +1205,20 @@ class Scene {
                 this.canvas.width * 0.40,
                 this.canvas.height * 0.40,
                 this.canvas.width, this.canvas.height);
+        }
+        if (config.getDrawDepthBuffer()) {
+            this.activateRenderDepthShader();
+            gl.enableVertexAttribArray(0);
+            gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uFarPlane, farPlane);
+            gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uNearPlane, nearPlane);
+
+            this.drawTexturedQuad(gl, this.frameBufferDepthTexture,
+                this.canvas.width * 0.60,
+                0,//this.canvas.height * 0.75,
+                this.canvas.width * 0.40,
+                this.canvas.height * 0.40,
+                this.canvas.width, this.canvas.height,
+                true);
         }
 
 

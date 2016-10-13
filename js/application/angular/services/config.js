@@ -14,6 +14,8 @@ var drawM2BB = false;
 var secondCamera = false;
 var doubleCameraDebug = false;
 
+var drawDepthBuffer = false;
+
 var savedUrlForLoading = localStorage.getItem('urlForLoading');
 if (savedUrlForLoading) {
     urlToLoadWoWFile = savedUrlForLoading;
@@ -107,5 +109,11 @@ export default {
     },
     setDoubleCameraDebug : function (value) {
         doubleCameraDebug = value;
+    },
+    getDrawDepthBuffer : function () {
+        return drawDepthBuffer;
+    },
+    setDrawDepthBuffer : function (value) {
+        drawDepthBuffer = value;
     }
 }

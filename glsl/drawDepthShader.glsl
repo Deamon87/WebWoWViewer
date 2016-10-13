@@ -30,18 +30,26 @@ void main(void) {
 
 precision mediump float;
 uniform sampler2D diffuse;
+uniform int drawDepth;
+uniform float uFarPlane;
+uniform float uNearPlane;
+
 varying vec2 texCoord;
 
 void main(void) {
 
-    //float f = 1000.0; //far plane
-    //float n = 1.0; //near plane
-    //float z = (2.0 * n) / (f + n - texture2D( diffuse, texCoord ).x * (f - n));
+    vec4 finalColor;
+    if (drawDepth == 1) {
+        float f = uFarPlane; //far plane
+        float n = uNearPlane; //near plane
+        float z = (2.0 * n) / (f + n - texture2D( diffuse, texCoord ).x * (f - n));
 
+        finalColor = vec4(z,z,z, 255);
 
-    //vec4 color = texture2D(diffuse, texCoord);
-    //gl_FragColor = vec4(z,z,z, 255);
-    gl_FragColor = vec4(texture2D( diffuse, texCoord ).rgb, 255);
+    } else {
+        finalColor = vec4(texture2D( diffuse, texCoord ).rgb, 255);
+    }
+    gl_FragColor = finalColor;
 }
 
 #endif //COMPILING_FS

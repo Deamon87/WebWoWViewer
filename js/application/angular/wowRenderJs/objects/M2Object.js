@@ -515,7 +515,7 @@ class MDXObject {
         /* 1. Calc local camera */
         var cameraInlocalPos = vec4.create();
         vec4.copy(cameraInlocalPos, cameraPos);
-        vec4.transformMat4(cameraInlocalPos, cameraInlocalPos, invPlacementMat);
+       // vec4.transformMat4(cameraInlocalPos, cameraInlocalPos, invPlacementMat);
 
         /* 2. Update animation values */
         this.animationManager.update(deltaTime, cameraInlocalPos, this.bonesMatrices, this.textAnimMatrices, this.subMeshColors, this.transparencies);
@@ -527,17 +527,47 @@ class MDXObject {
 
 
         QuickSort.multiQuickSort(
-            this.materialArray,
+           this.materialArray,
             0, this.materialArray.length-1,
-            function sortTransp(a,b) {
-                if (a.isTransparent == b.isTransparent) {
-                    return 0
-                } else if (a.isTransparent == false && b.isTransparent == true) {
+        function test1 (a, b) {
+                var aabb1 = skinGeom.subMeshBBs[a.meshIndex];
+                var aabb2 = skinGeom.subMeshBBs[b.meshIndex];
+
+                var isInsideAABB1 =
+                    cameraInlocalPos[0] > aabb1[0][0] && cameraInlocalPos[0] < aabb1[1][0] &&
+                    cameraInlocalPos[1] > aabb1[0][1] && cameraInlocalPos[1] < aabb1[1][1] &&
+                    cameraInlocalPos[2] > aabb1[0][2] && cameraInlocalPos[2] < aabb1[1][2];
+
+                var isInsideAABB2 =
+                    cameraInlocalPos[0] > aabb2[0][0] && cameraInlocalPos[0] < aabb2[1][0] &&
+                    cameraInlocalPos[1] > aabb2[0][1] && cameraInlocalPos[1] < aabb2[1][1] &&
+                    cameraInlocalPos[2] > aabb2[0][2] && cameraInlocalPos[2] < aabb2[1][2];
+
+                if (!isInsideAABB1 && isInsideAABB2) {
                     return 1
-                } else {
+                } else if (isInsideAABB1 && !isInsideAABB2) {
+                    return -1
+                }
+                return 0;
+            },             /*function sortTransp(a,b) {
+                if (!a.isTransparent && b.isTransparent) {
+                    return 1
+                } else if (a.isTransparent && !b.isTransparent) {
                     return -1;
                 }
-            },
+
+                return 0;
+            },*/ /*function test2(a, b) {
+                var aabb1 = skinGeom.subMeshBBs[a.meshIndex];
+                var aabb2 = skinGeom.subMeshBBs[b.meshIndex];
+
+
+                var distMesh1 = mathHelper.distanceFromAABBToPoint(aabb1, cameraInlocalPos);
+                var distMesh2 = mathHelper.distanceFromAABBToPoint(aabb2, cameraInlocalPos);
+
+                var result = distMesh2 - distMesh1;
+                return result;
+            }   */
 /*            function secondSort(a,b) {
                 var mesh1Pos = skinData.subMeshes[a.meshIndex].pos;
                 var mesh2Pos = skinData.subMeshes[b.meshIndex].pos;
@@ -596,6 +626,8 @@ class MDXObject {
 
                 var result = distMesh1 - distMesh2;
                 return result;
+            }, function sortMesh(a,b) {
+                return b.meshIndex - a.meshIndex;
             }
         );
 
@@ -704,7 +736,7 @@ class MDXObject {
             if ((transparency < 0.0001) || (meshColor[3] < 0.001)) continue;
 
             var pixelShaderIndex = pixelShaderTable[materialData.shaderNames.pixel];
-            this.m2Geom.drawMesh(i, materialData, this.skinGeom, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, instanceCount)
+            this.m2Geom.drawMesh(materialData, this.skinGeom, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, instanceCount)
         }
     }
     drawInstanced(drawTransparent, instanceCount, placementVBO) {

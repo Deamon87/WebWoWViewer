@@ -145,7 +145,7 @@ class M2Geom {
         }
     }
 
-   drawMesh(meshIndex, materialData, skinObject, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, instanceCount) {
+   drawMesh(materialData, skinObject, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, instanceCount) {
         var gl = this.gl;
         var m2File = this.m2File;
         var instExt = this.sceneApi.extensions.getInstancingExt();
@@ -282,7 +282,7 @@ class M2Geom {
                     gl.bindTexture(gl.TEXTURE_2D, blackPixelText);
                 }
 
-                meshIndex = materialData.meshIndex;
+                var meshIndex = materialData.meshIndex;
                 if (instanceCount == -1) {
                     //var error = gl.getError(); // Drop error flag
                     gl.drawElements(gl.TRIANGLES, skinData.subMeshes[meshIndex].nTriangles, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].StartTriangle * 2);
