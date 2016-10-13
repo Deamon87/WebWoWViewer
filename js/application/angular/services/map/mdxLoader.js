@@ -210,6 +210,37 @@ const mdx_ver264 = {
             ]
         },
         {
+            name : "cameras",
+            offset: "ofsCameras",
+            count : "nCameras",
+            type: "layout",
+            layout : [
+                {name :"type", type: "uint32"}, // 0: portrait, 1: characterinfo; -1: else (flyby etc.); referenced backwards in the lookup table.
+                {name :"fov", type: "float"},// No radians, no degrees. Multiply by 35 to get degrees.
+                {name :"far_clip", type: "float"},
+                {name :"near_clip", type: "float"},
+                {
+                    // How the camera's position moves. Should be 3*3 floats.
+                    name: "positions",
+                    type: "ablock",
+                    valType: "vector3f"
+                },
+                { name: "position_base", valType: "vector3f" },
+                {
+                    name: "target_position",
+                    type: "ablock",
+                    valType: "vector3f"
+                },
+                { name: "target_position_base", valType: "vector3f" },
+                {
+                    // The camera can have some roll-effect. Its 0 to 2*Pi.
+                    name: "roll",
+                    type: "ablock",
+                    valType: "float"
+                },
+            ]
+        },
+        {
             name : "bones",
             offset: "ofsBones",
             count : "nBones",

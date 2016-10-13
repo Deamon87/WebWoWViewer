@@ -22,6 +22,7 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<div style="display: block"><input type="checkbox" ng-model="drawM2BB">Draw M2 BB</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawWmoBB">Draw Wmo BB</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawBSP">Draw BSP leafs</div>' +
+            '<div style="display: block"><input type="checkbox" ng-model="drawDepth">Draw Depth buffer</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="usePortalCulling">Use portal culling</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="doubleCameraDebug">Double camera debug</div>'+
             '<div style="display: block"><input type="checkbox" ng-disabled="!doubleCameraDebug" ng-model="useSecondCamera">Control debug camera</div>'+
@@ -87,6 +88,9 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
 
                 scope.$watch('drawM2', function (newValue) {
                     config.setRenderM2(newValue);
+                });
+                scope.$watch('drawDepth', function (newValue) {
+                    config.setDrawDepthBuffer(newValue);
                 });
 
                 scope.$watch('drawPortals', function (newValue) {

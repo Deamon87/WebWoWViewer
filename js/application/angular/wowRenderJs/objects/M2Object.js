@@ -529,7 +529,10 @@ class MDXObject {
         QuickSort.multiQuickSort(
            this.materialArray,
             0, this.materialArray.length-1,
-        function test1 (a, b) {
+            function sortOnLevel (a, b) {
+                return a.layer - b.layer;
+            },
+            function test1 (a, b) {
                 var aabb1 = skinGeom.subMeshBBs[a.meshIndex];
                 var aabb2 = skinGeom.subMeshBBs[b.meshIndex];
 
@@ -626,8 +629,23 @@ class MDXObject {
 
                 var result = distMesh1 - distMesh2;
                 return result;
-            }, function sortMesh(a,b) {
-                return b.meshIndex - a.meshIndex;
+            }, function secondSort(a,b) {
+                var mesh1Pos = skinData.subMeshes[a.meshIndex].centerBoundingBox;
+                var mesh2Pos = skinData.subMeshes[b.meshIndex].centerBoundingBox;
+                var mesh1SphereRadius = skinData.subMeshes[a.meshIndex].radius;
+                var mesh2SphereRadius = skinData.subMeshes[b.meshIndex].radius;
+
+                var mesh1Vec = vec3.create();
+                vec3.subtract(mesh1Vec, [mesh1Pos.x, mesh1Pos.y, mesh1Pos.z], cameraInlocalPos);
+
+                var mesh2Vec = vec3.create();
+                vec3.subtract(mesh2Vec, [mesh2Pos.x, mesh2Pos.y, mesh2Pos.z], cameraInlocalPos);
+
+                var distMesh1 = vec3.length(mesh1Vec) - mesh1SphereRadius;
+                var distMesh2 = vec3.length(mesh2Vec) - mesh2SphereRadius;
+
+                var result = distMesh1 - distMesh2;
+                return result;
             }
         );
 
