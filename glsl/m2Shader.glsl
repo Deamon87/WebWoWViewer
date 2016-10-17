@@ -147,6 +147,9 @@ uniform sampler2D uTexture2;
 uniform mat4 uTextMat1;
 uniform mat4 uTextMat2;
 
+uniform float uFogStart;
+uniform float uFogEnd;
+
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;
 #endif
@@ -232,8 +235,7 @@ void main() {
 
     if (uUnFogged == 0) {
         vec3 fogColor = uFogColor;
-        float fog_start = 1.0;
-        float fog_end = 200.0;
+
         float fog_rate = 1.5;
         float fog_bias = 0.01;
     
@@ -242,12 +244,12 @@ void main() {
 
         float distanceToCamera = length(vPosition.xyz);
         float z_depth = (distanceToCamera - fog_bias);
-        float expFog = 1.0 / (exp((max(0.0, (z_depth - fog_start)) * fog_rate)));
+        float expFog = 1.0 / (exp((max(0.0, (z_depth - uFogStart)) * fog_rate)));
         //float height = (dot(fogHeightPlane.xyz, vPosition.xyz) + fogHeightPlane.w);
         //float heightFog = clamp((height * heightRate), 0, 1);
         float heightFog = 1.0;
         expFog = (expFog + heightFog);
-        float endFadeFog = clamp(((fog_end - distanceToCamera) / (0.699999988 * fog_end)), 0.0, 1.0);
+        float endFadeFog = clamp(((uFogEnd - distanceToCamera) / (0.699999988 * uFogEnd)), 0.0, 1.0);
         float fog_out = min(expFog, endFadeFog);
         finalColor.rgba = vec4(mix(fogColor.rgb, finalColor.rgb, vec3(fog_out)), finalColor.a);
 

@@ -127,6 +127,7 @@ class MDXObject {
                 self.initSubmeshColors();
                 self.initTextureAnimMatrices();
                 self.initTransparencies();
+                self.initCameras();
 
                 self.postLoad();
                 self.loaded = true;
@@ -326,7 +327,9 @@ class MDXObject {
                var op_count = skinTextureDefinition.op_count;
 
                var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
-               var isTransparent = mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2;
+               //var isTransparent = (mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2);
+               var isTransparent = (mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2) ||
+                   (mdxObject.m2File.renderFlags[renderFlagIndex].flags & 0x10 > 0);
 
                var shaderNames = this.getShaderNames(skinTextureDefinition);
 
@@ -518,7 +521,7 @@ class MDXObject {
        // vec4.transformMat4(cameraInlocalPos, cameraInlocalPos, invPlacementMat);
 
         /* 2. Update animation values */
-        this.animationManager.update(deltaTime, cameraInlocalPos, this.bonesMatrices, this.textAnimMatrices, this.subMeshColors, this.transparencies);
+        this.animationManager.update(deltaTime, cameraInlocalPos, this.bonesMatrices, this.textAnimMatrices, this.subMeshColors, this.transparencies, this.cameras);
         this.combinedBoneMatrix = this.combineBoneMatrixes();
 
         /* 3. Resort m2 meshes against distance to screen */
@@ -551,7 +554,19 @@ class MDXObject {
                 } else if (isInsideAABB1 && !isInsideAABB2) {
                     return -1
                 }
-                return 0;
+
+
+                //var distMesh1 = mathHelper.distanceFromAABBToPoint(aabb1, cameraInlocalPos);
+                //var distMesh2 = mathHelper.distanceFromAABBToPoint(aabb2, cameraInlocalPos);
+                var result;
+                if (isInsideAABB1 && isInsideAABB1) {
+                    result = Math.abs(aabb2[1][0] - cameraInlocalPos[0]) - Math.abs(aabb1[1][0] - cameraInlocalPos[0]);
+                } else if (!(isInsideAABB1 && isInsideAABB1)) {
+                    result = Math.abs(aabb1[1][0] - cameraInlocalPos[0]) - Math.abs(aabb2[1][0] - cameraInlocalPos[0]);
+                }
+
+
+                return result;
             },             /*function sortTransp(a,b) {
                 if (!a.isTransparent && b.isTransparent) {
                     return 1
@@ -605,7 +620,7 @@ class MDXObject {
                 var result = distMesh1 - distMesh2;
                 return result;
             }       */
-            function secondSort(a,b) {
+            /*function secondSort(a,b) {
                 /*var mesh1Corner1 = skinData.subMeshes[a.meshIndex].pos;
                 var mesh1Corner2 = skinData.subMeshes[a.meshIndex].centerBoundingBox;
 
@@ -620,16 +635,17 @@ class MDXObject {
                 var aabb2 = [
                     [mesh2Corner1.x, mesh2Corner1.y, mesh2Corner1.z],
                     [mesh2Corner2.x, mesh2Corner2.y, mesh2Corner2.z]
-                ];*/
+                ];
                 var aabb1 = skinGeom.subMeshBBs[a.meshIndex];
                 var aabb2 = skinGeom.subMeshBBs[b.meshIndex];
 
-                var distMesh1 = mathHelper.distanceFromAABBToPoint(aabb1, cameraInlocalPos);
-                var distMesh2 = mathHelper.distanceFromAABBToPoint(aabb2, cameraInlocalPos);
+                //var distMesh1 = mathHelper.distanceFromAABBToPoint(aabb1, cameraInlocalPos);
+                //var distMesh2 = mathHelper.distanceFromAABBToPoint(aabb2, cameraInlocalPos);
 
-                var result = distMesh1 - distMesh2;
+
+                var result = Math.abs(aabb1[1][0] - cameraInlocalPos[0]) - Math.abs(aabb2[1][0] - cameraInlocalPos[0]);
                 return result;
-            }, function secondSort(a,b) {
+            }, */function secondSort(a,b) {
                 var mesh1Pos = skinData.subMeshes[a.meshIndex].centerBoundingBox;
                 var mesh2Pos = skinData.subMeshes[b.meshIndex].centerBoundingBox;
                 var mesh1SphereRadius = skinData.subMeshes[a.meshIndex].radius;
@@ -680,6 +696,16 @@ class MDXObject {
         }
 
         this.textAnimMatrices = textAnimMatrices;
+    }
+    initCameras() {
+        var m2File = this.m2Geom.m2File;
+
+        var cameras = new Array(m2File.nCameras);
+        for (var i = 0; i < m2File.nCameras; i++) {
+            cameras[i] = {};
+        }
+
+        this.cameras = cameras;
     }
     initBoneAnimMatrices() {
         var m2File = this.m2Geom.m2File;

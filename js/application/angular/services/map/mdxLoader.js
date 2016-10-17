@@ -216,27 +216,27 @@ const mdx_ver264 = {
             type: "layout",
             layout : [
                 {name :"type", type: "uint32"}, // 0: portrait, 1: characterinfo; -1: else (flyby etc.); referenced backwards in the lookup table.
-                {name :"fov", type: "float"},// No radians, no degrees. Multiply by 35 to get degrees.
-                {name :"far_clip", type: "float"},
-                {name :"near_clip", type: "float"},
+                {name :"fov", type: "float32"},// No radians, no degrees. Multiply by 35 to get degrees.
+                {name :"far_clip", type: "float32"},
+                {name :"near_clip", type: "float32"},
                 {
                     // How the camera's position moves. Should be 3*3 floats.
                     name: "positions",
                     type: "ablock",
                     valType: "vector3f"
                 },
-                { name: "position_base", valType: "vector3f" },
+                { name: "position_base", type: "vector3f" },
                 {
                     name: "target_position",
                     type: "ablock",
                     valType: "vector3f"
                 },
-                { name: "target_position_base", valType: "vector3f" },
+                { name: "target_position_base", type: "vector3f" },
                 {
                     // The camera can have some roll-effect. Its 0 to 2*Pi.
                     name: "roll",
                     type: "ablock",
-                    valType: "float"
+                    valType: "float32"
                 },
             ]
         },
@@ -718,7 +718,7 @@ function parseOldFile(fileObject){
 
     if (mdxDescription == undefined) {
         var errorMessage = "Unknown MDX file version = " + fileVersion + ", filepath = " + filePath;
-        $log.error(errorMessage);
+        console.error(errorMessage);
         throw errorMessage;
     }
 

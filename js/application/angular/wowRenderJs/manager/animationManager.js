@@ -78,7 +78,7 @@ export default class AnimationManager {
         }
     }
 
-    update(deltaTime, cameraPosInLocal, bonesMatrices, textAnimMatrices, subMeshColors, transparencies) {
+    update(deltaTime, cameraPosInLocal, bonesMatrices, textAnimMatrices, subMeshColors, transparencies, cameraDetails) {
         var m2File = this.m2File;
         var mainAnimationRecord = m2File.animations[this.mainAnimationIndex];
         var currentAnimationRecord = m2File.animations[this.currentAnimationIndex];
@@ -171,9 +171,10 @@ export default class AnimationManager {
             this.blendMatrices(bonesMatrices, this.blendMatrixArray, m2File.nBones, blendAlpha)
         }
 
-
         this.calcSubMeshColors(subMeshColors, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha);
         this.calcTransparencies(transparencies, this.currentAnimationIndex, this.currentAnimationTime, blendAnimationIndex, this.nextSubAnimationTime, blendAlpha);
+
+        this.calcCameras(cameraDetails, this.currentAnimationIndex, this.currentAnimationTime);
     }
 
     /* Init function */
@@ -697,5 +698,48 @@ export default class AnimationManager {
 
             transparencies[i] = result1;
         }
+    }
+
+    calcCameras(cameraDetails, animationIndex, animationTime) {
+        var m2File = this.m2File;
+        var cameras = m2File.cameras;
+        if (!cameras) return;
+
+        var animationRecord = this.m2File.animations[animationIndex];
+
+        for (var i = 0; i < cameras.length; i++) {
+            var cameraRecord = cameras[i];
+            var currentPosition = this.getTimedValue(
+                0,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                cameraRecord.positions);
+
+            currentPosition[0] += cameraRecord.position_base.x;
+            currentPosition[1] += cameraRecord.position_base.y;
+            currentPosition[2] += cameraRecord.position_base.z;
+
+            var currentTarget = this.getTimedValue(
+                0,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                cameraRecord.target_position);
+
+            currentTarget[0] += cameraRecord.target_position_base.x;
+            currentTarget[1] += cameraRecord.target_position_base.y;
+            currentTarget[2] += cameraRecord.target_position_base.z;
+
+            //TODO: Implement Roll
+
+            //Write values
+            cameraDetails[i].currentPosition = currentPosition;
+            cameraDetails[i].currentTarget = currentTarget;
+            cameraDetails[i].farClip = cameraRecord.far_clip;
+            cameraDetails[i].nearClip = cameraRecord.near_clip
+            cameraDetails[i].fov = cameraRecord.fov;
+        }
+
     }
 }

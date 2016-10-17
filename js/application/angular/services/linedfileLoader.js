@@ -139,7 +139,7 @@ export default function (filePath , arrayBuffer) {
                         return resultObj;
 
                     default:
-                        $log.info("Unknown type in layout. type = ", type);
+                        console.info("Unknown type in layout. type = ", type);
                         break
                 }
 

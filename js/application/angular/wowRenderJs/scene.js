@@ -892,6 +892,9 @@ class Scene {
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
 
+            gl.uniform1f(this.currentShaderProgram.shaderUniforms.uFogStart, this.uFogStart);
+            gl.uniform1f(this.currentShaderProgram.shaderUniforms.uFogEnd, this.uFogEnd);
+
             gl.uniform3fv(this.currentShaderProgram.shaderUniforms.uFogColor, this.fogColor);
 
 
@@ -920,6 +923,9 @@ class Scene {
 
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
+
+            gl.uniform1f(this.currentShaderProgram.shaderUniforms.uFogStart, this.uFogStart);
+            gl.uniform1f(this.currentShaderProgram.shaderUniforms.uFogEnd, this.uFogEnd);
 
             gl.activeTexture(gl.TEXTURE0);
             gl.enableVertexAttribArray(0);
@@ -1091,20 +1097,50 @@ class Scene {
             cameraVector = this.mainCamera;
         }
 
-        this.camera.setCameraPos(cameraVector[0], cameraVector[1], cameraVector[2]);
-        var cameraVecs = this.camera.tick(deltaTime);
-
-        if (config.getUseSecondCamera()) {
-            this.secondCamera = cameraVecs.cameraVec3;
-            this.secondCameraLookAt = cameraVecs.lookAtVec3;
-        } else {
-            this.mainCamera = cameraVecs.cameraVec3;
-            this.mainCameraLookAt = cameraVecs.lookAtVec3;
-
-        }
+        // Update objects
+        var updateRes = this.graphManager.update(deltaTime);
 
         var farPlane = 1500;
         var nearPlane = 1;
+        var fov = 45.0;
+
+        //If use camera settings
+        //Figure out way to assign the object with camera
+        var m2Object = this.graphManager.m2Objects[0];
+        if (m2Object && m2Object.loaded) {
+            var cameraSettings = m2Object.cameras[0];
+            farPlane = cameraSettings.farClip;
+            nearPlane = cameraSettings.nearClip;
+            fov = cameraSettings.fov * 32 * Math.PI / 180;
+
+            this.uFogStart = 5000;
+            this.uFogEnd = 5010;
+
+            this.mainCamera = cameraSettings.currentPosition;
+            vec4.transformMat4(this.mainCamera, this.mainCamera, m2Object.placementMatrix);
+            this.mainCameraLookAt = cameraSettings.currentTarget;
+            vec4.transformMat4(this.mainCameraLookAt, this.mainCameraLookAt, m2Object.placementMatrix);
+            cameraVecs = {
+                lookAtVec3: this.mainCameraLookAt,
+                cameraVec3: this.mainCamera,
+                staticCamera: true
+            }
+        }
+        if (!(m2Object && m2Object.loaded) || config.getUseSecondCamera()){
+            this.camera.setCameraPos(cameraVector[0], cameraVector[1], cameraVector[2]);
+            var cameraVecs = this.camera.tick(deltaTime);
+
+            this.uFogStart = farPlane-30;
+            this.uFogEnd = farPlane-10;
+
+            if (config.getUseSecondCamera()) {
+                this.secondCamera = cameraVecs.cameraVec3;
+                this.secondCameraLookAt = cameraVecs.lookAtVec3;
+            } else {
+                this.mainCamera = cameraVecs.cameraVec3;
+                this.mainCameraLookAt = cameraVecs.lookAtVec3;
+            }
+        }
 
         var lookAtMat4 = [];
 
@@ -1115,18 +1151,18 @@ class Scene {
         mat4.lookAt(secondLookAtMat, this.secondCamera, this.secondCameraLookAt, [0,0,1]);
 
         var perspectiveMatrix = mat4.create();
-        mat4.perspective(perspectiveMatrix, 45.0, this.canvas.width / this.canvas.height, nearPlane, farPlane);
+        mat4.perspective(perspectiveMatrix, fov, this.canvas.width / this.canvas.height, nearPlane, farPlane);
         //var o_height = (this.canvas.height * (533.333/256/* zoom 7 in Alram viewer */))/ 2 ;
         //var o_width = o_height * this.canvas.width / this.canvas.height;
         //mat4.ortho(perspectiveMatrix, -o_width, o_width, -o_height, o_height, 1, 1000);
 
 
         var perspectiveMatrixForCulling = mat4.create();
-        mat4.perspective(perspectiveMatrixForCulling, 45.0, this.canvas.width / this.canvas.height, nearPlane, farPlane);
+        mat4.perspective(perspectiveMatrixForCulling, fov, this.canvas.width / this.canvas.height, nearPlane, farPlane);
 
         //Camera for rendering
         var perspectiveMatrixForCameraRender = mat4.create();
-        mat4.perspective(perspectiveMatrixForCameraRender, 45.0, this.canvas.width / this.canvas.height, nearPlane, farPlane);
+        mat4.perspective(perspectiveMatrixForCameraRender, fov, this.canvas.width / this.canvas.height, nearPlane, farPlane);
 
         var viewCameraForRender = mat4.create();
         mat4.multiply(viewCameraForRender, perspectiveMatrixForCameraRender,lookAtMat4)
@@ -1152,7 +1188,7 @@ class Scene {
         this.graphManager.setLookAtMat(lookAtMat4);
 
         this.worldObjectManager.update(deltaTime, cameraPos);
-        var updateRes = this.graphManager.update(deltaTime);
+
         this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4);
 
 
