@@ -59,6 +59,9 @@ uniform sampler2D uLayer3;
 uniform sampler2D uAlphaTexture;
 uniform vec3 uFogColor;
 
+uniform float uFogStart;
+uniform float uFogEnd;
+
 /* Bicubic interpolation implementation */
 /* Taken from http://www.codeproject.com/Articles/236394/Bi-Cubic-and-Bi-Linear-Interpolation-with-GLSL#Triangular */
 
@@ -190,8 +193,8 @@ void main() {
 
     // --- Fog start ---
     vec3 fogColor = uFogColor;
-    float fog_start = 1.0;
-    float fog_end = 200.0;
+    float fog_start = uFogStart;
+    float fog_end = uFogEnd;
     float fog_rate = 1.5;
     float fog_bias = 0.01;
 

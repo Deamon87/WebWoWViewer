@@ -133,17 +133,48 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 modelName: 'world\\khazmodan\\ironforge\\passivedoodads\\lavasteam\\lavapots.m2'
             },
             {
-                name: 'Wotlk opening screen',
-                source: 'http',
-                sceneType: 'm2',
-                modelName: 'Interface\\GLUES\\MODELS\\UI_MainMenu_Northrend\\UI_MainMenu_Northrend.M2'
-            },
-            {
                 name: 'Vanilla Opening screen',
                 source: 'http',
                 sceneType: 'm2',
-                modelName: 'Interface\\GLUES\\MODELS\\UI_MAINMENU\\UI_MainMenu.m2'
+                modelName: 'Interface\\GLUES\\MODELS\\UI_MAINMENU\\UI_MainMenu.m2',
+                cameraIndex: 0
             },
+            {
+                name: 'BC Opening Screen',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'interface/glues/models/ui_mainmenu_burningcrusade/ui_mainmenu_burningcrusade.m2',
+                cameraIndex: 0
+            },
+            {
+                name: 'Wotlk opening screen',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'Interface\\GLUES\\MODELS\\UI_MainMenu_Northrend\\UI_MainMenu_Northrend.M2',
+                cameraIndex: 0
+            },
+            {
+                name: 'Cata Opening Screen',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'interface/glues/models/ui_mainmenu_cataclysm/ui_mainmenu_cataclysm.m2',
+                cameraIndex: 0
+            },
+            {
+                name: 'Panda Opening Screen',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'interface/glues/models/ui_mainmenu_pandaria/ui_mainmenu_pandaria.m2',
+                cameraIndex: 0
+            },
+            {
+                name: 'Legion Opening Screen',
+                source: 'http',
+                sceneType: 'm2',
+                modelName: 'interface/glues/models/ui_mainmenu_legion/ui_mainmenu_legion.m2',
+                cameraIndex: 0
+            },
+
             {
                 name: 'Ulduar Raid',
                 source: 'http',

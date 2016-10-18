@@ -798,6 +798,9 @@ class Scene {
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer2, 3);
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uLayer3, 4);
 
+            gl.uniform1f(this.currentShaderProgram.shaderUniforms.uFogStart, this.uFogStart);
+            gl.uniform1f(this.currentShaderProgram.shaderUniforms.uFogEnd, this.uFogEnd);
+
             gl.uniform3fv(this.currentShaderProgram.shaderUniforms.uFogColor, this.fogColor);
         }
     }
@@ -822,6 +825,9 @@ class Scene {
 
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture2, 1);
+
+            gl.uniform1f(this.currentShaderProgram.shaderUniforms.uFogStart, this.uFogStart);
+            gl.uniform1f(this.currentShaderProgram.shaderUniforms.uFogEnd, this.uFogEnd);
 
             gl.uniform3fv(this.currentShaderProgram.shaderUniforms.uFogColor, this.fogColor);
 
@@ -1100,13 +1106,14 @@ class Scene {
         // Update objects
         var updateRes = this.graphManager.update(deltaTime);
 
-        var farPlane = 1500;
+        var farPlane = 250;
         var nearPlane = 1;
         var fov = 45.0;
 
         //If use camera settings
         //Figure out way to assign the object with camera
-        var m2Object = this.graphManager.m2Objects[0];
+        //config.setCameraM2(this.graphManager.m2Objects[0]);
+        var m2Object = config.getCameraM2();
         if (m2Object && m2Object.loaded) {
             var cameraSettings = m2Object.cameras[0];
             farPlane = cameraSettings.farClip;
@@ -1190,6 +1197,8 @@ class Scene {
         this.worldObjectManager.update(deltaTime, cameraPos);
 
         this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4);
+        this.graphManager.sortGeometry(perspectiveMatrixForCulling, lookAtMat4);
+
 
 
         if (config.getDoubleCameraDebug()) {
@@ -1267,7 +1276,7 @@ class Scene {
         return {cameraVecs : cameraVecs, updateResult : updateRes};
     }
     loadM2File (mddf) {
-        this.sceneApi.objects.loadAdtM2Obj(mddf);
+        return this.sceneApi.objects.loadAdtM2Obj(mddf);
     }
     loadWMOFile(modf){
         this.sceneApi.objects.loadAdtWmo(modf);

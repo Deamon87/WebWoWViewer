@@ -127,6 +127,9 @@ uniform sampler2D uTexture2;
 
 uniform vec3 uFogColor;
 
+uniform float uFogStart;
+uniform float uFogEnd;
+
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;
 #endif
@@ -138,8 +141,8 @@ void main() {
     vec4 finalColor = vec4(tex.rgb * vColor.bgr + tex2.rgb*vColor2.bgr, tex.a);
 
     vec3 fogColor = uFogColor;
-    float fog_start = 1.0;
-    float fog_end = 200.0;
+    float fog_start = uFogStart;
+    float fog_end = uFogEnd;
     float fog_rate = 1.5;
     float fog_bias = 0.01;
 

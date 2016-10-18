@@ -54,13 +54,16 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                     });
 
                 } else if (sceneParams.sceneType == 'm2') {
-                    sceneObj.loadM2File({
+                    var m2Object = sceneObj.loadM2File({
                         fileName : sceneParams.modelName,
                         uniqueId : 0,
                         pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
                         rotation : {x : 0, y : 0, z : 0},
                         scale    : 1024
                     });
+                    if (sceneParams.cameraIndex !== undefined) {
+                        config.setCameraM2(m2Object);
+                    }
                 }
 
                 scope.drawM2BB = config.getDrawM2BB();

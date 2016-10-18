@@ -48,11 +48,27 @@ class MathHelper {
         var dist = vec4.dot(nearPlane, cameraVec4);
         nearPlane[3] -= dist;
     }
+    static isPointInsideAABB(aabb, p ) {
+        var result = p[0] > aabb[0][0] && p[0] < aabb[1][0] &&
+            p[1] > aabb[0][1] && p[1] < aabb[1][1] &&
+            p[2] > aabb[0][2] && p[2] < aabb[1][2];
+        return result;
+    }
     static distanceFromAABBToPoint(aabb, p) {
-        var dx = Math.max(aabb[0][0] - p[0], 0, p[0] - aabb[1][0]);
-        var dy = Math.max(aabb[0][1] - p[1], 0, p[1] - aabb[1][1]);
-        var dz = Math.max(aabb[0][2] - p[2], 0, p[2] - aabb[1][2]);
-        return Math.sqrt(dx*dx + dy*dy + dz*dz);
+        function distance_aux(p, lower, upper){
+            if (p < lower) return lower - p;
+            if (p > upper)  return p - upper;
+            return 0
+        }
+
+        var dx = distance_aux(p[0], aabb[0][0], aabb[1][0]);
+        var dy = distance_aux(p[1], aabb[0][1], aabb[1][1]);
+        var dz = distance_aux(p[2], aabb[0][2], aabb[1][2]);
+
+        if (MathHelper.isPointInsideAABB(aabb, p))
+            return Math.min(dx, dy, dz);    // or 0 in case of distance from the area
+        else
+            return Math.sqrt(dx * dx + dy * dy + dz * dz)
     }
     static sortVec3ArrayAgainstPlane(thisPortalVertices, plane) {
         var center = vec3.fromValues(0, 0, 0);

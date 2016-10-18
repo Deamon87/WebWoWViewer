@@ -329,7 +329,7 @@ class MDXObject {
                var renderFlagIndex = skinTextureDefinition.renderFlagIndex;
                //var isTransparent = (mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2);
                var isTransparent = (mdxObject.m2File.renderFlags[renderFlagIndex].blend >= 2) ||
-                   (mdxObject.m2File.renderFlags[renderFlagIndex].flags & 0x10 > 0);
+                   ((mdxObject.m2File.renderFlags[renderFlagIndex].flags & 0x10) > 0);
 
                var shaderNames = this.getShaderNames(skinTextureDefinition);
 
@@ -524,128 +524,66 @@ class MDXObject {
         this.animationManager.update(deltaTime, cameraInlocalPos, this.bonesMatrices, this.textAnimMatrices, this.subMeshColors, this.transparencies, this.cameras);
         this.combinedBoneMatrix = this.combineBoneMatrixes();
 
+        this.currentTime += deltaTime;
+    }
+
+    sortMaterials(lookAtMat4) {
+        if (!this.loaded ) return;
+
         /* 3. Resort m2 meshes against distance to screen */
         var skinData = this.skinGeom.skinFile.header;
         var skinGeom = this.skinGeom;
 
+        var modelViewMat = mat4.create();
+        mat4.multiply(modelViewMat, this.placementMatrix, lookAtMat4);
+
+        var zeroVect = vec3.create();
+
+        /* 3.1 Transform aabb with current mat */
+        var transformedAABB = new Array(skinGeom.subMeshBBs.length);
+        for (var i = 0 ; i < transformedAABB.length; i++) {
+            var aabb = skinGeom.subMeshBBs[i];
+            transformedAABB[i] = mathHelper.transformAABBWithMat4(modelViewMat, aabb);
+        }
+
 
         QuickSort.multiQuickSort(
-           this.materialArray,
+            this.materialArray,
             0, this.materialArray.length-1,
             function sortOnLevel (a, b) {
                 return a.layer - b.layer;
             },
             function test1 (a, b) {
-                var aabb1 = skinGeom.subMeshBBs[a.meshIndex];
-                var aabb2 = skinGeom.subMeshBBs[b.meshIndex];
+                var aabb1_t = transformedAABB[a.meshIndex];
+                var aabb2_t = transformedAABB[b.meshIndex];
 
-                var isInsideAABB1 =
-                    cameraInlocalPos[0] > aabb1[0][0] && cameraInlocalPos[0] < aabb1[1][0] &&
-                    cameraInlocalPos[1] > aabb1[0][1] && cameraInlocalPos[1] < aabb1[1][1] &&
-                    cameraInlocalPos[2] > aabb1[0][2] && cameraInlocalPos[2] < aabb1[1][2];
+                var m2Batch1 = skinData.texs[a.texUnit1TexIndex];
+                var m2Batch2 = skinData.texs[b.texUnit1TexIndex];
 
-                var isInsideAABB2 =
-                    cameraInlocalPos[0] > aabb2[0][0] && cameraInlocalPos[0] < aabb2[1][0] &&
-                    cameraInlocalPos[1] > aabb2[0][1] && cameraInlocalPos[1] < aabb2[1][1] &&
-                    cameraInlocalPos[2] > aabb2[0][2] && cameraInlocalPos[2] < aabb2[1][2];
+                var isInsideAABB1 = mathHelper.isPointInsideAABB(aabb1_t,zeroVect);
+                var isInsideAABB2 = mathHelper.isPointInsideAABB(aabb2_t,zeroVect);
 
                 if (!isInsideAABB1 && isInsideAABB2) {
                     return 1
                 } else if (isInsideAABB1 && !isInsideAABB2) {
                     return -1
                 }
+                /*if (((m2Batch1.flags & 0x200) > 0) && ((m2Batch2.flags & 0x200) == 0)) {
+                    return 1
+                } else if (((m2Batch1.flags & 0x200) == 0) && ((m2Batch2.flags & 0x200) > 0)) {
+                    return -1;
+                } */
 
-
-                //var distMesh1 = mathHelper.distanceFromAABBToPoint(aabb1, cameraInlocalPos);
-                //var distMesh2 = mathHelper.distanceFromAABBToPoint(aabb2, cameraInlocalPos);
                 var result;
                 if (isInsideAABB1 && isInsideAABB1) {
-                    result = Math.abs(aabb2[1][0] - cameraInlocalPos[0]) - Math.abs(aabb1[1][0] - cameraInlocalPos[0]);
+                    result = aabb1_t[0][2] - aabb2_t[0][2];
                 } else if (!(isInsideAABB1 && isInsideAABB1)) {
-                    result = Math.abs(aabb1[1][0] - cameraInlocalPos[0]) - Math.abs(aabb2[1][0] - cameraInlocalPos[0]);
+                    result = aabb2_t[0][2] - aabb1_t[0][2];
                 }
 
 
                 return result;
-            },             /*function sortTransp(a,b) {
-                if (!a.isTransparent && b.isTransparent) {
-                    return 1
-                } else if (a.isTransparent && !b.isTransparent) {
-                    return -1;
-                }
-
-                return 0;
-            },*/ /*function test2(a, b) {
-                var aabb1 = skinGeom.subMeshBBs[a.meshIndex];
-                var aabb2 = skinGeom.subMeshBBs[b.meshIndex];
-
-
-                var distMesh1 = mathHelper.distanceFromAABBToPoint(aabb1, cameraInlocalPos);
-                var distMesh2 = mathHelper.distanceFromAABBToPoint(aabb2, cameraInlocalPos);
-
-                var result = distMesh2 - distMesh1;
-                return result;
-            }   */
-/*            function secondSort(a,b) {
-                var mesh1Pos = skinData.subMeshes[a.meshIndex].pos;
-                var mesh2Pos = skinData.subMeshes[b.meshIndex].pos;
-
-                var mesh1Vec = vec3.create();
-                vec3.subtract(mesh1Vec, [mesh1Pos.x, mesh1Pos.y, mesh1Pos.z], cameraInlocalPos);
-
-                var mesh2Vec = vec3.create();
-                vec3.subtract(mesh2Vec, [mesh2Pos.x, mesh2Pos.y, mesh2Pos.z], cameraInlocalPos);
-
-                var distMesh1 = vec3.length(mesh1Vec)
-                var distMesh2 = vec3.length(mesh2Vec);
-
-                var result = distMesh2 - distMesh1;
-                return result;
-            }*/
-            /*function secondSort(a,b) {
-                var mesh1Pos = skinData.subMeshes[a.meshIndex].pos;
-                var mesh2Pos = skinData.subMeshes[b.meshIndex].pos;
-                var mesh1SphereRadius = skinData.subMeshes[a.meshIndex].radius;
-                var mesh2SphereRadius = skinData.subMeshes[b.meshIndex].radius;
-
-                var mesh1Vec = vec3.create();
-                vec3.subtract(mesh1Vec, [mesh1Pos.x, mesh1Pos.y, mesh1Pos.z], cameraInlocalPos);
-
-                var mesh2Vec = vec3.create();
-                vec3.subtract(mesh2Vec, [mesh2Pos.x, mesh2Pos.y, mesh2Pos.z], cameraInlocalPos);
-
-                var distMesh1 = vec3.length(mesh1Vec) - mesh1SphereRadius;
-                var distMesh2 = vec3.length(mesh2Vec) - mesh2SphereRadius;
-
-                var result = distMesh1 - distMesh2;
-                return result;
-            }       */
-            /*function secondSort(a,b) {
-                /*var mesh1Corner1 = skinData.subMeshes[a.meshIndex].pos;
-                var mesh1Corner2 = skinData.subMeshes[a.meshIndex].centerBoundingBox;
-
-                var aabb1 = [
-                    [mesh1Corner1.x, mesh1Corner1.y, mesh1Corner1.z],
-                    [mesh1Corner2.x, mesh1Corner2.y, mesh1Corner2.z]
-                ];
-
-                var mesh2Corner1 = skinData.subMeshes[b.meshIndex].pos;
-                var mesh2Corner2 = skinData.subMeshes[b.meshIndex].centerBoundingBox;
-
-                var aabb2 = [
-                    [mesh2Corner1.x, mesh2Corner1.y, mesh2Corner1.z],
-                    [mesh2Corner2.x, mesh2Corner2.y, mesh2Corner2.z]
-                ];
-                var aabb1 = skinGeom.subMeshBBs[a.meshIndex];
-                var aabb2 = skinGeom.subMeshBBs[b.meshIndex];
-
-                //var distMesh1 = mathHelper.distanceFromAABBToPoint(aabb1, cameraInlocalPos);
-                //var distMesh2 = mathHelper.distanceFromAABBToPoint(aabb2, cameraInlocalPos);
-
-
-                var result = Math.abs(aabb1[1][0] - cameraInlocalPos[0]) - Math.abs(aabb2[1][0] - cameraInlocalPos[0]);
-                return result;
-            }, */function secondSort(a,b) {
+            }/*, function secondSort(a,b) {
                 var mesh1Pos = skinData.subMeshes[a.meshIndex].centerBoundingBox;
                 var mesh2Pos = skinData.subMeshes[b.meshIndex].centerBoundingBox;
                 var mesh1SphereRadius = skinData.subMeshes[a.meshIndex].radius;
@@ -662,10 +600,8 @@ class MDXObject {
 
                 var result = distMesh1 - distMesh2;
                 return result;
-            }
+            }  */
         );
-
-        this.currentTime += deltaTime;
     }
 
     /*

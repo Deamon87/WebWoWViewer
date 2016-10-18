@@ -139,7 +139,11 @@ class GraphManager {
             }
             this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
         }
-
+    }
+    sortGeometry(frustumMat, lookAtMat4) {
+        for (var j = 0; j < this.m2Objects.length; j++) {
+            this.m2Objects[j].sortMaterials(lookAtMat4);
+        }
     }
     checkNormalFrustumCulling(frustumMat, lookAtMat4) {
         /*1. Extract planes */
