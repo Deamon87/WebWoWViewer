@@ -1,6 +1,7 @@
 import angular from 'angular';
 import angularDropdown from 'angular-ui-bootstrap/src/dropdown';
 import configService from './services/config.js';
+import 'imports?this=>global!ng-scrollbar/dist/ng-scrollbar.min.js';
 import './directives/wowJsRenderDirective.js';
 import './directives/fileDownload.js';
 
@@ -8,6 +9,7 @@ var main = angular.module('main.app',
     [
         'main.directives.wowJsRender',
         'main.directives.fileDownloader',
+        'ngScrollbar',
         angularDropdown
     ]);
 

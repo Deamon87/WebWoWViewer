@@ -518,7 +518,7 @@ class MDXObject {
         /* 1. Calc local camera */
         var cameraInlocalPos = vec4.create();
         vec4.copy(cameraInlocalPos, cameraPos);
-       // vec4.transformMat4(cameraInlocalPos, cameraInlocalPos, invPlacementMat);
+        vec4.transformMat4(cameraInlocalPos, cameraInlocalPos, invPlacementMat);
 
         /* 2. Update animation values */
         this.animationManager.update(deltaTime, cameraInlocalPos, this.bonesMatrices, this.textAnimMatrices, this.subMeshColors, this.transparencies, this.cameras);
@@ -529,6 +529,7 @@ class MDXObject {
 
     sortMaterials(lookAtMat4) {
         if (!this.loaded ) return;
+        if (!this.getIsRendered()) return;
 
         /* 3. Resort m2 meshes against distance to screen */
         var skinData = this.skinGeom.skinFile.header;
