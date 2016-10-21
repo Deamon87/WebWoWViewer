@@ -15,12 +15,13 @@
     "test"
   ],
   "exportsOverride": {
-    "zip.js" : {
-      "js" : "WebContent/zip.js"
+    "zip.js": {
+      "js": "WebContent/zip.js"
     }
   },
   "dependencies": {
     "decodeDXT": "Deamon87/decodeDXT",
-    "zip.js" : "gildas-lormeau/zip.js"
+    "zip.js": "gildas-lormeau/zip.js",
+    "ng-scrollbar": "~0.0.8"
   }
 }
