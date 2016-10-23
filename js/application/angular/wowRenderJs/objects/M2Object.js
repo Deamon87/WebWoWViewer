@@ -128,6 +128,7 @@ class MDXObject {
                 self.initTextureAnimMatrices();
                 self.initTransparencies();
                 self.initCameras();
+                self.initLights();
 
                 self.postLoad();
                 self.loaded = true;
@@ -511,7 +512,7 @@ class MDXObject {
             cd: this.localBB[1]
         }
     }
-    update (deltaTime, cameraPos, invPlacementMat) {
+    update (deltaTime, cameraPos, viewMat, invPlacementMat) {
         if (!this.loaded) return;
         //if (!this.materialArray) return;
 
@@ -521,7 +522,15 @@ class MDXObject {
         vec4.transformMat4(cameraInlocalPos, cameraInlocalPos, invPlacementMat);
 
         /* 2. Update animation values */
-        this.animationManager.update(deltaTime, cameraInlocalPos, this.bonesMatrices, this.textAnimMatrices, this.subMeshColors, this.transparencies, this.cameras);
+        this.animationManager.update(deltaTime, cameraInlocalPos, this.bonesMatrices, this.textAnimMatrices,
+            this.subMeshColors, this.transparencies, this.cameras, this.lights);
+
+        for (var i = 0; i < this.lights.length; i++) {
+            var light = this.lights[i];
+            vec4.transformMat4(light.position, light.position, this.placementMatrix);
+            //vec4.transformMat4(light.position, light.position, viewMat);
+        }
+
         this.combinedBoneMatrix = this.combineBoneMatrixes();
 
         this.currentTime += deltaTime;
@@ -547,7 +556,6 @@ class MDXObject {
             transformedAABB[i] = mathHelper.transformAABBWithMat4(modelViewMat, aabb);
         }
 
-
         QuickSort.multiQuickSort(
             this.materialArray,
             0, this.materialArray.length-1,
@@ -558,9 +566,6 @@ class MDXObject {
                 var aabb1_t = transformedAABB[a.meshIndex];
                 var aabb2_t = transformedAABB[b.meshIndex];
 
-                var m2Batch1 = skinData.texs[a.texUnit1TexIndex];
-                var m2Batch2 = skinData.texs[b.texUnit1TexIndex];
-
                 var isInsideAABB1 = mathHelper.isPointInsideAABB(aabb1_t,zeroVect);
                 var isInsideAABB2 = mathHelper.isPointInsideAABB(aabb2_t,zeroVect);
 
@@ -569,11 +574,6 @@ class MDXObject {
                 } else if (isInsideAABB1 && !isInsideAABB2) {
                     return -1
                 }
-                /*if (((m2Batch1.flags & 0x200) > 0) && ((m2Batch2.flags & 0x200) == 0)) {
-                    return 1
-                } else if (((m2Batch1.flags & 0x200) == 0) && ((m2Batch2.flags & 0x200) > 0)) {
-                    return -1;
-                } */
 
                 var result;
                 if (isInsideAABB1 && isInsideAABB1) {
@@ -584,24 +584,7 @@ class MDXObject {
 
 
                 return result;
-            }/*, function secondSort(a,b) {
-                var mesh1Pos = skinData.subMeshes[a.meshIndex].centerBoundingBox;
-                var mesh2Pos = skinData.subMeshes[b.meshIndex].centerBoundingBox;
-                var mesh1SphereRadius = skinData.subMeshes[a.meshIndex].radius;
-                var mesh2SphereRadius = skinData.subMeshes[b.meshIndex].radius;
-
-                var mesh1Vec = vec3.create();
-                vec3.subtract(mesh1Vec, [mesh1Pos.x, mesh1Pos.y, mesh1Pos.z], cameraInlocalPos);
-
-                var mesh2Vec = vec3.create();
-                vec3.subtract(mesh2Vec, [mesh2Pos.x, mesh2Pos.y, mesh2Pos.z], cameraInlocalPos);
-
-                var distMesh1 = vec3.length(mesh1Vec) - mesh1SphereRadius;
-                var distMesh2 = vec3.length(mesh2Vec) - mesh2SphereRadius;
-
-                var result = distMesh1 - distMesh2;
-                return result;
-            }  */
+            }
         );
     }
 
@@ -643,6 +626,16 @@ class MDXObject {
         }
 
         this.cameras = cameras;
+    }
+    initLights() {
+        var m2File = this.m2Geom.m2File;
+
+        var lights = new Array(m2File.nLights);
+        for (var i = 0; i < m2File.nLights; i++) {
+            lights[i] = {};
+        }
+
+        this.lights = lights;
     }
     initBoneAnimMatrices() {
         var m2File = this.m2Geom.m2File;
@@ -725,7 +718,7 @@ class MDXObject {
 
         this.m2Geom.setupAttributes(this.skinGeom);
         var combinedMatrix = this.combinedBoneMatrix;
-        this.m2Geom.setupUniforms(null, combinedMatrix, null, drawTransparent);
+        this.m2Geom.setupUniforms(null, combinedMatrix, null, drawTransparent, this.lights);
         this.m2Geom.setupPlacementAttribute(placementVBO);
         this.drawMeshes(drawTransparent, instanceCount);
     }
@@ -745,7 +738,7 @@ class MDXObject {
         }
 
         var combinedMatrix = this.combinedBoneMatrix;
-        this.m2Geom.setupUniforms(placementMatrix, combinedMatrix, diffuseColor, drawTransparent);
+        this.m2Geom.setupUniforms(placementMatrix, combinedMatrix, diffuseColor, drawTransparent, this.lights);
 
         this.drawMeshes(drawTransparent, -1);
 

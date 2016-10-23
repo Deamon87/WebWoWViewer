@@ -18,7 +18,12 @@ var drawDepthBuffer = false;
 
 var cameraM2 = null;
 
-var savedUrlForLoading = localStorage.getItem('urlForLoading');
+var savedUrlForLoading;
+try {
+    savedUrlForLoading = localStorage.getItem('urlForLoading');
+} catch(e){
+    console.log(e);
+}
 if (savedUrlForLoading) {
     urlToLoadWoWFile = savedUrlForLoading;
 }
@@ -37,7 +42,11 @@ export default {
     },
     setUrlToLoadWoWFile : function (url){
         urlToLoadWoWFile = url;
-        localStorage.setItem('urlForLoading', url);
+        try {
+            localStorage.setItem('urlForLoading', url);
+        } catch(e) {
+            console.log(e);
+        }
     },
     getFileReadMethod : function(){
         return readFileMethod;

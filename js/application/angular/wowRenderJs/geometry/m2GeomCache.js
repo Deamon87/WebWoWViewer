@@ -107,7 +107,7 @@ class M2Geom {
     }
 
 
-    setupUniforms(placementMatrix, boneMatrix, diffuseColor, drawTransparent) {
+    setupUniforms(placementMatrix, boneMatrix, diffuseColor, drawTransparent, lights) {
         var gl = this.gl;
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
         var m2File = this.m2File;
@@ -128,6 +128,15 @@ class M2Geom {
         } else {
             gl.uniform1i(uniforms.isTransparent, 0);
         }
+
+        //Setup lights
+        for (var i = 0; i < lights.length; i++) {
+            gl.uniform4fv(uniforms["pc_lights["+i+"].color"], new Float32Array(lights[i].diffuse_color));
+            gl.uniform4fv(uniforms["pc_lights["+i+"].attenuation"], new Float32Array([lights[i].attenuation_start, lights[i].diffuse_intensity, lights[i].attenuation_end, lights.length]));
+            gl.uniform4fv(uniforms["pc_lights["+i+"].position"], new Float32Array(lights[i].position));
+
+        }
+        gl.uniform1f(uniforms.uCooeff, document.coeff);
     }
 
     bindVao() {
@@ -160,6 +169,7 @@ class M2Geom {
         gl.uniform4fv(uniforms.uColor, meshColor);
         gl.uniform1f(uniforms.uTransparency, transparency);
         gl.uniform1i(uniforms.uPixelShader, pixelShaderIndex);
+
 
         if (materialData.isRendered) {
             if (materialData.texUnit1Texture) {

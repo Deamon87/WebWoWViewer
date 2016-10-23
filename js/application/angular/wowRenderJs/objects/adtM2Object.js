@@ -105,9 +105,9 @@ class AdtM2Object extends MDXObject {
     checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, getDepth) {
         this.setIsRendered(this.getIsRendered() && super.checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, this.placementMatrix, getDepth));
     }
-    update (deltaTime, cameraPos) {
+    update (deltaTime, cameraPos, viewMat) {
         if (!this.getIsRendered()) return;
-        super.update(deltaTime, cameraPos, this.placementInvertMatrix);
+        super.update(deltaTime, cameraPos, viewMat, this.placementInvertMatrix);
     }
     createPlacementMatrix (mddf){
         var TILESIZE = 533.333333333;

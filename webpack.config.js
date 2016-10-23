@@ -32,7 +32,7 @@ module.exports = {
             {
                 test: /\.js?$/,
                 loader: 'babel',
-                exclude: [/node_modules/, /zip.js/ ],
+                exclude: [/node_modules/, /zip.js/, /text-encoding/ ],
                 query: {
                     presets: ['es2015']
                 }

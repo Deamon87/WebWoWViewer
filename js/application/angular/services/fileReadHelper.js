@@ -1,14 +1,20 @@
+import * as textEncodeModule from "text-encoding";
 
-        var isLittleEndian = true;
-        var textDecoder = new TextDecoder("utf-8");
+var isLittleEndian = true;
+var textDecoder;
+if (TextDecoder !== undefined) {
+    textDecoder = new TextDecoder("utf-8");
+} else {
+    textDecoder = new textEncodeModule.TextDecoder("utf-8");
+}
 
-        function reverseStr(str) {
-            var newStr = '', i;
-            for (i = str.length - 1; i >= 0; i--) {
-                newStr += str.charAt(i);
-            }
-            return newStr;
-        }
+function reverseStr(str) {
+    var newStr = '', i;
+    for (i = str.length - 1; i >= 0; i--) {
+        newStr += str.charAt(i);
+    }
+    return newStr;
+}
 
 
 export default function (arrayBuffer, start, end){

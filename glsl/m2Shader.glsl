@@ -22,13 +22,13 @@ attribute vec4 boneWeights;
 attribute vec2 aTexCoord;
 attribute vec2 aTexCoord2;
 
-uniform mat4 uLookAtMat;
+uniform highp mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 uniform mat4 uBoneMatrixes[MAX_MATRIX_NUM];
 uniform int isEnviroment;
 uniform lowp int isTransparent;
 
-uniform int uUseDiffuseColor;
+uniform lowp int uUseDiffuseColor;
 
 #ifdef INSTANCED
 attribute vec4 aDiffuseColor;
@@ -150,6 +150,19 @@ uniform mat4 uTextMat2;
 uniform float uFogStart;
 uniform float uFogEnd;
 
+uniform highp mat4 uLookAtMat;
+
+uniform lowp int uUseDiffuseColor;
+struct LocalLight
+{
+    vec4 color;
+    vec4 position;
+    vec4 attenuation;
+};
+
+uniform float uCooeff;
+uniform LocalLight pc_lights[3];
+
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;
 #endif
@@ -232,6 +245,31 @@ void main() {
 
     if(finalColor.a < uAlphaTest)
         discard;
+
+    if ((uUseDiffuseColor == 1)) {
+        vec3 vPos3 = vPosition.xyz;
+        vec3 vNormal3 = normalize(vNormal.xyz);
+        int count = int(pc_lights[0].attenuation.w);
+        vec3 lightColor = vec3(0.0);
+        for (int index = 0;index < 3;index++)
+        {
+            if ( index >= count) break;
+            LocalLight lightRecord = pc_lights[index];
+            vec3 vectorToLight = ((uLookAtMat * lightRecord.position).xyz - vPos3);
+            float distanceToLightSqr = dot(vectorToLight, vectorToLight);
+            float distanceToLightInv = inversesqrt(distanceToLightSqr);
+            float distanceToLight = (distanceToLightSqr * distanceToLightInv);
+            float diffuseTerm = max((dot(vectorToLight, vNormal3) * distanceToLightInv), 0.0);
+            vec4 attenuationRec = lightRecord.attenuation;
+            float attenuationDiv = (1.0) / (( attenuationRec.z -  attenuationRec.x) * attenuationRec.y*attenuationRec.y);
+
+            float attenuation = (1.0 - clamp(((distanceToLight - attenuationRec.x) * attenuationDiv), 0.0, 1.0));
+            vec3 light_atten = ((lightRecord.color.xyz ) * attenuation) / (uCooeff);
+            lightColor = (lightColor + vec3(light_atten * light_atten * diffuseTerm ));
+        }
+
+        finalColor.rgb =  finalColor.rgb * lightColor.rgb;
+    }
 
     if (uUnFogged == 0) {
         vec3 fogColor = uFogColor;

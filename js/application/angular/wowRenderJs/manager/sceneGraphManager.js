@@ -203,7 +203,7 @@ class GraphManager {
         var i;
         if (config.getRenderM2()) {
             for (i = 0; i < this.m2Objects.length; i++) {
-                this.m2Objects[i].update(deltaTime, this.position);
+                this.m2Objects[i].update(deltaTime, this.position, this.lookAtMat);
             }
         }
 

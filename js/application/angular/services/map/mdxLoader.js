@@ -378,7 +378,53 @@ const mdx_ver264 = {
             offset: "ofsBoneLookupTable",
             count: "nBoneLookupTable",
             type: "int16"
-        }
+        },
+        {
+            name : "lights",
+            offset: "ofsLights",
+            count : "nLights",
+            type: "layout",
+            layout : [
+                {name :"type", type: "uint16"},
+                {name :"bone", type: "int16"},// No radians, no degrees. Multiply by 35 to get degrees.
+                {name: "position", type: "vector3f" },
+                {
+                    name: "ambient_color",
+                    type: "ablock",
+                    valType: "vector3f"
+                },
+                {
+                    name: "ambient_intensity",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "diffuse_color",
+                    type: "ablock",
+                    valType: "vector3f"
+                },
+                {
+                    name: "diffuse_intensity",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "attenuation_start",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "attenuation_end",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "unknown",
+                    type: "ablock",
+                    valType: "uint8"
+                }
+            ]
+        },
 
     ]
 };

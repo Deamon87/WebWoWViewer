@@ -36,9 +36,9 @@ class WmoM2Object extends MDXObject {
     checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, getDepth) {
         this.setIsRendered(this.getIsRendered() && super.checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, this.placementMatrix, getDepth));
     }
-    update(deltaTime, cameraPos) {
+    update(deltaTime, cameraPos, viewMat) {
         if (!this.getIsRendered()) return;
-        super.update(deltaTime, cameraPos, this.placementInvertMatrix);
+        super.update(deltaTime, cameraPos, viewMat, this.placementInvertMatrix);
     }
     drawTransparentMeshes () {
         var diffuseColor = this.getDiffuseColor();

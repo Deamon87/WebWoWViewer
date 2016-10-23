@@ -10,7 +10,7 @@ const UNIT_RANGED_SLOT   = 2;
 
 const virtualItemMap = [1, 0, 1];
 const helm_race_names = ['', 'hu', 'or', 'dw', 'ni', 'sc', 'ta', 'gn', 'tr', 'go',
-'be', 'dr', 'fo', 'na', 'br', 'sk', 'vr', 'tu', 'ft', 'wt', 'ns', 'it'];
+'be', 'dr', 'fo', 'na', 'br', 'sk', 'vr', 'tu', 'ft', 'fwt', 'ns', 'it'];
 const helm_gender = ['m', 'f'];
 
 function extractFilePath(filePath) {
