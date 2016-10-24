@@ -251,24 +251,29 @@ void main() {
         vec3 vNormal3 = normalize(vNormal.xyz);
         int count = int(pc_lights[0].attenuation.w);
         vec3 lightColor = vec3(0.0);
-        for (int index = 0;index < 1;index++)
+        for (int index = 0;index < 4;index++)
         {
             if ( index >= count) break;
             LocalLight lightRecord = pc_lights[index];
-            vec3 vectorToLight = ((uLookAtMat * lightRecord.position).xyz - vPos3);
+            vec3 vectorToLight = ((lightRecord.position).xyz - vPos3);
             float distanceToLightSqr = dot(vectorToLight, vectorToLight);
             float distanceToLightInv = inversesqrt(distanceToLightSqr);
             float distanceToLight = (distanceToLightSqr * distanceToLightInv);
             float diffuseTerm = max((dot(vectorToLight, vNormal3) * distanceToLightInv), 0.0);
             vec4 attenuationRec = lightRecord.attenuation;
-            float attenuationDiv = (1.0 ) / (( attenuationRec.x -  attenuationRec.z));
+            float attenuationDiv = (1.0 ) / (( attenuationRec.z -  attenuationRec.x));
 
-            float attenuation = (1.0 - clamp(((distanceToLight - attenuationRec.z) * attenuationDiv), 0.0, 1.0));
-            vec3 light_atten = ((lightRecord.color.xyz / attenuationRec.y) * attenuation) * uCooeff ;
+            float attenuation = (1.0 - clamp(((distanceToLight - attenuationRec.x) * attenuationDiv), 0.0, 1.0));
+            vec3 light_atten = ((lightRecord.color.xyz ) * attenuation)   ;
+            //lightColor = (lightColor + vec3(light_atten *light_atten* diffuseTerm ));
             lightColor = (lightColor + vec3(light_atten * light_atten * diffuseTerm ));
         }
 
-        finalColor.rgb =  finalColor.rgb * lightColor.rgb;
+        vec3 gammaDiffuse = vec3(0,0,0);
+        vec3 linearDiffuse =finalColor.rgb * finalColor.rgb *lightColor.rgb;
+
+        finalColor.rgb =  sqrt(gammaDiffuse * gammaDiffuse + linearDiffuse);
+        //finalColor.rgb =  finalColor.rgb * lightColor;
     }
 
     if (uUnFogged == 0) {

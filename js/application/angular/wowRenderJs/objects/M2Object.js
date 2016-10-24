@@ -528,7 +528,7 @@ class MDXObject {
         for (var i = 0; i < this.lights.length; i++) {
             var light = this.lights[i];
             vec4.transformMat4(light.position, light.position, this.placementMatrix);
-            //vec4.transformMat4(light.position, light.position, viewMat);
+            vec4.transformMat4(light.position, light.position, viewMat);
         }
 
         this.combinedBoneMatrix = this.combineBoneMatrixes();

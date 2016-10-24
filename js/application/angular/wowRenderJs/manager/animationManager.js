@@ -797,7 +797,7 @@ export default class AnimationManager {
             var pos_vec = lightRecord.position;
 
             var position = vec4.fromValues(pos_vec.x, pos_vec.y, pos_vec.z, 1.0);
-           // vec4.transformMat4(position, position, boneMat);
+            vec4.transformMat4(position, position, boneMat);
 
             lights[i].ambient_color = ambient_color;
             lights[i].ambient_intensity = ambient_intensity;
