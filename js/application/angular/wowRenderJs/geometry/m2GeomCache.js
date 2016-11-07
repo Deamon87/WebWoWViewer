@@ -1,5 +1,6 @@
 import cacheTemplate from './../cache.js';
 import mdxLoader from './../../services/map/mdxLoader.js';
+import config from './../../services/config.js';
 
 
 class M2Geom {
@@ -80,12 +81,16 @@ class M2Geom {
         var gl = this.gl;
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, skinObject.baryCentricVBO);
-        gl.vertexAttribPointer(shaderAttributes.aBaryCentric, 3, gl.FLOAT, false, 0, 0); // barycentric
+        if (config.getWireframeMod() && skinObject.nonIndexedVBO) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, skinObject.baryCentricVBO);
+            gl.vertexAttribPointer(shaderAttributes.aBaryCentric, 3, gl.FLOAT, false, 0, 0); // barycentric
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexVBO);
+            gl.bindBuffer(gl.ARRAY_BUFFER, skinObject.nonIndexedVBO);
+        } else {
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinObject.indexVBO);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexVBO);
+        }
         //gl.vertexAttrib4f(shaderAttributes.aColor, 0.5, 0.5, 0.5, 0.5);
 
         /*
@@ -157,6 +162,10 @@ class M2Geom {
 
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+
+        var meshIndex = materialData.meshIndex;
+
 
         gl.uniformMatrix4fv(uniforms.uTextMat1, false, textureMatrix1);
         gl.uniformMatrix4fv(uniforms.uTextMat2, false, textureMatrix2);
@@ -281,12 +290,18 @@ class M2Geom {
                     gl.bindTexture(gl.TEXTURE_2D, blackPixelText);
                 }
 
-                meshIndex = materialData.meshIndex;
-                if (instanceCount == -1) {
-                    //var error = gl.getError(); // Drop error flag
-                    gl.drawElements(gl.TRIANGLES, skinData.subMeshes[meshIndex].nTriangles, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].StartTriangle * 2);
+                if (config.getWireframeMod() && skinObject.nonIndexedVBO) {
+                    if (instanceCount == -1) {
+                        gl.drawArrays(gl.TRIANGLES, skinData.subMeshes[meshIndex].StartTriangle, skinData.subMeshes[meshIndex].nTriangles);
+                    } else {
+                        instExt.drawElementsInstancedANGLE(gl.TRIANGLES, skinData.subMeshes[meshIndex].nTriangles, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].StartTriangle * 2, instanceCount);
+                    }
                 } else {
-                    instExt.drawElementsInstancedANGLE(gl.TRIANGLES, skinData.subMeshes[meshIndex].nTriangles, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].StartTriangle * 2, instanceCount);
+                    if (instanceCount == -1) {
+                        gl.drawElements(gl.TRIANGLES, skinData.subMeshes[meshIndex].nTriangles, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].StartTriangle * 2);
+                    } else {
+                        instExt.drawElementsInstancedANGLE(gl.TRIANGLES, skinData.subMeshes[meshIndex].nTriangles, gl.UNSIGNED_SHORT, skinData.subMeshes[meshIndex].StartTriangle * 2, instanceCount);
+                    }
                 }
                 if (materialData.texUnit2Texture != null) {
                     gl.activeTexture(gl.TEXTURE1);

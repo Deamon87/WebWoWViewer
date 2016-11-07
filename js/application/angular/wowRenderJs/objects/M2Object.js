@@ -106,6 +106,7 @@ class MDXObject {
             self.skinGeom = skinGeom;
 
             skinGeom.fixData(m2Geom.m2File);
+            skinGeom.createBaricentricVBO(m2Geom.m2File);
 
             if (!m2Geom) {
                 $log.log("m2 file failed to load : "+ modelName);

@@ -202,202 +202,65 @@ class SkinGeom {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indicies), gl.STATIC_DRAW);
     };
-    createBaricentricVBO() {
-        function checkTriangleDebug(i) {
-            var map = [-1, -1, -1];
-
-            for (var j = 0; j < 3; j++) {
-                if (baryCentricCoords[indicies[i + j] * 3] == 1) {
-                    if (map[0] != -1) {
-                        debugger
-                    }
-                    map[0] = j;
-                }
-                if (baryCentricCoords[indicies[i + j] * 3 + 1] == 1) {
-                    if (map[1] != -1) {
-                        debugger
-                    }
-                    map[1] = j;
-                }
-                if (baryCentricCoords[indicies[i + j] * 3 + 2] == 1) {
-                    if (map[2] != -1) {
-                        debugger
-                    }
-                    map[2] = j;
-                }
-            }
-
-
-            if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1) || (map[1] == map[2] && map[1] != -1)) {
-                console.log("map[0] - " + baryCentricCoordsWrittenOn[indicies[i + map[0]]] +
-                    "\n map[1] - " + baryCentricCoordsWrittenOn[indicies[i + map[1]]] +
-                    "\n map[2] - " + baryCentricCoordsWrittenOn[indicies[i + map[2]]]+ "\n") ;
-
-            }
-            if (map[0] == -1 || map[1] == -1 || map[2] == -1) {
-                console.log("map[0] - " + baryCentricCoordsWrittenOn[indicies[i + map[0]]] +
-                    "\n map[1] - " + baryCentricCoordsWrittenOn[indicies[i + map[1]]] +
-                    "\n map[2] - " + baryCentricCoordsWrittenOn[indicies[i + map[2]]]+ "\n\n") ;
-            }
-        }
-        function checkTriangle(i, debugString) {
-            var map = [-1, -1, -1];
-
-            for (var j = 0; j < 3; j++) {
-                if (baryCentricCoords[indicies[i + j] * 3] == 1) {
-                    if (map[0] != -1) {
-                        debugger
-                    }
-                    map[0] = j;
-                }
-                if (baryCentricCoords[indicies[i + j] * 3 + 1] == 1) {
-                    if (map[1] != -1) {
-                        debugger
-                    }
-                    map[1] = j;
-                }
-                if (baryCentricCoords[indicies[i + j] * 3 + 2] == 1) {
-                    if (map[2] != -1) {
-                        debugger
-                    }
-                    map[2] = j;
-                }
-            }
-
-
-            if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1) || (map[1] == map[2] && map[1] != -1)) {
-                console.log("map[0] - " + baryCentricCoordsWrittenOn[indicies[i + map[0]]] +
-                    " map[1] - " + baryCentricCoordsWrittenOn[indicies[i + map[1]]] +
-                    " map[2] - " + baryCentricCoordsWrittenOn[indicies[i + map[2]]])
-                debugger;
-            }
-
-            for (var k = 0; k < 3; k++) {
-                var valueFound = false;
-                for (var j = 0; j < 3; j++) {
-                    if (map[j] == k) {
-                        valueFound = true;
-                        break;
-                    }
-                }
-
-                if (!valueFound) {
-                    for (var j = 0; j < 3; j++) {
-                        if (map[j] == -1) {
-                            map[j] = k;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if ((map[0] == map[1] && map[0] != -1) || (map[0] == map[2] && map[0] != -1) || (map[1] == map[2] && map[1] != -1)) {
-                debugger;
-            }
-
-            baryCentricCoords[indicies[i + map[0]] * 3] = 1;
-            baryCentricCoords[indicies[i + map[0]] * 3 + 1] = 0;
-            baryCentricCoords[indicies[i + map[0]] * 3 + 2] = 0;
-
-            baryCentricCoords[indicies[i + map[1]] * 3 + 0] = 0;
-            baryCentricCoords[indicies[i + map[1]] * 3 + 1] = 1;
-            baryCentricCoords[indicies[i + map[1]] * 3 + 2] = 0;
-
-            baryCentricCoords[indicies[i + map[2]] * 3 + 0] = 0;
-            baryCentricCoords[indicies[i + map[2]] * 3 + 1] = 0;
-            baryCentricCoords[indicies[i + map[2]] * 3 + 2] = 1;
-
-            baryCentricCoordsWrittenOn[indicies[i + map[0]]] =  debugString;
-            baryCentricCoordsWrittenOn[indicies[i + map[1]]] =  debugString;
-            baryCentricCoordsWrittenOn[indicies[i + map[2]]] =  debugString;
-        }
-
-
+    createBaricentricVBO(m2File) {
         var gl = this.gl;
         var indicies = this.indicies;
         var skinFile = this.skinFile.header;
 
         this.baryCentricVBO = gl.createBuffer();
 
-        var maxInd = Math.max(...indicies);
-        var baryCentricCoords = new Array((maxInd + 1) * 3);
-        var baryCentricCoordsWrittenOn = new Array((maxInd + 1));
+        //var maxInd = Math.max(...indicies);
+        var maxInd = 0;
+        for (var meshIndex = 0; meshIndex < skinFile.nSub; meshIndex++) {
+            maxInd = Math.max(maxInd, skinFile.subMeshes[meshIndex].nTriangles);
+        }
+
+        var baryCentricCoords = new Array(((maxInd + 1) * 3));
+        var nonIndexedVBO = new Array(((maxInd + 1) * 48));
 
         for (var meshIndex = 0; meshIndex < skinFile.nSub; meshIndex++) {
-
-            var trianglesPerVerticle = new Array();
             var startIndex = skinFile.subMeshes[meshIndex].StartTriangle;
 
-            for (var i = startIndex; i < startIndex + skinFile.subMeshes[meshIndex].nTriangles; i+=3) {
-                for (j = 0; j < 3; j++) {
-                    if (!trianglesPerVerticle[indicies[i + j]]) {
-                        trianglesPerVerticle[indicies[i + j]] = new Array();
-                    }
-                    trianglesPerVerticle[indicies[i + j]].push((i - startIndex) / 3);
+            for (var i = startIndex; i < startIndex + skinFile.subMeshes[meshIndex].nTriangles; i++) {
+                var index = indicies[i];
+                for (var j = 0; j < 48; j++) {
+                    nonIndexedVBO[i*48 + j] = m2File.vertexes[index*48 + j];
                 }
-            }
 
-
-            var trianglesGraph = new Array(skinFile.subMeshes[meshIndex].nTriangles / 3);
-            for (var i = startIndex; i < startIndex + skinFile.subMeshes[meshIndex].nTriangles; i+=3) {
-                trianglesGraph[(i - startIndex) /3] = new Array();
-            }
-
-
-            for (var i = startIndex; i < startIndex + skinFile.subMeshes[meshIndex].nTriangles; i+=3) {
-                var triangleInd = (i - startIndex)/3;
-
-                for (var j = 0; j < 3; j++) {
-                    for (var k = 0; k < trianglesPerVerticle[indicies[i + j]].length; k++) {
-                        var secondTrisInd = trianglesPerVerticle[indicies[i + j]][k];
-
-                        trianglesGraph[triangleInd][secondTrisInd] = 1;
-                        trianglesGraph[secondTrisInd][triangleInd] = 1;
-                    }
+                var type = i % 3;
+                switch(type) {
+                    case 0 :
+                        baryCentricCoords[i * 3 + 0] = 1;
+                        baryCentricCoords[i * 3 + 1] = 0;
+                        baryCentricCoords[i * 3 + 2] = 0;
+                        break;
+                    case 1:
+                        baryCentricCoords[i * 3 + 0] = 0;
+                        baryCentricCoords[i * 3 + 1] = 1;
+                        baryCentricCoords[i * 3 + 2] = 0;
+                        break;
+                    case 2:
+                        baryCentricCoords[i * 3 + 0] = 0;
+                        baryCentricCoords[i * 3 + 1] = 0;
+                        baryCentricCoords[i * 3 + 2] = 1;
+                        break;
                 }
-            }
-
-            var visitedTriangles = new Array(skinFile.subMeshes[meshIndex].nTriangles / 3);
-            for (var l = 0; l < skinFile.subMeshes[meshIndex].nTriangles/3; l++) {
-                if (visitedTriangles[l] == 1) continue;
-
-                var toBeVisitedNextLoop = new Array();
-                toBeVisitedNextLoop.push(l);
-                visitedTriangles[l] = 1;
-                var loopsPassed = 0;
-                do {
-
-                    var toBeVisitedThisLoop = toBeVisitedNextLoop;
-                    toBeVisitedNextLoop = new Array();
-                    for (var i = 0; i < toBeVisitedThisLoop.length; i++) {
-                        var triangleInd = toBeVisitedThisLoop[i];
-
-                        checkTriangle(triangleInd * 3 + startIndex, "meshIndex = "+meshIndex+" l = "+l+" i = "+i+" loopsPassed = "+loopsPassed);
-                        for (var j = 0; j < skinFile.subMeshes[meshIndex].nTriangles / 3; j++) {
-                            if ((trianglesGraph[triangleInd][j] == 1) && (visitedTriangles[j] != 1)) {
-                                toBeVisitedNextLoop.push(j);
-                                visitedTriangles[j] = 1;
-                            }
-                        }
-                    }
-                    loopsPassed++;
-                } while (toBeVisitedNextLoop.length > 0);
             }
         }
 
-        //RecheckTris
-        for (var meshIndex = 0; meshIndex < skinFile.nSub; meshIndex++) {
-            for (var l = 0; l < skinFile.subMeshes[meshIndex].nTriangles; l+=3) {
-                checkTriangleDebug(skinFile.subMeshes[meshIndex].StartTriangle + l)
-            }
-        }
 
+
+
+        this.nonIndexedVBO = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.nonIndexedVBO);
+        gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(nonIndexedVBO), gl.STATIC_DRAW);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.baryCentricVBO);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(baryCentricCoords), gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         this.baryCentricCoords = baryCentricCoords;
+        this.baryCentricMeshLength =  ((maxInd + 1) * 3);
     }
 }
 
@@ -411,7 +274,6 @@ class SkinGeomCache {
             var skinGeomObj = new SkinGeom(sceneApi);
             skinGeomObj.assign(skinFile);
             skinGeomObj.createVBO();
-            skinGeomObj.createBaricentricVBO();
             return skinGeomObj;
         });
     }
