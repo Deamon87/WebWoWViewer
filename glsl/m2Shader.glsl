@@ -153,11 +153,23 @@ uniform mat4 uTextMat2;
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;
 #endif
-float edgeFactor(){
-      vec3 d = fwidth(vBaryCentric);
-      vec3 a3 = smoothstep(vec3(0.0), d*1.5, vBaryCentric);
-      return min(min(a3.x, a3.y), a3.z);
-  }
+float edgeFactor() {
+    // one way to calculate interpolation factor
+/*
+    float f = vBaryCentric.x;
+    if( vBaryCentric.x < min(vBaryCentric.y, vBaryCentric.z) )
+        f = vBaryCentric.y;
+
+    const float PI = 3.14159265;
+    float stipple = pow( clamp( 5.0 * sin( f * 21.0 * PI ), 0.0, 1.0 ), 10.0 );
+    float thickness = 2.0 * stipple;
+    */
+    float thickness = 1.5;
+
+    vec3 d = fwidth(vBaryCentric);
+    vec3 a3 = smoothstep(vec3(0.0), d * thickness, vBaryCentric);
+    return min(min(a3.x, a3.y), a3.z);
+}
 void main() {
 
 
@@ -241,11 +253,8 @@ void main() {
     //finalColor.rgb = finalColor.rgb;
     //finalColor.a = 1.0;
 
-    if(any(lessThan(vBaryCentric, vec3(0.02)))){
-        finalColor = vec4(0.0, 0.0, 0.0, 1.0);
-    } else {
-        //finalColor.rgb = mix(vec3(0.0), vec3(0.5), edgeFactor());
-    }
+    finalColor.rgba = mix(vec4(0.0, 0.0, 0.0, 1.0), finalColor.rgba, edgeFactor() );
+
 
     if(finalColor.a < uAlphaTest)
         discard;
