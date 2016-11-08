@@ -160,9 +160,6 @@ float edgeFactor(){
   }
 void main() {
 
-    if(!any(lessThan(vBaryCentric, vec3(0.05)))){
-       discard;
-    }
 
 
 
@@ -241,8 +238,14 @@ void main() {
         finalColor.rgba = tex.rgba * tex2.rgba * meshResColor.rgba * vec4(4.0);
     }
 
-    finalColor.rgb = finalColor.rgb;
-    finalColor.a = 1.0;
+    //finalColor.rgb = finalColor.rgb;
+    //finalColor.a = 1.0;
+
+    if(any(lessThan(vBaryCentric, vec3(0.02)))){
+        finalColor = vec4(0.0, 0.0, 0.0, 1.0);
+    } else {
+        //finalColor.rgb = mix(vec3(0.0), vec3(0.5), edgeFactor());
+    }
 
     if(finalColor.a < uAlphaTest)
         discard;

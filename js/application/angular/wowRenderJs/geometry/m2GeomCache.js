@@ -163,9 +163,7 @@ class M2Geom {
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
-
         var meshIndex = materialData.meshIndex;
-
 
         gl.uniformMatrix4fv(uniforms.uTextMat1, false, textureMatrix1);
         gl.uniformMatrix4fv(uniforms.uTextMat2, false, textureMatrix2);
