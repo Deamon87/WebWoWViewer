@@ -145,6 +145,12 @@ class M2Geom {
             gl.uniform4fv(uniforms["pc_lights["+index+"].position"], new Float32Array(lights[i].position));
             index++;
         }
+        for (var i = 0; i < lights.length; i++) {
+            if (lights[i].ambient_color[0] != 0 && lights[i].ambient_color[1] != 0 && lights[i].ambient_color[2] != 0) {
+                gl.uniform4fv(uniforms.uPcColor, new Float32Array(lights[i].ambient_color));
+                break;
+            }
+        }
         gl.uniform1f(uniforms.uCooeff, document.coeff);
     }
 

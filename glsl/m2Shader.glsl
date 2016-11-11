@@ -161,6 +161,7 @@ struct LocalLight
 };
 
 uniform float uCooeff;
+uniform vec4 uPcColor;
 uniform LocalLight pc_lights[3];
 
 #ifdef drawBuffersIsSupported
@@ -264,13 +265,14 @@ void main() {
             float attenuationDiv = (1.0 ) / (( attenuationRec.z -  attenuationRec.x));
 
             float attenuation = (1.0 - clamp(((distanceToLight - attenuationRec.x) * attenuationDiv), 0.0, 1.0));
-            vec3 light_atten = ((lightRecord.color.xyz ) * attenuation)   ;
+            vec3 light_atten = ((lightRecord.color.xyz * attenuationRec.y) * attenuation)   ;
             //lightColor = (lightColor + vec3(light_atten *light_atten* diffuseTerm ));
             lightColor = (lightColor + vec3(light_atten * light_atten * diffuseTerm ));
         }
 
-        vec3 gammaDiffuse = vec3(0,0,0);
-        vec3 linearDiffuse =finalColor.rgb * finalColor.rgb *lightColor.rgb;
+        //vec3 gammaDiffuse = finalColor.rgb;
+        vec3 gammaDiffuse = uPcColor.rgb;
+        vec3 linearDiffuse =finalColor.rgb * finalColor.rgb * lightColor.rgb;
 
         finalColor.rgb =  sqrt(gammaDiffuse * gammaDiffuse + linearDiffuse);
         //finalColor.rgb =  finalColor.rgb * lightColor;
@@ -297,6 +299,7 @@ void main() {
         finalColor.rgba = vec4(mix(fogColor.rgb, finalColor.rgb, vec3(fog_out)), finalColor.a);
 
     }
+    finalColor.rgb = finalColor.rgb;
     /*
     vec3 matDiffuse_575 = (tex.rgb * tex2.rgb * meshColor.rgb);
     vec3 S_570 = vec3(mix(vec3(0.699999988), vec3(1.0), 1.0));

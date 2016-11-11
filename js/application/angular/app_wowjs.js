@@ -139,14 +139,20 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 source: 'http',
                 sceneType: 'm2',
                 modelName: 'Interface\\GLUES\\MODELS\\UI_MAINMENU\\UI_MainMenu.m2',
-                cameraIndex: 0
+                cameraIndex: 0,
+                fogStart : 0,
+                fogEnd : 1200,
+                fogColor : [0.25, 0.06, 0.015]
             },
             {
                 name: 'BC Opening Screen',
                 source: 'http',
                 sceneType: 'm2',
                 modelName: 'interface/glues/models/ui_mainmenu_burningcrusade/ui_mainmenu_burningcrusade.m2',
-                cameraIndex: 0
+                cameraIndex: 0,
+                fogStart : 0,
+                fogEnd : 1200,
+                fogColor : [0.25, 0.06, 0.015]
             },
             {
                 name: 'Wotlk opening screen',

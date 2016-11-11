@@ -268,7 +268,7 @@ export default class AnimationManager {
             times = animationBlock.timestampsPerAnimation[animation];
             values =  animationBlock.valuesPerAnimation[animation];
         }
-        if (times.length == 0) {
+        if (!times || times.length == 0) {
             return undefined;
         }
 
@@ -793,6 +793,16 @@ export default class AnimationManager {
                 animationIndex,
                 lightRecord.attenuation_end)[0];
 
+            var unk_ambient = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                lightRecord.unknown);
+            if (unk_ambient !== undefined) {
+                unk_ambient = unk_ambient[0];
+            }
+
             var boneMat = bonesMatrices[lightRecord.bone];
             var pos_vec = lightRecord.position;
 
@@ -801,11 +811,17 @@ export default class AnimationManager {
 
             lights[i].ambient_color = ambient_color;
             lights[i].ambient_intensity = ambient_intensity;
+            lights[i].ambient_color[0] *= ambient_intensity;
+            lights[i].ambient_color[1] *= ambient_intensity;
+            lights[i].ambient_color[2] *= ambient_intensity;
+            lights[i].ambient_color[3] *= ambient_intensity;
+
             lights[i].diffuse_color = diffuse_color;
             lights[i].diffuse_intensity = diffuse_intensity;
             lights[i].attenuation_start = attenuation_start;
             lights[i].attenuation_end = attenuation_end;
             lights[i].position = position;
+            lights[i].unk_ambient = unk_ambient;
         }
     }
 }

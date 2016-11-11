@@ -76,6 +76,9 @@ class Scene {
         this.mainCameraLookAt = [0,0,0];
         this.fogColor = [0.117647, 0.207843, 0.392157];
 
+        this.uFogStart = 15000;
+        this.uFogEnd  = 16000;
+
         self.initGlContext(canvas);
         self.initArrayInstancedExt();
         self.initDepthTextureExt();
@@ -1120,9 +1123,6 @@ class Scene {
             nearPlane = cameraSettings.nearClip;
             fov = cameraSettings.fov * 32 * Math.PI / 180;
 
-            this.uFogStart = 5000;
-            this.uFogEnd = 5010;
-
             this.mainCamera = cameraSettings.currentPosition;
             vec4.transformMat4(this.mainCamera, this.mainCamera, m2Object.placementMatrix);
             this.mainCameraLookAt = cameraSettings.currentTarget;
@@ -1137,8 +1137,6 @@ class Scene {
             this.camera.setCameraPos(cameraVector[0], cameraVector[1], cameraVector[2]);
             var cameraVecs = this.camera.tick(deltaTime);
 
-            this.uFogStart = farPlane-30;
-            this.uFogEnd = farPlane-10;
 
             if (config.getUseSecondCamera()) {
                 this.secondCamera = cameraVecs.cameraVec3;
@@ -1301,6 +1299,15 @@ class Scene {
     setCameraPos (x, y, z) {
         this.mainCamera = [x,y,z];
         //this.camera.setCameraPos(x,y,z);
+    }
+    setFogStart(value) {
+        this.uFogStart  = value;
+    }
+    setFogEnd(value) {
+        this.uFogEnd = value;
+    }
+    setFogColor(value) {
+        this.fogColor = value;
     }
     loadPackets() {
         //this.worldObjectManager.loadAllPacket();

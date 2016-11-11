@@ -64,6 +64,15 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                     if (sceneParams.cameraIndex !== undefined) {
                         config.setCameraM2(m2Object);
                     }
+                    if (sceneParams.fogStart) {
+                        sceneObj.setFogStart(sceneParams.fogStart)
+                    }
+                    if (sceneParams.fogEnd) {
+                        sceneObj.setFogEnd(sceneParams.fogEnd);
+                    }
+                    if (sceneParams.fogColor) {
+                        sceneObj.setFogColor(sceneParams.fogColor);
+                    }
                 }
 
                 scope.drawM2BB = config.getDrawM2BB();
