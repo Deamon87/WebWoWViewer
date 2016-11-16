@@ -131,15 +131,16 @@ class M2Geom {
 
         //Setup lights
 
-        var activeLights = 0;
+        var activeLights = lights.length;
+        /*
         for (var i = 0; i < lights.length; i++) {
             if (lights[i].attenuation_end - lights[i].attenuation_start > 0.01) {
                 activeLights++;
             }
-        }
+        }*/
         var index = 0;
         for (var i = 0; i < lights.length; i++) {
-            if (lights[i].attenuation_end - lights[i].attenuation_start <= 0.01) continue;
+            //if (lights[i].attenuation_end - lights[i].attenuation_start <= 0.01) continue;
             gl.uniform4fv(uniforms["pc_lights["+index+"].color"], new Float32Array(lights[i].diffuse_color));
             gl.uniform4fv(uniforms["pc_lights["+index+"].attenuation"], new Float32Array([lights[i].attenuation_start, lights[i].diffuse_intensity, lights[i].attenuation_end, activeLights]));
             gl.uniform4fv(uniforms["pc_lights["+index+"].position"], new Float32Array(lights[i].position));

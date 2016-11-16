@@ -186,9 +186,51 @@ void main() {
     //finalColor = vec4((tex.rgb * tex2.rgb), 1.0);
     //finalColor.rgb = finalColor.rgb * meshColor.rgb * vDiffuseColor.bgr;
     //finalColor.a = tex.a * tex2.a * uColor.a* uTransparency;
-    vec4 meshResColor = vec4(meshColor.rgb * vDiffuseColor.bgr, uColor.a* uTransparency);
+    //vec4 meshResColor = vec4(meshColor.rgb * vDiffuseColor.bgr, uColor.a* uTransparency);
+    vec4 meshResColor = vec4(meshColor.rgb, uColor.a* uTransparency);
 
-    if (uPixelShader == 0) { //Combiners_Opaque
+    if(meshResColor.a < uAlphaTest)
+        discard;
+
+    if ((uUseDiffuseColor == 1)) {
+        vec3 vPos3 = vPosition.xyz;
+        vec3 vNormal3 = normalize(vNormal.xyz);
+        int count = int(pc_lights[0].attenuation.w);
+        vec3 lightColor = vec3(0.0);
+        for (int index = 0;index < 4;index++)
+        {
+            if ( index >= count) break;
+            LocalLight lightRecord = pc_lights[index];
+            vec3 vectorToLight = ((lightRecord.position).xyz - vPos3);
+            float distanceToLightSqr = dot(vectorToLight, vectorToLight);
+            float distanceToLightInv = inversesqrt(distanceToLightSqr);
+            float distanceToLight = (distanceToLightSqr * distanceToLightInv);
+            float diffuseTerm = max((dot(vectorToLight, vNormal3) * distanceToLightInv), 0.0);
+            vec4 attenuationRec = lightRecord.attenuation;
+            //float attenuationDiv = (1.0 ) / (( attenuationRec.z -  attenuationRec.x));
+            float atten1 = distanceToLightSqr * 0.03 + distanceToLight*0.7;
+            float atten2 = 1.0 / atten1;
+            float lightAtten = diffuseTerm * atten2;
+
+            //float attenuation = (1.0 - clamp(((distanceToLight - attenuationRec.x) * attenuationDiv), 0.0, 1.0));
+            //vec3 light_atten = ((lightRecord.color.xyz ) * attenuation * diffuseTerm)   ;
+            lightColor = (lightColor + (lightRecord.color.xyz * attenuationRec.y * lightAtten));
+            //lightColor = (lightColor + vec3(light_atten * light_atten * diffuseTerm ));
+        }
+
+        //vec3 gammaDiffuse = finalColor.rgb;
+        //vec3 gammaDiffuse = uPcColor.rgb;
+        //vec3 linearDiffuse =finalColor.rgb * finalColor.rgb * lightColor.rgb;
+
+        vec3 sunDir = vec3(0.294422, -0.11700600000000004, 0.948486);
+        vec3 sunLight = vec3(0.392941, 0.268235, 0.308235);
+        lightColor  = lightColor + sunLight;
+
+        meshResColor.rgb = lightColor; //lightColor *  meshResColor.rgb;
+        //finalColor.rgb =  finalColor.rgb * lightColor;
+    }
+
+if (uPixelShader == 0) { //Combiners_Opaque
         finalColor.rgb = tex.rgb * meshResColor.rgb;
         finalColor.a = meshResColor.a;
     } else if (uPixelShader == 1) { // Combiners_Decal
@@ -244,43 +286,10 @@ void main() {
         finalColor.rgba = tex.rgba * tex2.rgba * meshResColor.rgba * vec4(4.0);
     }
 
-    if(finalColor.a < uAlphaTest)
-        discard;
 
-    if ((uUseDiffuseColor == 1)) {
-        vec3 vPos3 = vPosition.xyz;
-        vec3 vNormal3 = normalize(vNormal.xyz);
-        int count = int(pc_lights[0].attenuation.w);
-        vec3 lightColor = vec3(0.0);
-        for (int index = 0;index < 4;index++)
-        {
-            if ( index >= count) break;
-            LocalLight lightRecord = pc_lights[index];
-            vec3 vectorToLight = ((lightRecord.position).xyz - vPos3);
-            float distanceToLightSqr = dot(vectorToLight, vectorToLight);
-            float distanceToLightInv = inversesqrt(distanceToLightSqr);
-            float distanceToLight = (distanceToLightSqr * distanceToLightInv);
-            float diffuseTerm = max((dot(vectorToLight, vNormal3) * distanceToLightInv), 0.0);
-            vec4 attenuationRec = lightRecord.attenuation;
-            float attenuationDiv = (1.0 ) / (( attenuationRec.z -  attenuationRec.x));
-
-            float attenuation = (1.0 - clamp(((distanceToLight - attenuationRec.x) * attenuationDiv), 0.0, 1.0));
-            vec3 light_atten = ((lightRecord.color.xyz * attenuationRec.y) * attenuation)   ;
-            //lightColor = (lightColor + vec3(light_atten *light_atten* diffuseTerm ));
-            lightColor = (lightColor + vec3(light_atten * light_atten * diffuseTerm ));
-        }
-
-        //vec3 gammaDiffuse = finalColor.rgb;
-        vec3 gammaDiffuse = uPcColor.rgb;
-        vec3 linearDiffuse =finalColor.rgb * finalColor.rgb * lightColor.rgb;
-
-        finalColor.rgb =  sqrt(gammaDiffuse * gammaDiffuse + linearDiffuse);
-        //finalColor.rgb =  finalColor.rgb * lightColor;
-    }
 
     if (uUnFogged == 0) {
         vec3 fogColor = uFogColor;
-
         float fog_rate = 1.5;
         float fog_bias = 0.01;
     

@@ -152,7 +152,7 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 cameraIndex: 0,
                 fogStart : 0,
                 fogEnd : 1200,
-                fogColor : [0.25, 0.06, 0.015]
+                fogColor : [0.25098, 0.0588235, 0.0156863, 1]
             },
             {
                 name: 'Wotlk opening screen',
