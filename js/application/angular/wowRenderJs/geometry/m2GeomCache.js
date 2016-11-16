@@ -138,6 +138,7 @@ class M2Geom {
                 activeLights++;
             }
         }*/
+        gl.uniform1i(uniforms.uLightCount, activeLights);
         var index = 0;
         for (var i = 0; i < lights.length; i++) {
             //if (lights[i].attenuation_end - lights[i].attenuation_start <= 0.01) continue;
@@ -146,11 +147,24 @@ class M2Geom {
             gl.uniform4fv(uniforms["pc_lights["+index+"].position"], new Float32Array(lights[i].position));
             index++;
         }
+        for (var i = index; i < 4; i++) {
+            gl.uniform4fv(uniforms["pc_lights["+index+"].color"], new Float32Array([0,0,0,0]));
+            gl.uniform4fv(uniforms["pc_lights["+index+"].attenuation"], new Float32Array([0,0,0,0]));
+            gl.uniform4fv(uniforms["pc_lights["+index+"].position"], new Float32Array([0,0,0,0]));
+            index++;
+        }
+
+        var diffuseFound = false;
         for (var i = 0; i < lights.length; i++) {
             if (lights[i].ambient_color[0] != 0 && lights[i].ambient_color[1] != 0 && lights[i].ambient_color[2] != 0) {
                 gl.uniform4fv(uniforms.uPcColor, new Float32Array(lights[i].ambient_color));
+                diffuseFound = true;
                 break;
             }
+        }
+
+        if (!diffuseFound) {
+            gl.uniform4fv(uniforms.uPcColor, new Float32Array([1.0, 1.0, 1.0, 1.0]));
         }
         gl.uniform1f(uniforms.uCooeff, document.coeff);
     }
