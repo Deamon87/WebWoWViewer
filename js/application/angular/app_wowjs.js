@@ -130,9 +130,9 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
             {
                 name: 'Lava pots',
                 source: 'zip',
-                url: 'http://deamon87.github.io/WoWFiles/ironforge.zip',
+                url: 'http://deamon87.github.io/WoWFiles/shattrath.zip',
                 sceneType: 'm2',
-                modelName: 'world\\khazmodan\\ironforge\\passivedoodads\\lavasteam\\lavapots.m2'
+                modelName: 'world\\expansion01\\doodads\\generic\\bloodelf\\banners\\be_banner_tallblack.m2'
             },
             {
                 name: 'Vanilla Opening screen',

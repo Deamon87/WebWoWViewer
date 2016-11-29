@@ -38,9 +38,8 @@ export default class InstanceManager {
             newList
         }
 
-        for (var i = 0; i < this.mdxObjectList.length; i++) {
-            var mdxObject = this.mdxObjectList[i];
-            if (!mdxObject.getIsRendered()) continue;
+        for (var i = 0; i < newList.length; i++) {
+            var mdxObject = newList[i];
 
             var placementMatrix = mdxObject.placementMatrix;
             var diffuseColor = mdxObject.getDiffuseColor();

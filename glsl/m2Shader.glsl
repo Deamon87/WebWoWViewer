@@ -160,7 +160,6 @@ struct LocalLight
     vec4 attenuation;
 };
 
-uniform float uCooeff;
 uniform vec4 uPcColor;
 
 uniform LocalLight pc_lights[3];
@@ -198,6 +197,7 @@ void main() {
         vec3 vNormal3 = normalize(vNormal.xyz);
         int count = int(pc_lights[0].attenuation.w);
         vec3 lightColor = vec3(0.0);
+
         for (int index = 0;index < 4;index++)
         {
             if ( index >= uLightCount) break;
@@ -225,7 +225,7 @@ void main() {
 
         vec3 sunDir = vec3(0.294422, -0.11700600000000004, 0.948486);
         vec3 sunLight = vec3(0.392941, 0.268235, 0.308235);
-        lightColor  = lightColor + sunLight;
+        lightColor  = lightColor + (clamp(dot(-sunDir, vNormal3), 0.0, 1.0) * sunLight) + vec3(0.5);
 
         meshResColor.rgb = lightColor; //lightColor *  meshResColor.rgb;
         //finalColor.rgb =  finalColor.rgb * lightColor;
@@ -288,6 +288,8 @@ if (uPixelShader == 0) { //Combiners_Opaque
     }
 
 
+    if(finalColor.a < uAlphaTest)
+        discard;
 
     if (uUnFogged == 0) {
         vec3 fogColor = uFogColor;

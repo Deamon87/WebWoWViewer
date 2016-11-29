@@ -676,6 +676,7 @@ class MDXObject {
     * */
 
     drawMeshes(drawTransparent, instanceCount) {
+        var originalFogColor = this.sceneApi.getFogColor();
         var identMat = mat4.create();
         mat4.identity(identMat);
 
@@ -710,7 +711,7 @@ class MDXObject {
             if ((transparency < 0.0001) || (meshColor[3] < 0.001)) continue;
 
             var pixelShaderIndex = pixelShaderTable[materialData.shaderNames.pixel];
-            this.m2Geom.drawMesh(materialData, this.skinGeom, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, instanceCount)
+            this.m2Geom.drawMesh(materialData, this.skinGeom, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, originalFogColor, instanceCount)
         }
     }
     drawInstanced(drawTransparent, instanceCount, placementVBO) {

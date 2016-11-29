@@ -131,7 +131,7 @@ class M2Geom {
 
         //Setup lights
 
-        var activeLights = lights.length;
+        var activeLights = (lights) ? (lights.length | 0) : 0;
         /*
         for (var i = 0; i < lights.length; i++) {
             if (lights[i].attenuation_end - lights[i].attenuation_start > 0.01) {
@@ -147,7 +147,7 @@ class M2Geom {
             gl.uniform4fv(uniforms["pc_lights["+index+"].position"], new Float32Array(lights[i].position));
             index++;
         }
-        for (var i = index; i < 4; i++) {
+        for (var i = index; i < 3; i++) {
             gl.uniform4fv(uniforms["pc_lights["+index+"].color"], new Float32Array([0,0,0,0]));
             gl.uniform4fv(uniforms["pc_lights["+index+"].attenuation"], new Float32Array([0,0,0,0]));
             gl.uniform4fv(uniforms["pc_lights["+index+"].position"], new Float32Array([0,0,0,0]));
@@ -184,7 +184,7 @@ class M2Geom {
         }
     }
 
-   drawMesh(materialData, skinObject, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, instanceCount) {
+   drawMesh(materialData, skinObject, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, originalFogColor, instanceCount) {
         var gl = this.gl;
         var m2File = this.m2File;
         var instExt = this.sceneApi.extensions.getInstancingExt();
@@ -193,6 +193,7 @@ class M2Geom {
 
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+        var fogChanged = false;
 
         gl.uniformMatrix4fv(uniforms.uTextMat1, false, textureMatrix1);
         gl.uniformMatrix4fv(uniforms.uTextMat2, false, textureMatrix2);
@@ -213,35 +214,51 @@ class M2Geom {
 
                 gl.uniform1i(uniforms.uBlendMode, renderFlag.blend);
                 switch (renderFlag.blend) {
-                    case 0 : //BM_OPAQUE
+                    case 0 : //Blend_Opaque
                         gl.disable(gl.BLEND);
                         gl.uniform1f(uniforms.uAlphaTest, -1.0);
                         break;
-                    case 1 : //BM_TRANSPARENT
+                    case 1 : //Blend_AlphaKey
                         gl.disable(gl.BLEND);
                         //gl.uniform1f(uniforms.uAlphaTest, 2.9);
-                        gl.uniform1f(uniforms.uAlphaTest, 0.903921569);
+                        gl.uniform1f(uniforms.uAlphaTest, 0.00392157);
                         break;
-                    case 2 : //BM_ALPHA_BLEND
+                    case 2 : //Blend_Alpha
                         gl.uniform1f(uniforms.uAlphaTest, -1);
                         gl.enable(gl.BLEND);
                         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // default blend func
                         break;
-                    case 3 : //BM_ADDITIVE
+                    case 3 : //Blend_NoAlphaAdd
                         gl.uniform1f(uniforms.uAlphaTest, -1);
                         gl.enable(gl.BLEND);
-                        gl.blendFunc(gl.SRC_COLOR, gl.ONE);
+                        gl.blendFunc(gl.ONE, gl.ONE);
+
+                        //Override fog
+                        gl.uniform3fv(uniforms.uFogColor, new Float32Array([0,0,0]));
+
                         break;
-                    case 4 : //BM_ADDITIVE_ALPHA
+                    case 4 : //Blend_Add
                         gl.uniform1f(uniforms.uAlphaTest, 0.00392157);
                         gl.enable(gl.BLEND);
                         gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+                        gl.uniform3fv(uniforms.uFogColor, new Float32Array([0,0,0]));
                         break;
 
-                    case 6:
+                    case 5: //Blend_Mod
+                        gl.uniform1f(uniforms.uAlphaTest, 0.00392157);
+                        gl.enable(gl.BLEND);
+                        gl.blendFunc(gl.DST_COLOR, gl.ZERO);
+
+                        gl.uniform3fv(uniforms.uFogColor, new Float32Array([1.0,1.0,1.0]));
+                        break;
+
+                    case 6: //Blend_Mod2x
                         gl.uniform1f(uniforms.uAlphaTest, 0.00392157);
                         gl.enable(gl.BLEND);
                         gl.blendFunc(gl.DST_COLOR, gl.SRC_COLOR);
+
+                        gl.uniform3fv(uniforms.uFogColor, new Float32Array([0.5,0.5,0.5]));
                         break;
                     default :
                         gl.uniform1f(uniforms.uAlphaTest, -1);
@@ -254,7 +271,9 @@ class M2Geom {
                 //    debugger;
                 //}
 
-                if ((renderFlag.flags & 0x1) > 0) {
+
+
+                if ((renderFlag.flags & 0x1 > 0)|| (renderFlag.blend == 5) || (renderFlag.blend == 6)) {
                     gl.uniform1i(uniforms.uUseDiffuseColor, 0)
                 } else {
                     gl.uniform1i(uniforms.uUseDiffuseColor, 1)
@@ -344,6 +363,9 @@ class M2Geom {
                 gl.depthMask(true);
                 gl.disable(gl.BLEND);
 
+                if (fogChanged && originalFogColor) {
+                    gl.uniform3fv(uniforms.uFogColor, originalFogColor);
+                }
             }
         }
     }

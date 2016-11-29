@@ -76,8 +76,8 @@ class Scene {
         this.mainCameraLookAt = [0,0,0];
         this.fogColor = [0.117647, 0.207843, 0.392157];
 
-        this.uFogStart = 15000;
-        this.uFogEnd  = 16000;
+        this.uFogStart = -1;
+        this.uFogEnd  = -1;
 
         self.initGlContext(canvas);
         self.initArrayInstancedExt();
@@ -512,6 +512,9 @@ class Scene {
             },
             setFogColor: function (color) {
                 self.fogColor = color;
+            },
+            getFogColor: function () {
+                return self.fogColor;
             },
             extensions : {
                 getInstancingExt : function (){
@@ -1133,6 +1136,14 @@ class Scene {
                 staticCamera: true
             }
         }
+
+        if (this.uFogStart == -1) {
+            this.uFogStart = farPlane - 10;
+        }
+        if (this.uFogEnd == -1) {
+            this.uFogEnd = farPlane;
+        }
+
         if (!(m2Object && m2Object.loaded) || config.getUseSecondCamera()){
             this.camera.setCameraPos(cameraVector[0], cameraVector[1], cameraVector[2]);
             var cameraVecs = this.camera.tick(deltaTime);
