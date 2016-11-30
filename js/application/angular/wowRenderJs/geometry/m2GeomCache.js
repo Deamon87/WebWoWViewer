@@ -166,7 +166,6 @@ class M2Geom {
         if (!diffuseFound) {
             gl.uniform4fv(uniforms.uPcColor, new Float32Array([1.0, 1.0, 1.0, 1.0]));
         }
-        gl.uniform1f(uniforms.uCooeff, document.coeff);
     }
 
     bindVao() {
@@ -235,6 +234,7 @@ class M2Geom {
 
                         //Override fog
                         gl.uniform3fv(uniforms.uFogColor, new Float32Array([0,0,0]));
+                        fogChanged = true;
 
                         break;
                     case 4 : //Blend_Add
@@ -243,6 +243,7 @@ class M2Geom {
                         gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
                         gl.uniform3fv(uniforms.uFogColor, new Float32Array([0,0,0]));
+                        fogChanged = true;
                         break;
 
                     case 5: //Blend_Mod
@@ -251,6 +252,7 @@ class M2Geom {
                         gl.blendFunc(gl.DST_COLOR, gl.ZERO);
 
                         gl.uniform3fv(uniforms.uFogColor, new Float32Array([1.0,1.0,1.0]));
+                        fogChanged = true;
                         break;
 
                     case 6: //Blend_Mod2x
@@ -259,6 +261,7 @@ class M2Geom {
                         gl.blendFunc(gl.DST_COLOR, gl.SRC_COLOR);
 
                         gl.uniform3fv(uniforms.uFogColor, new Float32Array([0.5,0.5,0.5]));
+                        fogChanged = true;
                         break;
                     default :
                         gl.uniform1f(uniforms.uAlphaTest, -1);
