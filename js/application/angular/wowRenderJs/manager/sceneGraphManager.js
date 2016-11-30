@@ -234,6 +234,7 @@ class GraphManager {
 
         //4. Collect m2 into instances every 200 ms
 
+        /* Disable instancing for now
         if (this.currentTime + deltaTime - this.lastInstanceCollect > 200) {
             var map = {};
             for (var j = 0; j < this.m2Objects.length; j++) {
@@ -263,6 +264,7 @@ class GraphManager {
 
             this.lastInstanceCollect = this.currentTime;
         }
+        */
 
         //5. Check what WMO instance we're in
         this.currentInteriorGroup = -1;
