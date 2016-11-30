@@ -220,7 +220,7 @@ class M2Geom {
                     case 1 : //Blend_AlphaKey
                         gl.disable(gl.BLEND);
                         //gl.uniform1f(uniforms.uAlphaTest, 2.9);
-                        gl.uniform1f(uniforms.uAlphaTest, 0.00392157);
+                        gl.uniform1f(uniforms.uAlphaTest, 0.903921569);
                         break;
                     case 2 : //Blend_Alpha
                         gl.uniform1f(uniforms.uAlphaTest, -1);

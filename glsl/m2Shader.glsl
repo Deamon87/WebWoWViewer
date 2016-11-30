@@ -187,7 +187,7 @@ void main() {
     //finalColor.rgb = finalColor.rgb * meshColor.rgb * vDiffuseColor.bgr;
     //finalColor.a = tex.a * tex2.a * uColor.a* uTransparency;
     //vec4 meshResColor = vec4(meshColor.rgb * vDiffuseColor.bgr, uColor.a* uTransparency);
-    vec4 meshResColor = vec4(meshColor.rgb, uColor.a* uTransparency);
+    vec4 meshResColor = vec4(meshColor.rgb * vDiffuseColor.bgr, uColor.a* uTransparency);
 
     if(meshResColor.a < uAlphaTest)
         discard;
@@ -227,7 +227,7 @@ void main() {
         vec3 sunLight = vec3(0.392941, 0.268235, 0.308235);
         lightColor  = lightColor + (clamp(dot(-sunDir, vNormal3), 0.0, 1.0) * sunLight) + vec3(0.5);
 
-        meshResColor.rgb = lightColor; //lightColor *  meshResColor.rgb;
+        meshResColor.rgb = clamp(lightColor * meshColor.rgb , 0.0, 1.0); //lightColor *  meshResColor.rgb;
         //finalColor.rgb =  finalColor.rgb * lightColor;
     }
 
