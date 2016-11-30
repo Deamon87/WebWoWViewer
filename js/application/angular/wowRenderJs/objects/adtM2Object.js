@@ -18,63 +18,7 @@ class AdtM2Object extends MDXObject {
         return this.diffuseColor;
     }
     drawBB (){
-        function drawBBInternal(bb1, bb2, color, placementMatrix) {
-            var center = [
-                (bb1.x + bb2.x) / 2,
-                (bb1.y + bb2.y) / 2,
-                (bb1.z + bb2.z) / 2
-            ];
-
-            var scale = [
-                bb2.x - center[0],
-                bb2.y - center[1],
-                bb2.z - center[2]
-            ];
-
-            gl.uniform3fv(uniforms.uBBScale, new Float32Array(scale));
-            gl.uniform3fv(uniforms.uBBCenter, new Float32Array(center));
-            gl.uniform3fv(uniforms.uColor, new Float32Array(color)); //red
-            gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
-
-            gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
-        }
-        function drawBBInternal2(center, scale, color, placementMatrix) {
-            gl.uniform3fv(uniforms.uBBScale, new Float32Array(scale));
-            gl.uniform3fv(uniforms.uBBCenter, new Float32Array(center));
-            gl.uniform3fv(uniforms.uColor, new Float32Array(color)); //red
-            gl.uniformMatrix4fv(uniforms.uPlacementMat, false, placementMatrix);
-
-            gl.drawElements(gl.LINES, 48, gl.UNSIGNED_SHORT, 0);
-        }
-
-        var gl = this.sceneApi.getGlContext();
-        var uniforms = this.sceneApi.shaders.getShaderUniforms();
-
-        var bb = super.getBoundingBox();
-
-        if (bb) {
-            var bb1 = bb.ab,
-                bb2 = bb.cd;
-
-            drawBBInternal(bb1, bb2, [0.819607843, 0.058, 0.058], this.placementMatrix);
-
-            //Draw possible BBs
-            var skinData = this.skinGeom.skinFile.header;
-            for (var i = 0; i < this.materialArray.length; i++) {
-                var a = this.materialArray[i];
-                //var mesh1Corner1 = skinData.subMeshes[a.meshIndex].pos;
-                //var mesh1Corner2 = skinData.subMeshes[a.meshIndex].centerBoundingBox;
-                //var radius = skinData.subMeshes[a.meshIndex].radius;
-                var aabb = this.skinGeom.subMeshBBs[a.meshIndex];
-
-
-                //drawBBInternal2([mesh1Corner1.x, mesh1Corner1.y, mesh1Corner1.z], [radius,radius,radius], [0.0, 0.8, 0], this.placementMatrix);
-                drawBBInternal(
-                    {x : aabb[0][0], y : aabb[0][1], z : aabb[0][2]},
-                    {x : aabb[1][0], y : aabb[1][1], z : aabb[1][2]},
-                    [0.0, 0.8, 0], this.placementMatrix);
-            }
-        }
+       super.drawBB([0.819607843, 0.058, 0.058])
     }
     drawTransparentMeshes () {
         super.draw(true, this.placementMatrix, this.diffuseColor);
