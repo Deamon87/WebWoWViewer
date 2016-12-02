@@ -285,7 +285,6 @@ class GraphManager {
 
         //6. Check fog color every 2 seconds
         if (this.currentTime + deltaTime - this.lastFogParamCheck > 2000) {
-            this.sceneApi
 
             this.lastFogParamCheck = this.currentTime;
         }

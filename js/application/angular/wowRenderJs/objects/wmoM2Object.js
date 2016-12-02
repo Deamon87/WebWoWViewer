@@ -21,6 +21,9 @@ class WmoM2Object extends MDXObject {
     getDiffuseColor() {
         return (this.useLocalLighting) ? this.diffuseColor : new Float32Array([1,1,1,1])
     }
+    getInvertModelMatrix() {
+        return this.placementInvertMatrix;
+    }
     checkFrustumCullingAndSet (cameraVec4, frustumPlanes, num_planes) {
         if (config.getUsePortalCulling()) return;
         var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
@@ -36,10 +39,7 @@ class WmoM2Object extends MDXObject {
     checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, getDepth) {
         this.setIsRendered(this.getIsRendered() && super.checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, this.placementMatrix, getDepth));
     }
-    update(deltaTime, cameraPos, viewMat) {
-        if (!this.getIsRendered()) return;
-        super.update(deltaTime, cameraPos, viewMat, this.placementInvertMatrix);
-    }
+
     drawTransparentMeshes () {
         var diffuseColor = this.getDiffuseColor();
         this.draw(true, this.placementMatrix, diffuseColor);

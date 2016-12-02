@@ -1109,9 +1109,6 @@ class Scene {
             cameraVector = this.mainCamera;
         }
 
-        // Update objects
-        var updateRes = this.graphManager.update(deltaTime);
-
         var farPlane = 250;
         var nearPlane = 1;
         var fov = 45.0;
@@ -1121,7 +1118,9 @@ class Scene {
         //config.setCameraM2(this.graphManager.m2Objects[0]);
         var m2Object = config.getCameraM2();
         if (m2Object && m2Object.loaded) {
-            var cameraSettings = m2Object.cameras[0];
+            //m2Object.animateCamera()
+
+            var cameraSettings = m2Object.cameras[0]; //1 frame delay
             farPlane = cameraSettings.farClip;
             nearPlane = cameraSettings.nearClip;
             fov = cameraSettings.fov * 32 * Math.PI / 180;
@@ -1203,6 +1202,8 @@ class Scene {
 
         this.graphManager.setLookAtMat(lookAtMat4);
 
+        // Update objects
+        var updateRes = this.graphManager.update(deltaTime);
         this.worldObjectManager.update(deltaTime, cameraPos);
 
         this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4);

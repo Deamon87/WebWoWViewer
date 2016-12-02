@@ -262,6 +262,7 @@ class WmoObject {
             lastWmoGroupInside = i;
 
             //3. Query bsp tree for leafs around the position of object(camera)
+
             var epsilon = 0.4;
             var cameraBBMin = vec3.fromValues(cameraLocal[0]-epsilon, cameraLocal[1]-epsilon, groupInfo.bb1.z-epsilon);
             var cameraBBMax = vec3.fromValues(cameraLocal[0]+epsilon, cameraLocal[1]+epsilon, groupInfo.bb2.z+epsilon);
@@ -309,6 +310,9 @@ class WmoObject {
                 }
                 candidateGroups.push({'topBottom' : topBottom, groupId : i, bspList : bspLeafList, nodeId: nodeId});
             }
+
+            /* Test: iterate through portals in 5 value radius and check if it fits there */
+
         }
 
         //6. Iterate through result group list and find the one with maximal bottom z coordinate for object position

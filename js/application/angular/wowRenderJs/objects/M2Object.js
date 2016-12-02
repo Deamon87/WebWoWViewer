@@ -512,8 +512,12 @@ class MDXObject {
             cd: this.localBB[1]
         }
     }
-    update (deltaTime, cameraPos, viewMat, invPlacementMat) {
+
+    update (deltaTime, cameraPos, viewMat) {
         if (!this.loaded) return;
+        if (!this.getIsRendered()) return;
+        var invPlacementMat = this.getInvertModelMatrix();
+
         //if (!this.materialArray) return;
 
         /* 1. Calc local camera */

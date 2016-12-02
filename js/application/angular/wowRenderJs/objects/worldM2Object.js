@@ -41,12 +41,15 @@ class WorldMDXObject extends MDXObject {
     getDiffuseColor(){
         return new Float32Array([1,1,1,1]);
     }
+    getInvertModelMatrix() {
+        return this.placementInvertMatrix;
+    }
 
-    update (deltaTime, cameraPos) {
+    update (deltaTime, cameraPos, viewMat) {
     }
     objectUpdate (deltaTime, cameraPos) {
         if (!this.getIsRendered()) return;
-        super.update(deltaTime, cameraPos, this.placementInvertMatrix);
+        super.update(deltaTime, cameraPos);
     }
     createPlacementMatrix (pos, f, scale, rotationMatrix){
         var placementMatrix = mat4.create();
