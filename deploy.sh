@@ -5,7 +5,19 @@ SOURCE_BRANCH="master"
 TARGET_BRANCH="gh-pages"
 
 function doCompile {
-  gulp build
+
+}
+
+#$1 - branch
+#$2 - folder
+function compileBuild {
+     # Run our compile script
+     git checkout $1 || git checkout --orphan $1
+     gulp build
+
+     mkdir dist/$2
+     cp -r build/ dist/$2
+     rm -f dist/build/$2/*.map
 }
 
 # Pull requests and commits to other branches shouldn't try to deploy, just build to verify
@@ -30,10 +42,8 @@ cd ..
 # Clean dist existing contents
 rm -rf dist/**/* || exit 0
 
-# Run our compile script
-doCompile
-cp -r build/ dist/
-rm -f dist/build/*.map
+compileBuild $SOURCE_BRANCH .
+compileBuild ironforge_demo ironforge
 
 # Now let's go have some fun with the cloned repo
 

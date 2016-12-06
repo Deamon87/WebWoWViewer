@@ -235,7 +235,7 @@ class GraphManager {
         //4. Collect m2 into instances every 200 ms
 
 
-        if (this.currentTime + deltaTime - this.lastInstanceCollect > 200) {
+//        if (this.currentTime + deltaTime - this.lastInstanceCollect > 30) {
             var map = {};
             for (var j = 0; j < this.m2Objects.length; j++) {
                 var m2Object = this.m2Objects[j];
@@ -263,7 +263,7 @@ class GraphManager {
             }
 
             this.lastInstanceCollect = this.currentTime;
-        }
+  //      }
 
 
         //5. Check what WMO instance we're in
