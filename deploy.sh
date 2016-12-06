@@ -8,7 +8,7 @@ TARGET_BRANCH="gh-pages"
 #$2 - folder
 function compileBuild {
      # Run our compile script
-     git checkout $1 || git checkout --orphan $1
+     git checkout origin/$1 || git checkout --orphan origin/$1
      npm install
      bower install
      gulp build
