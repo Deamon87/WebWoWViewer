@@ -225,9 +225,9 @@ void main() {
 
         vec3 sunDir = vec3(0.294422, -0.11700600000000004, 0.948486);
         vec3 sunLight = vec3(0.392941, 0.268235, 0.308235);
-        lightColor  = lightColor + (clamp(dot(-sunDir, vNormal3), 0.0, 1.0) * sunLight) + vec3(0.5);
+        lightColor  =  (lightColor + (clamp(dot(-sunDir, vNormal3), 0.0, 1.0) * sunLight) + vDiffuseColor.bgr);
 
-        meshResColor.rgb = clamp(lightColor * meshColor.rgb , 0.0, 1.0); //lightColor *  meshResColor.rgb;
+        meshResColor.rgb = clamp(lightColor , 0.0, 1.0); //lightColor *  meshResColor.rgb;
         //finalColor.rgb =  finalColor.rgb * lightColor;
     }
 

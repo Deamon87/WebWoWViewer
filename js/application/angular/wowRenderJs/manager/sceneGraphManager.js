@@ -223,7 +223,7 @@ class GraphManager {
         }
 
         //3. Sort m2 by distance every 100 ms
-        var m2RenderedThisFrame = this.m2Objects.filter((a) => (a.loaded && a.getIsRendered()));
+        var m2RenderedThisFrame = this.m2Objects.filter((a) => (a.getIsRendered()));
         this.m2RenderedThisFrame = m2RenderedThisFrame;
 
         if (this.currentTime + deltaTime - this.lastTimeSort > 100) {
@@ -388,8 +388,8 @@ class GraphManager {
         if (config.getRenderM2()) {
             var lastWasDrawInstanced = false;
             this.sceneApi.shaders.activateM2Shader();
-            for (var i = 0; i < this.m2Objects.length; i++) {
-                var m2Object = this.m2Objects[i];
+            for (var i = this.m2RenderedThisFrame.length-1; i >= 0; i--) {
+                var m2Object = this.m2RenderedThisFrame[i];
                 if (this.m2TranspRenderedThisFrame[m2Object.sceneNumber]) continue;
                 if (!m2Object.getIsRendered()) continue;
 

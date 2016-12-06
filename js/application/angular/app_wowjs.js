@@ -135,6 +135,13 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 modelName: 'world\\expansion01\\doodads\\generic\\bloodelf\\banners\\be_banner_tallblack.m2'
             },
             {
+                name: 'Disappearing model',
+                source: 'zip',
+                url: 'http://deamon87.github.io/WoWFiles/shattrath.zip',
+                sceneType: 'm2',
+                modelName: 'WORLD\\GENERIC\\HUMAN\\PASSIVE DOODADS\\MUGS\\MUG02.m2'
+            },
+            {
                 name: 'Vanilla Opening screen',
                 source: 'http',
                 sceneType: 'm2',

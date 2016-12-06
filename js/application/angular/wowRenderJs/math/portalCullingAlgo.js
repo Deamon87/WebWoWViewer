@@ -178,10 +178,11 @@ export default class PortalCullingAlgo {
                     if (currVis) continue;
 
                     var inFrustum = true;
-                    for(var i=0; inFrustum && i<frustumPlanes.length; i++) {
-                        inFrustum = inFrustum && mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes[i], frustumPlanes[i].length);
+                    if (mdxObject.loaded) {
+                        for (var i = 0; inFrustum && i < frustumPlanes.length; i++) {
+                            inFrustum = inFrustum && mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes[i], frustumPlanes[i].length);
+                        }
                     }
-
 
                     this.traverseDoodadsVis[doodadWmoIndex] = currVis | inFrustum;
                     //}
