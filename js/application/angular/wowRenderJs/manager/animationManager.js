@@ -165,6 +165,7 @@ export default class AnimationManager {
         if (blendAnimationIndex > -1){
             for (var i = 0; i < m2File.nBones; i++) {
                 this.bonesIsCalculated[i] = false;
+                mat4.identity( this.blendMatrixArray[i]);
             }
 
             this.calcBones(this.blendMatrixArray, blendAnimationIndex, this.nextSubAnimationTime, cameraPosInLocal);
