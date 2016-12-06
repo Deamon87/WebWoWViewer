@@ -11,9 +11,10 @@ function compileBuild {
      git checkout $1 || git checkout --orphan $1
      gulp build
 
-     mkdir dist/$2
+     [ -d dist/$2 ] || mkdir -p dist/$2
      cp -r build/ dist/$2
      rm -f dist/build/$2/*.map
+     rm -f build/**/*
 }
 
 # Pull requests and commits to other branches shouldn't try to deploy, just build to verify
