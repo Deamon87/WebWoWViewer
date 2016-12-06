@@ -13,6 +13,7 @@ function compileBuild {
 
      [ -d dist/$2 ] || mkdir -p dist/$2
      cp -r build/ dist/$2
+     cp -r index.html dist/$2
      rm -f dist/build/$2/*.map
      rm -f build/**/*
 }
