@@ -22,6 +22,7 @@
   "dependencies": {
     "decodeDXT": "Deamon87/decodeDXT",
     "zip.js": "gildas-lormeau/zip.js",
+    "text-encoding": "v0.6.2",
     "ng-scrollbar": "~0.0.8"
   }
 }
