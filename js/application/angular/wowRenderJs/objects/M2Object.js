@@ -52,7 +52,9 @@ class MDXObject {
         return this.hasBillboarded;
     }
     getIsInstancable() {
-        return true;
+        if (!this.animationManager) return false;
+
+        return !(this.animationManager.firstCalc || this.animationManager.isAnimated);
     }
     setLeftHandClosed(value) {
         this.animationManager.setLeftHandClosed(value);
