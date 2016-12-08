@@ -351,9 +351,9 @@ export default class AnimationManager {
 
         if (globalSequence >=0) {
             if (globalSequenceTimes) {
-                currTime = this.globalSequenceTimes[globalSequence];
-            } else {
                 currTime = globalSequenceTimes[globalSequence];
+            } else {
+                currTime = this.globalSequenceTimes[globalSequence];
             }
             maxTime = this.m2File.globalSequences[globalSequence];
         }
