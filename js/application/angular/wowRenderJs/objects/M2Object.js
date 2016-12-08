@@ -515,6 +515,10 @@ class MDXObject {
         }
     }
 
+    updateCameras(deltaTime) {
+        this.animationManager.updateCameraSimplified(deltaTime, this.cameras);
+
+    }
     update (deltaTime, cameraPos, viewMat) {
         if (!this.loaded) return;
         if (!this.getIsRendered()) return;

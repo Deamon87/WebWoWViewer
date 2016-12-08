@@ -1118,9 +1118,9 @@ class Scene {
         //config.setCameraM2(this.graphManager.m2Objects[0]);
         var m2Object = config.getCameraM2();
         if (m2Object && m2Object.loaded) {
-            //m2Object.animateCamera()
+            m2Object.updateCameras(deltaTime);
 
-            var cameraSettings = m2Object.cameras[0]; //1 frame delay
+            var cameraSettings = m2Object.cameras[0];
             farPlane = cameraSettings.farClip;
             nearPlane = cameraSettings.nearClip;
             fov = cameraSettings.fov * 32 * Math.PI / 180;

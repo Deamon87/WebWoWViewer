@@ -78,6 +78,82 @@ export default class AnimationManager {
         }
     }
 
+    updateCameraSimplified(deltaTime, cameraDetails) {
+        var m2File = this.m2File;
+        var mainAnimationRecord = m2File.animations[this.mainAnimationIndex];
+        var currentAnimationRecord = m2File.animations[this.currentAnimationIndex];
+
+        var currentAnimationTime = this.currentAnimationTime + deltaTime;
+        var currentAnimationIndex = this.currentAnimationIndex;
+
+        //Update global sequences
+        var globalSequenceTimes = new Array(this.globalSequenceTimes.length);
+        for (var i = 0; i < this.globalSequenceTimes.length; i++) {
+            if (m2File.globalSequences[i] > 0) { // Global sequence values can be 0's
+                globalSequenceTimes[i] = this.globalSequenceTimes[i] + deltaTime;
+                globalSequenceTimes[i] = globalSequenceTimes[i] % m2File.globalSequences[i];
+            }
+        }
+
+        /* Pick next animation if there is one and no next animation was picked before */
+        var nextSubAnimationIndex = this.nextSubAnimationIndex;
+        var nextSubAnimationTime = this.nextSubAnimationTime;
+        if (nextSubAnimationIndex < 0 && mainAnimationRecord.next_animation > -1) {
+            //if (currentAnimationPlayedTimes)
+            var probability = Math.floor(Math.random() * (0x7fff + 1));
+            var calcProb = 0;
+
+            /* First iteration is out of loop */
+            var currentSubAnimIndex = this.mainAnimationIndex;
+            var subAnimRecord = m2File.animations[currentSubAnimIndex];
+            calcProb += subAnimRecord.probability;
+            while ((calcProb < probability) && (subAnimRecord.next_animation > -1)) {
+                currentSubAnimIndex = subAnimRecord.next_animation;
+                subAnimRecord = m2File.animations[currentSubAnimIndex];
+
+                calcProb += subAnimRecord.probability;
+            }
+
+            nextSubAnimationIndex = currentSubAnimIndex;
+            nextSubAnimationTime = 0;
+        }
+
+        var currAnimLeft = currentAnimationRecord.length - this.currentAnimationTime;
+
+        /*if (this.nextSubAnimationActive) {
+         this.nextSubAnimationTime += deltaTime;
+         }
+         */
+
+        var subAnimBlendTime = 0;
+        var blendAlpha = 1.0;
+        if (nextSubAnimationIndex > -1) {
+            subAnimRecord = m2File.animations[this.nextSubAnimationIndex];
+            subAnimBlendTime = subAnimRecord.blend_time;
+        }
+
+        var blendAnimationIndex = -1;
+        if ((subAnimBlendTime > 0) && (currAnimLeft < subAnimBlendTime)) {
+            this.firstCalc = true;
+            nextSubAnimationTime = (subAnimBlendTime - currAnimLeft) % subAnimRecord.length;
+            blendAlpha = currAnimLeft / subAnimBlendTime;
+            blendAnimationIndex = this.nextSubAnimationIndex
+        }
+
+        if (currentAnimationTime >= currentAnimationRecord.length) {
+            if (nextSubAnimationIndex > -1) {
+                currentAnimationIndex = nextSubAnimationIndex;
+                currentAnimationTime = nextSubAnimationTime;
+
+                this.nextSubAnimationIndex = -1;
+                this.nextSubAnimationActive = false;
+            } else {
+                currentAnimationTime = currentAnimationTime % currentAnimationRecord.length;
+            }
+        }
+
+        this.calcCameras(cameraDetails, currentAnimationIndex, currentAnimationTime, globalSequenceTimes);
+    }
     update(deltaTime, cameraPosInLocal, bonesMatrices, textAnimMatrices, subMeshColors, transparencies, cameraDetails, lights) {
         var m2File = this.m2File;
         var mainAnimationRecord = m2File.animations[this.mainAnimationIndex];
@@ -235,7 +311,7 @@ export default class AnimationManager {
             return result;
         }
     }
-    getTimedValue (value_type, currTime, maxTime, animation, animationBlock) {
+    getTimedValue (value_type, currTime, maxTime, animation, animationBlock, globalSequenceTimes) {
         function convertUint16ToFloat(value){
             return (value * 0.000030518044) - 1.0;
         }
@@ -274,7 +350,11 @@ export default class AnimationManager {
         }
 
         if (globalSequence >=0) {
-            currTime = this.globalSequenceTimes[globalSequence];
+            if (globalSequenceTimes) {
+                currTime = this.globalSequenceTimes[globalSequence];
+            } else {
+                currTime = globalSequenceTimes[globalSequence];
+            }
             maxTime = this.m2File.globalSequences[globalSequence];
         }
 
@@ -704,7 +784,7 @@ export default class AnimationManager {
         }
     }
 
-    calcCameras(cameraDetails, animationIndex, animationTime) {
+    calcCameras(cameraDetails, animationIndex, animationTime, globalSequenceTimes) {
         var m2File = this.m2File;
         var cameras = m2File.cameras;
         if (!cameras) return;
@@ -718,7 +798,8 @@ export default class AnimationManager {
                 animationTime,
                 animationRecord.length,
                 animationIndex,
-                cameraRecord.positions);
+                cameraRecord.positions,
+                globalSequenceTimes);
 
             currentPosition[0] += cameraRecord.position_base.x;
             currentPosition[1] += cameraRecord.position_base.y;
@@ -729,7 +810,8 @@ export default class AnimationManager {
                 animationTime,
                 animationRecord.length,
                 animationIndex,
-                cameraRecord.target_position);
+                cameraRecord.target_position,
+                globalSequenceTimes);
 
             currentTarget[0] += cameraRecord.target_position_base.x;
             currentTarget[1] += cameraRecord.target_position_base.y;
