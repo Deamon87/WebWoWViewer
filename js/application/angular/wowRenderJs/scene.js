@@ -1346,6 +1346,9 @@ class Scene {
         //this.worldObjectManager.loadAllPacket();
         this.worldObjectManager.startPlayingPackets();
     }
+    loadAllPackets() {
+        this.worldObjectManager.loadAllPacket();
+    }
     copyFirstCameraToDebugCamera() {
         this.secondCamera = this.mainCamera
         this.secondCameraLookAt = this.mainCameraLookAt;

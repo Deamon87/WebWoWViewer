@@ -43,6 +43,7 @@ class WorldMDXObject extends MDXObject {
     }
 
     update (deltaTime, cameraPos, viewMat) {
+
     }
     objectUpdate (deltaTime, cameraPos) {
         if (!this.getIsRendered()) return;

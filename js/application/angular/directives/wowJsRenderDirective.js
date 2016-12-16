@@ -27,6 +27,8 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<div style="display: block"><input type="checkbox" ng-model="doubleCameraDebug">Double camera debug</div>'+
             '<div style="display: block"><input type="checkbox" ng-disabled="!doubleCameraDebug" ng-model="useSecondCamera">Control debug camera</div>'+
             '<div style="display: block;"><button ng-disabled="!doubleCameraDebug" ng-style="{color: (doubleCameraDebug) ? 0 : \'rgb(200,200,200)\'};" ng-click="copyToDebugCamera()">Copy main camera to debug camera</button></div>'+
+            '<div style="display: block;"><button ng-click="loadPacket()">Parse packets</button></div>'+
+            '<div style="display: block;"><button ng-click="loadAllPackets()">Parse all packets</button></div>'+
             '</div>'+
             '</div>',
             link: function postLink(scope, element, attrs) {
@@ -131,6 +133,9 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
 
                 scope.loadPacket = function () {
                     sceneObj.loadPackets();
+                };
+                scope.loadAllPackets = function () {
+                    sceneObj.loadAllPackets();
                 };
                 var renderfunc = function(){
                     var currentTimeStamp = new Date().getTime();

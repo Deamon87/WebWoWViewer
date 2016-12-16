@@ -374,6 +374,8 @@ class WorldUnit extends WorldObject {
             }
         }
 
+
+
         this.currentTime += deltaTime;
     }
     setMovingData(currentMovingTime, totalMovingTime, movementFlag, points) {

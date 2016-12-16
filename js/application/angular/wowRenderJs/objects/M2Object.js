@@ -57,9 +57,19 @@ class MDXObject {
         return !(this.animationManager.firstCalc || this.animationManager.isAnimated);
     }
     setLeftHandClosed(value) {
+        if (!this.animationManager) {
+            this.startLeftHandClosed = value;
+            return;
+        }
+
         this.animationManager.setLeftHandClosed(value);
     }
     setRightHandClosed(value) {
+        if (!this.animationManager) {
+            this.startRightHandClosed = value;
+            return;
+        }
+
         this.animationManager.setRightHandClosed(value);
     }
 
@@ -490,6 +500,10 @@ class MDXObject {
     }
 
     setAnimationId(animationId) {
+        if (!this.loaded) {
+            this.startAnimationId = animationId;
+            return;
+        }
         this.animationManager.setAnimationId(animationId);
     }
 
@@ -624,6 +638,19 @@ class MDXObject {
 
     initAnimationManager (m2File) {
         this.animationManager = new AnimationManager(m2File)
+        if (typeof this.startAnimationId != 'undefined') {
+            this.animationManager.setAnimationId(this.startAnimationId, true);
+            this.startAnimationId = undefined;
+        }
+
+        if (typeof this.startRightHandClosed != 'undefined') {
+            this.animationManager.setRightHandClosed(this.startRightHandClosed);
+            this.startRightHandClosed = undefined;
+        }
+        if (typeof this.startLeftHandClosed != 'undefined') {
+            this.animationManager.setRightHandClosed(this.startLeftHandClosed);
+            this.startLeftHandClosed = undefined;
+        }
     }
     initTextureAnimMatrices() {
         var m2File = this.m2Geom.m2File;
@@ -742,12 +769,15 @@ class MDXObject {
         this.drawMeshes(drawTransparent, instanceCount);
     }
 
+    startLoading() {
+        if (!this.loading) {
+            this.loading = true;
+            MDXObject.prototype.load.apply(this);
+        }
+    }
     draw(drawTransparent, placementMatrix, diffuseColor) {
         if (!this.loaded) {
-            if (!this.loading) {
-                this.loading = true;
-                MDXObject.prototype.load.apply(this);
-            }
+            this.startLoading();
             return;
         }
 

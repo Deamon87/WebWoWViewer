@@ -57,6 +57,8 @@ class GraphManager {
         var worldMdxObject = new WorldMDXObject(this.sceneApi);
         worldMdxObject.setLoadParams(modelName, 0, meshIds,replaceTextures);
         worldMdxObject.sceneNumber = this.globalM2Counter++;
+        worldMdxObject.startLoading();
+        worldMdxObject.setIsRendered(true);
         this.m2Objects.push(worldMdxObject);
         return worldMdxObject;
     }
