@@ -88,11 +88,6 @@ class WmoM2Object extends MDXObject {
 
         this.position = position;
     }
-    calcDistance (position) {
-        if (this.loaded) {
-            this.currentDistance = mathHelper.distanceFromAABBToPoint(this.aabb, position);
-        }
-    }
     setUseLocalLighting(value) {
         this.useLocalLighting = value;
     }
@@ -104,9 +99,6 @@ class WmoM2Object extends MDXObject {
     }
     setIsRendered (value) {
         this.isRendered = value;
-    }
-    getIsRendered () {
-        return this.isRendered;
     }
     load (doodad, wmoPlacementMatrix, useLocalColor){
         var self = this;

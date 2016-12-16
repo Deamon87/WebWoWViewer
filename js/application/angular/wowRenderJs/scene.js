@@ -639,7 +639,7 @@ class Scene {
                     return self.graphManager.addWorldMDXObject(modelName, meshIds,replaceTextures);
                 },
                 loadAdtChunk: function(fileName) {
-                    return self.graphManager.addADTObject(fileName)
+                    return self.graphManager.addADTObject(0,0, fileName)
                 }
             },
             resources : {
@@ -1157,6 +1157,16 @@ class Scene {
             }
         }
 
+        var adt_x = Math.floor((32 - (this.mainCamera[1] / 533.33333)));
+        var adt_y = Math.floor((32 - (this.mainCamera[0] / 533.33333)));
+
+        //TODO: HACK!!
+        for (var x = adt_x-1; x <= adt_x+1; x++) {
+            for (var y = adt_y-1; y <= adt_y+1; y++) {
+                this.addAdtChunkToCurrentMap(x, y);
+            }
+        }
+
         var lookAtMat4 = [];
 
         mat4.lookAt(lookAtMat4, this.mainCamera, this.mainCameraLookAt, [0,0,1]);
@@ -1295,18 +1305,29 @@ class Scene {
         var self = this;
         var wdtFileName = "world/maps/"+mapName+"/"+mapName+".wdt";
 
+
         wdtLoader(wdtFileName).then(function success(wdtFile){
             self.currentWdt = wdtFile;
+            self.currentMapName = mapName;
             if (wdtFile.isWMOMap) {
 
                 self.sceneApi.objects.loadAdtWmo(wdtFile.modfChunk)
             } else {
                 var adtFileName = "world/maps/"+mapName+"/"+mapName+"_"+x+"_"+y+".adt";
-                self.graphManager.addADTObject(adtFileName);
+                self.graphManager.addADTObject(x, y, adtFileName);
             }
 
         }, function error(){
         })
+    }
+    addAdtChunkToCurrentMap(x,y) {
+        if (!this.currentWdt) return;
+        if (this.currentWdt.isWMOMap) return;
+
+        if (this.currentWdt.tileTable[y][x]) {
+            var adtFileName = "world/maps/"+this.currentMapName+"/"+this.currentMapName+"_"+x+"_"+y+".adt";
+            this.graphManager.addADTObject(x, y, adtFileName);
+        }
     }
     setCameraPos (x, y, z) {
         this.mainCamera = [x,y,z];

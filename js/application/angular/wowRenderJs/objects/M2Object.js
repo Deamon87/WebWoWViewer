@@ -75,6 +75,14 @@ class MDXObject {
             this.aabb = worldAABB;
         }
     }
+    calcDistance (position) {
+        if (this.loaded && this.getIs) {
+            this.currentDistance = mathHelper.distanceFromAABBToPoint(this.aabb, position);
+        }
+    }
+    getIsRendered () {
+        return this.isRendered;
+    }
 
     setLoadParams (modelName, skinNum, meshIds, replaceTextures) {
         this.modelName = modelName;

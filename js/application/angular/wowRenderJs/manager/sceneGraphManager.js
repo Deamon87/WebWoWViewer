@@ -22,6 +22,7 @@ class GraphManager {
         this.instanceMap = {};
         this.instanceList = [];
         this.wmoObjects = [];
+
         this.adtObjects = [];
         this.m2RenderedThisFrame = []
         this.skyDom = null;
@@ -34,6 +35,12 @@ class GraphManager {
 
         this.globalM2Counter = 0;
         this.portalCullingAlgo = new PortalCullingAlgo()
+
+        this.adtObjectsMap = new Array(64);
+        for (var i = 0; i < 64; i++) {
+            var map = new Array(64);
+            this.adtObjectsMap[i] = map;
+        }
     }
 
     /*
@@ -69,9 +76,14 @@ class GraphManager {
         return wmoObject;
     }
 
-    addADTObject(fileName) {
+    addADTObject(x, y, fileName) {
+        if (this.adtObjectsMap[x][y]) return;
+
         var adtObject = new adtObjectFactory(this.sceneApi);
         adtObject.load(fileName);
+
+        this.adtObjectsMap[x][y] = adtObject;
+
         this.adtObjects.push(adtObject);
     }
     addM2ObjectToInstanceManager(m2Object, newBucket) {
@@ -155,7 +167,7 @@ class GraphManager {
         var points = mathHelper.getFrustumPoints(frustumMat, lookAtMat4);
 
         for (var i = 0; i < this.adtObjects.length; i++) {
-            this.adtObjects[0].checkFrustumCulling(this.position, frustumPlanes, 6);
+            this.adtObjects[i].checkFrustumCulling(this.position, frustumPlanes, 6);
         }
 
         /* 1. First check wmo's */
@@ -215,7 +227,7 @@ class GraphManager {
         if (this.currentTime + deltaTime - this.lastTimeDistanceCalc > 100) {
             for (var j = 0; j < this.m2Objects.length; j++) {
                 //if (this.m2Objects[j].getIsRendered()) {
-                this.m2Objects[j].calcDistance(this.position);
+                    this.m2Objects[j].calcDistance(this.position);
                 //}
             }
 

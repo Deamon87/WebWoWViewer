@@ -23,9 +23,6 @@ class WorldMDXObject extends MDXObject {
 
         this.isRendered = value;
     }
-    getIsRendered () {
-        return this.isRendered;
-    }
     getDiameter () {
         return 100;
     }

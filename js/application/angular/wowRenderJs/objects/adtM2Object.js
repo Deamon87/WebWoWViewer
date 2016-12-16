@@ -85,11 +85,6 @@ class AdtM2Object extends MDXObject {
 
         this.position = position;
     }
-    calcDistance (position) {
-        if (this.loaded) {
-            this.currentDistance = mathHelper.distanceFromAABBToPoint(this.aabb, position);
-        }
-    }
     getCurrentDistance (){
         return this.currentDistance;
     }
@@ -100,9 +95,6 @@ class AdtM2Object extends MDXObject {
        //if (value === undefined) return;
 
         this.isRendered = value;
-    }
-    getIsRendered () {
-        return this.isRendered;
     }
     load (mddf){
         var self = this;

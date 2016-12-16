@@ -32,7 +32,7 @@ export default function(wdtFilePath) {
                         tileTable[i] = tile;
                     }
 
-                    wdtObj.tileTable = tile;
+                    wdtObj.tileTable = tileTable;
                     break;
                 case "MPHD":
                     var offset = { offs : 0 };
