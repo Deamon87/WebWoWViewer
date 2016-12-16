@@ -408,56 +408,35 @@ class WmoObject {
      */
 
     update () {
-        if (this.updateWorldGroupBB) {
-            /* Update group WMO AABB when all m2 and group WMO are loaded */
-            //credits to schlumpf for idea
-            this.updateWorldGroupBBWithM2();
-            this.updateWorldGroupBB = false;
-        }
     }
 
-    needUpdateWorldGroupBB() {
-        this.updateWorldGroupBB = true;
-    }
 
     /*
      * Load functions
      */
-
-    loadGeom (num, filename){
-        var self = this;
-        return self.sceneApi.resources.loadWmoGeom(filename).then(
-            function success(wmoGeom){
-                self.wmoGroupArray[num] = wmoGeom;
-
-                /* 1. Load textures */
-                wmoGeom.loadTextures(self.wmoObj.momt);
-
-            }, function error(){
-            }
-        );
-    }
-    loadDoodads (doodadsInd){
+    getDoodadObject(index) {
         var self = this;
         if (!self.wmoObj.modd) {
             return;
         }
-        self.currentDoodadSet = self.wmoObj.mods[doodadsInd];
 
-        var doodadsSet = self.wmoObj.mods[doodadsInd];
-        var doodadDefArray = self.wmoObj.modd;
+        var doodadsSet = self.currentDoodadSet;
+        if (index < doodadsSet.index || index > doodadsSet.index+doodadsSet.number) return null;
 
-        this.doodadsArray =  new Array(doodadsSet.number);
-        for (var i = 0; i < doodadsSet.number; i++) {
-            //for (var i = 0; i < (doodadsSet.doodads.length > 10) ? 10 : doodadsSet.doodads.length; i++) {
-            var doodad = doodadDefArray[doodadsSet.index + i];
-            this.doodadsArray[i] = this.loadDoodad(i, doodad);
-        }
+        var doodadIndex = index - doodadsSet.index;
+
+        var doodadObject = this.doodadsArray[doodadIndex];
+        if (doodadObject) return doodadObject;
+
+
+        var doodadDef = self.wmoObj.modd[index];
+        doodadObject = this.loadDoodad(doodadDef);
+        this.doodadsArray[doodadIndex] = doodadObject;
     }
-    loadDoodad (index, doodad) {
+
+    loadDoodad (doodad) {
         var self = this;
 
-        //var useLocalLighting = self.checkIfUseLocalLighting(doodad.pos);
         var wmoM2Object = self.sceneApi.objects.loadWmoM2Obj(doodad, self.placementMatrix, false);
         wmoM2Object.setWmoObject(this);
         return wmoM2Object;
@@ -488,20 +467,13 @@ class WmoObject {
             /* 1. Load wmo group files */
             var template = filename.substr(0, filename.lastIndexOf("."));
             for (var i = 0; i < wmoObj.nGroups; i++) {
-                /* Fill the string with zeros, so it would have length of 3 */
-                var num = (i).toString();
-                for (;num.length != 3; ){
-                    num = '0' + num;
-                }
+                var groupInfo = wmoObj.groupInfos[i];
+                var groupFilename = template + "_" + i + ".wmo";
 
-                groupPromises[i] = self.loadGeom(i, template + "_" + num + ".wmo");
+                self.wmoGroupArray[i] = new WmoGroupObject(self.sceneApi, self, groupFilename, groupInfo);
             }
 
             /* 2. Load doodads */
-            var m2_loaded_promise = self.loadDoodads(doodadsInd);
-
-            /* 3. Create AABB for group WMO from MOGI chunk */
-            self.createWorldGroupBB();
 
             deferred.resolve(self);
         }, function error (){
@@ -513,27 +485,7 @@ class WmoObject {
     /*
      * Post load transform functions
      */
-    createWorldGroupBB () {
-        var worldGroupBorders = new Array(this.wmoGroupArray.length);
-        var volumeWorldGroupBorders = new Array(this.wmoGroupArray.length);
-        for (var i = 0; i < this.wmoGroupArray.length; i++) {
-            var groupInfo = this.wmoObj.groupInfos[i];
-            var bb1 = groupInfo.bb1,
-            bb2 = groupInfo.bb2;
 
-            var bb1vec = vec4.fromValues(bb1.x, bb1.y, bb1.z, 1);
-            var bb2vec = vec4.fromValues(bb2.x, bb2.y, bb2.z, 1);
-
-            var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [bb1vec, bb2vec]);
-
-
-            worldGroupBorders[i] = worldAABB;
-            volumeWorldGroupBorders[i] = worldAABB.slice(0);
-        }
-
-        this.worldGroupBorders = worldGroupBorders;
-        this.volumeWorldGroupBorders = volumeWorldGroupBorders;
-    }
     createPlacementMatrix (modf){
         var TILESIZE = 533.333333333;
 
@@ -894,6 +846,57 @@ class WmoObject {
 
         gl.depthMask(true);
         gl.disable(gl.BLEND);
+    }
+}
+
+class WmoGroupObject extends Leaf {
+    constructor (sceneApi, parentWmo, fileName, groupInfo) {
+        this.sceneApi = sceneApi;
+        this.fileName = filename;
+        this.parentWmo = parentWmo;
+        this.isRendered = false;
+        this.groupInfo = groupInfo;
+
+        this.createWorldGroupBB(true);
+    }
+    load(filename){
+        var self = this;
+        return self.sceneApi.resources.loadWmoGeom(filename).then(
+            function success(wmoGeom){
+                self.wmoGeom = wmoGeom;
+
+                self.createWorldGroupBB(false);
+            }, function error(){
+            }
+        );
+    }
+    loadDoodads() {
+        var self = this;
+
+        //TODO: Load all doodad from MOBR
+        this.parentWmo.getDoodadObject(index);
+    }
+
+    getIsRendered() {
+        return this.isRendered;
+    }
+    createWorldGroupBB (fromGroupInfo) {
+        var groupInfo = null;
+        if (fromGroupInfo) {
+            groupInfo = this.groupInfo;
+        } else {
+            groupInfo = this.wmoGeom.wmoGroupFile.mogp;
+        }
+        var bb1 = groupInfo.bb1,
+            bb2 = groupInfo.bb2;
+
+        var bb1vec = vec4.fromValues(bb1.x, bb1.y, bb1.z, 1);
+        var bb2vec = vec4.fromValues(bb2.x, bb2.y, bb2.z, 1);
+
+        var worldAABB = mathHelper.transformAABBWithMat4(this.parentWmo.placementMatrix, [bb1vec, bb2vec]);
+
+        this.worldGroupBorder = worldAABB;
+        this.volumeWorldGroupBorder = worldAABB.slice(0);
     }
 }
 

@@ -16,7 +16,12 @@ class AABBGraph {
 
     }
 }
-class ADTLeaf {
+
+class Leaf {
+    queryGeometry(frustum) {
+    }
+}
+class ADTLeaf extends Leaf{
     constructor(adt) {
         this.adtFile = adt;
 
@@ -27,12 +32,18 @@ class ADTLeaf {
                 this.chunks[i][j] = null;
             }
         }
-    }
 
+        this.wmoObjects = [];
+    }
     queryGeometry(frustum) {
 
     }
 }
-class WMOLeaf {
 
+
+class WMOLeaf {
+    constructor(wmoFile) {
+        this.wmoFile = wmoFile;
+
+    }
 }

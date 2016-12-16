@@ -3,7 +3,7 @@ import adtObjectFactory from './../objects/adtObject.js';
 import adtM2ObjectFactory from './../objects/adtM2Object.js';
 import wmoM2ObjectFactory from '../objects/wmoM2Object.js';
 import WorldMDXObject from '../objects/worldM2Object.js';
-import wmoObjectFactory from '../objects/wmoObject.js';
+import WmoObject from '../objects/wmoObject.js';
 
 import InstanceManager from './instanceManager.js';
 
@@ -22,6 +22,8 @@ class GraphManager {
         this.instanceMap = {};
         this.instanceList = [];
         this.wmoObjects = [];
+
+        this.uniqueIdMap = {};
 
         this.adtObjects = [];
         this.m2RenderedThisFrame = []
@@ -47,10 +49,16 @@ class GraphManager {
     * Function for adding a new geometry to scene
     * */
     addAdtM2Object(doodad) {
+        if (this.uniqueIdMap[doodad.uniqueId]) {
+            return this.uniqueIdMap[doodad.uniqueId];
+        }
+
         var adtM2 = new adtM2ObjectFactory(this.sceneApi);
         adtM2.load(doodad, false);
         adtM2.sceneNumber = this.globalM2Counter++;
+
         this.m2Objects.push(adtM2);
+        this.uniqueIdMap[doodad.uniqueId] = adtM2;
         return adtM2;
     }
     addWorldMDXObject(modelName, meshIds,replaceTextures) {
@@ -64,7 +72,7 @@ class GraphManager {
     }
     addWmoM2Object(doodadDef, placementMatrix, useLocalLighting) {
         var wmoM2Object = new wmoM2ObjectFactory(this.sceneApi);
-        var promise = wmoM2Object.load(doodadDef, placementMatrix, useLocalLighting);
+        wmoM2Object.load(doodadDef, placementMatrix, useLocalLighting);
 
         wmoM2Object.sceneNumber = this.globalM2Counter++;
         this.m2Objects.push(wmoM2Object);
@@ -72,9 +80,16 @@ class GraphManager {
         return wmoM2Object;
     }
     addWmoObject(wmoDef) {
-        var wmoObject = new wmoObjectFactory(this.sceneApi);
+        if (this.uniqueIdMap[wmoDef.uniqueId]) {
+            return this.uniqueIdMap[wmoDef.uniqueId];
+        }
+
+        var wmoObject = new WmoObject(this.sceneApi);
         wmoObject.load(wmoDef);
+
         this.wmoObjects.push(wmoObject);
+        this.uniqueIdMap[wmoDef.uniqueId] = wmoObject;
+
         return wmoObject;
     }
 
