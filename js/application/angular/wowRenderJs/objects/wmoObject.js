@@ -26,71 +26,7 @@ class WmoObject {
     hasPortals () {
         return this.wmoObj && this.wmoObj.portalInfos && (this.wmoObj.portalInfos.length > 0);
     }
-    updateWorldGroupBBWithM2 () {
-        var doodadsSet = this.currentDoodadSet;
-        if (!doodadsSet) return;
 
-        //After this opertaions these BB should not be used for detecting if object is inside the group wmo or not
-        //Those should be used only to detect if group wmo is visible or not
-        for (var i = 0; i < this.wmoGroupArray.length; i++) {
-            if (this.wmoGroupArray[i]) {
-                var doodadRefs = this.wmoGroupArray[i].wmoGroupFile.doodadRefs;
-                var groupAABB = this.worldGroupBorders[i];
-
-                if (doodadRefs) {
-                    for (var j = 0; j < doodadRefs.length; j++) {
-                        var doodadIndex = doodadRefs[j];
-                        if (
-                            (doodadIndex - doodadsSet.index < 0) ||
-                            (doodadIndex > doodadsSet.index + doodadsSet.number - 1)
-                        ) continue;
-
-                        var mdxObject = this.doodadsArray[doodadIndex - doodadsSet.index];
-                        //1. Update the mdx
-                        //If at least one exterior WMO group reference the doodad - do not use the diffuse lightning from modd chunk
-                        if (((this.wmoObj.groupInfos[i].flags & 0x40) > 0) || ((this.wmoObj.groupInfos[i].flags & 0x8) > 0)) {
-                            mdxObject.setUseLocalLighting(false);
-                        }
-
-                        if (!mdxObject.aabb) continue; //corrupted :(
-                        //2. Update the world group BB
-                        groupAABB[0] = vec3.fromValues(Math.min(mdxObject.aabb[0][0],groupAABB[0][0]),
-                            Math.min(mdxObject.aabb[0][1],groupAABB[0][1]),
-                            Math.min(mdxObject.aabb[0][2],groupAABB[0][2]));
-
-                        groupAABB[1] = vec3.fromValues(Math.max(mdxObject.aabb[1][0],groupAABB[1][0]),
-                            Math.max(mdxObject.aabb[1][1],groupAABB[1][1]),
-                            Math.max(mdxObject.aabb[1][2],groupAABB[1][2]));
-                    }
-                }
-            }
-        }
-    }
-
-    setDoodadGroupDrawing (index, doDraw) {
-        var groupInfo = this.wmoObj.groupInfos[index];
-        var doodadsSet = this.currentDoodadSet;
-
-        if (doodadsSet && this.wmoGroupArray[index]) {
-            var doodadRefs = this.wmoGroupArray[index].wmoGroupFile.doodadRefs;
-
-            if (doodadRefs) {
-                for (var i = 0; i < doodadRefs.length; i++) {
-                    var doodadIndex = doodadRefs[i];
-                    if (
-                        (doodadIndex - doodadsSet.index < 0) ||
-                        (doodadIndex > doodadsSet.index + doodadsSet.number - 1)
-                    ) continue;
-
-                    var mdxObject = this.doodadsArray[doodadIndex - doodadsSet.index];
-                    //mdxObject.setIsRendered(mdxObject.getIsRendered() || doDraw);
-                    if (mdxObject){
-                        mdxObject.setIsRendered(doDraw);
-                    }
-                }
-            }
-        }
-    }
 
     queryBspTree(bbox, nodeId, nodes, bspLeafIdList) {
         if (nodeId == -1) return;
@@ -340,67 +276,20 @@ class WmoObject {
 
         return {groupId : -1, nodeId : -1};
     }
-    resetDrawnForAllGroups (value) {
-        for (var i = 0; i < this.wmoGroupArray.length; i++) {
-            //Change state only if it's from false to true. According to rule from part 1
-            var groupInfo = this.wmoObj.groupInfos[i];
 
-            //1. Check if group wmo is interior wmo
-            if ((groupInfo.flags & 0x2000) != 0 && value) {
-                this.drawGroup[i] = true; // Interior WMO should be drawn only under "portal rule"
-            } else {
-                this.drawGroup[i] = value;
-            }
-        }
-    }
-    setIsRenderedForDoodads () {
-        for (var i = 0; i < this.wmoGroupArray.length; i++) {
-            //Change state only if it's from false to true. According to rule from part 1
-            if (this.drawDoodads[i]) {
-                this.setDoodadGroupDrawing(i, this.drawDoodads[i]);
-            }
-        }
-    }
-
-    checkGroupFrustum(cameraVec4, groupId, frustumPlanes, points) {
-        var bbArray = this.worldGroupBorders[groupId];
-
-        var isInside = (
-            cameraVec4[0] > bbArray[0][0] && cameraVec4[0] < bbArray[1][0] &&
-            cameraVec4[1] > bbArray[0][1] && cameraVec4[1] < bbArray[1][1] &&
-            cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
-        );
-
-        var drawDoodads = isInside || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length, points);
-
-        var bbArray = this.volumeWorldGroupBorders[groupId];
-        var isInside = (
-            cameraVec4[0] > bbArray[0][0] && cameraVec4[0] < bbArray[1][0] &&
-            cameraVec4[1] > bbArray[0][1] && cameraVec4[1] < bbArray[1][1] &&
-            cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
-        );
-
-        var drawGroup = isInside || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length, points);
-        return [drawDoodads, drawGroup];
-    }
     checkFrustumCulling (cameraVec4, perspectiveMat, lookat, frustumPlanes) {
-        if (!this.volumeWorldGroupBorders) return;
-            //1. Set Doodads drawing to false. Doodad should be rendered if at least one WMO Group it belongs is visible(rendered)
-            //It's so, because two group wmo can reference same doodad
-            for ( var i = 0; i < this.doodadsArray.length; i++) {
-                if (this.doodadsArray[i]) {
-                    this.doodadsArray[i].setIsRendered(false);
-                }
+        //1. Set Doodads drawing to false. Doodad should be rendered if at least one WMO Group it belongs is visible(rendered)
+        //It's so, because two group wmo can reference same doodad
+        for ( var i = 0; i < this.doodadsArray.length; i++) {
+            if (this.doodadsArray[i]) {
+                this.doodadsArray[i].setIsRendered(false);
             }
+        }
 
-            //2. Calculate visibility
-            for (var i = 0; i < this.wmoGroupArray.length; i++) {
-                if (!this.drawGroup[i]) continue;
-                var result = this.checkGroupFrustum(cameraVec4, i, frustumPlanes);
-
-                this.drawGroup[i] = result[1];
-                this.drawDoodads[i] = result[0];
-            }
+        //2. Calculate visibility
+        for (var i = 0; i < this.wmoGroupArray.length; i++) {
+            var result = this.checkGroupFrustum(cameraVec4, i, frustumPlanes);
+        }
     }
 
     /*
@@ -540,9 +429,6 @@ class WmoObject {
         gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indiciesArray), gl.STATIC_DRAW);
         gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null);
     }
-    createGroupDoodadsArrays() {
-
-    }
     createWorldPortalVerticies () {
         //
         var portalVerticles = this.wmoObj.portalVerticles;
@@ -600,20 +486,18 @@ class WmoObject {
         ambientColor[0] /= 255.0; ambientColor[1] /= 255.0;
         ambientColor[2] /= 255.0; ambientColor[3] /= 255.0;
 
-        //for (var i = 70; i < 90; i++){
-        //if ((this.wmoGroupArray.length) < 5) return;
 
         for (var i = 0; i < this.wmoGroupArray.length; i++){
             //if (i != 0) continue;
             if (this.wmoGroupArray[i]){
-                if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
 
+                /*
                 var bpsNodeList = null;
                 if (config.getRenderBSP()) {
                     bpsNodeList = (this.currentGroupId == i) ?
                         this.currentNodeId.map((x) => this.wmoGroupArray[i].wmoGroupFile.nodes[x])
                         : null;
-                }
+                }*/
                 this.wmoGroupArray[i].draw(ambientColor, bpsNodeList);
             }
         }
@@ -786,33 +670,6 @@ class WmoObject {
         }
         gl.enable(gl.DEPTH_TEST);
     }
-    drawGroupM2Objects(groupId, isDrawnM2) {
-        var groupInfo = this.wmoObj.groupInfos[groupId];
-        var doodadsSet = this.currentDoodadSet;
-
-        if (doodadsSet && this.wmoGroupArray[index]) {
-            var doodadRefs = this.wmoGroupArray[index].wmoGroupFile.doodadRefs;
-
-            if (doodadRefs) {
-                for (var i = 0; i < doodadRefs.length; i++) {
-                    var doodadIndex = doodadRefs[i];
-
-                    if (isDrawnM2[doodadIndex]) continue;
-                    if (
-                        (doodadIndex - doodadsSet.index < 0) ||
-                        (doodadIndex > doodadsSet.index + doodadsSet.number - 1)
-                    ) continue;
-
-                    var mdxObject = this.doodadsArray[doodadIndex - doodadsSet.index];
-                    //mdxObject.setIsRendered(mdxObject.getIsRendered() || doDraw);
-                    if (mdxObject && mdxObject.getIsRendered()){
-                        mdxObject.draw();
-                        isDrawnM2[doodadIndex] = true;
-                    }
-                }
-            }
-        }
-    }
     drawBspVerticles () {
         if (!this.wmoObj) return;
 
@@ -849,13 +706,17 @@ class WmoObject {
     }
 }
 
-class WmoGroupObject extends Leaf {
+class WmoGroupObject {
     constructor (sceneApi, parentWmo, fileName, groupInfo) {
+
+
         this.sceneApi = sceneApi;
         this.fileName = filename;
         this.parentWmo = parentWmo;
         this.isRendered = false;
         this.groupInfo = groupInfo;
+
+        this.doodadsLoadingTriggered = false;
 
         this.createWorldGroupBB(true);
     }
@@ -873,8 +734,20 @@ class WmoGroupObject extends Leaf {
     loadDoodads() {
         var self = this;
 
-        //TODO: Load all doodad from MOBR
-        this.parentWmo.getDoodadObject(index);
+        var doodadRefs = this.wmoGeom.wmoGroupFile.doodadRefs;
+        var wmoDoodads = new Array(doodadRefs.length);
+
+        //Load all doodad from MOBR
+        for (var i = 0; i < wmoDoodads.lenght; i++) {
+            wmoDoodads[i] = this.parentWmo.getDoodadObject(doodadRefs[i]);
+        }
+        this.wmoDoodads = wmoDoodads;
+    }
+    draw() {
+        if (!this.doodadsLoadingTriggered) {
+            this.loadDoodads();
+            this.doodadsLoadingTriggered = true;
+        }
     }
 
     getIsRendered() {
@@ -897,6 +770,59 @@ class WmoGroupObject extends Leaf {
 
         this.worldGroupBorder = worldAABB;
         this.volumeWorldGroupBorder = worldAABB.slice(0);
+    }
+    updateWorldGroupBBWithM2 () {
+        var doodadRefs = this.wmoGeom.wmoGroupFile.doodadRefs;
+        var mogp = this.wmoGeom.wmoGroupFile.mogp;
+        var groupAABB = this.worldGroupBorder;
+
+        var dontUseLocalLighting = ((mogp.flags & 0x40) > 0) || ((mogp.flags & 0x8) > 0);
+
+        for (var j = 0; j < this.wmoDoodads.length; j++) {
+            var mdxObject = this.wmoDoodads[j];
+            //1. Update the mdx
+            //If at least one exterior WMO group reference the doodad - do not use the diffuse lightning from modd chunk
+            if (dontUseLocalLighting) {
+                mdxObject.setUseLocalLighting(false);
+            }
+
+            if (!mdxObject.loaded) continue; //corrupted :(
+
+            //2. Update the world group BB
+            groupAABB[0] = vec3.fromValues(Math.min(mdxObject.aabb[0][0],groupAABB[0][0]),
+                Math.min(mdxObject.aabb[0][1],groupAABB[0][1]),
+                Math.min(mdxObject.aabb[0][2],groupAABB[0][2]));
+
+            groupAABB[1] = vec3.fromValues(Math.max(mdxObject.aabb[1][0],groupAABB[1][0]),
+                Math.max(mdxObject.aabb[1][1],groupAABB[1][1]),
+                Math.max(mdxObject.aabb[1][2],groupAABB[1][2]));
+        }
+    }
+    checkGroupFrustum(cameraVec4, frustumPlanes, points) {
+        var bbArray = this.worldGroupBorder;
+
+        var isInsideM2Volume = (
+            cameraVec4[0] > bbArray[0][0] && cameraVec4[0] < bbArray[1][0] &&
+            cameraVec4[1] > bbArray[0][1] && cameraVec4[1] < bbArray[1][1] &&
+            cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
+        );
+
+        var drawDoodads = isInsideM2Volume || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length, points);
+
+
+
+        var bbArray = this.volumeWorldGroupBorder;
+        var isInsideGroup = (
+            cameraVec4[0] > bbArray[0][0] && cameraVec4[0] < bbArray[1][0] &&
+            cameraVec4[1] > bbArray[0][1] && cameraVec4[1] < bbArray[1][1] &&
+            cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
+        );
+
+        var drawGroup = isInsideGroup || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length, points);
+
+        this.isRendered = drawGroup;
+
+
     }
 }
 

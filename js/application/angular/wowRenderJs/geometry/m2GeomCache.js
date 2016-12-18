@@ -221,6 +221,7 @@ class M2Geom {
                         gl.disable(gl.BLEND);
                         //gl.uniform1f(uniforms.uAlphaTest, 2.9);
                         gl.uniform1f(uniforms.uAlphaTest, 0.903921569);
+                        //gl.uniform1f(uniforms.uAlphaTest, meshColor[4]*transparency*(252/255));
                         break;
                     case 2 : //Blend_Alpha
                         gl.uniform1f(uniforms.uAlphaTest, -1);

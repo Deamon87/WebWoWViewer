@@ -197,9 +197,7 @@ class GraphManager {
                 this.portalCullingAlgo.checkAllDoodads(this.wmoObjects[i], this.position);
                 //this.wmoObjects[i].setIsRenderedForDoodads();
             } else {
-                this.wmoObjects[i].resetDrawnForAllGroups(true);
                 this.wmoObjects[i].checkFrustumCulling(this.position, frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
-                this.wmoObjects[i].setIsRenderedForDoodads();
             }
         }
 

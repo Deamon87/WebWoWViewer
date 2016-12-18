@@ -582,42 +582,43 @@ class MDXObject {
         var zeroVect = vec3.create();
 
         /* 3.1 Transform aabb with current mat */
-        var transformedAABB = new Array(skinGeom.subMeshBBs.length);
-        for (var i = 0 ; i < transformedAABB.length; i++) {
-            var aabb = skinGeom.subMeshBBs[i];
-            transformedAABB[i] = mathHelper.transformAABBWithMat4(modelViewMat, aabb);
-        }
-
-        QuickSort.multiQuickSort(
-            this.materialArray,
-            0, this.materialArray.length-1,
-            function sortOnLevel (a, b) {
-                return a.layer - b.layer;
-            },
-            function test1 (a, b) {
-                var aabb1_t = transformedAABB[a.meshIndex];
-                var aabb2_t = transformedAABB[b.meshIndex];
-
-                var isInsideAABB1 = mathHelper.isPointInsideAABB(aabb1_t,zeroVect);
-                var isInsideAABB2 = mathHelper.isPointInsideAABB(aabb2_t,zeroVect);
-
-                if (!isInsideAABB1 && isInsideAABB2) {
-                    return 1
-                } else if (isInsideAABB1 && !isInsideAABB2) {
-                    return -1
-                }
-
-                var result;
-                if (isInsideAABB1 && isInsideAABB1) {
-                    result = aabb1_t[0][2] - aabb2_t[0][2];
-                } else if (!(isInsideAABB1 && isInsideAABB1)) {
-                    result = aabb2_t[0][2] - aabb1_t[0][2];
-                }
-
-
-                return result;
+        if (skinGeom.subMeshBBs) {
+            var transformedAABB = new Array(skinGeom.subMeshBBs.length);
+            for (var i = 0; i < transformedAABB.length; i++) {
+                var aabb = skinGeom.subMeshBBs[i];
+                transformedAABB[i] = mathHelper.transformAABBWithMat4(modelViewMat, aabb);
             }
-        );
+
+            QuickSort.multiQuickSort(
+                this.materialArray,
+                0, this.materialArray.length - 1,
+                function sortOnLevel(a, b) {
+                    return a.layer - b.layer;
+                },
+                function test1(a, b) {
+                    var aabb1_t = transformedAABB[a.meshIndex];
+                    var aabb2_t = transformedAABB[b.meshIndex];
+
+                    var isInsideAABB1 = mathHelper.isPointInsideAABB(aabb1_t, zeroVect);
+                    var isInsideAABB2 = mathHelper.isPointInsideAABB(aabb2_t, zeroVect);
+
+                    if (!isInsideAABB1 && isInsideAABB2) {
+                        return 1
+                    } else if (isInsideAABB1 && !isInsideAABB2) {
+                        return -1
+                    }
+
+                    var result;
+                    if (isInsideAABB1 && isInsideAABB1) {
+                        result = aabb1_t[0][2] - aabb2_t[0][2];
+                    } else if (!(isInsideAABB1 && isInsideAABB1)) {
+                        result = aabb2_t[0][2] - aabb1_t[0][2];
+                    }
+
+                    return result;
+                }
+            );
+        }
     }
 
     /*
