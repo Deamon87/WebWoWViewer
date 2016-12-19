@@ -17,8 +17,9 @@ class WmoObject {
         self.drawExterior = false;
         self.exteriorPortals = [];
 
+        self.loaded = false;
+        self.loading = false;
 
-        self.groupDoodads = [];
     }
     getFileNameIdent () {
         return this.fileName;
@@ -28,133 +29,20 @@ class WmoObject {
     }
 
 
-    queryBspTree(bbox, nodeId, nodes, bspLeafIdList) {
-        if (nodeId == -1) return;
+    setIsVisited (value) {
+        this.isVisited = value;
 
-        if ((nodes[nodeId].planeType&0x4)){
-            bspLeafIdList.push(nodeId);
-        } else if ((nodes[nodeId].planeType == 0)) {
-            var leftSide = mathHelper.checkFrustum([[-1, 0, 0, nodes[nodeId].fDist]], bbox, 1);
-            var rightSide = mathHelper.checkFrustum([[1, 0, 0, -nodes[nodeId].fDist]], bbox, 1);
+        if (!this.loaded) return;
 
-            if (leftSide) {
-                this.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)
-            }
-            if (rightSide) {
-                this.queryBspTree(bbox, nodes[nodeId].children2, nodes, bspLeafIdList)
-            }
-        } else if ((nodes[nodeId].planeType == 1)) {
-            var leftSide = mathHelper.checkFrustum([[0, -1, 0, nodes[nodeId].fDist]], bbox, 1);
-            var rightSide = mathHelper.checkFrustum([[0, 1, 0, -nodes[nodeId].fDist]], bbox, 1);
-
-            if (leftSide) {
-                this.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)
-            }
-            if (rightSide) {
-                this.queryBspTree(bbox, nodes[nodeId].children2, nodes, bspLeafIdList)
-            }
-        } else if ((nodes[nodeId].planeType == 2)) {
-            var leftSide = mathHelper.checkFrustum([[0, 0, -1, nodes[nodeId].fDist]], bbox, 1);
-            var rightSide = mathHelper.checkFrustum([[0, 0, 1, -nodes[nodeId].fDist]], bbox, 1);
-
-            if (leftSide) {
-                this.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)
-            }
-            if (rightSide) {
-                this.queryBspTree(bbox, nodes[nodeId].children2, nodes, bspLeafIdList)
+        for (var i = 0; i < this.wmoGroupArray.length; i++){
+            this.wmoGroupArray.setIsVisited(value);
+        }
+        for (var i = 0; i < this.doodadsArray.length; i++){
+            if (this.doodadsArray[i]) {
+                this.doodadsArray[i].setIsVisited();
             }
         }
-    }
-    getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, bspLeafList) {
-        var result = 0;
-        var nodes = groupFile.nodes;
-        var topZ = -999999;
-        var bottomZ = 999999;
-        var minPositiveDistanceToCamera = 99999;
-        for (var i = 0; i < bspLeafList.length; i++) {
-            var node = nodes[bspLeafList[i]];
 
-            for (var j = node.firstFace; j < node.firstFace+node.numFaces; j++) {
-                var vertexInd1 = groupFile.indicies[3*groupFile.mobr[j] + 0];
-                var vertexInd2 = groupFile.indicies[3*groupFile.mobr[j] + 1];
-                var vertexInd3 = groupFile.indicies[3*groupFile.mobr[j] + 2];
-
-                var vert1 = vec3.fromValues(
-                    groupFile.verticles[3*vertexInd1 + 0],
-                    groupFile.verticles[3*vertexInd1 + 1],
-                    groupFile.verticles[3*vertexInd1 + 2]);
-
-                var vert2 = vec3.fromValues(
-                    groupFile.verticles[3*vertexInd2 + 0],
-                    groupFile.verticles[3*vertexInd2 + 1],
-                    groupFile.verticles[3*vertexInd2 + 2]);
-
-                var vert3 = vec3.fromValues(
-                    groupFile.verticles[3*vertexInd3 + 0],
-                    groupFile.verticles[3*vertexInd3 + 1],
-                    groupFile.verticles[3*vertexInd3 + 2]);
-
-                //1. Get if camera position inside vertex
-
-                var minX = Math.min(vert1[0], vert2[0], vert3[0]);
-                var minY = Math.min(vert1[1], vert2[1], vert3[1]);
-                var minZ = Math.min(vert1[2], vert2[2], vert3[2]);
-
-                var maxX = Math.max(vert1[0], vert2[0], vert3[0]);
-                var maxY = Math.max(vert1[1], vert2[1], vert3[1]);
-                var maxZ = Math.max(vert1[2], vert2[2], vert3[2]);
-
-                var testPassed = (
-                    (cameraLocal[0] > minX && cameraLocal[0] < maxX) &&
-                    (cameraLocal[1] > minY && cameraLocal[1] < maxY)
-                );
-                if (!testPassed) continue;
-
-                var z = mathHelper.calcZ(vert1,vert2,vert3,cameraLocal[0],cameraLocal[1]);
-
-                //2. Get if vertex top or bottom
-                var normal1 = vec3.fromValues(
-                    groupFile.normals[3*vertexInd1 + 0],
-                    groupFile.normals[3*vertexInd1 + 1],
-                    groupFile.normals[3*vertexInd1 + 2]
-                );
-                var normal2 = vec3.fromValues(
-                    groupFile.normals[3*vertexInd2 + 0],
-                    groupFile.normals[3*vertexInd2 + 1],
-                    groupFile.normals[3*vertexInd2 + 2]
-                );
-                var normal3 = vec3.fromValues(
-                    groupFile.normals[3*vertexInd3 + 0],
-                    groupFile.normals[3*vertexInd3 + 1],
-                    groupFile.normals[3*vertexInd3 + 2]
-                );
-
-                var bary = mathHelper.getBarycentric(
-                    vec3.fromValues(cameraLocal[0], cameraLocal[1], z),
-                    vert1,
-                    vert2,
-                    vert3
-                );
-
-                /*if (testPassed && cameraLocal[2] < vert1[2] || cameraLocal[2] < vert2[2] || cameraLocal[2] < vert3[2]){
-                    debugger;
-                } */
-                if ((bary[0] < 0) || (bary[1] < 0) || (bary[2] < 0)) continue;
-
-                var normal_avg = bary[0]*normal1[2]+bary[1]*normal2[2]+bary[2]*normal3[2];
-                if (normal_avg > 0) {
-                    //Bottom
-                    var distanceToCamera = cameraLocal[2] - z;
-                    if ((distanceToCamera > 0) && (distanceToCamera < minPositiveDistanceToCamera))
-                        bottomZ = z;
-                } else {
-                    //Top
-                    topZ = Math.max(z, topZ);
-                }
-            }
-
-        }
-        return {'topZ' : topZ, 'bottomZ' : bottomZ};
     }
     isInsideInterior (cameraVec4) {
         if (!this.wmoGroupArray || this.wmoGroupArray.length ==0) return -1;
@@ -178,74 +66,9 @@ class WmoObject {
         var candidateGroups = [];
 
         for (var i = 0; i < this.wmoGroupArray.length; i++) {
-            if (!this.wmoGroupArray[i]) continue;
-            var bbArray = this.volumeWorldGroupBorders[i];
+            if (!this.wmoGroupArray[i].loaded) continue;
 
-            var groupInfo = this.wmoObj.groupInfos[i];
-
-            //1. Check if group wmo is interior wmo
-            if ((groupInfo.flags & 0x2000) == 0) continue;
-            interiorGroups++;
-
-            //2. Check if inside volume AABB
-            var isInsideAABB = (
-                cameraVec4[0] > bbArray[0][0] && cameraVec4[0] < bbArray[1][0] &&
-                cameraVec4[1] > bbArray[0][1] && cameraVec4[1] < bbArray[1][1] &&
-                cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
-            );
-            if (!isInsideAABB) continue;
-            wmoGroupsInside++;
-            lastWmoGroupInside = i;
-
-            //3. Query bsp tree for leafs around the position of object(camera)
-
-            var epsilon = 0.4;
-            var cameraBBMin = vec3.fromValues(cameraLocal[0]-epsilon, cameraLocal[1]-epsilon, groupInfo.bb1.z-epsilon);
-            var cameraBBMax = vec3.fromValues(cameraLocal[0]+epsilon, cameraLocal[1]+epsilon, groupInfo.bb2.z+epsilon);
-
-            var nodeId = 0;
-            var nodes = this.wmoGroupArray[i].wmoGroupFile.nodes;
-            var bspLeafList = [];
-            this.queryBspTree([cameraBBMin, cameraBBMax], nodeId, nodes, bspLeafList);
-            var topBottom = this.getTopAndBottomTriangleFromBsp(cameraLocal, this.wmoGroupArray[i].wmoGroupFile, bspLeafList);
-
-            //4. Check min\max Z value. If object(camera) pos is not in range - the object do not belong this wmo group
-            if (topBottom.bottomZ > 99999 && topBottom.topZ < -99999) continue;
-            if (topBottom.bottomZ < 99999 && cameraLocal[2] < topBottom.bottomZ) continue;
-            if (topBottom.bottomZ > topBottom.topZ){
-                if (cameraLocal[2] > topBottom.bottomZ) {
-                    topBottom.topZ = -99999;
-                } else {
-                    topBottom.bottomZ = 99999;
-                }
-            }
-            if (topBottom.topZ > -99999 && cameraLocal[2] > topBottom.topZ) continue;
-
-
-            //5. The object(camera) is inside WMO group. Get the actual nodeId
-            while (nodeId >=0 && ((nodes[nodeId].planeType&0x4) == 0)){
-                var prevNodeId = nodeId;
-                if ((nodes[nodeId].planeType == 0)) {
-                    if (cameraLocal[0] < nodes[nodeId].fDist) {
-                        nodeId = nodes[nodeId].children1;
-                    } else {
-                        nodeId = nodes[nodeId].children2;
-                    }
-                } else if ((nodes[nodeId].planeType == 1)) {
-                    if (cameraLocal[1] < nodes[nodeId].fDist) {
-                        nodeId = nodes[nodeId].children1;
-                    } else {
-                        nodeId = nodes[nodeId].children2;
-                    }
-                } else if ((nodes[nodeId].planeType == 2)) {
-                    if (cameraLocal[2] < nodes[nodeId].fDist) {
-                        nodeId = nodes[nodeId].children1;
-                    } else {
-                        nodeId = nodes[nodeId].children2;
-                    }
-                }
-                candidateGroups.push({'topBottom' : topBottom, groupId : i, bspList : bspLeafList, nodeId: nodeId});
-            }
+            this.wmoGroupArray[i].checkIfInsideGroup(cameraVec4, cameraLocal, candidateGroups)
 
             /* Test: iterate through portals in 5 value radius and check if it fits there */
 
@@ -276,15 +99,17 @@ class WmoObject {
 
         return {groupId : -1, nodeId : -1};
     }
-
     checkFrustumCulling (cameraVec4, perspectiveMat, lookat, frustumPlanes) {
+        this.isRendered = false;
+
+        /*
         //1. Set Doodads drawing to false. Doodad should be rendered if at least one WMO Group it belongs is visible(rendered)
         //It's so, because two group wmo can reference same doodad
         for ( var i = 0; i < this.doodadsArray.length; i++) {
             if (this.doodadsArray[i]) {
                 this.doodadsArray[i].setIsRendered(false);
             }
-        }
+        } */
 
         //2. Calculate visibility
         for (var i = 0; i < this.wmoGroupArray.length; i++) {
@@ -330,7 +155,7 @@ class WmoObject {
         wmoM2Object.setWmoObject(this);
         return wmoM2Object;
     }
-    load (modf){
+    setLoadingParam (modf){
         var deferred = $q.defer();
         var self = this;
 
@@ -341,18 +166,28 @@ class WmoObject {
 
         /* 1. Create matrix */
         self.createPlacementMatrix(modf);
-
+        if (modf.bb1) {
+            //Loaded from actual map
+            self.boundingBox = [
+                [modf.bb1.x, modf.bb1.y, modf.bb1.z],
+                [modf.bb2.x, modf.bb2.y, modf.bb2.z]
+            ];
+        } else {
+            //Loaded from scene params
+            this.startLoading();
+        }
+    }
+    loadMainFile() {
+        var self = this;
+        var filename = this.fileName;
         var wmoMailPromise = self.sceneApi.resources.loadWmoMain(filename);
         wmoMailPromise.then(function success(wmoObj){
             self.wmoObj = wmoObj;
             self.wmoGroupArray = new Array(wmoObj.nGroups);
 
-            self.groupDoodads = new Array(wmoObj.nGroups);
-
             self.createPortalsVBO();
             self.createWorldPortalVerticies();
 
-            var groupPromises = new Array(wmoObj.nGroups);
             /* 1. Load wmo group files */
             var template = filename.substr(0, filename.lastIndexOf("."));
             for (var i = 0; i < wmoObj.nGroups; i++) {
@@ -362,13 +197,16 @@ class WmoObject {
                 self.wmoGroupArray[i] = new WmoGroupObject(self.sceneApi, self, groupFilename, groupInfo);
             }
 
-            /* 2. Load doodads */
-
-            deferred.resolve(self);
+            self.loaded = true;
+            self.loading = false;
         }, function error (){
         });
-
-        return deferred.promise;
+    }
+    startLoading() {
+        if (!this.loading) {
+            this.loading = true;
+            this.loadMainFile();
+        }
     }
 
     /*
@@ -469,7 +307,12 @@ class WmoObject {
     /*
      *      Draw functions
      */
+
     draw () {
+        if (!this.loaded) {
+            this.startLoading();
+            return;
+        }
         /* Draw */
         var gl = this.sceneApi.getGlContext();
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
@@ -491,8 +334,9 @@ class WmoObject {
             //if (i != 0) continue;
             if (this.wmoGroupArray[i]){
 
-                /*
+
                 var bpsNodeList = null;
+                /*
                 if (config.getRenderBSP()) {
                     bpsNodeList = (this.currentGroupId == i) ?
                         this.currentNodeId.map((x) => this.wmoGroupArray[i].wmoGroupFile.nodes[x])
@@ -711,7 +555,7 @@ class WmoGroupObject {
 
 
         this.sceneApi = sceneApi;
-        this.fileName = filename;
+        this.fileName = fileName;
         this.parentWmo = parentWmo;
         this.isRendered = false;
         this.groupInfo = groupInfo;
@@ -720,13 +564,15 @@ class WmoGroupObject {
 
         this.createWorldGroupBB(true);
     }
-    load(filename){
+    load(){
+        var filename = this.fileName;
         var self = this;
         return self.sceneApi.resources.loadWmoGeom(filename).then(
             function success(wmoGeom){
                 self.wmoGeom = wmoGeom;
 
                 self.createWorldGroupBB(false);
+                self.loaded = true;
             }, function error(){
             }
         );
@@ -738,16 +584,28 @@ class WmoGroupObject {
         var wmoDoodads = new Array(doodadRefs.length);
 
         //Load all doodad from MOBR
-        for (var i = 0; i < wmoDoodads.lenght; i++) {
+        for (var i = 0; i < wmoDoodads.length; i++) {
             wmoDoodads[i] = this.parentWmo.getDoodadObject(doodadRefs[i]);
         }
         this.wmoDoodads = wmoDoodads;
     }
-    draw() {
+    startLoading() {
+        if (!this.loading) {
+            this.loading = true;
+            this.load();
+        }
+    }
+    draw(ambientColor, bpsNodeList) {
+        if (!this.loaded) {
+            this.startLoading();
+            return;
+        }
         if (!this.doodadsLoadingTriggered) {
             this.loadDoodads();
             this.doodadsLoadingTriggered = true;
         }
+
+        this.wmoGeom.draw()
     }
 
     getIsRendered() {
@@ -823,6 +681,77 @@ class WmoGroupObject {
         this.isRendered = drawGroup;
 
 
+    }
+
+    checkIfInsideGroup(cameraVec4, cameraLocal, candidateGroups) {
+        var bbArray = this.volumeWorldGroupBorder;
+        var groupFile = this.wmoGeom.wmoGroupFile;
+
+        var groupInfo = this.groupInfo;
+
+        //1. Check if group wmo is interior wmo
+        if ((groupInfo.flags & 0x2000) == 0) return null;
+        //interiorGroups++;
+
+        //2. Check if inside volume AABB
+        var isInsideAABB = (
+            cameraVec4[0] > bbArray[0][0] && cameraVec4[0] < bbArray[1][0] &&
+            cameraVec4[1] > bbArray[0][1] && cameraVec4[1] < bbArray[1][1] &&
+            cameraVec4[2] > bbArray[0][2] && cameraVec4[2] < bbArray[1][2]
+        );
+        if (!isInsideAABB) return null;
+        //wmoGroupsInside++;
+        //lastWmoGroupInside = i;
+
+        //3. Query bsp tree for leafs around the position of object(camera)
+
+        var epsilon = 0.4;
+        var cameraBBMin = vec3.fromValues(cameraLocal[0]-epsilon, cameraLocal[1]-epsilon, groupInfo.bb1.z-epsilon);
+        var cameraBBMax = vec3.fromValues(cameraLocal[0]+epsilon, cameraLocal[1]+epsilon, groupInfo.bb2.z+epsilon);
+
+        var nodeId = 0;
+        var nodes = groupFile.nodes;
+        var bspLeafList = [];
+        mathHelper.queryBspTree([cameraBBMin, cameraBBMax], nodeId, nodes, bspLeafList);
+        var topBottom = mathHelper.getTopAndBottomTriangleFromBsp(cameraLocal, groupFile.wmoGroupFile, bspLeafList);
+
+        //4. Check min\max Z value. If object(camera) pos is not in range - the object do not belong this wmo group
+        if (topBottom.bottomZ > 99999 && topBottom.topZ < -99999) return null;
+        if (topBottom.bottomZ < 99999 && cameraLocal[2] < topBottom.bottomZ) return null
+        if (topBottom.bottomZ > topBottom.topZ){
+            if (cameraLocal[2] > topBottom.bottomZ) {
+                topBottom.topZ = -99999;
+            } else {
+                topBottom.bottomZ = 99999;
+            }
+        }
+        if (topBottom.topZ > -99999 && cameraLocal[2] > topBottom.topZ) return null;
+
+
+        //5. The object(camera) is inside WMO group. Get the actual nodeId
+        while (nodeId >=0 && ((nodes[nodeId].planeType&0x4) == 0)){
+            var prevNodeId = nodeId;
+            if ((nodes[nodeId].planeType == 0)) {
+                if (cameraLocal[0] < nodes[nodeId].fDist) {
+                    nodeId = nodes[nodeId].children1;
+                } else {
+                    nodeId = nodes[nodeId].children2;
+                }
+            } else if ((nodes[nodeId].planeType == 1)) {
+                if (cameraLocal[1] < nodes[nodeId].fDist) {
+                    nodeId = nodes[nodeId].children1;
+                } else {
+                    nodeId = nodes[nodeId].children2;
+                }
+            } else if ((nodes[nodeId].planeType == 2)) {
+                if (cameraLocal[2] < nodes[nodeId].fDist) {
+                    nodeId = nodes[nodeId].children1;
+                } else {
+                    nodeId = nodes[nodeId].children2;
+                }
+            }
+            candidateGroups.push({'topBottom' : topBottom, groupId : i, bspList : bspLeafList, nodeId: nodeId});
+        }
     }
 }
 

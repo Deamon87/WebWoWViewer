@@ -85,7 +85,7 @@ class GraphManager {
         }
 
         var wmoObject = new WmoObject(this.sceneApi);
-        wmoObject.load(wmoDef);
+        wmoObject.setLoadingParam(wmoDef);
 
         this.wmoObjects.push(wmoObject);
         this.uniqueIdMap[wmoDef.uniqueId] = wmoObject;
@@ -135,7 +135,7 @@ class GraphManager {
     * Culling algorithms
     * */
     checkCulling(frustumMat, lookAtMat4) {
-        if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
+        /*if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
             for (var j = 0; j < this.m2Objects.length; j++) {
                 this.m2Objects[j].setIsRendered(false);
             }
@@ -162,20 +162,15 @@ class GraphManager {
                 this.portalCullingAlgo.checkAllDoodads(this.currentWMO, this.position);
             }
 
-        } else {
+        } else {          */
+            /*
             for (var j = 0; j < this.m2Objects.length; j++) {
                 this.m2Objects[j].setIsRendered(true);
             }
-            this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
-        }
-    }
-    sortGeometry(frustumMat, lookAtMat4) {
-        for (var j = 0; j < this.m2Objects.length; j++) {
-            this.m2Objects[j].sortMaterials(lookAtMat4);
-        }
-    }
-    checkNormalFrustumCulling(frustumMat, lookAtMat4) {
-        /*1. Extract planes */
+            */
+
+
+        /* 1. Extract planes */
         var combinedMat4 = mat4.create();
         mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
         var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
@@ -183,39 +178,48 @@ class GraphManager {
 
         var points = mathHelper.getFrustumPoints(frustumMat, lookAtMat4);
 
-        for (var i = 0; i < this.adtObjects.length; i++) {
-            this.adtObjects[i].checkFrustumCulling(this.position, frustumPlanes, 6);
+        /* 2. Reset isVisited variable for all elements in graph */
+        if (!this.isWmoMap) {
+            for (var i = 0; i < 64; i++) {
+                for (var j = 0; j < 64; j++) {
+                    var adtObject = this.adtObjectsMap[i][j];
+                    if (adtObject) {
+                        adtObject.setIsVisited(false);
+                    }
+                }
+            }
+        } else {
+            this.currentWMO.setIsVisited(false);
         }
 
-        /* 1. First check wmo's */
-        /* Checking group wmo will significatly decrease the amount of m2wmo */
-        for (var i = 0; i < this.wmoObjects.length; i++) {
-            if (config.getUsePortalCulling() && this.wmoObjects[i].hasPortals()) {
-                if (this.currentInteriorGroup >= 0 && this.currentWMO == this.wmoObjects[i]) continue;
-
-                this.portalCullingAlgo.startTraversingFromExterior(this.wmoObjects[i], this.position, frustumMat, lookAtMat4, frustumPlanes, points);
-                this.portalCullingAlgo.checkAllDoodads(this.wmoObjects[i], this.position);
-                //this.wmoObjects[i].setIsRenderedForDoodads();
-            } else {
-                this.wmoObjects[i].checkFrustumCulling(this.position, frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
+        /* 3. Check frustum for graphs */
+        if (!this.isWmoMap) {
+            for (var i = 0; i < 64; i++) {
+                for (var j = 0; j < 64; j++) {
+                    var adtObject = this.adtObjectsMap[i][j];
+                    if (adtObject) {
+                        adtObject.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, 6);
+                    }
+                }
             }
+        } else {
+            this.currentWMO.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, 6)
         }
 
 
-        /* 3. Additionally check if distance to object is more than 100 time of it's diameter */
-        /*for (var j = 0; j < this.m2Objects.length; j++) {
-            var currentObj = this.m2Objects[j];
-            if (currentObj.loaded && currentObj.getIsRendered()) {
-                currentObj.setIsRendered(currentObj.getDiameter() * 100 > currentObj.getCurrentDistance());
-            }
-        }*/
+            this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
 
-        /* 2. If m2Object is renderable after prev phase - check it against frustrum */
+        var m2RenderedThisFrame = this.m2Objects.filter((a) => (a.getIsRendered()));
+        this.m2RenderedThisFrame = m2RenderedThisFrame;
+
+        //}
+    }
+    sortGeometry(frustumMat, lookAtMat4) {
         for (var j = 0; j < this.m2Objects.length; j++) {
-            if (this.m2Objects[j].getIsRendered()) {
-                this.m2Objects[j].checkFrustumCullingAndSet(this.position, frustumPlanes, 6);
-            }
+            this.m2Objects[j].sortMaterials(lookAtMat4);
         }
+    }
+    checkNormalFrustumCulling(frustumMat, lookAtMat4) {
 
     }
 
@@ -228,9 +232,10 @@ class GraphManager {
     update(deltaTime) {
         //1. Update all wmo and m2 objects
         var i;
+
         if (config.getRenderM2()) {
-            for (i = 0; i < this.m2Objects.length; i++) {
-                this.m2Objects[i].update(deltaTime, this.position, this.lookAtMat);
+            for (i = 0; i < this.m2RenderedThisFrame.length; i++) {
+                this.m2RenderedThisFrame[j].update(deltaTime, this.position, this.lookAtMat);
             }
         }
 
@@ -240,9 +245,9 @@ class GraphManager {
 
         //2. Calc distance every 100 ms
         if (this.currentTime + deltaTime - this.lastTimeDistanceCalc > 100) {
-            for (var j = 0; j < this.m2Objects.length; j++) {
+            for (var j = 0; j < this.m2RenderedThisFrame.length; j++) {
                 //if (this.m2Objects[j].getIsRendered()) {
-                    this.m2Objects[j].calcDistance(this.position);
+                this.m2RenderedThisFrame[j].calcDistance(this.position);
                 //}
             }
 
@@ -250,11 +255,8 @@ class GraphManager {
         }
 
         //3. Sort m2 by distance every 100 ms
-        var m2RenderedThisFrame = this.m2Objects.filter((a) => (a.getIsRendered()));
-        this.m2RenderedThisFrame = m2RenderedThisFrame;
-
         if (this.currentTime + deltaTime - this.lastTimeSort > 100) {
-            m2RenderedThisFrame.sort(this.sortM2);
+            this.m2RenderedThisFrame.sort(this.sortM2);
 
             this.lastTimeSort = this.currentTime;
         }
@@ -264,8 +266,8 @@ class GraphManager {
 
 //        if (this.currentTime + deltaTime - this.lastInstanceCollect > 30) {
             var map = {};
-            for (var j = 0; j < this.m2Objects.length; j++) {
-                var m2Object = this.m2Objects[j];
+            for (var j = 0; j < this.m2RenderedThisFrame.length; j++) {
+                var m2Object = this.m2RenderedThisFrame[j];
 
                 if (!m2Object.m2Geom) continue;
                 if (m2Object.getHasBillboarded() || !m2Object.getIsInstancable()) continue;
@@ -274,7 +276,7 @@ class GraphManager {
                 var fileIdent = m2Object.getFileNameIdent();
 
                 if (map[fileIdent] != undefined) {
-                    this.addM2ObjectToInstanceManager(m2Object)
+                    this.addM2ObjectToInstanceManager(m2Object);
                     if (!map[fileIdent].instanceManager) {
                         this.addM2ObjectToInstanceManager(map[fileIdent]);
                     }
@@ -312,7 +314,6 @@ class GraphManager {
 
         //6. Check fog color every 2 seconds
         if (this.currentTime + deltaTime - this.lastFogParamCheck > 2000) {
-
             this.lastFogParamCheck = this.currentTime;
         }
 

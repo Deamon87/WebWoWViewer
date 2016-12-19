@@ -72,6 +72,9 @@ class MDXObject {
 
         this.animationManager.setRightHandClosed(value);
     }
+    setIsVisited( value ){
+        this.isVisited = value;
+    }
 
     createAABB(){
         var bb = this.getBoundingBox();

@@ -104,8 +104,12 @@ class AdtM2Object extends MDXObject {
 
         self.createPlacementMatrix(mddf);
         self.calcOwnPosition();
+        super.setLoadParams(mddf.fileName, 0);
 
-        return super.setLoadParams(mddf.fileName, 0);
+        //Start loading adtM2 as soon as they spawn
+        this.startLoading();
+
+        return
     }
 }
 
