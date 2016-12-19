@@ -110,6 +110,8 @@ const handlerTable = {
         chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsLayer, mcnkObj);
         //4. Load MCAL
         chunkedFile.processChunkAtOffsWithSize(chunk.chunkOffset + ofsAlpha, mcnkObj.sizeAlpha, mcnkObj);
+        //5. Load MCRF
+        chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsRefs, mcnkObj);
     },
     "MCVT" : function (mcnkObj, chunk, chunkedFile) {
         var offs = {offs : 0};
@@ -155,7 +157,14 @@ const handlerTable = {
 
         mcnkObj.alphaArray = alphaArray;
     },
+    "MCRF": function (mcnkObj, chunk, chunkedFile) {
+        var offset = {offs: 0};
+        var m2Refs = chunk.readInt32Array(offset, mcnkObj.nDoodadRefs);
+        var wmoRefs = chunk.readInt32Array(offset, mcnkObj.nMapObjRefs);
 
+        mcnkObj.m2Refs = m2Refs;
+        mcnkObj.wmoRefs = wmoRefs;
+    },
     "MTEX" : function (adtObject, chunk) {
         var offset = {offs: 0};
         var textureNames = [];

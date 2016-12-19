@@ -13,24 +13,28 @@ class ADTObject {
         }
     }
 
-    setIsVisited(value) {
-        this.isVisited = value;
+    resetCandidateForDrawing() {
+        this.isCandidateForDrawing = false;
         if (this.m2Array) {
             for (var i = 0; i < this.m2Array.length; i++) {
                 if (this.m2Array[i]) {
-                    this.m2Array[i].setIsVisited(false);
+                    this.m2Array[i].resetCandidateForDrawing();
                 }
             }
         }
         if (this.wmoArray) {
             for (var i = 0; i < this.wmoArray.length; i++) {
-                this.wmoArray[i].setIsVisited(false);
+                this.wmoArray[i].resetCandidateForDrawing();
             }
         }
     }
 
     checkFrustumCulling (cameraVec4, frustumPlanes, lookAtMat4, num_planes) {
+        if (!this.adtGeom) return;
+        var adtFile = this.adtGeom.adtFile;
+
         for (var i = 0; i < 256; i++) {
+            var mcnk = adtFile.mcnkObjs[i];
             var aabb = this.aabbs[i];
             if (!aabb) continue;
 
@@ -50,11 +54,16 @@ class ADTObject {
 
             //3. If the chunk is set to be drawn, set all M2s and WMOs into candidate for drawing
             if (result) {
-
+                for (var i = 0; i < mcnk.m2Refs.length; i++) {
+                    var m2Ref = mcnk.m2Refs[i];
+                    this.m2Array[m2Ref].isCandidateForDrawing = true;
+                }
+                for (var i = 0; i < mcnk.wmoRefs.length; i++) {
+                    var wmoRef = mcnk.wmoRefs[i];
+                    this.wmoArray[wmoRef].isCandidateForDrawing = true;
+                }
             }
         }
-        // 3. Check associated M2 and WMO files
-
     }
 
     calcBoundingBoxes() {

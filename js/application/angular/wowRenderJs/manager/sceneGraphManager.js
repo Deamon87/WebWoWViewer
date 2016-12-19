@@ -23,7 +23,8 @@ class GraphManager {
         this.instanceList = [];
         this.wmoObjects = [];
 
-        this.uniqueIdMap = {};
+        this.uniqueIdM2Map = {};
+        this.uniqueIdWmoMap = {};
 
         this.adtObjects = [];
         this.m2RenderedThisFrame = []
@@ -49,8 +50,8 @@ class GraphManager {
     * Function for adding a new geometry to scene
     * */
     addAdtM2Object(doodad) {
-        if (this.uniqueIdMap[doodad.uniqueId]) {
-            return this.uniqueIdMap[doodad.uniqueId];
+        if (this.uniqueIdM2Map[doodad.uniqueId]) {
+            return this.uniqueIdM2Map[doodad.uniqueId];
         }
 
         var adtM2 = new adtM2ObjectFactory(this.sceneApi);
@@ -58,7 +59,7 @@ class GraphManager {
         adtM2.sceneNumber = this.globalM2Counter++;
 
         this.m2Objects.push(adtM2);
-        this.uniqueIdMap[doodad.uniqueId] = adtM2;
+        this.uniqueIdM2Map[doodad.uniqueId] = adtM2;
         return adtM2;
     }
     addWorldMDXObject(modelName, meshIds,replaceTextures) {
@@ -80,15 +81,15 @@ class GraphManager {
         return wmoM2Object;
     }
     addWmoObject(wmoDef) {
-        if (this.uniqueIdMap[wmoDef.uniqueId]) {
-            return this.uniqueIdMap[wmoDef.uniqueId];
+        if (this.uniqueIdWmoMap[wmoDef.uniqueId]) {
+            return this.uniqueIdWmoMap[wmoDef.uniqueId];
         }
 
         var wmoObject = new WmoObject(this.sceneApi);
         wmoObject.setLoadingParam(wmoDef);
 
         this.wmoObjects.push(wmoObject);
-        this.uniqueIdMap[wmoDef.uniqueId] = wmoObject;
+        this.uniqueIdWmoMap[wmoDef.uniqueId] = wmoObject;
 
         return wmoObject;
     }
@@ -178,49 +179,73 @@ class GraphManager {
 
         var points = mathHelper.getFrustumPoints(frustumMat, lookAtMat4);
 
-        /* 2. Reset isVisited variable for all elements in graph */
+        /* 2. Reset isCandidateForDrawing variable for all elements in graph */
         if (!this.isWmoMap) {
             for (var i = 0; i < 64; i++) {
                 for (var j = 0; j < 64; j++) {
                     var adtObject = this.adtObjectsMap[i][j];
                     if (adtObject) {
-                        adtObject.setIsVisited(false);
+                        adtObject.resetCandidateForDrawing();
                     }
                 }
             }
         } else {
-            this.currentWMO.setIsVisited(false);
+            this.currentWMO.resetCandidateForDrawing();
         }
 
-        /* 3. Check frustum for graphs */
-        if (!this.isWmoMap) {
-            for (var i = 0; i < 64; i++) {
-                for (var j = 0; j < 64; j++) {
-                    var adtObject = this.adtObjectsMap[i][j];
-                    if (adtObject) {
-                        adtObject.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, 6);
-                    }
-                }
-            }
-        } else {
-            this.currentWMO.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, 6)
-        }
+        //Plain check for exterior
+        var m2sToRender = this.checkExterior(frustumPlanes, lookAtMat4, 6);
+        var m2RenderedThisFrame = new Array(m2sToRender);
+        //TODO: Collect all m2s into this array
 
 
-            this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
 
         var m2RenderedThisFrame = this.m2Objects.filter((a) => (a.getIsRendered()));
         this.m2RenderedThisFrame = m2RenderedThisFrame;
-
-        //}
     }
+
+    checkExterior(frustumPlanes, lookAtMat4, num_planes) {
+        /* 3. Check frustum for graphs */
+        if (!this.isWmoMap) {
+            //3.1 if this is not WMO map iterate over ADTs
+            for (var i = 0; i < 64; i++) {
+                for (var j = 0; j < 64; j++) {
+                    var adtObject = this.adtObjectsMap[i][j];
+                    if (adtObject) {
+                        adtObject.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, num_planes);
+                    }
+                }
+            }
+            //3.2 Iterate over all global WMOs and M2s (they have uniqueIds)
+            var m2sToRender = 0;
+            for (var value in this.uniqueIdM2Map) {
+                var m2Object = this.uniqueIdM2Map[value];
+                if(!m2Object || !m2Object.isCandidateForDrawing) continue;
+
+                var frustumResult = m2Object.checkFrustumCulling(this.position, frustumPlanes, num_planes);
+                if (frustumResult) {
+                    m2Object.setIsRendered(true)
+                    m2sToRender++;
+                }
+            }
+            for (var value in this.uniqueIdWmoMap) {
+                var wmoObject = this.uniqueIdWmoMap[value];
+                if(!wmoObject || !wmoObject.isCandidateForDrawing) continue;
+
+                m2sToRender += wmoObject.checkFrustumCulling(this.position, frustumPlanes, num_planes);
+            }
+
+
+        } else {
+            m2sToRender += this.currentWMO.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, num_planes)
+        }
+        return m2sToRender;
+    }
+
     sortGeometry(frustumMat, lookAtMat4) {
         for (var j = 0; j < this.m2Objects.length; j++) {
             this.m2Objects[j].sortMaterials(lookAtMat4);
         }
-    }
-    checkNormalFrustumCulling(frustumMat, lookAtMat4) {
-
     }
 
     /*

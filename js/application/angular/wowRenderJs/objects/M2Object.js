@@ -72,8 +72,8 @@ class MDXObject {
 
         this.animationManager.setRightHandClosed(value);
     }
-    setIsVisited( value ){
-        this.isVisited = value;
+    resetCandidateForDrawing(){
+        this.isCandidateForDrawing = false;
     }
 
     createAABB(){

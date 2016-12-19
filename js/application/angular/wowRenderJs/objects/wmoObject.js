@@ -29,17 +29,16 @@ class WmoObject {
     }
 
 
-    setIsVisited (value) {
-        this.isVisited = value;
+    resetCandidateForDrawing() {
+        this.isCandidateForDrawing = false;
+        this.isRendered = false;
 
         if (!this.loaded) return;
 
-        for (var i = 0; i < this.wmoGroupArray.length; i++){
-            this.wmoGroupArray.setIsVisited(value);
-        }
         for (var i = 0; i < this.doodadsArray.length; i++){
             if (this.doodadsArray[i]) {
-                this.doodadsArray[i].setIsVisited();
+                this.doodadsArray[i].resetCandidateForDrawing();
+                this.doodadsArray[i].setIsRendered(false);
             }
         }
 
@@ -99,22 +98,26 @@ class WmoObject {
 
         return {groupId : -1, nodeId : -1};
     }
-    checkFrustumCulling (cameraVec4, perspectiveMat, lookat, frustumPlanes) {
-        this.isRendered = false;
+    checkFrustumCulling (cameraVec4, lookat, frustumPlanes, num_planes) {
+        this.isRendered = true;
 
-        /*
-        //1. Set Doodads drawing to false. Doodad should be rendered if at least one WMO Group it belongs is visible(rendered)
-        //It's so, because two group wmo can reference same doodad
-        for ( var i = 0; i < this.doodadsArray.length; i++) {
-            if (this.doodadsArray[i]) {
-                this.doodadsArray[i].setIsRendered(false);
-            }
-        } */
-
-        //2. Calculate visibility
+        //1. Calculate visibility for groups
         for (var i = 0; i < this.wmoGroupArray.length; i++) {
-            var result = this.checkGroupFrustum(cameraVec4, i, frustumPlanes);
+            this.checkGroupFrustum(cameraVec4, i, frustumPlanes);
         }
+
+        //2. Check all m2 candidates
+        var m2sToRender = 0;
+        for (var i = 0; i < this.doodadsArray.length; i++) {
+            var m2Object = this.doodadsArray[i];
+            if (!m2Object || !m2Object.isCandidateForDrawing) continue;
+
+            var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes, false);
+            m2Object.setIsRendered(result);
+            if (result) m2sToRender++;
+        }
+
+        return m2sToRender;
     }
 
     /*
@@ -667,8 +670,6 @@ class WmoGroupObject {
 
         var drawDoodads = isInsideM2Volume || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length, points);
 
-
-
         var bbArray = this.volumeWorldGroupBorder;
         var isInsideGroup = (
             cameraVec4[0] > bbArray[0][0] && cameraVec4[0] < bbArray[1][0] &&
@@ -680,6 +681,11 @@ class WmoGroupObject {
 
         this.isRendered = drawGroup;
 
+
+        // Set isCandidate for drawing for m2s
+        for (var i = 0; i< this.wmoDoodads.length; i++) {
+            this.wmoDoodads[i].isCandidateForDrawing = true;
+        }
 
     }
 
