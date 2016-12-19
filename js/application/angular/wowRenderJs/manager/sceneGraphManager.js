@@ -196,11 +196,21 @@ class GraphManager {
         //Plain check for exterior
         var m2sToRender = this.checkExterior(frustumPlanes, lookAtMat4, 6);
         var m2RenderedThisFrame = new Array(m2sToRender);
-        //TODO: Collect all m2s into this array
+        //TODO: implement portal based interior-aware rendering
+        var m2Index = 0;
+        for (var value in this.uniqueIdM2Map) {
+            var m2Object = this.uniqueIdM2Map[value];
+            if(!m2Object || !m2Object.getIsRendered()) continue;
 
+            m2RenderedThisFrame[m2Index++] = m2Object;
+        }
+        for (var value in this.uniqueIdWmoMap) {
+            var wmoObject = this.uniqueIdWmoMap[value];
+            if(!wmoObject || !wmoObject.isCandidateForDrawing) continue;
 
+            m2Index = wmoObject.collectM2s(m2RenderedThisFrame, m2Index);
+        }
 
-        var m2RenderedThisFrame = this.m2Objects.filter((a) => (a.getIsRendered()));
         this.m2RenderedThisFrame = m2RenderedThisFrame;
     }
 
@@ -260,7 +270,7 @@ class GraphManager {
 
         if (config.getRenderM2()) {
             for (i = 0; i < this.m2RenderedThisFrame.length; i++) {
-                this.m2RenderedThisFrame[j].update(deltaTime, this.position, this.lookAtMat);
+                this.m2RenderedThisFrame[i].update(deltaTime, this.position, this.lookAtMat);
             }
         }
 

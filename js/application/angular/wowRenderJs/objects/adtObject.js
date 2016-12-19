@@ -54,13 +54,17 @@ class ADTObject {
 
             //3. If the chunk is set to be drawn, set all M2s and WMOs into candidate for drawing
             if (result) {
-                for (var i = 0; i < mcnk.m2Refs.length; i++) {
-                    var m2Ref = mcnk.m2Refs[i];
-                    this.m2Array[m2Ref].isCandidateForDrawing = true;
+                if (mcnk.m2Refs) {
+                    for (var j= 0; j < mcnk.m2Refs.length; j++) {
+                        var m2Ref = mcnk.m2Refs[j];
+                        this.m2Array[m2Ref].isCandidateForDrawing = true;
+                    }
                 }
-                for (var i = 0; i < mcnk.wmoRefs.length; i++) {
-                    var wmoRef = mcnk.wmoRefs[i];
-                    this.wmoArray[wmoRef].isCandidateForDrawing = true;
+                if (this.wmoArray) {
+                    for (var j = 0; j < mcnk.wmoRefs.length; j++) {
+                        var wmoRef = mcnk.wmoRefs[j];
+                        this.wmoArray[wmoRef].isCandidateForDrawing = true;
+                    }
                 }
             }
         }

@@ -74,6 +74,7 @@ class MDXObject {
     }
     resetCandidateForDrawing(){
         this.isCandidateForDrawing = false;
+        this.isRendered = false
     }
 
     createAABB(){

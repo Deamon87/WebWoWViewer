@@ -119,6 +119,16 @@ class WmoObject {
 
         return m2sToRender;
     }
+    collectM2s(M2Array, startIndex) {
+        for (var i = 0; i < this.doodadsArray.length; i++) {
+            var m2Object = this.doodadsArray[i];
+            if (!m2Object || !m2Object.getIsRendered()) continue;
+
+            M2Array[startIndex++] = m2Object;
+        }
+
+        return startIndex;
+    }
 
     /*
      * Update functions
