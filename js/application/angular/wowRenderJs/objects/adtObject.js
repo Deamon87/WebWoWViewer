@@ -13,22 +13,6 @@ class ADTObject {
         }
     }
 
-    resetCandidateForDrawing() {
-        this.isCandidateForDrawing = false;
-        if (this.m2Array) {
-            for (var i = 0; i < this.m2Array.length; i++) {
-                if (this.m2Array[i]) {
-                    this.m2Array[i].resetCandidateForDrawing();
-                }
-            }
-        }
-        if (this.wmoArray) {
-            for (var i = 0; i < this.wmoArray.length; i++) {
-                this.wmoArray[i].resetCandidateForDrawing();
-            }
-        }
-    }
-
     checkFrustumCulling (cameraVec4, frustumPlanes, lookAtMat4, num_planes, m2ObjectsCandidates, wmoCandidates) {
         if (!this.adtGeom) return;
         var adtFile = this.adtGeom.adtFile;

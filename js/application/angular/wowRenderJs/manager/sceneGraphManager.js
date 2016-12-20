@@ -179,19 +179,6 @@ class GraphManager {
 
         var points = mathHelper.getFrustumPoints(frustumMat, lookAtMat4);
 
-        /* 2. Reset isCandidateForDrawing variable for all elements in graph */
-        if (!this.isWmoMap) {
-            for (var i = 0; i < 64; i++) {
-                for (var j = 0; j < 64; j++) {
-                    var adtObject = this.adtObjectsMap[i][j];
-                    if (adtObject) {
-                        adtObject.resetCandidateForDrawing();
-                    }
-                }
-            }
-        } else {
-            this.currentWMO.resetCandidateForDrawing();
-        }
 
         //Plain check for exterior
         var m2RenderedThisFrame = this.checkExterior(frustumPlanes, lookAtMat4, 6);
@@ -262,7 +249,7 @@ class GraphManager {
     }
 
     sortGeometry(frustumMat, lookAtMat4) {
-        for (var j = 0; j < this.m2Objects.length; j++) {
+        for (var j = 0; j < this.m2RenderedThisFrame.length; j++) {
             this.m2Objects[j].sortMaterials(lookAtMat4);
         }
     }
