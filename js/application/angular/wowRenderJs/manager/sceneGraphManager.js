@@ -258,7 +258,7 @@ class GraphManager {
         } else {
             this.currentWMO.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, num_planes)
         }
-        return Array.from(m2ObjectsCandidates);
+        return Array.from(m2RenderedThisFrame);
     }
 
     sortGeometry(frustumMat, lookAtMat4) {

@@ -114,9 +114,6 @@ class WmoM2Object extends MDXObject {
 
         return super.setLoadParams(doodad.modelName, 0);
     }
-    postLoad() {
-        this.wmoObject.needUpdateWorldGroupBB()
-    }
 }
 
 export default WmoM2Object;
