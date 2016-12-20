@@ -81,7 +81,7 @@ class WmoObject {
                 var dist = candidateGroups[i].topBottom.topZ - candidateGroups[i].topBottom.bottomZ;
                 if (dist < minDist) {
                     minDist = dist;
-                    this.currentNodeId = bspLeafList;
+                    this.currentNodeId = candidateGroups[i].nodeId;
                     this.currentGroupId = i;
                     resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId};
                 }
@@ -200,7 +200,7 @@ class WmoObject {
                 for (var j = numStr.length; j < 3; j++) numStr = '0'+numStr;
                 var groupFilename = template + "_" + numStr + ".wmo";
 
-                self.wmoGroupArray[i] = new WmoGroupObject(self.sceneApi, self, groupFilename, groupInfo);
+                self.wmoGroupArray[i] = new WmoGroupObject(self.sceneApi, self, groupFilename, groupInfo, i);
             }
 
             self.currentDoodadSet = self.wmoObj.mods[self.doodadSet];
@@ -559,7 +559,7 @@ class WmoObject {
 }
 
 class WmoGroupObject {
-    constructor (sceneApi, parentWmo, fileName, groupInfo) {
+    constructor (sceneApi, parentWmo, fileName, groupInfo, groupId) {
 
 
         this.sceneApi = sceneApi;
@@ -567,6 +567,7 @@ class WmoGroupObject {
         this.parentWmo = parentWmo;
         this.isRendered = false;
         this.groupInfo = groupInfo;
+        this.groupId = groupId;
 
         this.doodadsLoadingTriggered = false;
         this.wmoDoodads = [];
@@ -735,7 +736,7 @@ class WmoGroupObject {
         var nodes = groupFile.nodes;
         var bspLeafList = [];
         mathHelper.queryBspTree([cameraBBMin, cameraBBMax], nodeId, nodes, bspLeafList);
-        var topBottom = mathHelper.getTopAndBottomTriangleFromBsp(cameraLocal, groupFile.wmoGroupFile, bspLeafList);
+        var topBottom = mathHelper.getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, bspLeafList);
 
         //4. Check min\max Z value. If object(camera) pos is not in range - the object do not belong this wmo group
         if (topBottom.bottomZ > 99999 && topBottom.topZ < -99999) return null;
@@ -772,7 +773,7 @@ class WmoGroupObject {
                     nodeId = nodes[nodeId].children2;
                 }
             }
-            candidateGroups.push({'topBottom' : topBottom, groupId : i, bspList : bspLeafList, nodeId: nodeId});
+            candidateGroups.push({'topBottom' : topBottom, groupId : this.groupId, bspList : bspLeafList, nodeId: nodeId});
         }
     }
 }

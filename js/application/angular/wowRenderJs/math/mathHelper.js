@@ -459,7 +459,7 @@ class MathHelper {
                 );
                 if (!testPassed) continue;
 
-                var z = mathHelper.calcZ(vert1,vert2,vert3,cameraLocal[0],cameraLocal[1]);
+                var z = MathHelper.calcZ(vert1,vert2,vert3,cameraLocal[0],cameraLocal[1]);
 
                 //2. Get if vertex top or bottom
                 var normal1 = vec3.fromValues(
@@ -478,7 +478,7 @@ class MathHelper {
                     groupFile.normals[3*vertexInd3 + 2]
                 );
 
-                var bary = mathHelper.getBarycentric(
+                var bary = MathHelper.getBarycentric(
                     vec3.fromValues(cameraLocal[0], cameraLocal[1], z),
                     vert1,
                     vert2,
