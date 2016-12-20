@@ -120,6 +120,10 @@ class WmoGeom {
 
     draw (ambientColor, bspNodeList){
         var gl = this.gl;
+        if (!this.momt) {
+            this.loadTextures()
+        }
+
         var shaderUniforms = this.sceneApi.shaders.getShaderUniforms();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
@@ -184,6 +188,8 @@ class WmoGeom {
             } else {
                 texIndex = renderBatch.tex;
             }
+
+
 
             var color = this.momt[texIndex].color1;
             var colorVector = [color&0xff, (color>> 8)&0xff,

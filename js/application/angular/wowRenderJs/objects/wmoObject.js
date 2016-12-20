@@ -98,36 +98,26 @@ class WmoObject {
 
         return {groupId : -1, nodeId : -1};
     }
-    checkFrustumCulling (cameraVec4, lookat, frustumPlanes, num_planes) {
+    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, m2RenderedThisFrame) {
         this.isRendered = true;
 
+        var wmoM2Candidates = new Set();
         //1. Calculate visibility for groups
         for (var i = 0; i < this.wmoGroupArray.length; i++) {
-            this.checkGroupFrustum(cameraVec4, i, frustumPlanes);
+            this.wmoGroupArray[i].checkGroupFrustum(cameraVec4, frustumPlanes, null, wmoM2Candidates);
         }
 
         //2. Check all m2 candidates
-        var m2sToRender = 0;
-        for (var i = 0; i < this.doodadsArray.length; i++) {
-            var m2Object = this.doodadsArray[i];
-            if (!m2Object || !m2Object.isCandidateForDrawing) continue;
+        wmoM2Candidates.forEach(function(value) {
+            var m2Object = value;
+            if (!m2Object) return;
 
             var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes, false);
             m2Object.setIsRendered(result);
-            if (result) m2sToRender++;
-        }
+            if (result) m2RenderedThisFrame.add(m2Object);
+        });
 
-        return m2sToRender;
-    }
-    collectM2s(M2Array, startIndex) {
-        for (var i = 0; i < this.doodadsArray.length; i++) {
-            var m2Object = this.doodadsArray[i];
-            if (!m2Object || !m2Object.getIsRendered()) continue;
-
-            M2Array[startIndex++] = m2Object;
-        }
-
-        return startIndex;
+        return;
     }
 
     /*
@@ -173,7 +163,7 @@ class WmoObject {
         var self = this;
 
         var filename = modf.fileName;
-        var doodadsInd = modf.doodadSet;
+        this.doodadSet = modf.doodadSet;
 
         this.fileName = filename;
 
@@ -205,10 +195,15 @@ class WmoObject {
             var template = filename.substr(0, filename.lastIndexOf("."));
             for (var i = 0; i < wmoObj.nGroups; i++) {
                 var groupInfo = wmoObj.groupInfos[i];
-                var groupFilename = template + "_" + i + ".wmo";
+
+                var numStr = i.toString();
+                for (var j = numStr.length; j < 3; j++) numStr = '0'+numStr;
+                var groupFilename = template + "_" + numStr + ".wmo";
 
                 self.wmoGroupArray[i] = new WmoGroupObject(self.sceneApi, self, groupFilename, groupInfo);
             }
+
+            self.currentDoodadSet = self.wmoObj.mods[self.doodadSet];
 
             self.loaded = true;
             self.loading = false;
@@ -574,6 +569,7 @@ class WmoGroupObject {
         this.groupInfo = groupInfo;
 
         this.doodadsLoadingTriggered = false;
+        this.wmoDoodads = [];
 
         this.createWorldGroupBB(true);
     }
@@ -594,6 +590,8 @@ class WmoGroupObject {
         var self = this;
 
         var doodadRefs = this.wmoGeom.wmoGroupFile.doodadRefs;
+        if (!doodadRefs) return;
+
         var wmoDoodads = new Array(doodadRefs.length);
 
         //Load all doodad from MOBR
@@ -617,6 +615,10 @@ class WmoGroupObject {
             this.loadDoodads();
             this.doodadsLoadingTriggered = true;
         }
+        if (!this.texturesLoadingTriggered) {
+            this.wmoGeom.loadTextures(this.parentWmo.wmoObj.momt);
+            this.texturesLoadingTriggered = true;
+        }
 
         this.wmoGeom.draw()
     }
@@ -626,13 +628,17 @@ class WmoGroupObject {
     }
     createWorldGroupBB (fromGroupInfo) {
         var groupInfo = null;
+        var bb1 = null, bb2 = null;
         if (fromGroupInfo) {
             groupInfo = this.groupInfo;
+            bb1 = groupInfo.bb1;
+            bb2 = groupInfo.bb2;
         } else {
             groupInfo = this.wmoGeom.wmoGroupFile.mogp;
+            bb1 = groupInfo.BoundBoxCorner1;
+            bb2 = groupInfo.BoundBoxCorner2;
         }
-        var bb1 = groupInfo.bb1,
-            bb2 = groupInfo.bb2;
+
 
         var bb1vec = vec4.fromValues(bb1.x, bb1.y, bb1.z, 1);
         var bb2vec = vec4.fromValues(bb2.x, bb2.y, bb2.z, 1);
@@ -669,7 +675,7 @@ class WmoGroupObject {
                 Math.max(mdxObject.aabb[1][2],groupAABB[1][2]));
         }
     }
-    checkGroupFrustum(cameraVec4, frustumPlanes, points) {
+    checkGroupFrustum(cameraVec4, frustumPlanes, points, wmoM2Candidates) {
         var bbArray = this.worldGroupBorder;
 
         var isInsideM2Volume = (
@@ -694,7 +700,7 @@ class WmoGroupObject {
 
         // Set isCandidate for drawing for m2s
         for (var i = 0; i< this.wmoDoodads.length; i++) {
-            this.wmoDoodads[i].isCandidateForDrawing = true;
+            wmoM2Candidates.add(this.wmoDoodads[i]);
         }
 
     }

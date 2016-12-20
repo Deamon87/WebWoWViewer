@@ -29,7 +29,7 @@ class ADTObject {
         }
     }
 
-    checkFrustumCulling (cameraVec4, frustumPlanes, lookAtMat4, num_planes) {
+    checkFrustumCulling (cameraVec4, frustumPlanes, lookAtMat4, num_planes, m2ObjectsCandidates, wmoCandidates) {
         if (!this.adtGeom) return;
         var adtFile = this.adtGeom.adtFile;
 
@@ -57,13 +57,14 @@ class ADTObject {
                 if (mcnk.m2Refs) {
                     for (var j= 0; j < mcnk.m2Refs.length; j++) {
                         var m2Ref = mcnk.m2Refs[j];
-                        this.m2Array[m2Ref].isCandidateForDrawing = true;
+
+                        m2ObjectsCandidates.add(this.m2Array[m2Ref])
                     }
                 }
                 if (this.wmoArray) {
                     for (var j = 0; j < mcnk.wmoRefs.length; j++) {
                         var wmoRef = mcnk.wmoRefs[j];
-                        this.wmoArray[wmoRef].isCandidateForDrawing = true;
+                        wmoCandidates.add(this.wmoArray[wmoRef])
                     }
                 }
             }
@@ -135,7 +136,7 @@ class ADTObject {
             self.calcBoundingBoxes();
 
             self.loadM2s();
-            //self.loadWmos();
+            self.loadWmos();
         });
     }
 
