@@ -250,7 +250,7 @@ class GraphManager {
 
     sortGeometry(frustumMat, lookAtMat4) {
         for (var j = 0; j < this.m2RenderedThisFrame.length; j++) {
-            this.m2Objects[j].sortMaterials(lookAtMat4);
+            this.m2RenderedThisFrame[j].sortMaterials(lookAtMat4);
         }
     }
 
@@ -482,10 +482,10 @@ class GraphManager {
         this.sceneApi.shaders.activateBoundingBoxShader();
         //7.1 Draw M2 BBs
         if (config.getDrawM2BB()) {
-            for (var i = 0; i < this.m2Objects.length; i++) {
-                if (!this.m2Objects[i].getIsRendered()) continue;
+            for (var i = 0; i < this.m2RenderedThisFrame.length; i++) {
+                if (!this.m2RenderedThisFrame[i].getIsRendered()) continue;
 
-                this.m2Objects[i].drawBB();
+                this.m2RenderedThisFrame[i].drawBB();
             }
         }
     }
