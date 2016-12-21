@@ -102,39 +102,41 @@ class WmoObject {
         if (!this.loaded) {
             return true;
         }
+
+        var result = false;
         var aabb = this.aabb;
-        this.isRendered = false;
 
         //1. Check if camera position is inside Bounding Box
         if (
             cameraVec4[0] > aabb[0][0] && cameraVec4[0] < aabb[1][0] &&
             cameraVec4[1] > aabb[0][1] && cameraVec4[1] < aabb[1][1] &&
             cameraVec4[2] > aabb[0][2] && cameraVec4[2] < aabb[1][2]
-        ) return true;
+        ) result = true;
 
         //2. Check aabb is inside camera frustum
-        var result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes);
-        if (!result) return false;
+        if (!result) {
+            result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes);
+        }
+        this.isRendered = result;
+        if (result) {
+            var wmoM2Candidates = new Set();
+            //1. Calculate visibility for groups
+            for (var i = 0; i < this.wmoGroupArray.length; i++) {
+                this.wmoGroupArray[i].checkGroupFrustum(cameraVec4, frustumPlanes, null, wmoM2Candidates);
+            }
 
-        this.isRendered = true;
+            //2. Check all m2 candidates
+            wmoM2Candidates.forEach(function (value) {
+                var m2Object = value;
+                if (!m2Object) return;
 
-        var wmoM2Candidates = new Set();
-        //1. Calculate visibility for groups
-        for (var i = 0; i < this.wmoGroupArray.length; i++) {
-            this.wmoGroupArray[i].checkGroupFrustum(cameraVec4, frustumPlanes, null, wmoM2Candidates);
+                var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes, false);
+                m2Object.setIsRendered(result);
+                if (result) m2RenderedThisFrame.add(m2Object);
+            });
         }
 
-        //2. Check all m2 candidates
-        wmoM2Candidates.forEach(function(value) {
-            var m2Object = value;
-            if (!m2Object) return;
-
-            var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes, false);
-            m2Object.setIsRendered(result);
-            if (result) m2RenderedThisFrame.add(m2Object);
-        });
-
-        return;
+        return result;
     }
 
     /*
@@ -376,7 +378,7 @@ class WmoObject {
         for (var i = 0; i < this.wmoGroupArray.length; i++){
             //if (i != 0) continue;
             if (this.wmoGroupArray[i]){
-
+                if (!this.wmoGroupArray[i].isRendered) continue;
 
                 var bpsNodeList = null;
                 /*

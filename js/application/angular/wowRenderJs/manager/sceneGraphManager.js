@@ -22,11 +22,13 @@ class GraphManager {
         this.instanceMap = {};
         this.instanceList = [];
         this.wmoObjects = [];
+        this.wmoRenderedThisFrame = [];
 
         this.uniqueIdM2Map = {};
         this.uniqueIdWmoMap = {};
 
         this.adtObjects = [];
+        this.adtRenderedThisFrame = [];
         this.m2RenderedThisFrame = []
         this.skyDom = null;
 
@@ -181,7 +183,7 @@ class GraphManager {
 
 
         //Plain check for exterior
-        var m2RenderedThisFrame = this.checkExterior(frustumPlanes, lookAtMat4, 6);
+        var renderedThisFrame = this.checkExterior(frustumPlanes, lookAtMat4, 6);
 
         //TODO: implement portal based interior-aware rendering
         /*
@@ -201,7 +203,9 @@ class GraphManager {
         }
         */
 
-        this.m2RenderedThisFrame = m2RenderedThisFrame;
+        this.adtRenderedThisFrame = renderedThisFrame[2];
+        this.m2RenderedThisFrame = renderedThisFrame[1];
+        this.wmoRenderedThisFrame = renderedThisFrame[0];
     }
 
     checkExterior(frustumPlanes, lookAtMat4, num_planes) {
@@ -212,13 +216,23 @@ class GraphManager {
 
         var m2RenderedThisFrame = new Set();
         var wmoRenderedThisFrame = new Set();
+        var adtRenderedThisFrame = new Set();
+
         if (!this.isWmoMap) {
             //3.1 if this is not WMO map iterate over ADTs
-            for (var i = 0; i < 64; i++) {
-                for (var j = 0; j < 64; j++) {
+            var adt_x = Math.floor((32 - (this.position[1] / 533.33333)));
+            var adt_y = Math.floor((32 - (this.position[0] / 533.33333)));
+
+            for (var i = adt_x-1; i <= adt_x+1; i++) {
+                for (var j = adt_y-1; j <= adt_y+1; j++) {
+                    if ((i < 0) || (i > 64)) continue;
+                    if ((j < 0) || (j > 64)) continue;
                     var adtObject = this.adtObjectsMap[i][j];
                     if (adtObject) {
-                        adtObject.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, num_planes, m2ObjectsCandidates, wmoCandidates);
+                        var result = adtObject.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, num_planes, m2ObjectsCandidates, wmoCandidates);
+                        if (result) {
+                            adtRenderedThisFrame.add(adtObject);
+                        }
                     }
                 }
             }
@@ -249,7 +263,7 @@ class GraphManager {
         } else {
             this.currentWMO.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, num_planes)
         }
-        return Array.from(m2RenderedThisFrame);
+        return [Array.from(wmoRenderedThisFrame), Array.from(m2RenderedThisFrame), Array.from(adtRenderedThisFrame)];
     }
 
     sortGeometry(frustumMat, lookAtMat4) {
@@ -274,8 +288,8 @@ class GraphManager {
             }
         }
 
-        for (i = 0; i < this.wmoObjects.length; i++) {
-            this.wmoObjects[i].update(deltaTime);
+        for (i = 0; i < this.wmoRenderedThisFrame.length; i++) {
+            this.wmoRenderedThisFrame[i].update(deltaTime);
         }
 
         //2. Calc distance every 100 ms
@@ -364,26 +378,26 @@ class GraphManager {
         //1. Draw ADT
 
         this.sceneApi.shaders.activateAdtShader();
-        for (var i = 0; i < this.adtObjects.length; i++) {
-            this.adtObjects[i].draw();
+        for (var i = 0; i < this.adtRenderedThisFrame.length; i++) {
+            this.adtRenderedThisFrame[i].draw();
         }
 
 
         //2.0. Draw WMO bsp highlighted vertices
         if (config.getRenderBSP()) {
             this.sceneApi.shaders.activateDrawPortalShader();
-            for (var i = 0; i < this.wmoObjects.length; i++) {
-                this.wmoObjects[i].drawBspVerticles();
+            for (var i = 0; i < this.wmoRenderedThisFrame.length; i++) {
+                this.wmoRenderedThisFrame[i].drawBspVerticles();
             }
         }
 
         //2. Draw WMO
         this.sceneApi.shaders.activateWMOShader();
-        for (var i = 0; i < this.wmoObjects.length; i++) {
+        for (var i = 0; i < this.wmoRenderedThisFrame.length; i++) {
             if (config.getUsePortalCulling()) {
-                this.wmoObjects[i].drawPortalBased(false)
+                this.wmoRenderedThisFrame[i].drawPortalBased(false)
             } else {
-                this.wmoObjects[i].draw();
+                this.wmoRenderedThisFrame[i].draw();
             }
         }
         this.sceneApi.shaders.deactivateWMOShader();
@@ -399,8 +413,8 @@ class GraphManager {
         //7.1 Draw WMO BBs
         this.sceneApi.shaders.activateBoundingBoxShader();
         if (config.getDrawWmoBB()) {
-            for (var i = 0; i < this.wmoObjects.length; i++) {
-                this.wmoObjects[i].drawBB();
+            for (var i = 0; i < this.wmoRenderedThisFrame.length; i++) {
+                this.wmoRenderedThisFrame[i].drawBB();
             }
         }
 
@@ -506,8 +520,8 @@ class GraphManager {
             //6. Draw WMO portals
             if (config.getRenderPortals()) {
                 this.sceneApi.shaders.activateDrawPortalShader();
-                for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].drawPortals();
+                for (var i = 0; i < this.wmoRenderedThisFrame.length; i++) {
+                    this.wmoRenderedThisFrame[i].drawPortals();
                 }
             }
             this.drawM2s();
@@ -522,8 +536,8 @@ class GraphManager {
             //6. Draw WMO portals
             if (config.getRenderPortals()) {
                 this.sceneApi.shaders.activateDrawPortalShader();
-                for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].drawPortals();
+                for (var i = 0; i < this.wmoRenderedThisFrame.length; i++) {
+                    this.wmoRenderedThisFrame[i].drawPortals();
                 }
             }
             this.sceneApi.shaders.activateFrustumBoxShader();

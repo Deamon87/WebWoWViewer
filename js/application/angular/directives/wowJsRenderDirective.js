@@ -17,6 +17,7 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<div>Group number = {{updateResult.interiorGroupNum}}</div>'+
             '<div>BSP Node Id = {{updateResult.nodeId}}</div>'+
             '<div>Controls: W - forward, S - backward, A - left, D - right, Q - up, E - down, Mouse - move camera</p>'+
+            '<div style="display: block"><input type="checkbox" ng-model="drawAdt" >Draw M2 objects</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawM2" >Draw M2 objects</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawPortals">Draw portals</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawM2BB">Draw M2 BB</div>' +
@@ -78,6 +79,7 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                 }
 
                 scope.drawM2BB = config.getDrawM2BB();
+                scope.drawAdt = config.getRenderAdt();
                 scope.drawWmoBB = config.getDrawWmoBB();
                 scope.drawBSP = config.getRenderBSP();
                 scope.drawM2 = config.getRenderM2();
@@ -89,6 +91,9 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
 
                 scope.$watch('drawM2BB', function (newValue) {
                     config.setDrawM2BB(newValue);
+                });
+               scope.$watch('drawAdt', function (newValue) {
+                    config.setRenderAdt(newValue);
                 });
 
                 scope.$watch('drawWmoBB', function (newValue) {

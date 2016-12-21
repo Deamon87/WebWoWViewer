@@ -14,8 +14,9 @@ class ADTObject {
     }
 
     checkFrustumCulling (cameraVec4, frustumPlanes, lookAtMat4, num_planes, m2ObjectsCandidates, wmoCandidates) {
-        if (!this.adtGeom) return;
+        if (!this.adtGeom) return false;
         var adtFile = this.adtGeom.adtFile;
+        var atLeastOneIsDrawn = false;
 
         for (var i = 0; i < 256; i++) {
             var mcnk = adtFile.mcnkObjs[i];
@@ -29,6 +30,7 @@ class ADTObject {
                 cameraVec4[2] > aabb[0][2] && cameraVec4[2] < aabb[1][2]
             ) {
                 this.drawChunk[i] = true;
+                atLeastOneIsDrawn = true;
                 continue;
             }
 
@@ -38,6 +40,7 @@ class ADTObject {
 
             //3. If the chunk is set to be drawn, set all M2s and WMOs into candidate for drawing
             if (result) {
+                atLeastOneIsDrawn = true;
                 if (mcnk.m2Refs) {
                     for (var j= 0; j < mcnk.m2Refs.length; j++) {
                         var m2Ref = mcnk.m2Refs[j];
@@ -53,6 +56,8 @@ class ADTObject {
                 }
             }
         }
+
+        return atLeastOneIsDrawn;
     }
 
     calcBoundingBoxes() {

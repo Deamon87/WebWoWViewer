@@ -4,6 +4,7 @@ var archiveUrl = 'http://deamon87.github.io/WoWFiles/shattrath.zip';
 
 var archiveFile = null;
 
+var renderAdt = true;
 var renderMd2 = true;
 var renderBSP = false;
 var renderPortals = false;
@@ -66,6 +67,12 @@ export default {
     },
     setRenderM2 : function (value) {
         renderMd2 = value;
+    },
+    getRenderAdt : function () {
+        return renderAdt;
+    },
+    setRenderAdt : function (value) {
+        renderAdt = value;
     },
     getRenderBSP : function () {
         return renderBSP;
