@@ -48,7 +48,7 @@ class Cache {
             var obj = this.getCached(fileName);
             queue[i].resolve(obj)
         }
-        this.queueForLoad[fileName] = undefined;
+        this.queueForLoad[fileName] = null;
     }
 
     reject(fileName, obj) {
@@ -56,7 +56,7 @@ class Cache {
         for (var i = 0; i < queue.length; i++) {
             queue[i].reject(obj)
         }
-        this.queueForLoad[fileName] = undefined;
+        this.queueForLoad[fileName] = null;
     }
 
     /*
@@ -72,8 +72,8 @@ class Cache {
     }
     getCached(fileName) {
         var container = this.cache[fileName];
-        if (container === undefined){
-            return undefined;
+        if (!container){
+            return null;
         }
         container.counter += 1;
 

@@ -99,6 +99,23 @@ class WmoObject {
         return {groupId : -1, nodeId : -1};
     }
     checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, m2RenderedThisFrame) {
+        if (!this.loaded) {
+            return true;
+        }
+        var aabb = this.aabb;
+        this.isRendered = false;
+
+        //1. Check if camera position is inside Bounding Box
+        if (
+            cameraVec4[0] > aabb[0][0] && cameraVec4[0] < aabb[1][0] &&
+            cameraVec4[1] > aabb[0][1] && cameraVec4[1] < aabb[1][1] &&
+            cameraVec4[2] > aabb[0][2] && cameraVec4[2] < aabb[1][2]
+        ) return true;
+
+        //2. Check aabb is inside camera frustum
+        var result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes);
+        if (!result) return false;
+
         this.isRendered = true;
 
         var wmoM2Candidates = new Set();
@@ -149,6 +166,8 @@ class WmoObject {
         var doodadDef = self.wmoObj.modd[index];
         doodadObject = this.loadDoodad(doodadDef);
         this.doodadsArray[doodadIndex] = doodadObject;
+
+        return doodadObject;
     }
 
     loadDoodad (doodad) {
@@ -189,6 +208,7 @@ class WmoObject {
             self.wmoGroupArray = new Array(wmoObj.nGroups);
 
             self.createPortalsVBO();
+            self.createBoundingBox();
             self.createWorldPortalVerticies();
 
             /* 1. Load wmo group files */
@@ -274,6 +294,21 @@ class WmoObject {
         gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);
         gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Int16Array(indiciesArray), gl.STATIC_DRAW);
         gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null);
+    }
+    createBoundingBox() {
+        var ab = this.wmoObj.BoundBoxCorner1;
+        var cd = this.wmoObj.BoundBoxCorner2;
+        var bb = {'ab' : ab, 'cd' : cd};
+
+        if (bb) {
+            var a_ab = vec4.fromValues(bb.ab.x,bb.ab.y,bb.ab.z,1);
+            var a_cd = vec4.fromValues(bb.cd.x,bb.cd.y,bb.cd.z,1);
+
+            var worldAABB = mathHelper.transformAABBWithMat4(this.placementMatrix, [a_ab, a_cd]);
+
+            this.diameter = vec3.distance(worldAABB[0],worldAABB[1]);
+            this.aabb = worldAABB;
+        }
     }
     createWorldPortalVerticies () {
         //
@@ -699,11 +734,12 @@ class WmoGroupObject {
         this.isRendered = drawGroup;
 
 
-        // Set isCandidate for drawing for m2s
-        for (var i = 0; i< this.wmoDoodads.length; i++) {
-            wmoM2Candidates.add(this.wmoDoodads[i]);
+        if (drawDoodads) {
+            // Set isCandidate for drawing for m2s
+            for (var i = 0; i< this.wmoDoodads.length; i++) {
+                wmoM2Candidates.add(this.wmoDoodads[i]);
+            }
         }
-
     }
 
     checkIfInsideGroup(cameraVec4, cameraLocal, candidateGroups) {

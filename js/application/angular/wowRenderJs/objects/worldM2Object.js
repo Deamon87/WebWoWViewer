@@ -26,15 +26,6 @@ class WorldMDXObject extends MDXObject {
     getDiameter () {
         return 100;
     }
-    checkFrustumCullingAndSet (cameraVec4, frustumPlanes, num_planes) {
-        if(this.aabb) {
-            var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
-            this.setIsRendered(this.getIsRendered() && inFrustum);
-        } else {
-            this.setIsRendered(false);
-        }
-        //this.setIsRendered(true);
-    }
     getDiffuseColor(){
         return new Float32Array([1,1,1,1]);
     }

@@ -211,6 +211,7 @@ class GraphManager {
         var wmoCandidates = new Set();
 
         var m2RenderedThisFrame = new Set();
+        var wmoRenderedThisFrame = new Set();
         if (!this.isWmoMap) {
             //3.1 if this is not WMO map iterate over ADTs
             for (var i = 0; i < 64; i++) {
@@ -234,11 +235,14 @@ class GraphManager {
             });
 
 
+
             wmoCandidates.forEach(function(value) {
                 var wmoObject = value;
                 if(!wmoObject) return;
 
-                wmoObject.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame);
+                if (wmoObject.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame)) {
+                    wmoRenderedThisFrame.add(wmoObject);
+                }
             });
 
 

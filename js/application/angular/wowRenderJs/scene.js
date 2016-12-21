@@ -316,6 +316,8 @@ class Scene {
         );
         if (ext) {
             this.comp_tex_ext = ext;
+        }  else {
+            this.comp_tex_ext = null;
         }
     }
     initDepthTextureExt () {
