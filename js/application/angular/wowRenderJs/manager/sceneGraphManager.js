@@ -377,9 +377,11 @@ class GraphManager {
     drawExterior() {
         //1. Draw ADT
 
-        this.sceneApi.shaders.activateAdtShader();
-        for (var i = 0; i < this.adtRenderedThisFrame.length; i++) {
-            this.adtRenderedThisFrame[i].draw();
+        if (config.getRenderAdt()) {
+            this.sceneApi.shaders.activateAdtShader();
+            for (var i = 0; i < this.adtRenderedThisFrame.length; i++) {
+                this.adtRenderedThisFrame[i].draw();
+            }
         }
 
 

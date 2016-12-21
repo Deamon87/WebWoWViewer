@@ -17,7 +17,7 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<div>Group number = {{updateResult.interiorGroupNum}}</div>'+
             '<div>BSP Node Id = {{updateResult.nodeId}}</div>'+
             '<div>Controls: W - forward, S - backward, A - left, D - right, Q - up, E - down, Mouse - move camera</p>'+
-            '<div style="display: block"><input type="checkbox" ng-model="drawAdt" >Draw M2 objects</div>' +
+            '<div style="display: block"><input type="checkbox" ng-model="drawAdt" >Draw ADT objects</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawM2" >Draw M2 objects</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawPortals">Draw portals</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawM2BB">Draw M2 BB</div>' +

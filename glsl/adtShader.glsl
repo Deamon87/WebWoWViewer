@@ -167,15 +167,18 @@ void main() {
     vec2 a2Coords = vec2(1.0/4.0+ ((vChunkCoords.x/8.0) ) /4.0, vChunkCoords.y/8.0 );
 
     vec3 tex4 = texture2D(uLayer3, vTexCoord).rgb;
-    float a4 = BiCubic(uAlphaTexture, a4Coords, 3.0/4.0, 3.999/4.0).a;
+    //float a4 = BiCubic(uAlphaTexture, a4Coords, 3.0/4.0, 3.999/4.0).a;
+    float a4 = texture2D( uAlphaTexture, a4Coords).a;
     a4 = filterFunc(a4);
 
     vec3 tex3 = texture2D(uLayer2, vTexCoord).rgb;
-    float a3 = BiCubic(uAlphaTexture, a3Coords, 2.0/4.0, 2.999/4.0).a;
+    //float a3 = BiCubic(uAlphaTexture, a3Coords, 2.0/4.0, 2.999/4.0).a;
+    float a3 = texture2D( uAlphaTexture, a3Coords).a;
     a3 = filterFunc(a3);
 
     vec3 tex2 = texture2D(uLayer1, vTexCoord).rgb;
-    float a2 = BiCubic(uAlphaTexture, a2Coords, 1.0/4.0, 1.999/4.0).a;
+    //float a2 = BiCubic(uAlphaTexture, a2Coords, 1.0/4.0, 1.999/4.0).a;
+    float a2 = texture2D( uAlphaTexture, a2Coords).a;
     a2 = filterFunc(a2);
 
     vec3 tex1 = texture2D(uLayer0, vTexCoord).rgb;
