@@ -51,6 +51,10 @@ class GraphManager {
     /*
     * Function for adding a new geometry to scene
     * */
+    loadWmoMap(modf) {
+        this.isWmoMap = true;
+        this.wmoMap = this.addWmoObject(modf);
+    }
     addAdtM2Object(doodad) {
         if (this.uniqueIdM2Map[doodad.uniqueId]) {
             return this.uniqueIdM2Map[doodad.uniqueId];
@@ -138,85 +142,53 @@ class GraphManager {
     * Culling algorithms
     * */
     checkCulling(frustumMat, lookAtMat4) {
-        /*if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
-            for (var j = 0; j < this.m2Objects.length; j++) {
-                this.m2Objects[j].setIsRendered(false);
-            }
+        var adtRenderedThisFrame = new Set();
+        var m2RenderedThisFrame = new Set();
+        var wmoRenderedThisFrame = new Set();
 
-            //Cull with normal portals
-            //this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
-
+        if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
             var combinedMat4 = mat4.create();
             mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
             var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
             mathHelper.fixNearPlane(frustumPlanes, this.position);
 
             //Travel through portals
-            this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroup, this.position, frustumMat, lookAtMat4, frustumPlanes);
+            this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroup, this.position,
+                frustumMat, lookAtMat4, frustumPlanes, m2RenderedThisFrame);
 
             if (this.currentWMO.exteriorPortals.length > 0) {
-                for (var j = 0; j < this.m2Objects.length; j++) {
-                    this.m2Objects[j].setIsRendered(true);
-                }
-                this.portalCullingAlgo.checkAllDoodads(this.currentWMO, this.position);
-
-                this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
-            } else {
-                this.portalCullingAlgo.checkAllDoodads(this.currentWMO, this.position);
+                this.checkExterior(frustumPlanes, lookAtMat4, 6,
+                    m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame);
             }
+        } else {
+            /* 1. Extract planes */
+            var combinedMat4 = mat4.create();
+            mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
+            var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
+            mathHelper.fixNearPlane(frustumPlanes, this.position);
 
-        } else {          */
-            /*
-            for (var j = 0; j < this.m2Objects.length; j++) {
-                this.m2Objects[j].setIsRendered(true);
-            }
-            */
+            var points = mathHelper.getFrustumPoints(frustumMat, lookAtMat4);
 
-
-        /* 1. Extract planes */
-        var combinedMat4 = mat4.create();
-        mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
-        var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
-        mathHelper.fixNearPlane(frustumPlanes, this.position);
-
-        var points = mathHelper.getFrustumPoints(frustumMat, lookAtMat4);
-
-
-        //Plain check for exterior
-        var renderedThisFrame = this.checkExterior(frustumPlanes, lookAtMat4, 6);
-
-        //TODO: implement portal based interior-aware rendering
-        /*
-         var m2RenderedThisFrame = new Array(m2sToRender);
-        var m2Index = 0;
-        for (var value in this.uniqueIdM2Map) {
-            var m2Object = this.uniqueIdM2Map[value];
-            if(!m2Object || !m2Object.getIsRendered()) continue;
-
-            m2RenderedThisFrame[m2Index++] = m2Object;
+            //Plain check for exterior
+            this.checkExterior(frustumPlanes, lookAtMat4, 6,
+                m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame);
         }
-        for (var value in this.uniqueIdWmoMap) {
-            var wmoObject = this.uniqueIdWmoMap[value];
-            if(!wmoObject || !wmoObject.isCandidateForDrawing) continue;
 
-            m2Index = wmoObject.collectM2s(m2RenderedThisFrame, m2Index);
+        this.adtRenderedThisFrame = Array.from(adtRenderedThisFrame);
+        this.m2RenderedThisFrame = Array.from(m2RenderedThisFrame);
+        this.wmoRenderedThisFrame = Array.from(wmoRenderedThisFrame);
+
+        for (var i = 0; i < this.m2RenderedThisFrame.length; i++){
+            this.m2RenderedThisFrame[i].setIsRendered(true)
         }
-        */
-
-        this.adtRenderedThisFrame = renderedThisFrame[2];
-        this.m2RenderedThisFrame = renderedThisFrame[1];
-        this.wmoRenderedThisFrame = renderedThisFrame[0];
     }
 
-    checkExterior(frustumPlanes, lookAtMat4, num_planes) {
+    checkExterior(frustumPlanes, lookAtMat4, num_planes,
+                  m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame) {
         var self = this;
         /* 3. Check frustum for graphs */
         var m2ObjectsCandidates = new Set();
         var wmoCandidates = new Set();
-
-        var m2RenderedThisFrame = new Set();
-        var wmoRenderedThisFrame = new Set();
-        var adtRenderedThisFrame = new Set();
 
         if (!this.isWmoMap) {
             //3.1 if this is not WMO map iterate over ADTs
@@ -253,6 +225,7 @@ class GraphManager {
             wmoCandidates.forEach(function(value) {
                 var wmoObject = value;
                 if(!wmoObject) return;
+                if(wmoRenderedThisFrame.has(value)) return;
 
                 if (wmoObject.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame)) {
                     wmoRenderedThisFrame.add(wmoObject);
@@ -261,9 +234,9 @@ class GraphManager {
 
 
         } else {
-            this.currentWMO.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, num_planes)
+            //wmoRenderedThisFrame.add(this.wmoMap);
+            //this.wmoMap.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame);
         }
-        return [Array.from(wmoRenderedThisFrame), Array.from(m2RenderedThisFrame), Array.from(adtRenderedThisFrame)];
     }
 
     sortGeometry(frustumMat, lookAtMat4) {

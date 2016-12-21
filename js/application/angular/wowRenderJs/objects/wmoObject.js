@@ -617,6 +617,8 @@ class WmoGroupObject {
         return self.sceneApi.resources.loadWmoGeom(filename).then(
             function success(wmoGeom){
                 self.wmoGeom = wmoGeom;
+                var mogp = self.wmoGeom.wmoGroupFile.mogp;
+                self.dontUseLocalLightingForM2 = ((mogp.Flags & 0x40) > 0) || ((mogp.Flags & 0x8) > 0);
 
                 self.createWorldGroupBB(false);
                 self.loaded = true;
@@ -739,7 +741,12 @@ class WmoGroupObject {
         if (drawDoodads) {
             // Set isCandidate for drawing for m2s
             for (var i = 0; i< this.wmoDoodads.length; i++) {
-                wmoM2Candidates.add(this.wmoDoodads[i]);
+                if (this.wmoDoodads[i]) {
+                    if (this.dontUseLocalLightingForM2) {
+                        this.wmoDoodads[i].setUseLocalLighting(false);
+                    }
+                    wmoM2Candidates.add(this.wmoDoodads[i]);
+                }
             }
         }
     }

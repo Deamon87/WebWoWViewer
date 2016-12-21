@@ -1302,7 +1302,7 @@ class Scene {
         return this.sceneApi.objects.loadAdtM2Obj(mddf);
     }
     loadWMOFile(modf){
-        this.sceneApi.objects.loadAdtWmo(modf);
+        this.graphManager.loadWmoMap(modf);
     }
     loadMap (mapName, x, y){
         var self = this;
@@ -1313,8 +1313,7 @@ class Scene {
             self.currentWdt = wdtFile;
             self.currentMapName = mapName;
             if (wdtFile.isWMOMap) {
-
-                self.sceneApi.objects.loadAdtWmo(wdtFile.modfChunk)
+                self.graphManager.loadWmoMap(wdtFile.modfChunk);
             } else {
                 var adtFileName = "world/maps/"+mapName+"/"+mapName+"_"+x+"_"+y+".adt";
                 self.graphManager.addADTObject(x, y, adtFileName);
