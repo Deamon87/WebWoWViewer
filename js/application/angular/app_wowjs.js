@@ -101,6 +101,52 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 modelName: 'world\\expansion02\\doodads\\ulduar\\ul_statue_02.m2'
             },
             {
+                name: 'Halls Of Reflection',
+                source: 'http',
+                sceneType: 'map',
+                //mapId: 0,
+                mapName: 'HallsOfReflection',
+                x: 5243.2461346537075,
+                y: 1938.6550422193939,
+                z: 717.0332923206179
+            },
+            {
+                name: 'Darkshire',
+                source: 'http',
+                sceneType: 'map',
+                //mapId: 0,
+                mapName: 'Azeroth',
+                x: -10559.7,
+                y: -1189.02,
+                z: 29.0698
+            },
+            {
+                name: 'Tree at dalaran zone (Halls Of Reflection)',
+                source: 'http',
+                sceneType: 'map',
+                //mapId: 0,
+                mapName: 'HallsOfReflection',
+                x: 5551.2461346537075,
+                y: 993.6550422193939,
+                z: 267.0332923206179
+            },
+            {
+                name: 'Karazahn',
+                source: 'http',
+                sceneType: 'map',
+                //mapId: 0,
+                mapName: 'Karazahn',
+                x: -10666.666666656,
+                y: -1600,
+                z: 170
+            },
+            {
+                name: 'Darkshire blacksmith',
+                source: 'http',
+                sceneType: 'wmo',
+                fileName: 'WORLD\\WMO\\AZEROTH\\BUILDINGS\\DUSKWOOD_BLACKSMITH\\DUSKWOOD_BLACKSMITH.WMO'
+            },
+            {
                 name: 'forsakencatapult',
                 source: 'http',
                 sceneType: 'm2',
@@ -203,36 +249,8 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 y: 1489,
                 z: 1474
             },
-            {
-                name: 'Halls Of Reflection',
-                source: 'http',
-                sceneType: 'map',
-                //mapId: 0,
-                mapName: 'HallsOfReflection',
-                x: 5243.2461346537075,
-                y: 1938.6550422193939,
-                z: 717.0332923206179
-            },
-            {
-                name: 'Tree at dalaran zone (Halls Of Reflection)',
-                source: 'http',
-                sceneType: 'map',
-                //mapId: 0,
-                mapName: 'HallsOfReflection',
-                x: 5551.2461346537075,
-                y: 993.6550422193939,
-                z: 267.0332923206179
-            },
-            {
-                name: 'Darkshire',
-                source: 'http',
-                sceneType: 'map',
-                //mapId: 0,
-                mapName: 'Azeroth',
-                x: -10559.7,
-                y: -1189.02,
-                z: 29.0698
-            },
+
+
             {
                 name: 'Forsaken start',
                 source: 'http',
@@ -252,22 +270,6 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 x: 17066.666666656,
                 y: 17066.666666656,
                 z: 0
-            },
-            {
-                name: 'Karazahn',
-                source: 'http',
-                sceneType: 'map',
-                //mapId: 0,
-                mapName: 'Karazahn',
-                x: -10666.666666656,
-                y: -1600,
-                z: 170
-            },
-            {
-                name: 'Darkshire blacksmith',
-                source: 'http',
-                sceneType: 'wmo',
-                fileName: 'WORLD\\WMO\\AZEROTH\\BUILDINGS\\DUSKWOOD_BLACKSMITH\\DUSKWOOD_BLACKSMITH.WMO'
             },
             {
                 name: 'Gnome subway glass(Wotlk)',
