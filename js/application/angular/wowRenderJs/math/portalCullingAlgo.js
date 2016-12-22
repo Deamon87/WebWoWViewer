@@ -4,7 +4,7 @@ import {vec4,vec3} from 'gl-matrix';
 
 
 export default class PortalCullingAlgo {
-    startTraversingFromInteriorWMO (wmoObject, groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes, m2RenderedThisFrame) {
+    startTraversingFromInteriorWMO (wmoObject, groupId, cameraVec4, lookat, frustumPlanes, m2RenderedThisFrame) {
         //CurrentVisibleM2 and visibleWmo is array of global m2 objects, that are visible after frustum
         var cameraLocal = vec4.create();
         vec4.transformMat4(cameraLocal, cameraVec4, wmoObject.placementInvertMatrix);
@@ -28,7 +28,7 @@ export default class PortalCullingAlgo {
         this.interiorPortals = new Array();
 
         this.interiorPortals.push({groupId: groupId, portalIndex : -1, frustumPlanes: [frustumPlanes], level : 0});
-        this.transverseGroupWMO(wmoObject, groupId, true, cameraVec4, cameraLocal, perspectiveMat, lookat, [frustumPlanes], 0, m2RenderedThisFrame);
+        this.transverseGroupWMO(wmoObject, groupId, true, cameraVec4, cameraLocal, lookat, [frustumPlanes], 0, m2RenderedThisFrame);
 
         //If there are portals leading to exterior, we need to go through all exterior wmos.
         //Because it's not guaranteed that exterior wmo, that portals lead to, have portal connections to all visible interior wmo
@@ -38,7 +38,7 @@ export default class PortalCullingAlgo {
                 if ((wmoObject.wmoObj.groupInfos[i].flags & 0x8) > 0) { //exterior
                     if (wmoObject.wmoGroupArray[i].checkGroupFrustum(cameraVec4, frustumPlanes, null, wmoM2Candidates)) {
                         this.exteriorPortals.push({groupId: i, portalIndex : -1, frustumPlanes: [frustumPlanes], level : 0});
-                        this.transverseGroupWMO(wmoObject, i, false, cameraVec4, cameraLocal, perspectiveMat, lookat, [frustumPlanes], 0, m2RenderedThisFrame)
+                        this.transverseGroupWMO(wmoObject, i, false, cameraVec4, cameraLocal, lookat, [frustumPlanes], 0, m2RenderedThisFrame)
                     }
                 }
             }
@@ -56,7 +56,7 @@ export default class PortalCullingAlgo {
         var atLeastOneIsDrawn = false;
         for (var i = 0; i< wmoObject.wmoGroupArray.length; i++) {
             if (transverseVisitedGroups[i]) atLeastOneIsDrawn = true;
-            wmoObject.wmoGroupArray[i].isRendered = transverseVisitedGroups[i];
+            wmoObject.wmoGroupArray[i].setIsRendered(transverseVisitedGroups[i]);
         }
 
         wmoObject.exteriorPortals = this.exteriorPortals;
@@ -64,7 +64,7 @@ export default class PortalCullingAlgo {
 
         return atLeastOneIsDrawn;
     }
-    startTraversingFromExterior(wmoObject, cameraVec4, perspectiveMat, lookat, frustumPlanes, points, visibleM2ObjectSet) {
+    startTraversingFromExterior(wmoObject, cameraVec4, lookat, frustumPlanes, m2RenderedThisFrame) {
         var cameraLocal = vec4.create();
         vec4.transformMat4(cameraLocal, cameraVec4, wmoObject.placementInvertMatrix);
 
@@ -84,28 +84,49 @@ export default class PortalCullingAlgo {
         this.exteriorPortals = new Array();
         this.interiorPortals = new Array();
 
+        var wmoM2Candidates = new Set();
         for (var i = 0; i< wmoObject.wmoGroupArray.length; i++) {
             if ((wmoObject.wmoObj.groupInfos[i].flags & 0x8) > 0) { //exterior
-                if (wmoObject.checkGroupFrustum(cameraVec4, i, frustumPlanes, points)[1]) {
+                if (wmoObject.wmoGroupArray[i].checkGroupFrustum(cameraVec4,  frustumPlanes, null, wmoM2Candidates)) {
                     this.exteriorPortals.push({groupId: i, portalIndex : -1, frustumPlanes: [frustumPlanes], level : 0});
-                    this.transverseGroupWMO(wmoObject, i, false, cameraVec4, cameraLocal, perspectiveMat, lookat, [frustumPlanes], 0, visibleM2ObjectSet)
+                    this.transverseGroupWMO(wmoObject, i, false, cameraVec4, cameraLocal, lookat, [frustumPlanes], 0, wmoM2Candidates)
                 }
             }
         }
 
+
+        wmoM2Candidates.forEach(function (value) {
+            var m2Object = value;
+            if (!m2Object) return;
+
+            var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, 6, false);
+            m2Object.setIsRendered(result);
+            if (result) m2RenderedThisFrame.add(m2Object);
+        });
+
+
+        var atLeastOneIsDrawn = false;
         for (var i = 0; i< wmoObject.wmoGroupArray.length; i++) {
-            wmoObject.drawGroup[i] = transverseVisitedGroups[i];
+            if (transverseVisitedGroups[i]) atLeastOneIsDrawn = true;
+            wmoObject.wmoGroupArray[i].setIsRendered(transverseVisitedGroups[i]);
         }
 
         wmoObject.exteriorPortals = this.exteriorPortals;
         wmoObject.interiorPortals = this.interiorPortals;
+
+        return atLeastOneIsDrawn;
     }
     checkGroupDoodads(wmoObject, groupId, cameraVec4, frustumPlanes, level, m2ObjectSet){
         var groupWmoObject = wmoObject.wmoGroupArray[groupId];
         if (groupWmoObject) {
             for (var j = 0; j < groupWmoObject.wmoDoodads.length; j++) {
                 var mdxObject = groupWmoObject.wmoDoodads[j];
+                if (!mdxObject) continue;
                 if (m2ObjectSet.has(mdxObject)) continue;
+
+                if (groupWmoObject.dontUseLocalLightingForM2) {
+                    mdxObject.setUseLocalLighting(false);
+                }
 
                 var inFrustum = true;
                 if (mdxObject.loaded) {
@@ -119,7 +140,7 @@ export default class PortalCullingAlgo {
             }
         }
     }
-    transverseGroupWMO (wmoObject, groupId, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level, m2ObjectSet) {
+    transverseGroupWMO (wmoObject, groupId, fromInterior, cameraVec4, cameraLocal, lookat, frustumPlanes, level, m2ObjectSet) {
         this.transverseVisitedGroups[groupId] = true;
 
         if (level > 8) return;
@@ -202,12 +223,12 @@ export default class PortalCullingAlgo {
             if ((wmoObject.wmoObj.groupInfos[nextGroup].flags & 0x2000) > 0) {
                 //5.1 The portal is into interior wmo group. So go on.
                 this.interiorPortals.push({groupId: nextGroup, portalIndex : relation.portal_index, frustumPlanes: [thisPortalPlanes], level : level+1});
-                this.transverseGroupWMO(wmoObject, nextGroup, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, [thisPortalPlanes], level+1, m2ObjectSet)
+                this.transverseGroupWMO(wmoObject, nextGroup, fromInterior, cameraVec4, cameraLocal, lookat, [thisPortalPlanes], level+1, m2ObjectSet)
             } else if (fromInterior) {
                 //5.2 The portal is from interior into exterior wmo group.
                 //Make sense to add only if whole traversing process started from interior
                 this.exteriorPortals.push({groupId: nextGroup, portalIndex : relation.portal_index, frustumPlanes: [thisPortalPlanes], level : level+1});
-                this.transverseGroupWMO(wmoObject, nextGroup, false, cameraVec4, cameraLocal, perspectiveMat, lookat, [thisPortalPlanes], level+1, m2ObjectSet)
+                this.transverseGroupWMO(wmoObject, nextGroup, false, cameraVec4, cameraLocal, lookat, [thisPortalPlanes], level+1, m2ObjectSet)
             }
 
             frustumPlanes.length = lastFrustumPlanesLen;

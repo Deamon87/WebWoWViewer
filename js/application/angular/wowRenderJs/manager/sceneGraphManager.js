@@ -153,12 +153,15 @@ class GraphManager {
             mathHelper.fixNearPlane(frustumPlanes, this.position);
 
             //Travel through portals
-            this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroup, this.position,
-                frustumMat, lookAtMat4, frustumPlanes, m2RenderedThisFrame);
+            if (this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroup, this.position,
+                lookAtMat4, frustumPlanes, m2RenderedThisFrame)) {
 
-            if (this.currentWMO.exteriorPortals.length > 0) {
-                this.checkExterior(frustumPlanes, lookAtMat4, 6,
-                    m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame);
+                wmoRenderedThisFrame.add(this.currentWMO);
+
+                if (this.currentWMO.exteriorPortals.length > 0) {
+                    this.checkExterior(frustumPlanes, lookAtMat4, 6,
+                        m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame);
+                }
             }
         } else {
             /* 1. Extract planes */
@@ -226,9 +229,20 @@ class GraphManager {
                 var wmoObject = value;
                 if(!wmoObject) return;
                 if(wmoRenderedThisFrame.has(value)) return;
-
-                if (wmoObject.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame)) {
+                if (!wmoObject.loaded) {
                     wmoRenderedThisFrame.add(wmoObject);
+                    return
+                }
+
+                if (wmoObject.wmoObj.nPortals != 0 && config.getUsePortalCulling()) {
+                    if(self.portalCullingAlgo.startTraversingFromExterior(wmoObject, self.position,
+                        lookAtMat4, frustumPlanes, m2RenderedThisFrame)){
+                        wmoRenderedThisFrame.add(wmoObject);
+                    }
+                } else {
+                    if (wmoObject.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame)) {
+                        wmoRenderedThisFrame.add(wmoObject);
+                    }
                 }
             });
 

@@ -28,21 +28,6 @@ class WmoObject {
         return this.wmoObj && this.wmoObj.portalInfos && (this.wmoObj.portalInfos.length > 0);
     }
 
-
-    resetCandidateForDrawing() {
-        this.isCandidateForDrawing = false;
-        this.isRendered = false;
-
-        if (!this.loaded) return;
-
-        for (var i = 0; i < this.doodadsArray.length; i++){
-            if (this.doodadsArray[i]) {
-                this.doodadsArray[i].resetCandidateForDrawing();
-                this.doodadsArray[i].setIsRendered(false);
-            }
-        }
-
-    }
     isInsideInterior (cameraVec4) {
         if (!this.wmoGroupArray || this.wmoGroupArray.length ==0) return -1;
 
@@ -392,6 +377,10 @@ class WmoObject {
         }
     }
     drawPortalBased(fromInteriorGroup) {
+        if (!this.loaded) {
+            this.startLoading();
+            return;
+        }
         /* Draw */
         var gl = this.sceneApi.getGlContext();
         var sceneApi = this.sceneApi;
@@ -446,7 +435,7 @@ class WmoObject {
             }
             for (var i = 0; i < this.wmoGroupArray.length; i++){
                 if (this.wmoGroupArray[i]){
-                    if (!this.drawGroup[i] && this.drawGroup[i]!==undefined) continue;
+
 
                     var bpsNodeList = null;
                     if (config.getRenderBSP()) {
@@ -662,6 +651,9 @@ class WmoGroupObject {
 
         this.wmoGeom.draw()
     }
+    setIsRendered(value) {
+        this.isRendered = value;
+    }
 
     getIsRendered() {
         return this.isRendered;
@@ -735,18 +727,21 @@ class WmoGroupObject {
 
         var drawGroup = isInsideGroup || mathHelper.checkFrustum(frustumPlanes, bbArray, frustumPlanes.length, points);
 
-        this.isRendered = drawGroup;
+        this.setIsRendered(drawGroup);
 
 
         if (drawDoodads) {
-            // Set isCandidate for drawing for m2s
-            for (var i = 0; i< this.wmoDoodads.length; i++) {
-                if (this.wmoDoodads[i]) {
-                    if (this.dontUseLocalLightingForM2) {
-                        this.wmoDoodads[i].setUseLocalLighting(false);
-                    }
-                    wmoM2Candidates.add(this.wmoDoodads[i]);
+            this.checkDoodads(wmoM2Candidates);
+        }
+        return drawGroup;
+    }
+    checkDoodads(wmoM2Candidates){
+        for (var i = 0; i< this.wmoDoodads.length; i++) {
+            if (this.wmoDoodads[i]) {
+                if (this.dontUseLocalLightingForM2) {
+                    this.wmoDoodads[i].setUseLocalLighting(false);
                 }
+                wmoM2Candidates.add(this.wmoDoodads[i]);
             }
         }
     }
