@@ -259,7 +259,7 @@ class WorldUnit extends WorldObject {
         return model
     }
 
-    update (deltaTime, cameraPos, debugServerTime) {
+    update (deltaTime, cameraPos, viewMat) {
         var objectModelIsLoaded = this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File;
         var objectModelHasBones = objectModelIsLoaded &&  this.objectModel.bonesMatrices;
         /* 1. Calculate current position */
@@ -312,9 +312,7 @@ class WorldUnit extends WorldObject {
             properScale = this.displayIDScale * this.scale;
         }
 
-        if (this.mountModel && this.mountModel.m2Geom != null && this.mountModel.m2Geom.m2File != null &&
-            objectModelIsLoaded
-        ) {
+        if (this.mountModel && objectModelIsLoaded) {
             if (this.isMoving) {
                 var animationId = this.getAnimationIdByMovementFlag();
                 this.mountModel.setAnimationId(animationId, false);
@@ -326,7 +324,9 @@ class WorldUnit extends WorldObject {
             this.mountModel.createPlacementMatrix(this.pos, this.f, properScale);
 
             /* Update bone matrices */
-            this.mountModel.objectUpdate(deltaTime, cameraPos);
+            if (this.mountModel.loaded) {
+                this.mountModel.objectUpdate(deltaTime, cameraPos, viewMat);
+            }
 
             if (this.mountModel.bonesMatrices) {
                 /* Update main model */
@@ -353,23 +353,26 @@ class WorldUnit extends WorldObject {
         }
 
         /* Update bone matrices */
-        this.objectModel.objectUpdate(deltaTime, cameraPos);
+        this.objectModel.objectUpdate(deltaTime, cameraPos, viewMat);
 
-        if (objectModelIsLoaded && objectModelHasBones &&
-            this.helmet && this.helmet.m2Geom != null && this.helmet.m2Geom.m2File != null) {
+        if (objectModelIsLoaded && objectModelHasBones && this.helmet) {
             /* Update helm model */
             this.helmet.createPlacementMatrixFromParent(this.objectModel, 11, properScale);
 
-            this.helmet.objectUpdate(deltaTime, cameraPos);
+            if (this.helmet.loaded) {
+                this.helmet.objectUpdate(deltaTime, cameraPos, viewMat);
+            }
         }
 
 
         //3. Update placement matrices for items
         if ( objectModelIsLoaded && objectModelHasBones) {
             for (var i = 0; i < this.items.length; i++) {
-                if (this.items[i] && this.items[i].m2Geom) {
+                if (this.items[i]) {
                     this.items[i].createPlacementMatrixFromParent(this.objectModel, virtualItemMap[i], properScale);
-                    this.items[i].objectUpdate(deltaTime, cameraPos);
+                    if (this.items[i].loaded) {
+                        this.items[i].objectUpdate(deltaTime, cameraPos, viewMat);
+                    }
                 }
             }
         }

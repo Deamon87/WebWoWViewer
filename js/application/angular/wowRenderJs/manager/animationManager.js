@@ -73,7 +73,7 @@ export default class AnimationManager {
             var tranformMat = origMat[i];
             mat4.subtract(blendTransformMatrix, blendTransformMatrix, tranformMat);
 
-            mat4.multiplyScalar(blendTransformMatrix[i], blendTransformMatrix[i], (1.0 - blendAlpha));
+            mat4.multiplyScalar(blendTransformMatrix, blendTransformMatrix, (1.0 - blendAlpha));
             mat4.add(tranformMat, blendTransformMatrix, tranformMat);
         }
     }
@@ -801,10 +801,16 @@ export default class AnimationManager {
                 cameraRecord.positions,
                 globalSequenceTimes);
 
-            currentPosition[0] += cameraRecord.position_base.x;
-            currentPosition[1] += cameraRecord.position_base.y;
-            currentPosition[2] += cameraRecord.position_base.z;
-
+            if (currentPosition) {
+                currentPosition[0] += cameraRecord.position_base.x;
+                currentPosition[1] += cameraRecord.position_base.y;
+                currentPosition[2] += cameraRecord.position_base.z;
+            } else {
+                currentPosition = new Array(3);
+                currentPosition[0] = cameraRecord.position_base.x;
+                currentPosition[1] = cameraRecord.position_base.y;
+                currentPosition[2] = cameraRecord.position_base.z;
+            }
             var currentTarget = this.getTimedValue(
                 0,
                 animationTime,
@@ -813,10 +819,16 @@ export default class AnimationManager {
                 cameraRecord.target_position,
                 globalSequenceTimes);
 
-            currentTarget[0] += cameraRecord.target_position_base.x;
-            currentTarget[1] += cameraRecord.target_position_base.y;
-            currentTarget[2] += cameraRecord.target_position_base.z;
-
+            if (currentTarget) {
+                currentTarget[0] += cameraRecord.target_position_base.x;
+                currentTarget[1] += cameraRecord.target_position_base.y;
+                currentTarget[2] += cameraRecord.target_position_base.z;
+            } else {
+                currentTarget = new Array(3);
+                currentTarget[0] = cameraRecord.target_position_base.x;
+                currentTarget[1] = cameraRecord.target_position_base.y;
+                currentTarget[2] = cameraRecord.target_position_base.z;
+            }
             //TODO: Implement Roll
 
             //Write values

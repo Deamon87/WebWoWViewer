@@ -117,53 +117,57 @@ class MDXObject {
     load() {
         var self = this;
 
-        var nameTemplate = this.modelName.split('.')[0];
-        var modelFileName = nameTemplate + '.m2';
-        var skinFileName = nameTemplate + '00.skin';
+      try {
+          var nameTemplate = this.modelName.split('.')[0];
+          var modelFileName = nameTemplate + '.m2';
+          var skinFileName = nameTemplate + '00.skin';
 
-        var m2Promise = this.sceneApi.resources.loadM2Geom(modelFileName);
-        var skinPromise = this.sceneApi.resources.loadSkinGeom(skinFileName);
+          var m2Promise = this.sceneApi.resources.loadM2Geom(modelFileName);
+          var skinPromise = this.sceneApi.resources.loadSkinGeom(skinFileName);
 
-        return $q.all([m2Promise,skinPromise]).then(function(result){
-            try {
-                var m2Geom = result[0];
-                var skinGeom = result[1];
+          return $q.all([m2Promise, skinPromise]).then(function (result) {
+              try {
+                  var m2Geom = result[0];
+                  var skinGeom = result[1];
 
-                self.m2Geom = m2Geom;
-                self.skinGeom = skinGeom;
+                  self.m2Geom = m2Geom;
+                  self.skinGeom = skinGeom;
 
-                skinGeom.fixData(m2Geom.m2File);
-                skinGeom.calcBBForSkinSections(m2Geom.m2File);
+                  skinGeom.fixData(m2Geom.m2File);
+                  skinGeom.calcBBForSkinSections(m2Geom.m2File);
 
-                if (!m2Geom) {
-                    $log.log("m2 file failed to load : " + modelName);
-                } else {
-                    var gl = self.sceneApi.getGlContext();
-                    m2Geom.createVAO(skinGeom);
-                    self.hasBillboarded = self.checkIfHasBillboarded();
+                  if (!m2Geom) {
+                      $log.log("m2 file failed to load : " + modelName);
+                  } else {
+                      var gl = self.sceneApi.getGlContext();
+                      m2Geom.createVAO(skinGeom);
+                      self.hasBillboarded = self.checkIfHasBillboarded();
 
-                    self.makeTextureArray(self.meshIds, self.replaceTextures);
-                    self.updateLocalBB([self.m2Geom.m2File.BoundingCorner1, self.m2Geom.m2File.BoundingCorner2]);
+                      self.makeTextureArray(self.meshIds, self.replaceTextures);
+                      self.updateLocalBB([self.m2Geom.m2File.BoundingCorner1, self.m2Geom.m2File.BoundingCorner2]);
 
-                    self.createAABB();
+                      self.createAABB();
 
-                    self.initAnimationManager(m2Geom.m2File);
-                    self.initBoneAnimMatrices();
-                    self.initSubmeshColors();
-                    self.initTextureAnimMatrices();
-                    self.initTransparencies();
-                    self.initCameras();
-                    self.initLights();
+                      self.initAnimationManager(m2Geom.m2File);
+                      self.initBoneAnimMatrices();
+                      self.initSubmeshColors();
+                      self.initTextureAnimMatrices();
+                      self.initTransparencies();
+                      self.initCameras();
+                      self.initLights();
 
-                    self.postLoad();
-                    self.loaded = true;
-                }
-            } catch (e) {
-                console.log("exception while loading M2", e)
-            }
+                      self.postLoad();
+                      self.loaded = true;
+                  }
+              } catch (e) {
+                  console.log("exception while loading M2", e)
+              }
 
-            return true;
-        });
+              return true;
+          });
+      } catch (e) {
+          console.log(e);
+      }
     }
     postLoad(){
 

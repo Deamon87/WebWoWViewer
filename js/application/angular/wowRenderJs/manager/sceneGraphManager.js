@@ -19,6 +19,7 @@ class GraphManager {
     constructor(sceneApi) {
         this.sceneApi = sceneApi;
         this.m2Objects = [];
+        this.worldM2Objects = [];
         this.instanceMap = {};
         this.instanceList = [];
         this.wmoObjects = [];
@@ -74,7 +75,8 @@ class GraphManager {
         worldMdxObject.sceneNumber = this.globalM2Counter++;
         worldMdxObject.startLoading();
         worldMdxObject.setIsRendered(true);
-        this.m2Objects.push(worldMdxObject);
+
+        this.worldM2Objects.push(worldMdxObject);
         return worldMdxObject;
     }
     addWmoM2Object(doodadDef, placementMatrix, useLocalLighting) {
@@ -176,6 +178,24 @@ class GraphManager {
             this.checkExterior(frustumPlanes, lookAtMat4, 6,
                 m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame);
         }
+
+        //Add WorldObjects
+        for (var i = 0; i < this.worldM2Objects.length; i++) {
+            var m2Object = this.worldM2Objects[i];
+            if(!m2Object ) return;
+
+            var frustumResult = true;
+            if( m2Object.loaded ) {
+                var frustumResult = m2Object.checkFrustumCulling(this.position, frustumPlanes, 6);
+            }
+
+
+            if (frustumResult) {
+                m2Object.setIsRendered(true);
+                m2RenderedThisFrame.add(m2Object);
+            }
+        }
+
 
         this.adtRenderedThisFrame = Array.from(adtRenderedThisFrame);
         this.m2RenderedThisFrame = Array.from(m2RenderedThisFrame);

@@ -1217,7 +1217,7 @@ class Scene {
 
         // Update objects
         var updateRes = this.graphManager.update(deltaTime);
-        this.worldObjectManager.update(deltaTime, cameraPos);
+        this.worldObjectManager.update(deltaTime, cameraPos, lookAtMat4);
 
         this.graphManager.checkCulling(perspectiveMatrixForCulling, lookAtMat4);
         this.graphManager.sortGeometry(perspectiveMatrixForCulling, lookAtMat4);

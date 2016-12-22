@@ -36,10 +36,24 @@ class WorldMDXObject extends MDXObject {
     update (deltaTime, cameraPos, viewMat) {
 
     }
-    objectUpdate (deltaTime, cameraPos) {
+    objectUpdate (deltaTime, cameraPos, viewMat) {
         if (!this.getIsRendered()) return;
-        super.update(deltaTime, cameraPos);
+        super.update(deltaTime, cameraPos, viewMat);
     }
+    createAABB() {
+        if (!this.placementMatrix || !this.loaded) {
+            return
+        }
+        super.createAABB();
+    }
+    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes) {
+        if (!this.aabb) return false;
+        if (!this.loaded) return true;
+
+        return super.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
+    }
+
+
     createPlacementMatrix (pos, f, scale, rotationMatrix){
         var placementMatrix = mat4.create();
         mat4.identity(placementMatrix);
@@ -59,6 +73,8 @@ class WorldMDXObject extends MDXObject {
 
         this.placementInvertMatrix = placementInvertMatrix;
         this.placementMatrix = placementMatrix;
+
+        this.createAABB();
     }
     createPlacementMatrixFromParent (parentM2, attachment, scale){
         var parentM2File = parentM2.m2Geom.m2File;
@@ -85,6 +101,8 @@ class WorldMDXObject extends MDXObject {
 
         this.placementInvertMatrix = placementInvertMatrix;
         this.placementMatrix = placementMatrix;
+
+        this.createAABB();
     }
 
     /* Draw functions */

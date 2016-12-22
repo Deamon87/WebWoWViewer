@@ -1,9 +1,9 @@
 import WorldUnit from '../objects/worldObjects/worldUnit.js'
 import WorldGameObject from '../objects/worldObjects/worldGameObject.js'
 //import packetList from '../../../mountedNpc.json'
-import packetList from '../../../packet.json'
+//import packetList from '../../../packet.json'
 //import packetList from '../../../attacketdMinion1.json'
-//let packetList = [];
+let packetList = [];
 import {vec3} from 'gl-matrix'
 
 class WorldObjectManager {
@@ -15,7 +15,7 @@ class WorldObjectManager {
         this.playPackets = false;
     }
 
-    update(deltaTime, cameraPos) {
+    update(deltaTime, cameraPos, viewMat) {
         /* 1. Load the next portion of packets */
         if (this.playPackets) {
             this.serverTime += deltaTime;
@@ -35,7 +35,7 @@ class WorldObjectManager {
         /* 2. Update models */
         for (var field in this.objectMap) {
             if (this.objectMap.hasOwnProperty(field)) {
-                this.objectMap[field].update(deltaTime, cameraPos, this.serverTime);
+                this.objectMap[field].update(deltaTime, cameraPos, viewMat);
             }
         }
     }
