@@ -56,7 +56,7 @@ export default class PortalCullingAlgo {
         var atLeastOneIsDrawn = false;
         for (var i = 0; i< wmoObject.wmoGroupArray.length; i++) {
             if (transverseVisitedGroups[i]) atLeastOneIsDrawn = true;
-            wmoObject.drawGroup[i] = transverseVisitedGroups[i];
+            wmoObject.wmoGroupArray[i].isRendered = transverseVisitedGroups[i];
         }
 
         wmoObject.exteriorPortals = this.exteriorPortals;

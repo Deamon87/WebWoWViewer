@@ -426,7 +426,7 @@ class WmoObject {
             if (this.exteriorPortals.length > 0) {
                 for (var i = 0; i< this.wmoGroupArray.length; i++) {
                     if ((this.wmoObj.groupInfos[i].flags & 0x8) > 0) { //exterior
-                        if (this.drawGroup[i]) {
+                        if (this.wmoGroupArray[i].isRendered) {
                             this.wmoGroupArray[i].draw();
                         }
                     }

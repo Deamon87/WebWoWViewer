@@ -8,7 +8,7 @@ var renderAdt = true;
 var renderMd2 = true;
 var renderBSP = false;
 var renderPortals = false;
-var usePortalCulling = false;
+var usePortalCulling = true;
 
 var drawWmoBB = false;
 var drawM2BB = false;
