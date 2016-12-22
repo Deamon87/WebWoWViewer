@@ -44,7 +44,6 @@ class M2Geom {
 
     createVAO(skinObject){
         var gl = this.gl;
-        var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
         var vao_ext = this.sceneApi.extensions.getVaoExt();
 
         if (vao_ext) {
@@ -156,10 +155,12 @@ class M2Geom {
 
         var diffuseFound = false;
         for (var i = 0; i < lights.length; i++) {
-            if (lights[i].ambient_color[0] != 0 && lights[i].ambient_color[1] != 0 && lights[i].ambient_color[2] != 0) {
-                gl.uniform4fv(uniforms.uPcColor, new Float32Array(lights[i].ambient_color));
-                diffuseFound = true;
-                break;
+            if (lights[i].ambient_color) {
+                if (lights[i].ambient_color[0] != 0 && lights[i].ambient_color[1] != 0 && lights[i].ambient_color[2] != 0) {
+                    gl.uniform4fv(uniforms.uPcColor, new Float32Array(lights[i].ambient_color));
+                    diffuseFound = true;
+                    break;
+                }
             }
         }
 
@@ -221,6 +222,7 @@ class M2Geom {
                         gl.disable(gl.BLEND);
                         //gl.uniform1f(uniforms.uAlphaTest, 2.9);
                         gl.uniform1f(uniforms.uAlphaTest, 0.903921569);
+                        //gl.uniform1f(uniforms.uAlphaTest, meshColor[4]*transparency*(252/255));
                         break;
                     case 2 : //Blend_Alpha
                         gl.uniform1f(uniforms.uAlphaTest, -1);

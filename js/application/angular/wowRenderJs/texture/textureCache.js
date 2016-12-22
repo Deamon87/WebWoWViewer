@@ -39,10 +39,10 @@ class Texture {
         }
 
         /* S3TC is not supported on mobile platforms */
-        var useDXT1Decoding = (!((ext != undefined) && (ext.COMPRESSED_RGB_S3TC_DXT1_EXT != undefined))) ||
-            (!((ext != undefined) && (ext.COMPRESSED_RGBA_S3TC_DXT1_EXT != undefined)));
-        var useDXT3Decoding = !((ext != undefined) && (ext.COMPRESSED_RGBA_S3TC_DXT3_EXT != undefined));
-        var useDXT5Decoding = !((ext != undefined) && (ext.COMPRESSED_RGBA_S3TC_DXT5_EXT != undefined));
+        var useDXT1Decoding = ((!ext) || (!ext.COMPRESSED_RGB_S3TC_DXT1_EXT)) ||
+            ((!ext) || (!ext.COMPRESSED_RGBA_S3TC_DXT1_EXT));
+        var useDXT3Decoding = ((!ext) || (!ext.COMPRESSED_RGBA_S3TC_DXT3_EXT));
+        var useDXT5Decoding = ((!ext) || (!ext.COMPRESSED_RGBA_S3TC_DXT5_EXT));
 
 
         /* Hack for DXT1. It still falls on gpu when width is not equal to height and one of them is less than 8 :/ */
@@ -111,11 +111,7 @@ class Texture {
 
         if (generateMipMaps) {
             gl.generateMipmap(gl.TEXTURE_2D);
-            if (gl.getError() !=0 ) {
-                debugger;
-            }
         }
-
 
         gl.bindTexture(gl.TEXTURE_2D, null);
     };

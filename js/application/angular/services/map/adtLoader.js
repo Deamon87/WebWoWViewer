@@ -79,12 +79,14 @@ const handlerTable = {
         var ofsNormal             = chunk.readUint32(offs);
         var ofsLayer              = chunk.readUint32(offs);
         var ofsRefs               = chunk.readUint32(offs);
+        mcnkObj.m2Refs = [];
         var ofsAlpha              = chunk.readUint32(offs);
         mcnkObj.sizeAlpha         = chunk.readUint32(offs);
         var ofsShadow             = chunk.readUint32(offs);
         mcnkObj.sizeShadow        = chunk.readUint32(offs);
         mcnkObj.areaid            = chunk.readUint32(offs);
         mcnkObj.nMapObjRefs       = chunk.readUint32(offs);
+        mcnkObj.wmoRefs = [];
         mcnkObj.holes             = chunk.readUint32(offs);
         mcnkObj.s1                 = chunk.readUint16(offs);
         mcnkObj.s2                 = chunk.readUint16(offs);
@@ -110,6 +112,9 @@ const handlerTable = {
         chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsLayer, mcnkObj);
         //4. Load MCAL
         chunkedFile.processChunkAtOffsWithSize(chunk.chunkOffset + ofsAlpha, mcnkObj.sizeAlpha, mcnkObj);
+        //5. Load MCRF
+
+        chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsRefs, mcnkObj);
     },
     "MCVT" : function (mcnkObj, chunk, chunkedFile) {
         var offs = {offs : 0};
@@ -155,7 +160,14 @@ const handlerTable = {
 
         mcnkObj.alphaArray = alphaArray;
     },
+    "MCRF": function (mcnkObj, chunk, chunkedFile) {
+        var offset = {offs: 0};
+        var m2Refs = chunk.readInt32Array(offset, mcnkObj.nDoodadRefs);
+        var wmoRefs = chunk.readInt32Array(offset, mcnkObj.nMapObjRefs);
 
+        mcnkObj.m2Refs = m2Refs;
+        mcnkObj.wmoRefs = wmoRefs;
+    },
     "MTEX" : function (adtObject, chunk) {
         var offset = {offs: 0};
         var textureNames = [];

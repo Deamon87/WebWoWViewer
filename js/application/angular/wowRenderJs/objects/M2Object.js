@@ -57,10 +57,24 @@ class MDXObject {
         return !(this.animationManager.firstCalc || this.animationManager.isAnimated);
     }
     setLeftHandClosed(value) {
+        if (!this.animationManager) {
+            this.startLeftHandClosed = value;
+            return;
+        }
+
         this.animationManager.setLeftHandClosed(value);
     }
     setRightHandClosed(value) {
+        if (!this.animationManager) {
+            this.startRightHandClosed = value;
+            return;
+        }
+
         this.animationManager.setRightHandClosed(value);
+    }
+    resetCandidateForDrawing(){
+        this.isCandidateForDrawing = false;
+        this.isRendered = false
     }
 
     createAABB(){
@@ -111,37 +125,41 @@ class MDXObject {
         var skinPromise = this.sceneApi.resources.loadSkinGeom(skinFileName);
 
         return $q.all([m2Promise,skinPromise]).then(function(result){
-            var m2Geom = result[0];
-            var skinGeom = result[1];
+            try {
+                var m2Geom = result[0];
+                var skinGeom = result[1];
 
-            self.m2Geom = m2Geom;
-            self.skinGeom = skinGeom;
+                self.m2Geom = m2Geom;
+                self.skinGeom = skinGeom;
 
-            skinGeom.fixData(m2Geom.m2File);
-            skinGeom.calcBBForSkinSections(m2Geom.m2File);
+                skinGeom.fixData(m2Geom.m2File);
+                skinGeom.calcBBForSkinSections(m2Geom.m2File);
 
-            if (!m2Geom) {
-                $log.log("m2 file failed to load : "+ modelName);
-            } else {
-                var gl = self.sceneApi.getGlContext();
-                m2Geom.createVAO(skinGeom);
-                self.hasBillboarded = self.checkIfHasBillboarded();
+                if (!m2Geom) {
+                    $log.log("m2 file failed to load : " + modelName);
+                } else {
+                    var gl = self.sceneApi.getGlContext();
+                    m2Geom.createVAO(skinGeom);
+                    self.hasBillboarded = self.checkIfHasBillboarded();
 
-                self.makeTextureArray(self.meshIds, self.replaceTextures);
-                self.updateLocalBB( [self.m2Geom.m2File.BoundingCorner1, self.m2Geom.m2File.BoundingCorner2]);
+                    self.makeTextureArray(self.meshIds, self.replaceTextures);
+                    self.updateLocalBB([self.m2Geom.m2File.BoundingCorner1, self.m2Geom.m2File.BoundingCorner2]);
 
-                self.createAABB();
+                    self.createAABB();
 
-                self.initAnimationManager(m2Geom.m2File);
-                self.initBoneAnimMatrices();
-                self.initSubmeshColors();
-                self.initTextureAnimMatrices();
-                self.initTransparencies();
-                self.initCameras();
-                self.initLights();
+                    self.initAnimationManager(m2Geom.m2File);
+                    self.initBoneAnimMatrices();
+                    self.initSubmeshColors();
+                    self.initTextureAnimMatrices();
+                    self.initTransparencies();
+                    self.initCameras();
+                    self.initLights();
 
-                self.postLoad();
-                self.loaded = true;
+                    self.postLoad();
+                    self.loaded = true;
+                }
+            } catch (e) {
+                console.log("exception while loading M2", e)
             }
 
             return true;
@@ -490,6 +508,10 @@ class MDXObject {
     }
 
     setAnimationId(animationId) {
+        if (!this.loaded) {
+            this.startAnimationId = animationId;
+            return;
+        }
         this.animationManager.setAnimationId(animationId);
     }
 
@@ -568,42 +590,43 @@ class MDXObject {
         var zeroVect = vec3.create();
 
         /* 3.1 Transform aabb with current mat */
-        var transformedAABB = new Array(skinGeom.subMeshBBs.length);
-        for (var i = 0 ; i < transformedAABB.length; i++) {
-            var aabb = skinGeom.subMeshBBs[i];
-            transformedAABB[i] = mathHelper.transformAABBWithMat4(modelViewMat, aabb);
-        }
-
-        QuickSort.multiQuickSort(
-            this.materialArray,
-            0, this.materialArray.length-1,
-            function sortOnLevel (a, b) {
-                return a.layer - b.layer;
-            },
-            function test1 (a, b) {
-                var aabb1_t = transformedAABB[a.meshIndex];
-                var aabb2_t = transformedAABB[b.meshIndex];
-
-                var isInsideAABB1 = mathHelper.isPointInsideAABB(aabb1_t,zeroVect);
-                var isInsideAABB2 = mathHelper.isPointInsideAABB(aabb2_t,zeroVect);
-
-                if (!isInsideAABB1 && isInsideAABB2) {
-                    return 1
-                } else if (isInsideAABB1 && !isInsideAABB2) {
-                    return -1
-                }
-
-                var result;
-                if (isInsideAABB1 && isInsideAABB1) {
-                    result = aabb1_t[0][2] - aabb2_t[0][2];
-                } else if (!(isInsideAABB1 && isInsideAABB1)) {
-                    result = aabb2_t[0][2] - aabb1_t[0][2];
-                }
-
-
-                return result;
+        if (skinGeom.subMeshBBs) {
+            var transformedAABB = new Array(skinGeom.subMeshBBs.length);
+            for (var i = 0; i < transformedAABB.length; i++) {
+                var aabb = skinGeom.subMeshBBs[i];
+                transformedAABB[i] = mathHelper.transformAABBWithMat4(modelViewMat, aabb);
             }
-        );
+
+            QuickSort.multiQuickSort(
+                this.materialArray,
+                0, this.materialArray.length - 1,
+                function sortOnLevel(a, b) {
+                    return a.layer - b.layer;
+                },
+                function test1(a, b) {
+                    var aabb1_t = transformedAABB[a.meshIndex];
+                    var aabb2_t = transformedAABB[b.meshIndex];
+
+                    var isInsideAABB1 = mathHelper.isPointInsideAABB(aabb1_t, zeroVect);
+                    var isInsideAABB2 = mathHelper.isPointInsideAABB(aabb2_t, zeroVect);
+
+                    if (!isInsideAABB1 && isInsideAABB2) {
+                        return 1
+                    } else if (isInsideAABB1 && !isInsideAABB2) {
+                        return -1
+                    }
+
+                    var result;
+                    if (isInsideAABB1 && isInsideAABB1) {
+                        result = aabb1_t[0][2] - aabb2_t[0][2];
+                    } else if (!(isInsideAABB1 && isInsideAABB1)) {
+                        result = aabb2_t[0][2] - aabb1_t[0][2];
+                    }
+
+                    return result;
+                }
+            );
+        }
     }
 
     /*
@@ -624,6 +647,19 @@ class MDXObject {
 
     initAnimationManager (m2File) {
         this.animationManager = new AnimationManager(m2File)
+        if (typeof this.startAnimationId != 'undefined') {
+            this.animationManager.setAnimationId(this.startAnimationId, true);
+            this.startAnimationId = undefined;
+        }
+
+        if (typeof this.startRightHandClosed != 'undefined') {
+            this.animationManager.setRightHandClosed(this.startRightHandClosed);
+            this.startRightHandClosed = undefined;
+        }
+        if (typeof this.startLeftHandClosed != 'undefined') {
+            this.animationManager.setRightHandClosed(this.startLeftHandClosed);
+            this.startLeftHandClosed = undefined;
+        }
     }
     initTextureAnimMatrices() {
         var m2File = this.m2Geom.m2File;
@@ -742,12 +778,15 @@ class MDXObject {
         this.drawMeshes(drawTransparent, instanceCount);
     }
 
+    startLoading() {
+        if (!this.loading) {
+            this.loading = true;
+            MDXObject.prototype.load.apply(this);
+        }
+    }
     draw(drawTransparent, placementMatrix, diffuseColor) {
         if (!this.loaded) {
-            if (!this.loading) {
-                this.loading = true;
-                MDXObject.prototype.load.apply(this);
-            }
+            this.startLoading();
             return;
         }
 

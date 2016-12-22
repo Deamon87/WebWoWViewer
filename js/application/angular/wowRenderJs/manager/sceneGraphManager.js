@@ -3,7 +3,7 @@ import adtObjectFactory from './../objects/adtObject.js';
 import adtM2ObjectFactory from './../objects/adtM2Object.js';
 import wmoM2ObjectFactory from '../objects/wmoM2Object.js';
 import WorldMDXObject from '../objects/worldM2Object.js';
-import wmoObjectFactory from '../objects/wmoObject.js';
+import WmoObject from '../objects/wmoObject.js';
 
 import InstanceManager from './instanceManager.js';
 
@@ -22,8 +22,13 @@ class GraphManager {
         this.instanceMap = {};
         this.instanceList = [];
         this.wmoObjects = [];
+        this.wmoRenderedThisFrame = [];
+
+        this.uniqueIdM2Map = {};
+        this.uniqueIdWmoMap = {};
 
         this.adtObjects = [];
+        this.adtRenderedThisFrame = [];
         this.m2RenderedThisFrame = []
         this.skyDom = null;
 
@@ -46,23 +51,35 @@ class GraphManager {
     /*
     * Function for adding a new geometry to scene
     * */
+    loadWmoMap(modf) {
+        this.isWmoMap = true;
+        this.wmoMap = this.addWmoObject(modf);
+    }
     addAdtM2Object(doodad) {
+        if (this.uniqueIdM2Map[doodad.uniqueId]) {
+            return this.uniqueIdM2Map[doodad.uniqueId];
+        }
+
         var adtM2 = new adtM2ObjectFactory(this.sceneApi);
         adtM2.load(doodad, false);
         adtM2.sceneNumber = this.globalM2Counter++;
+
         this.m2Objects.push(adtM2);
+        this.uniqueIdM2Map[doodad.uniqueId] = adtM2;
         return adtM2;
     }
     addWorldMDXObject(modelName, meshIds,replaceTextures) {
         var worldMdxObject = new WorldMDXObject(this.sceneApi);
         worldMdxObject.setLoadParams(modelName, 0, meshIds,replaceTextures);
         worldMdxObject.sceneNumber = this.globalM2Counter++;
+        worldMdxObject.startLoading();
+        worldMdxObject.setIsRendered(true);
         this.m2Objects.push(worldMdxObject);
         return worldMdxObject;
     }
     addWmoM2Object(doodadDef, placementMatrix, useLocalLighting) {
         var wmoM2Object = new wmoM2ObjectFactory(this.sceneApi);
-        var promise = wmoM2Object.load(doodadDef, placementMatrix, useLocalLighting);
+        wmoM2Object.load(doodadDef, placementMatrix, useLocalLighting);
 
         wmoM2Object.sceneNumber = this.globalM2Counter++;
         this.m2Objects.push(wmoM2Object);
@@ -70,9 +87,16 @@ class GraphManager {
         return wmoM2Object;
     }
     addWmoObject(wmoDef) {
-        var wmoObject = new wmoObjectFactory(this.sceneApi);
-        wmoObject.load(wmoDef);
+        if (this.uniqueIdWmoMap[wmoDef.uniqueId]) {
+            return this.uniqueIdWmoMap[wmoDef.uniqueId];
+        }
+
+        var wmoObject = new WmoObject(this.sceneApi);
+        wmoObject.setLoadingParam(wmoDef);
+
         this.wmoObjects.push(wmoObject);
+        this.uniqueIdWmoMap[wmoDef.uniqueId] = wmoObject;
+
         return wmoObject;
     }
 
@@ -118,90 +142,121 @@ class GraphManager {
     * Culling algorithms
     * */
     checkCulling(frustumMat, lookAtMat4) {
+        var adtRenderedThisFrame = new Set();
+        var m2RenderedThisFrame = new Set();
+        var wmoRenderedThisFrame = new Set();
+
         if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
-            for (var j = 0; j < this.m2Objects.length; j++) {
-                this.m2Objects[j].setIsRendered(false);
-            }
-
-            //Cull with normal portals
-            //this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
-
             var combinedMat4 = mat4.create();
             mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
             var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
             mathHelper.fixNearPlane(frustumPlanes, this.position);
 
             //Travel through portals
-            this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroup, this.position, frustumMat, lookAtMat4, frustumPlanes);
+            if (this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroup, this.position,
+                lookAtMat4, frustumPlanes, m2RenderedThisFrame)) {
 
-            if (this.currentWMO.exteriorPortals.length > 0) {
-                for (var j = 0; j < this.m2Objects.length; j++) {
-                    this.m2Objects[j].setIsRendered(true);
+                wmoRenderedThisFrame.add(this.currentWMO);
+
+                if (this.currentWMO.exteriorPortals.length > 0) {
+                    this.checkExterior(frustumPlanes, lookAtMat4, 6,
+                        m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame);
                 }
-                this.portalCullingAlgo.checkAllDoodads(this.currentWMO, this.position);
-
-                this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
-            } else {
-                this.portalCullingAlgo.checkAllDoodads(this.currentWMO, this.position);
             }
+        } else {
+            /* 1. Extract planes */
+            var combinedMat4 = mat4.create();
+            mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
+            var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
+            mathHelper.fixNearPlane(frustumPlanes, this.position);
+
+            var points = mathHelper.getFrustumPoints(frustumMat, lookAtMat4);
+
+            //Plain check for exterior
+            this.checkExterior(frustumPlanes, lookAtMat4, 6,
+                m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame);
+        }
+
+        this.adtRenderedThisFrame = Array.from(adtRenderedThisFrame);
+        this.m2RenderedThisFrame = Array.from(m2RenderedThisFrame);
+        this.wmoRenderedThisFrame = Array.from(wmoRenderedThisFrame);
+
+        for (var i = 0; i < this.m2RenderedThisFrame.length; i++){
+            this.m2RenderedThisFrame[i].setIsRendered(true)
+        }
+    }
+
+    checkExterior(frustumPlanes, lookAtMat4, num_planes,
+                  m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame) {
+        var self = this;
+        /* 3. Check frustum for graphs */
+        var m2ObjectsCandidates = new Set();
+        var wmoCandidates = new Set();
+
+        if (!this.isWmoMap) {
+            //3.1 if this is not WMO map iterate over ADTs
+            var adt_x = Math.floor((32 - (this.position[1] / 533.33333)));
+            var adt_y = Math.floor((32 - (this.position[0] / 533.33333)));
+
+            for (var i = adt_x-1; i <= adt_x+1; i++) {
+                for (var j = adt_y-1; j <= adt_y+1; j++) {
+                    if ((i < 0) || (i > 64)) continue;
+                    if ((j < 0) || (j > 64)) continue;
+                    var adtObject = this.adtObjectsMap[i][j];
+                    if (adtObject) {
+                        var result = adtObject.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, num_planes, m2ObjectsCandidates, wmoCandidates);
+                        if (result) {
+                            adtRenderedThisFrame.add(adtObject);
+                        }
+                    }
+                }
+            }
+            //3.2 Iterate over all global WMOs and M2s (they have uniqueIds)
+            m2ObjectsCandidates.forEach(function(value) {
+                var m2Object = value;
+                if(!m2Object ) return;
+
+                var frustumResult = m2Object.checkFrustumCulling(self.position, frustumPlanes, num_planes);
+                if (frustumResult) {
+                    m2Object.setIsRendered(true);
+                    m2RenderedThisFrame.add(m2Object);
+                }
+            });
+
+
+
+            wmoCandidates.forEach(function(value) {
+                var wmoObject = value;
+                if(!wmoObject) return;
+                if(wmoRenderedThisFrame.has(value)) return;
+                if (!wmoObject.loaded) {
+                    wmoRenderedThisFrame.add(wmoObject);
+                    return
+                }
+
+                if (wmoObject.wmoObj.nPortals != 0 && config.getUsePortalCulling()) {
+                    if(self.portalCullingAlgo.startTraversingFromExterior(wmoObject, self.position,
+                        lookAtMat4, frustumPlanes, m2RenderedThisFrame)){
+                        wmoRenderedThisFrame.add(wmoObject);
+                    }
+                } else {
+                    if (wmoObject.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame)) {
+                        wmoRenderedThisFrame.add(wmoObject);
+                    }
+                }
+            });
+
 
         } else {
-            for (var j = 0; j < this.m2Objects.length; j++) {
-                this.m2Objects[j].setIsRendered(true);
-            }
-            this.checkNormalFrustumCulling(frustumMat, lookAtMat4);
+            //wmoRenderedThisFrame.add(this.wmoMap);
+            //this.wmoMap.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame);
         }
     }
+
     sortGeometry(frustumMat, lookAtMat4) {
-        for (var j = 0; j < this.m2Objects.length; j++) {
-            this.m2Objects[j].sortMaterials(lookAtMat4);
+        for (var j = 0; j < this.m2RenderedThisFrame.length; j++) {
+            this.m2RenderedThisFrame[j].sortMaterials(lookAtMat4);
         }
-    }
-    checkNormalFrustumCulling(frustumMat, lookAtMat4) {
-        /*1. Extract planes */
-        var combinedMat4 = mat4.create();
-        mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
-        var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
-        mathHelper.fixNearPlane(frustumPlanes, this.position);
-
-        var points = mathHelper.getFrustumPoints(frustumMat, lookAtMat4);
-
-        for (var i = 0; i < this.adtObjects.length; i++) {
-            this.adtObjects[i].checkFrustumCulling(this.position, frustumPlanes, 6);
-        }
-
-        /* 1. First check wmo's */
-        /* Checking group wmo will significatly decrease the amount of m2wmo */
-        for (var i = 0; i < this.wmoObjects.length; i++) {
-            if (config.getUsePortalCulling() && this.wmoObjects[i].hasPortals()) {
-                if (this.currentInteriorGroup >= 0 && this.currentWMO == this.wmoObjects[i]) continue;
-
-                this.portalCullingAlgo.startTraversingFromExterior(this.wmoObjects[i], this.position, frustumMat, lookAtMat4, frustumPlanes, points);
-                this.portalCullingAlgo.checkAllDoodads(this.wmoObjects[i], this.position);
-                //this.wmoObjects[i].setIsRenderedForDoodads();
-            } else {
-                this.wmoObjects[i].resetDrawnForAllGroups(true);
-                this.wmoObjects[i].checkFrustumCulling(this.position, frustumMat, lookAtMat4, frustumPlanes); //The travel through portals happens here too
-                this.wmoObjects[i].setIsRenderedForDoodads();
-            }
-        }
-
-
-        /* 3. Additionally check if distance to object is more than 100 time of it's diameter */
-        /*for (var j = 0; j < this.m2Objects.length; j++) {
-            var currentObj = this.m2Objects[j];
-            if (currentObj.loaded && currentObj.getIsRendered()) {
-                currentObj.setIsRendered(currentObj.getDiameter() * 100 > currentObj.getCurrentDistance());
-            }
-        }*/
-
-        /* 2. If m2Object is renderable after prev phase - check it against frustrum */
-        for (var j = 0; j < this.m2Objects.length; j++) {
-            if (this.m2Objects[j].getIsRendered()) {
-                this.m2Objects[j].checkFrustumCullingAndSet(this.position, frustumPlanes, 6);
-            }
-        }
-
     }
 
     /*
@@ -213,21 +268,22 @@ class GraphManager {
     update(deltaTime) {
         //1. Update all wmo and m2 objects
         var i;
+
         if (config.getRenderM2()) {
-            for (i = 0; i < this.m2Objects.length; i++) {
-                this.m2Objects[i].update(deltaTime, this.position, this.lookAtMat);
+            for (i = 0; i < this.m2RenderedThisFrame.length; i++) {
+                this.m2RenderedThisFrame[i].update(deltaTime, this.position, this.lookAtMat);
             }
         }
 
-        for (i = 0; i < this.wmoObjects.length; i++) {
-            this.wmoObjects[i].update(deltaTime);
+        for (i = 0; i < this.wmoRenderedThisFrame.length; i++) {
+            this.wmoRenderedThisFrame[i].update(deltaTime);
         }
 
         //2. Calc distance every 100 ms
         if (this.currentTime + deltaTime - this.lastTimeDistanceCalc > 100) {
-            for (var j = 0; j < this.m2Objects.length; j++) {
+            for (var j = 0; j < this.m2RenderedThisFrame.length; j++) {
                 //if (this.m2Objects[j].getIsRendered()) {
-                    this.m2Objects[j].calcDistance(this.position);
+                this.m2RenderedThisFrame[j].calcDistance(this.position);
                 //}
             }
 
@@ -235,11 +291,8 @@ class GraphManager {
         }
 
         //3. Sort m2 by distance every 100 ms
-        var m2RenderedThisFrame = this.m2Objects.filter((a) => (a.getIsRendered()));
-        this.m2RenderedThisFrame = m2RenderedThisFrame;
-
         if (this.currentTime + deltaTime - this.lastTimeSort > 100) {
-            m2RenderedThisFrame.sort(this.sortM2);
+            this.m2RenderedThisFrame.sort(this.sortM2);
 
             this.lastTimeSort = this.currentTime;
         }
@@ -249,8 +302,8 @@ class GraphManager {
 
 //        if (this.currentTime + deltaTime - this.lastInstanceCollect > 30) {
             var map = {};
-            for (var j = 0; j < this.m2Objects.length; j++) {
-                var m2Object = this.m2Objects[j];
+            for (var j = 0; j < this.m2RenderedThisFrame.length; j++) {
+                var m2Object = this.m2RenderedThisFrame[j];
 
                 if (!m2Object.m2Geom) continue;
                 if (m2Object.getHasBillboarded() || !m2Object.getIsInstancable()) continue;
@@ -259,7 +312,7 @@ class GraphManager {
                 var fileIdent = m2Object.getFileNameIdent();
 
                 if (map[fileIdent] != undefined) {
-                    this.addM2ObjectToInstanceManager(m2Object)
+                    this.addM2ObjectToInstanceManager(m2Object);
                     if (!map[fileIdent].instanceManager) {
                         this.addM2ObjectToInstanceManager(map[fileIdent]);
                     }
@@ -297,7 +350,6 @@ class GraphManager {
 
         //6. Check fog color every 2 seconds
         if (this.currentTime + deltaTime - this.lastFogParamCheck > 2000) {
-
             this.lastFogParamCheck = this.currentTime;
         }
 
@@ -312,27 +364,29 @@ class GraphManager {
     drawExterior() {
         //1. Draw ADT
 
-        this.sceneApi.shaders.activateAdtShader();
-        for (var i = 0; i < this.adtObjects.length; i++) {
-            this.adtObjects[i].draw();
+        if (config.getRenderAdt()) {
+            this.sceneApi.shaders.activateAdtShader();
+            for (var i = 0; i < this.adtRenderedThisFrame.length; i++) {
+                this.adtRenderedThisFrame[i].draw();
+            }
         }
 
 
         //2.0. Draw WMO bsp highlighted vertices
         if (config.getRenderBSP()) {
             this.sceneApi.shaders.activateDrawPortalShader();
-            for (var i = 0; i < this.wmoObjects.length; i++) {
-                this.wmoObjects[i].drawBspVerticles();
+            for (var i = 0; i < this.wmoRenderedThisFrame.length; i++) {
+                this.wmoRenderedThisFrame[i].drawBspVerticles();
             }
         }
 
         //2. Draw WMO
         this.sceneApi.shaders.activateWMOShader();
-        for (var i = 0; i < this.wmoObjects.length; i++) {
+        for (var i = 0; i < this.wmoRenderedThisFrame.length; i++) {
             if (config.getUsePortalCulling()) {
-                this.wmoObjects[i].drawPortalBased(false)
+                this.wmoRenderedThisFrame[i].drawPortalBased(false)
             } else {
-                this.wmoObjects[i].draw();
+                this.wmoRenderedThisFrame[i].draw();
             }
         }
         this.sceneApi.shaders.deactivateWMOShader();
@@ -348,8 +402,8 @@ class GraphManager {
         //7.1 Draw WMO BBs
         this.sceneApi.shaders.activateBoundingBoxShader();
         if (config.getDrawWmoBB()) {
-            for (var i = 0; i < this.wmoObjects.length; i++) {
-                this.wmoObjects[i].drawBB();
+            for (var i = 0; i < this.wmoRenderedThisFrame.length; i++) {
+                this.wmoRenderedThisFrame[i].drawBB();
             }
         }
 
@@ -435,10 +489,10 @@ class GraphManager {
         this.sceneApi.shaders.activateBoundingBoxShader();
         //7.1 Draw M2 BBs
         if (config.getDrawM2BB()) {
-            for (var i = 0; i < this.m2Objects.length; i++) {
-                if (!this.m2Objects[i].getIsRendered()) continue;
+            for (var i = 0; i < this.m2RenderedThisFrame.length; i++) {
+                if (!this.m2RenderedThisFrame[i].getIsRendered()) continue;
 
-                this.m2Objects[i].drawBB();
+                this.m2RenderedThisFrame[i].drawBB();
             }
         }
     }
@@ -455,8 +509,8 @@ class GraphManager {
             //6. Draw WMO portals
             if (config.getRenderPortals()) {
                 this.sceneApi.shaders.activateDrawPortalShader();
-                for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].drawPortals();
+                for (var i = 0; i < this.wmoRenderedThisFrame.length; i++) {
+                    this.wmoRenderedThisFrame[i].drawPortals();
                 }
             }
             this.drawM2s();
@@ -471,8 +525,8 @@ class GraphManager {
             //6. Draw WMO portals
             if (config.getRenderPortals()) {
                 this.sceneApi.shaders.activateDrawPortalShader();
-                for (var i = 0; i < this.wmoObjects.length; i++) {
-                    this.wmoObjects[i].drawPortals();
+                for (var i = 0; i < this.wmoRenderedThisFrame.length; i++) {
+                    this.wmoRenderedThisFrame[i].drawPortals();
                 }
             }
             this.sceneApi.shaders.activateFrustumBoxShader();

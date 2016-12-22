@@ -3,14 +3,23 @@ import mathHelper from './../math/mathHelper.js';
 class ADTObject {
     constructor(sceneApi, wdtFile) {
         this.sceneApi = sceneApi;
-        this.m2Array = [];
         this.drawChunk = new Array(256);
         this.aabbs = [];
-        for (var i = 0; i < 256; i++) this.drawChunk[i] = true;
+        this.m2Array = null;
+        this.wmoArray = null;
+
+        for (var i = 0; i < 256; i++) {
+            this.drawChunk[i] = true;
+        }
     }
 
-    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes) {
+    checkFrustumCulling (cameraVec4, frustumPlanes, lookAtMat4, num_planes, m2ObjectsCandidates, wmoCandidates) {
+        if (!this.adtGeom) return false;
+        var adtFile = this.adtGeom.adtFile;
+        var atLeastOneIsDrawn = false;
+
         for (var i = 0; i < 256; i++) {
+            var mcnk = adtFile.mcnkObjs[i];
             var aabb = this.aabbs[i];
             if (!aabb) continue;
 
@@ -21,13 +30,34 @@ class ADTObject {
                 cameraVec4[2] > aabb[0][2] && cameraVec4[2] < aabb[1][2]
             ) {
                 this.drawChunk[i] = true;
+                atLeastOneIsDrawn = true;
                 continue;
             }
 
             //2. Check aabb is inside camera frustum
             var result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes);
             this.drawChunk[i] = result;
+
+            //3. If the chunk is set to be drawn, set all M2s and WMOs into candidate for drawing
+            if (result) {
+                atLeastOneIsDrawn = true;
+                if (mcnk.m2Refs) {
+                    for (var j= 0; j < mcnk.m2Refs.length; j++) {
+                        var m2Ref = mcnk.m2Refs[j];
+
+                        m2ObjectsCandidates.add(this.m2Array[m2Ref])
+                    }
+                }
+                if (this.wmoArray) {
+                    for (var j = 0; j < mcnk.wmoRefs.length; j++) {
+                        var wmoRef = mcnk.wmoRefs[j];
+                        wmoCandidates.add(this.wmoArray[wmoRef])
+                    }
+                }
+            }
         }
+
+        return atLeastOneIsDrawn;
     }
 
     calcBoundingBoxes() {
@@ -63,12 +93,12 @@ class ADTObject {
         var m2Positions = this.adtGeom.adtFile.mddf;
         if (!m2Positions) return;
 
-        this.m2Array = [];
+        this.m2Array = new Array(m2Positions.length);
         for (var i = 0; i < m2Positions.length; i++) {
             //for (var i = 0; i < (doodadsSet.doodads.length > 10) ? 10 : doodadsSet.doodads.length; i++) {
             var doodad = m2Positions[i];
             //this.loadM2(i, doodad);
-            this.sceneApi.objects.loadAdtM2Obj(doodad);
+            this.m2Array[i] = this.sceneApi.objects.loadAdtM2Obj(doodad);
         }
     }
 
@@ -78,10 +108,11 @@ class ADTObject {
         if (!wmoPositions) return;
 
 
-        this.wmoArray = [];
-        wmoPositions.forEach(function (wmoDef) {
-            self.sceneApi.objects.loadAdtWmo(wmoDef);
-        });
+        this.wmoArray = new Array(wmoPositions.length);
+        for (var i = 0; i < wmoPositions.length; i++) {
+            var wmoDef = wmoPositions[i];
+            self.wmoArray[i] = self.sceneApi.objects.loadAdtWmo(wmoDef);
+        }
     }
 
     load(modelName) {
@@ -91,9 +122,10 @@ class ADTObject {
         adtPromise.then(function (result) {
             self.adtGeom = result;
 
+            self.calcBoundingBoxes();
+
             self.loadM2s();
             self.loadWmos();
-            self.calcBoundingBoxes();
         });
     }
 
@@ -103,4 +135,6 @@ class ADTObject {
         }
     }
 }
+
+
 export default ADTObject;

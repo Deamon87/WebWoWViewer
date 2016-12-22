@@ -261,7 +261,7 @@ class WorldUnit extends WorldObject {
 
     update (deltaTime, cameraPos, debugServerTime) {
         var objectModelIsLoaded = this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File;
-        var objectModelHasBones = objectModelIsLoaded && this.objectModel.bonesMatrices;
+        var objectModelHasBones = objectModelIsLoaded &&  this.objectModel.bonesMatrices;
         /* 1. Calculate current position */
         if (this.isMoving) {
             if ((this.currentMovingTime + deltaTime) >= this.totalMovingTime) {
@@ -373,6 +373,8 @@ class WorldUnit extends WorldObject {
                 }
             }
         }
+
+
 
         this.currentTime += deltaTime;
     }

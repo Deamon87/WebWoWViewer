@@ -4,6 +4,7 @@ var archiveUrl = 'http://deamon87.github.io/WoWFiles/shattrath.zip';
 
 var archiveFile = null;
 
+var renderAdt = true;
 var renderMd2 = true;
 var renderBSP = false;
 var renderPortals = false;
@@ -29,12 +30,6 @@ if (savedUrlForLoading) {
 }
 
 var sceneParams = null;
-
-//zip.workerScriptsPath = 'js/lib/bower/zip.js/WebContent/';
-/*zip.workerScripts = {
-    deflater: ['<zip_js_dir>/z-worker.js', '<zip_js_dir>/deflate.js'],
-    inflater: null
-};*/
 
 export default {
     getUrlToLoadWoWFile: function (){
@@ -72,6 +67,12 @@ export default {
     },
     setRenderM2 : function (value) {
         renderMd2 = value;
+    },
+    getRenderAdt : function () {
+        return renderAdt;
+    },
+    setRenderAdt : function (value) {
+        renderAdt = value;
     },
     getRenderBSP : function () {
         return renderBSP;

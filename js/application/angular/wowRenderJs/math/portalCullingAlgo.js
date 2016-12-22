@@ -4,22 +4,12 @@ import {vec4,vec3} from 'gl-matrix';
 
 
 export default class PortalCullingAlgo {
-    startTraversingFromInteriorWMO (wmoObject, groupId, cameraVec4, perspectiveMat, lookat, frustumPlanes) {
+    startTraversingFromInteriorWMO (wmoObject, groupId, cameraVec4, lookat, frustumPlanes, m2RenderedThisFrame) {
         //CurrentVisibleM2 and visibleWmo is array of global m2 objects, that are visible after frustum
         var cameraLocal = vec4.create();
         vec4.transformMat4(cameraLocal, cameraVec4, wmoObject.placementInvertMatrix);
 
         /* 1. Create array of visibility with all false */
-        var traverseDoodadsVis = new Array(wmoObject.doodadsArray.length);
-        for (var i=0; i< traverseDoodadsVis.length; i++) {
-            traverseDoodadsVis[i] = false;
-        }
-        var checkedDoodadsVis = new Array(wmoObject.doodadsArray.length);
-        for (var i = 0; i< checkedDoodadsVis.length; i++) {
-            checkedDoodadsVis[i] = 99;
-        }
-
-
         var transverseVisitedGroups = new Array(wmoObject.wmoGroupArray.length);
         for (var i = 0; i < transverseVisitedGroups.length; i++) {
             transverseVisitedGroups[i] = false;
@@ -30,8 +20,6 @@ export default class PortalCullingAlgo {
             transverseVisitedPortals[i] = false
         }
 
-        this.traverseDoodadsVis = traverseDoodadsVis;
-        this.checkedDoodadsVis = checkedDoodadsVis;
         this.transverseVisitedGroups = transverseVisitedGroups;
         this.transverseVisitedPortals = transverseVisitedPortals;
 
@@ -40,34 +28,43 @@ export default class PortalCullingAlgo {
         this.interiorPortals = new Array();
 
         this.interiorPortals.push({groupId: groupId, portalIndex : -1, frustumPlanes: [frustumPlanes], level : 0});
-        this.transverseGroupWMO(wmoObject, groupId, true, cameraVec4, cameraLocal, perspectiveMat, lookat, [frustumPlanes], 0);
-
-        for (var i = 0; i< traverseDoodadsVis.length; i++) {
-            wmoObject.doodadsArray[i].setIsRendered(!!traverseDoodadsVis[i]);
-        }
-
+        this.transverseGroupWMO(wmoObject, groupId, true, cameraVec4, cameraLocal, lookat, [frustumPlanes], 0, m2RenderedThisFrame);
 
         //If there are portals leading to exterior, we need to go through all exterior wmos.
         //Because it's not guaranteed that exterior wmo, that portals lead to, have portal connections to all visible interior wmo
+        var wmoM2Candidates = new Set();
         if (this.exteriorPortals.length > 0) {
             for (var i = 0; i< wmoObject.wmoGroupArray.length; i++) {
                 if ((wmoObject.wmoObj.groupInfos[i].flags & 0x8) > 0) { //exterior
-                    if (wmoObject.checkGroupFrustum(cameraVec4, i, frustumPlanes)[1]) {
+                    if (wmoObject.wmoGroupArray[i].checkGroupFrustum(cameraVec4, frustumPlanes, null, wmoM2Candidates)) {
                         this.exteriorPortals.push({groupId: i, portalIndex : -1, frustumPlanes: [frustumPlanes], level : 0});
-                        this.transverseGroupWMO(wmoObject, i, false, cameraVec4, cameraLocal, perspectiveMat, lookat, [frustumPlanes], 0)
+                        this.transverseGroupWMO(wmoObject, i, false, cameraVec4, cameraLocal, lookat, [frustumPlanes], 0, m2RenderedThisFrame)
                     }
                 }
             }
         }
 
+        wmoM2Candidates.forEach(function (value) {
+            var m2Object = value;
+            if (!m2Object) return;
+
+            var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, 6, false);
+            m2Object.setIsRendered(result);
+            if (result) m2RenderedThisFrame.add(m2Object);
+        });
+
+        var atLeastOneIsDrawn = false;
         for (var i = 0; i< wmoObject.wmoGroupArray.length; i++) {
-            wmoObject.drawGroup[i] = transverseVisitedGroups[i];
+            if (transverseVisitedGroups[i]) atLeastOneIsDrawn = true;
+            wmoObject.wmoGroupArray[i].setIsRendered(transverseVisitedGroups[i]);
         }
 
         wmoObject.exteriorPortals = this.exteriorPortals;
         wmoObject.interiorPortals = this.interiorPortals;
+
+        return atLeastOneIsDrawn;
     }
-    startTraversingFromExterior(wmoObject, cameraVec4, perspectiveMat, lookat, frustumPlanes, points) {
+    startTraversingFromExterior(wmoObject, cameraVec4, lookat, frustumPlanes, m2RenderedThisFrame) {
         var cameraLocal = vec4.create();
         vec4.transformMat4(cameraLocal, cameraVec4, wmoObject.placementInvertMatrix);
 
@@ -87,124 +84,77 @@ export default class PortalCullingAlgo {
         this.exteriorPortals = new Array();
         this.interiorPortals = new Array();
 
+        var wmoM2Candidates = new Set();
         for (var i = 0; i< wmoObject.wmoGroupArray.length; i++) {
             if ((wmoObject.wmoObj.groupInfos[i].flags & 0x8) > 0) { //exterior
-                if (wmoObject.checkGroupFrustum(cameraVec4, i, frustumPlanes, points)[1]) {
+                if (wmoObject.wmoGroupArray[i].checkGroupFrustum(cameraVec4,  frustumPlanes, null, wmoM2Candidates)) {
                     this.exteriorPortals.push({groupId: i, portalIndex : -1, frustumPlanes: [frustumPlanes], level : 0});
-                    this.transverseGroupWMO(wmoObject, i, false, cameraVec4, cameraLocal, perspectiveMat, lookat, [frustumPlanes], 0)
+                    this.transverseGroupWMO(wmoObject, i, false, cameraVec4, cameraLocal, lookat, [frustumPlanes], 0, wmoM2Candidates)
                 }
             }
         }
 
+
+        wmoM2Candidates.forEach(function (value) {
+            var m2Object = value;
+            if (!m2Object) return;
+
+            var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, 6, false);
+            m2Object.setIsRendered(result);
+            if (result) m2RenderedThisFrame.add(m2Object);
+        });
+
+
+        var atLeastOneIsDrawn = false;
         for (var i = 0; i< wmoObject.wmoGroupArray.length; i++) {
-            wmoObject.drawGroup[i] = transverseVisitedGroups[i];
+            if (transverseVisitedGroups[i]) atLeastOneIsDrawn = true;
+            wmoObject.wmoGroupArray[i].setIsRendered(transverseVisitedGroups[i]);
         }
 
         wmoObject.exteriorPortals = this.exteriorPortals;
         wmoObject.interiorPortals = this.interiorPortals;
+
+        return atLeastOneIsDrawn;
     }
-    checkAllDoodads(wmoObject, cameraVec4) {
-        var traverseDoodadsVis = new Array(wmoObject.doodadsArray.length);
-        for (var i=0; i< traverseDoodadsVis.length; i++) {
-            traverseDoodadsVis[i] = false;
-        }
+    checkGroupDoodads(wmoObject, groupId, cameraVec4, frustumPlanes, level, m2ObjectSet){
+        var groupWmoObject = wmoObject.wmoGroupArray[groupId];
+        if (groupWmoObject) {
+            for (var j = 0; j < groupWmoObject.wmoDoodads.length; j++) {
+                var mdxObject = groupWmoObject.wmoDoodads[j];
+                if (!mdxObject) continue;
+                if (m2ObjectSet.has(mdxObject)) continue;
 
-        var checkedDoodadsVis = new Array(wmoObject.doodadsArray.length);
-        for (var i = 0; i< checkedDoodadsVis.length; i++) {
-            checkedDoodadsVis[i] = 99;
-        }
+                if (groupWmoObject.dontUseLocalLightingForM2) {
+                    mdxObject.setUseLocalLighting(false);
+                }
 
-        this.traverseDoodadsVis = traverseDoodadsVis;
-        this.checkedDoodadsVis = checkedDoodadsVis;
-
-        for (var i = 0; i < this.interiorPortals.length; i++) {
-            var portalInfo = this.interiorPortals[i];
-            this.checkGroupDoodads(wmoObject, portalInfo.groupId, cameraVec4, portalInfo.frustumPlanes, portalInfo.level);
-        }
-        for (var i = 0; i < this.exteriorPortals.length; i++) {
-            var portalInfo = this.exteriorPortals[i];
-            //this.setVisibleGroupDoodads(wmoObject, portalInfo.groupId);
-            this.checkGroupDoodads(wmoObject, portalInfo.groupId, cameraVec4, portalInfo.frustumPlanes, portalInfo.level);
-        }
-
-        for (var i = 0; i< traverseDoodadsVis.length; i++) {
-            wmoObject.doodadsArray[i].setIsRendered(!!traverseDoodadsVis[i]);
-        }
-
-
-    }
-    setVisibleGroupDoodads(wmoObject, groupId){
-        if (wmoObject.wmoGroupArray[groupId]) {
-            var doodadRefs = wmoObject.wmoGroupArray[groupId].wmoGroupFile.doodadRefs;
-            var doodadsSet = wmoObject.currentDoodadSet;
-
-            if (doodadRefs) {
-                for (var j = 0; j < doodadRefs.length; j++) {
-                    var doodadIndex = doodadRefs[j];
-                    if (
-                        (doodadIndex - doodadsSet.index < 0) ||
-                        (doodadIndex > doodadsSet.index + doodadsSet.number - 1)
-                    ) continue;
-
-                    var doodadWmoIndex = doodadIndex - doodadsSet.index;
-                    this.traverseDoodadsVis[doodadWmoIndex] = true;
+                var inFrustum = true;
+                if (mdxObject.loaded) {
+                    for (var i = 0; inFrustum && i < frustumPlanes.length; i++) {
+                        inFrustum = inFrustum && mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes[i], frustumPlanes[i].length);
+                    }
+                }
+                if (inFrustum) {
+                    m2ObjectSet.add(mdxObject);
                 }
             }
         }
     }
-    checkGroupDoodads(wmoObject, groupId, cameraVec4, frustumPlanes, level){
-        if (wmoObject.wmoGroupArray[groupId]) {
-            var doodadRefs = wmoObject.wmoGroupArray[groupId].wmoGroupFile.doodadRefs;
-            var doodadsSet = wmoObject.currentDoodadSet;
-
-            if (doodadRefs) {
-                for (var j = 0; j < doodadRefs.length; j++) {
-                    var doodadIndex = doodadRefs[j];
-                    if (
-                        (doodadIndex - doodadsSet.index < 0) ||
-                        (doodadIndex > doodadsSet.index + doodadsSet.number - 1)
-                    ) continue;
-
-                    var doodadWmoIndex = doodadIndex - doodadsSet.index;
-                    if ((this.checkedDoodadsVis[doodadWmoIndex] < level)){
-                        continue;
-                    } else {
-                        this.checkedDoodadsVis[doodadWmoIndex] = level;
-                    }
-
-                    var mdxObject = wmoObject.doodadsArray[doodadWmoIndex];
-                    //if (mdxObject.getIsRendered()) {
-                    var currVis = this.traverseDoodadsVis[doodadWmoIndex];
-                    if (currVis) continue;
-
-                    var inFrustum = true;
-                    if (mdxObject.loaded) {
-                        for (var i = 0; inFrustum && i < frustumPlanes.length; i++) {
-                            inFrustum = inFrustum && mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes[i], frustumPlanes[i].length);
-                        }
-                    }
-
-                    this.traverseDoodadsVis[doodadWmoIndex] = currVis | inFrustum;
-                    //}
-                }
-            }
-        }
-    }
-    transverseGroupWMO (wmoObject, groupId, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, frustumPlanes, level) {
-        var currentlyDrawnGroups = wmoObject.drawGroup;
-        var self = this;
+    transverseGroupWMO (wmoObject, groupId, fromInterior, cameraVec4, cameraLocal, lookat, frustumPlanes, level, m2ObjectSet) {
         this.transverseVisitedGroups[groupId] = true;
 
         if (level > 8) return;
 
-        if (!wmoObject.wmoGroupArray[groupId]) {
+        if (!wmoObject.wmoGroupArray[groupId].loaded) {
             //The group have not been loaded yet
             return ;
         }
 
+        this.checkGroupDoodads(wmoObject, groupId, cameraVec4, frustumPlanes, level, m2ObjectSet);
+
         //2. Loop through portals of current group
-        var moprIndex = wmoObject.wmoGroupArray[groupId].wmoGroupFile.mogp.moprIndex;
-        var numItems = wmoObject.wmoGroupArray[groupId].wmoGroupFile.mogp.numItems;
+        var moprIndex = wmoObject.wmoGroupArray[groupId].wmoGeom.wmoGroupFile.mogp.moprIndex;
+        var numItems = wmoObject.wmoGroupArray[groupId].wmoGeom.wmoGroupFile.mogp.numItems;
         var portalVertexes = wmoObject.wmoObj.portalVerticles;
 
         for (var j = moprIndex; j < moprIndex+numItems; j++) {
@@ -273,12 +223,12 @@ export default class PortalCullingAlgo {
             if ((wmoObject.wmoObj.groupInfos[nextGroup].flags & 0x2000) > 0) {
                 //5.1 The portal is into interior wmo group. So go on.
                 this.interiorPortals.push({groupId: nextGroup, portalIndex : relation.portal_index, frustumPlanes: [thisPortalPlanes], level : level+1});
-                this.transverseGroupWMO(wmoObject, nextGroup, fromInterior, cameraVec4, cameraLocal, perspectiveMat, lookat, [thisPortalPlanes], level+1)
+                this.transverseGroupWMO(wmoObject, nextGroup, fromInterior, cameraVec4, cameraLocal, lookat, [thisPortalPlanes], level+1, m2ObjectSet)
             } else if (fromInterior) {
                 //5.2 The portal is from interior into exterior wmo group.
                 //Make sense to add only if whole traversing process started from interior
                 this.exteriorPortals.push({groupId: nextGroup, portalIndex : relation.portal_index, frustumPlanes: [thisPortalPlanes], level : level+1});
-                this.transverseGroupWMO(wmoObject, nextGroup, false, cameraVec4, cameraLocal, perspectiveMat, lookat, [thisPortalPlanes], level+1)
+                this.transverseGroupWMO(wmoObject, nextGroup, false, cameraVec4, cameraLocal, lookat, [thisPortalPlanes], level+1, m2ObjectSet)
             }
 
             frustumPlanes.length = lastFrustumPlanesLen;

@@ -316,6 +316,8 @@ class Scene {
         );
         if (ext) {
             this.comp_tex_ext = ext;
+        }  else {
+            this.comp_tex_ext = null;
         }
     }
     initDepthTextureExt () {
@@ -731,7 +733,8 @@ class Scene {
         gl.disable(gl.BLEND);
         //gl.clearColor(0.6, 0.95, 1.0, 1);
         //gl.clearColor(0.117647, 0.207843, 0.392157, 1);
-        gl.clearColor(fogColor[0], fogColor[1], fogColor[2], 1);
+        //gl.clearColor(fogColor[0], fogColor[1], fogColor[2], 1);
+        gl.clearColor(0,0,0,1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.CULL_FACE);
     }
@@ -1299,7 +1302,7 @@ class Scene {
         return this.sceneApi.objects.loadAdtM2Obj(mddf);
     }
     loadWMOFile(modf){
-        this.sceneApi.objects.loadAdtWmo(modf);
+        this.graphManager.loadWmoMap(modf);
     }
     loadMap (mapName, x, y){
         var self = this;
@@ -1310,8 +1313,7 @@ class Scene {
             self.currentWdt = wdtFile;
             self.currentMapName = mapName;
             if (wdtFile.isWMOMap) {
-
-                self.sceneApi.objects.loadAdtWmo(wdtFile.modfChunk)
+                self.graphManager.loadWmoMap(wdtFile.modfChunk);
             } else {
                 var adtFileName = "world/maps/"+mapName+"/"+mapName+"_"+x+"_"+y+".adt";
                 self.graphManager.addADTObject(x, y, adtFileName);
@@ -1345,6 +1347,9 @@ class Scene {
     loadPackets() {
         //this.worldObjectManager.loadAllPacket();
         this.worldObjectManager.startPlayingPackets();
+    }
+    loadAllPackets() {
+        this.worldObjectManager.loadAllPacket();
     }
     copyFirstCameraToDebugCamera() {
         this.secondCamera = this.mainCamera

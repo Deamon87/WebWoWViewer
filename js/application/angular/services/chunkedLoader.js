@@ -68,7 +68,7 @@ export default function (filePath, arrayBuffer) {
                 if (offsetObj.offs + 8 < fileReader.getLength()) {
                     chunkIdent = fileReader.reverseStr(fileReader.readString(offsetObj, 4));
                     chunkSize = fileReader.readInt32(offsetObj);
-                    if (size != undefined) {
+                    if (size || size === 0) {
                         chunkSize = size
                     }
                     chunkDataOff = offsetObj.offs;

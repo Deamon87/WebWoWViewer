@@ -373,6 +373,138 @@ class MathHelper {
             bb_max
         ];
     }
+    /*
+       WMO specific algorithms
+    */
+    static queryBspTree(bbox, nodeId, nodes, bspLeafIdList) {
+        if (nodeId == -1) return;
+
+        if ((nodes[nodeId].planeType&0x4)){
+            bspLeafIdList.push(nodeId);
+        } else if ((nodes[nodeId].planeType == 0)) {
+            var leftSide = MathHelper.checkFrustum([[-1, 0, 0, nodes[nodeId].fDist]], bbox, 1);
+            var rightSide = MathHelper.checkFrustum([[1, 0, 0, -nodes[nodeId].fDist]], bbox, 1);
+
+            if (leftSide) {
+                MathHelper.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)
+            }
+            if (rightSide) {
+                MathHelper.queryBspTree(bbox, nodes[nodeId].children2, nodes, bspLeafIdList)
+            }
+        } else if ((nodes[nodeId].planeType == 1)) {
+            var leftSide = MathHelper.checkFrustum([[0, -1, 0, nodes[nodeId].fDist]], bbox, 1);
+            var rightSide = MathHelper.checkFrustum([[0, 1, 0, -nodes[nodeId].fDist]], bbox, 1);
+
+            if (leftSide) {
+                MathHelper.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)
+            }
+            if (rightSide) {
+                MathHelper.queryBspTree(bbox, nodes[nodeId].children2, nodes, bspLeafIdList)
+            }
+        } else if ((nodes[nodeId].planeType == 2)) {
+            var leftSide = MathHelper.checkFrustum([[0, 0, -1, nodes[nodeId].fDist]], bbox, 1);
+            var rightSide = MathHelper.checkFrustum([[0, 0, 1, -nodes[nodeId].fDist]], bbox, 1);
+
+            if (leftSide) {
+                MathHelper.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)
+            }
+            if (rightSide) {
+                MathHelper.queryBspTree(bbox, nodes[nodeId].children2, nodes, bspLeafIdList)
+            }
+        }
+    }
+
+    static getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, bspLeafList) {
+        var result = 0;
+        var nodes = groupFile.nodes;
+        var topZ = -999999;
+        var bottomZ = 999999;
+        var minPositiveDistanceToCamera = 99999;
+        for (var i = 0; i < bspLeafList.length; i++) {
+            var node = nodes[bspLeafList[i]];
+
+            for (var j = node.firstFace; j < node.firstFace+node.numFaces; j++) {
+                var vertexInd1 = groupFile.indicies[3*groupFile.mobr[j] + 0];
+                var vertexInd2 = groupFile.indicies[3*groupFile.mobr[j] + 1];
+                var vertexInd3 = groupFile.indicies[3*groupFile.mobr[j] + 2];
+
+                var vert1 = vec3.fromValues(
+                    groupFile.verticles[3*vertexInd1 + 0],
+                    groupFile.verticles[3*vertexInd1 + 1],
+                    groupFile.verticles[3*vertexInd1 + 2]);
+
+                var vert2 = vec3.fromValues(
+                    groupFile.verticles[3*vertexInd2 + 0],
+                    groupFile.verticles[3*vertexInd2 + 1],
+                    groupFile.verticles[3*vertexInd2 + 2]);
+
+                var vert3 = vec3.fromValues(
+                    groupFile.verticles[3*vertexInd3 + 0],
+                    groupFile.verticles[3*vertexInd3 + 1],
+                    groupFile.verticles[3*vertexInd3 + 2]);
+
+                //1. Get if camera position inside vertex
+
+                var minX = Math.min(vert1[0], vert2[0], vert3[0]);
+                var minY = Math.min(vert1[1], vert2[1], vert3[1]);
+                var minZ = Math.min(vert1[2], vert2[2], vert3[2]);
+
+                var maxX = Math.max(vert1[0], vert2[0], vert3[0]);
+                var maxY = Math.max(vert1[1], vert2[1], vert3[1]);
+                var maxZ = Math.max(vert1[2], vert2[2], vert3[2]);
+
+                var testPassed = (
+                    (cameraLocal[0] > minX && cameraLocal[0] < maxX) &&
+                    (cameraLocal[1] > minY && cameraLocal[1] < maxY)
+                );
+                if (!testPassed) continue;
+
+                var z = MathHelper.calcZ(vert1,vert2,vert3,cameraLocal[0],cameraLocal[1]);
+
+                //2. Get if vertex top or bottom
+                var normal1 = vec3.fromValues(
+                    groupFile.normals[3*vertexInd1 + 0],
+                    groupFile.normals[3*vertexInd1 + 1],
+                    groupFile.normals[3*vertexInd1 + 2]
+                );
+                var normal2 = vec3.fromValues(
+                    groupFile.normals[3*vertexInd2 + 0],
+                    groupFile.normals[3*vertexInd2 + 1],
+                    groupFile.normals[3*vertexInd2 + 2]
+                );
+                var normal3 = vec3.fromValues(
+                    groupFile.normals[3*vertexInd3 + 0],
+                    groupFile.normals[3*vertexInd3 + 1],
+                    groupFile.normals[3*vertexInd3 + 2]
+                );
+
+                var bary = MathHelper.getBarycentric(
+                    vec3.fromValues(cameraLocal[0], cameraLocal[1], z),
+                    vert1,
+                    vert2,
+                    vert3
+                );
+
+                /*if (testPassed && cameraLocal[2] < vert1[2] || cameraLocal[2] < vert2[2] || cameraLocal[2] < vert3[2]){
+                 debugger;
+                 } */
+                if ((bary[0] < 0) || (bary[1] < 0) || (bary[2] < 0)) continue;
+
+                var normal_avg = bary[0]*normal1[2]+bary[1]*normal2[2]+bary[2]*normal3[2];
+                if (normal_avg > 0) {
+                    //Bottom
+                    var distanceToCamera = cameraLocal[2] - z;
+                    if ((distanceToCamera > 0) && (distanceToCamera < minPositiveDistanceToCamera))
+                        bottomZ = z;
+                } else {
+                    //Top
+                    topZ = Math.max(z, topZ);
+                }
+            }
+
+        }
+        return {'topZ' : topZ, 'bottomZ' : bottomZ};
+    }
 }
 
 export default MathHelper;

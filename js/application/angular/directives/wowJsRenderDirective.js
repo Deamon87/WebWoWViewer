@@ -17,6 +17,7 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<div>Group number = {{updateResult.interiorGroupNum}}</div>'+
             '<div>BSP Node Id = {{updateResult.nodeId}}</div>'+
             '<div>Controls: W - forward, S - backward, A - left, D - right, Q - up, E - down, Mouse - move camera</p>'+
+            '<div style="display: block"><input type="checkbox" ng-model="drawAdt" >Draw ADT objects</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawM2" >Draw M2 objects</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawPortals">Draw portals</div>' +
             '<div style="display: block"><input type="checkbox" ng-model="drawM2BB">Draw M2 BB</div>' +
@@ -27,6 +28,8 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<div style="display: block"><input type="checkbox" ng-model="doubleCameraDebug">Double camera debug</div>'+
             '<div style="display: block"><input type="checkbox" ng-disabled="!doubleCameraDebug" ng-model="useSecondCamera">Control debug camera</div>'+
             '<div style="display: block;"><button ng-disabled="!doubleCameraDebug" ng-style="{color: (doubleCameraDebug) ? 0 : \'rgb(200,200,200)\'};" ng-click="copyToDebugCamera()">Copy main camera to debug camera</button></div>'+
+            '<div style="display: block;"><button ng-click="loadPacket()">Parse packets</button></div>'+
+            '<div style="display: block;"><button ng-click="loadAllPackets()">Parse all packets</button></div>'+
             '</div>'+
             '</div>',
             link: function postLink(scope, element, attrs) {
@@ -76,6 +79,7 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                 }
 
                 scope.drawM2BB = config.getDrawM2BB();
+                scope.drawAdt = config.getRenderAdt();
                 scope.drawWmoBB = config.getDrawWmoBB();
                 scope.drawBSP = config.getRenderBSP();
                 scope.drawM2 = config.getRenderM2();
@@ -87,6 +91,9 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
 
                 scope.$watch('drawM2BB', function (newValue) {
                     config.setDrawM2BB(newValue);
+                });
+               scope.$watch('drawAdt', function (newValue) {
+                    config.setRenderAdt(newValue);
                 });
 
                 scope.$watch('drawWmoBB', function (newValue) {
@@ -131,6 +138,9 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
 
                 scope.loadPacket = function () {
                     sceneObj.loadPackets();
+                };
+                scope.loadAllPackets = function () {
+                    sceneObj.loadAllPackets();
                 };
                 var renderfunc = function(){
                     var currentTimeStamp = new Date().getTime();
