@@ -5,6 +5,9 @@ class WorldObject {
     setPosition(pos) {
         this.pos = pos;
     }
+    getPosition() {
+        return this.pos;
+    }
     setRotation(f) {
         this.f = f;
     }

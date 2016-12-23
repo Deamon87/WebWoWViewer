@@ -164,10 +164,16 @@ class WorldObjectManager {
                     }
                 }
                 packetPoints.push([payload.m_end_x, payload.m_end_y, payload.m_end_z]);
+                this.objectMap[guid].setMovingData(0, moveTime, payload.m_move_flag, packetPoints);
+                if (payload.m_stop_flag == 3) {
+                    this.objectMap[guid].setFacingOnMovementEndGuid(payload.m_stop_flag_turn_to_guid)
+                } else if (payload.m_stop_flag == 4) {
+                    this.objectMap[guid].setFacingOnMovementEndFacing(payload.m_stop_flag_face_to)
+                }
             } else {
-
+                this.objectMap[guid].moveToFromCurrent(1000, packetPoints);
             }
-            this.objectMap[guid].setMovingData(0, moveTime, payload.m_move_flag, packetPoints);
+
         }
     }
     startPlayingPackets() {

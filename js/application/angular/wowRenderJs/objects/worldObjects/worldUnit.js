@@ -266,6 +266,11 @@ class WorldUnit extends WorldObject {
         if (this.isMoving) {
             if ((this.currentMovingTime + deltaTime) >= this.totalMovingTime) {
                 this.setPosition(this.pointsArray[this.pointsArray.length - 1]);
+
+                if (this.onStopfaceToFloat) {
+                    this.setRotation(this.faceToRotation);
+                }
+
                 this.isMoving = false;
             } else {
                 //Take the totalPath by last point
@@ -338,6 +343,8 @@ class WorldUnit extends WorldObject {
             if (this.isMoving) {
                 var animationId = this.getAnimationIdByMovementFlag()
                 this.objectModel.setAnimationId(animationId, false);
+            } else {
+                this.objectModel.setAnimationId(0); //Stand(0) animation
             }
             this.objectModel.createPlacementMatrix(this.pos, this.f, properScale);
         }
@@ -382,6 +389,9 @@ class WorldUnit extends WorldObject {
         this.currentTime += deltaTime;
     }
     setMovingData(currentMovingTime, totalMovingTime, movementFlag, points) {
+        this.onStopfaceToGuid = false;
+        this.onStopfaceToFloat = false;
+
         this.currentMovingTime = currentMovingTime;
         this.totalMovingTime = totalMovingTime;
         this.pointsArray = points;
@@ -405,7 +415,46 @@ class WorldUnit extends WorldObject {
 
         this.isMoving = true;
     }
+    moveToFromCurrent(time, packetPoints) {
+        this.onStopfaceToGuid = false;
+        this.onStopfaceToFloat = false;
 
+        var packetPointsReal = new Array();
+        packetPointsReal.push(this.getPosition());
+        for (var i = 0; i < packetPoints.length; i++) {
+            packetPointsReal.push(packetPoints[i])
+        }
+
+        this.currentMovingTime = 0;
+        this.totalMovingTime = time;
+        this.pointsArray = packetPointsReal;
+
+        //Calculate total path for points
+        var totalPath = 0;
+        var pointsTotalPath = new Array(this.pointsArray.length);
+        var prevPoint = this.pointsArray[0];
+        for (var i = 0; i < this.pointsArray.length; i++) {
+            var deltaX = prevPoint[0] - this.pointsArray[i][0];
+            var deltaY = prevPoint[1] - this.pointsArray[i][1];
+            var deltaZ = prevPoint[2] - this.pointsArray[i][2];
+
+            totalPath += Math.sqrt(deltaX*deltaX + deltaY*deltaY + deltaZ * deltaZ);
+            pointsTotalPath[i] = totalPath;
+
+            prevPoint = this.pointsArray[i];
+        }
+        this.pointsTotalPath = pointsTotalPath;
+        this.movementFlag = 0;
+        this.isMoving = true;
+    }
+    setFacingOnMovementEndGuid(guid) {
+        this.onStopfaceToGuid = true;
+        this.faceToGuid = guid;
+    }
+    setFacingOnMovementEndFacing(float) {
+        this.onStopfaceToFloat = true;
+        this.faceToRotation = float;
+    }
     setCurrentTime(value){
         this.currentTime = value;
     }
