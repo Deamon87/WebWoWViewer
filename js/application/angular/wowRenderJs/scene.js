@@ -1112,7 +1112,7 @@ class Scene {
             cameraVector = this.mainCamera;
         }
 
-        var farPlane = 250;
+        var farPlane = 400;
         var nearPlane = 1;
         var fov = 45.0;
 

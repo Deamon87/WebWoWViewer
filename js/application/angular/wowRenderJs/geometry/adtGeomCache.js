@@ -17,7 +17,7 @@ function parseAlphaTextures(adtObj, wdtObj){
         if (!layers) continue;
         for (var j = 0; j < layers.length; j++ ) {
             var alphaOffs = layers[j].alphaMap;
-            var offO = (64 * j);
+            var offO = j;
             var readCnt = 0;
             var readForThisLayer = 0;
 
@@ -35,14 +35,17 @@ function parseAlphaTextures(adtObj, wdtObj){
                     {
                         if (readForThisLayer == 4096) break;
 
-                        currentLayer[offO++] = alphaArray[alphaOffs];
+                        currentLayer[offO] = alphaArray[alphaOffs];
                         readCnt++; readForThisLayer++;
+                        offO += 4;
 
+                        /*
                         if (readCnt >=64) {
                             offO = offO + xStride - 64;
                             readCnt = 0;
                             readForThisLayer++;
                         }
+                        */
 
                         if( !fill ) alphaOffs++;
                     }
@@ -55,25 +58,29 @@ function parseAlphaTextures(adtObj, wdtObj){
                         for (var iY = 0; iY < 64; iY++){
                             currentLayer[offO] = alphaArray[alphaOffs];
 
-                            offO+=1; readCnt+=1; readForThisLayer+=1; alphaOffs++;
+                            offO += 4; readCnt+=1; readForThisLayer+=1; alphaOffs++;
+                            /*
                             if (readCnt >=64) {
                                 offO = offO + xStride - 64;
                                 readCnt = 0;
                             }
+                            */
                         }
                     }
                 } else {
                     for (var iX =0; iX < 64; iX++) {
                         for (var iY = 0; iY < 32; iY++){
                             //Old world
+                            currentLayer[offO] = (alphaArray[alphaOffs] & 0x0f ) * 17;
+                            offO += 4;
                             currentLayer[offO] =  ((alphaArray[alphaOffs] & 0xf0 ) >> 4) * 17;
-                            currentLayer[offO+1] = (alphaArray[alphaOffs] & 0x0f ) * 17;
-
-                            offO+=2; readCnt+=2; readForThisLayer+=2; alphaOffs++;
+                            offO+=4;
+                            readCnt+=2; readForThisLayer+=2; alphaOffs++;
+                            /*
                             if (readCnt >=64) {
                                 offO = offO + xStride - 64;
                                 readCnt = 0;
-                            }
+                            } */
                         }
                     }
                 }
@@ -121,6 +128,7 @@ class ADTGeom {
         var alphaTexSize = 64;
 
         var texWidth = maxAlphaTexPerChunk * alphaTexSize;
+        //var texWidth = alphaTexSize;
         var texHeight = alphaTexSize;
 
         var megaAlphaTexture = parseAlphaTextures(this.adtFile, this.wdtFile);
@@ -129,9 +137,9 @@ class ADTGeom {
             var alphaTexture = gl.createTexture();
 
             gl.bindTexture(gl.TEXTURE_2D, alphaTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, texWidth, texHeight, 0, gl.ALPHA, gl.UNSIGNED_BYTE, new Uint8Array(megaAlphaTexture[i]));
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texWidth, texHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(megaAlphaTexture[i]));
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR_MIPMAP_LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
