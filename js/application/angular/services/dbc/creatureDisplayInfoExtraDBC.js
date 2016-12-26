@@ -30,7 +30,7 @@ export default function creatureDisplayInfoExtraDBC(){
                 record.beltItem       = dbcObject.readInt32(i, 12);
                 record.legsItem       = dbcObject.readInt32(i, 13);
                 record.bootsItem      = dbcObject.readInt32(i, 14);
-                record.ringsItem      = dbcObject.readInt32(i, 15);
+                record.wristItem      = dbcObject.readInt32(i, 15);
                 record.glovesItem     = dbcObject.readInt32(i, 16);
                 record.tabardItem     = dbcObject.readInt32(i, 17);
                 record.capeItem       = dbcObject.readInt32(i, 18);

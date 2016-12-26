@@ -125,15 +125,90 @@ class WorldUnit extends WorldObject {
         return animationId;
     }
 
-    createModelFromDisplayId(value){
+    createMaterialFromOwnItem(){
+
+    }
+    createMaterialData(replaceTextures, meshIds, race, gender, hairType, hairStyle, faceHairStyle,
+                       helmItem, shoulderItem, capeItem, chestItem, shirtItem, tabardItem, wristItem, glovesItem, beltItem, legsItem, bootsItem) {
+        var idid = this.sceneApi.dbc.getItemDisplayInfoDBC();
         var csd = this.sceneApi.dbc.getCharSectionsDBC();
         var chgd = this.sceneApi.dbc.getCharHairGeosetsDBC();
         var cfhsd = this.sceneApi.dbc.getCharacterFacialHairStylesDBC();
 
+        //Hair
+        var charSect = findSectionRec(csd, race,gender, 3, hairType, hairStyle);
+        if (charSect != null)
+            replaceTextures[6] = charSect.texture1;
+
+        var charHair = findHairGeosetRec(chgd, race, gender, hairType);
+        if ((charHair != null) && (charHair.geoset != 0))
+            meshIds[0] = charHair.geoset;
+
+        //FaceHair
+        var charSect = findSectionRec(csd, race,gender, 2,faceHairStyle, hairStyle);
+        if (charSect != null) {
+            replaceTextures[8] = charSect.texture1;
+        }
+        var charFHStyle = findFaceHairStyleRec(cfhsd, race, gender, faceHairStyle);
+        if (charFHStyle != null) {
+            for (var i = 0; i < 3; i++)
+                if (charFHStyle.geoset[i] != 0)
+                    meshIds[fHairGeoset[i]] = charFHStyle.geoset[i];
+        }
+
+        /* Items */
+        var ItemDInfo = idid[helmItem];
+        if (ItemDInfo) {
+            this.helmet = this.createHelmetFromItemDisplayInfo(race, gender, ItemDInfo)
+        }
+        ItemDInfo = idid[shoulderItem];
+        if (ItemDInfo) {
+
+        }
+        ItemDInfo = idid[shirtItem];
+        if (ItemDInfo){
+
+        }
+        ItemDInfo = idid[chestItem];
+        if (ItemDInfo) {
+            meshIds[8] = 1 + ItemDInfo.geosetGroup_1;
+        }
+
+        ItemDInfo = idid[beltItem];
+        if (ItemDInfo) {
+            meshIds[18] = 1 + ItemDInfo.geosetGroup_3;
+        }
+        ItemDInfo = idid[legsItem];
+        if (ItemDInfo) {
+            if (meshIds[8] > 1)
+                meshIds[13] = 1 + ItemDInfo.geosetGroup_3;
+        }
+        ItemDInfo = idid[bootsItem];
+        if (ItemDInfo) {
+            meshIds[5] = 1 + ItemDInfo.geosetGroup_1;
+        }
+        ItemDInfo = idid[glovesItem];
+        if (ItemDInfo) {
+            meshIds[4] = 1 + ItemDInfo.geosetGroup_1;
+        }
+        ItemDInfo = idid[tabardItem];
+        if (ItemDInfo) {
+            if (meshIds[8] == 1)
+                meshIds[12] = 1 + ItemDInfo.geosetGroup_1;
+        }
+        ItemDInfo = idid[capeItem];
+        if (ItemDInfo) {
+            replaceTextures[2] ='Item\\ObjectComponents\\Cape\\'+ ItemDInfo.leftTextureModel + '.BLP';
+            meshIds[15] = 1 + ItemDInfo.geosetGroup_1;
+        }
+    }
+    createModelFromDisplayId(value) {
+
+
         var cdid = this.sceneApi.dbc.getCreatureDisplayInfoDBC();
         var cdied = this.sceneApi.dbc.getCreatureDisplayInfoExtraDBC();
         var cmdd = this.sceneApi.dbc.getCreatureModelDataDBC();
-        var idid = this.sceneApi.dbc.getItemDisplayInfoDBC();
+
 
         var displayInf = cdid[value];
         var displayIDScale = displayInf.modelScale;
@@ -164,78 +239,15 @@ class WorldUnit extends WorldObject {
 
             replaceTextures[1] = 'Textures\\BakedNpcTextures\\'+displayExtraInfo.skinTexture;
 
-            //Hair
-            var charSect = findSectionRec(csd, displayExtraInfo.race,displayExtraInfo.gender, 3,
-                displayExtraInfo.hairType, displayExtraInfo.hairStyle);
-            if (charSect != null)
-                replaceTextures[6] = charSect.texture1;
+            this.createMaterialData(replaceTextures, meshIds, displayExtraInfo.race, displayExtraInfo.gender,
+                displayExtraInfo.hairType, displayExtraInfo.hairStyle, displayExtraInfo.faceHairStyle,
+                displayExtraInfo.helmItem, displayExtraInfo.shoulderItem, displayExtraInfo.capeItem,
+                displayExtraInfo.cuirassItem, displayExtraInfo.shirtItem, displayExtraInfo.tabardItem, displayExtraInfo.wristItem,
+                displayExtraInfo.glovesItem, displayExtraInfo.beltItem, displayExtraInfo.legsItem ,displayExtraInfo.bootsItem);
 
-            var charHair = findHairGeosetRec(chgd, displayExtraInfo.race, displayExtraInfo.gender, displayExtraInfo.hairType);
-            if ((charHair != null) && (charHair.geoset != 0))
-                meshIds[0] = charHair.geoset;
 
-            //FaceHair
-            var charSect = findSectionRec(csd, displayExtraInfo.race,displayExtraInfo.gender, 2,displayExtraInfo.faceHairStyle,displayExtraInfo.hairStyle);
-            if (charSect != null) {
-                replaceTextures[8] = charSect.texture1;
-            }
-            var charFHStyle = findFaceHairStyleRec(cfhsd, displayExtraInfo.race,
-                displayExtraInfo.gender, displayExtraInfo.faceHairStyle);
-            if (charFHStyle != null) {
-                for (var i = 0; i < 3; i++)
-                    if (charFHStyle.geoset[i] != 0)
-                        meshIds[fHairGeoset[i]] = charFHStyle.geoset[i];
-            }
-
-            /* Items */
-            var ItemDInfo = idid[displayExtraInfo.helmItem];
-            if (ItemDInfo) {
-                this.helmet = this.createHelmetFromItemDisplayInfo(displayExtraInfo.race, displayExtraInfo.gender, ItemDInfo)
-            }
-            ItemDInfo = idid[displayExtraInfo.shoulderItem];
-            if (ItemDInfo) {
-
-            }
-            ItemDInfo = idid[displayExtraInfo.shirtItem];
-            if (ItemDInfo){
-
-            }
-            ItemDInfo = idid[displayExtraInfo.cuirassItem];
-            if (ItemDInfo) {
-                meshIds[8] = 1 + ItemDInfo.geosetGroup_1;
-            }
-
-            ItemDInfo = idid[displayExtraInfo.beltItem];
-            if (ItemDInfo) {
-                meshIds[18] = 1 + ItemDInfo.geosetGroup_3;
-            }
-            ItemDInfo = idid[displayExtraInfo.legsItem];
-            if (ItemDInfo) {
-                if (meshIds[8] > 1)
-                    meshIds[13] = 1 + ItemDInfo.geosetGroup_3;
-            }
-            ItemDInfo = idid[displayExtraInfo.bootsItem];
-            if (ItemDInfo) {
-                meshIds[5] = 1 + ItemDInfo.geosetGroup_1;
-            }
-            ItemDInfo = idid[displayExtraInfo.ringsItem];
-            if (ItemDInfo){
-
-            }
-            ItemDInfo = idid[displayExtraInfo.glovesItem];
-            if (ItemDInfo) {
-                meshIds[4] = 1 + ItemDInfo.geosetGroup_1;
-            }
-            ItemDInfo = idid[displayExtraInfo.tabardItem];
-            if (ItemDInfo) {
-                if (meshIds[8] == 1)
-                    meshIds[12] = 1 + ItemDInfo.geosetGroup_1;
-            }
-            ItemDInfo = idid[displayExtraInfo.capeItem];
-            if (ItemDInfo) {
-                replaceTextures[2] ='Item\\ObjectComponents\\Cape\\'+ ItemDInfo.leftTextureModel + '.BLP';
-                meshIds[15] = 1 + ItemDInfo.geosetGroup_1;
-            }
+        } else {
+            this.createMaterialFromOwnItem();
         }//DisplayExtra
 
 
@@ -509,7 +521,10 @@ class WorldUnit extends WorldObject {
 
 
         //2. Set displayId
-        this.setDisplayId(0)
+        //this.setDisplayId(0)
+    }
+    complete () {
+
     }
 }
 

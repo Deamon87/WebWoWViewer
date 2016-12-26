@@ -1,3 +1,5 @@
+import WorldUnit from './worldUnit.js';
+
 //For ref: http://images.staticjw.com/wor/3751/addon-use-char.png
 const player_item_HEAD      = 1;
 const player_item_NECK      = 2;
@@ -19,3 +21,13 @@ const player_item_OFFHAND   = 17;
 const player_item_RELIC     = 18;
 const player_item_TABARD    = 19;
 
+class WorldPlayer extends WorldUnit {
+    constructor(sceneApi) {
+        super(sceneApi);
+    }
+
+    createMaterialFromOwnItem() {
+
+    }
+}
+export default WorldPlayer;

@@ -170,7 +170,7 @@ export default class PortalCullingAlgo {
 
             var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal));
             dotResult = dotResult + relation.side * 0.01;
-            var isInsidePortalThis = (relation.side < 0) ? (dotResult <= 0) : (dotResult => 0);
+            var isInsidePortalThis = (relation.side < 0) ? (dotResult <= 0) : (dotResult >= 0);
             if (!isInsidePortalThis) continue;
 
             //2.1 If portal has less than 4 vertices - skip it(invalid?)

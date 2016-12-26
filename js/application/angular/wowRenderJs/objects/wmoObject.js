@@ -15,7 +15,9 @@ class WmoObject {
         self.drawDoodads = [];
         //Portal culling variables
         self.drawExterior = false;
+
         self.exteriorPortals = [];
+        self.interiorPortals = [];
 
         self.loaded = false;
         self.loading = false;
@@ -395,7 +397,6 @@ class WmoObject {
 
 
         if (fromInteriorGroup) {
-
             this.sceneApi.shaders.activateWMOShader();
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
             if (this.placementMatrix) {
@@ -424,8 +425,6 @@ class WmoObject {
 
 
             this.sceneApi.shaders.deactivateWMOShader();
-
-
         } else {
             this.sceneApi.shaders.activateWMOShader();
 
@@ -433,17 +432,31 @@ class WmoObject {
             if (this.placementMatrix) {
                 gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
             }
-            for (var i = 0; i < this.wmoGroupArray.length; i++){
-                if (this.wmoGroupArray[i]){
 
+            //Draw interior
+            for (var i = 0; i < this.interiorPortals.length; i++){
+                var groupId = this.interiorPortals[i].groupId;
+                var portalIndex = this.interiorPortals[i].portalIndex;
 
-                    var bpsNodeList = null;
-                    if (config.getRenderBSP()) {
-                        bpsNodeList = (this.currentGroupId == i) ?
-                            this.currentNodeId.map((x) => this.wmoGroupArray[i].wmoGroupFile.nodes[x])
-                            : null;
+                var bpsNodeList = null;
+                if (config.getRenderBSP()) {
+                    bpsNodeList = (this.currentGroupId == i) ?
+                        this.currentNodeId.map((x) => this.wmoGroupArray[i].wmoGroupFile.nodes[x])
+                        : null;
+                }
+
+                if (this.wmoGroupArray[groupId]) {
+                    this.wmoGroupArray[groupId].draw();
+                }
+            }
+            //Draw exterior
+            if (this.exteriorPortals.length > 0) {
+                for (var i = 0; i< this.wmoGroupArray.length; i++) {
+                    if ((this.wmoObj.groupInfos[i].flags & 0x8) > 0) { //exterior
+                        if (this.wmoGroupArray[i] && this.wmoGroupArray[i].isRendered) {
+                            this.wmoGroupArray[i].draw();
+                        }
                     }
-                    this.wmoGroupArray[i].draw(ambientColor, bpsNodeList);
                 }
             }
 

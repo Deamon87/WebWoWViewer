@@ -1,9 +1,11 @@
 import WorldUnit from '../objects/worldObjects/worldUnit.js'
+import WorldPlayer from '../objects/worldObjects/worldPlayer.js'
 import WorldGameObject from '../objects/worldObjects/worldGameObject.js'
 //import packetList from '../../../mountedNpc.json'
-//import packetList from '../../../packet.json'
+import packetList from '../../../packet.json'
+//import packetList from '../../../player.json'
 //import packetList from '../../../attacketdMinion1.json'
-let packetList = [];
+//let packetList = [];
 import {vec3} from 'gl-matrix'
 
 class WorldObjectManager {
@@ -44,7 +46,7 @@ class WorldObjectManager {
         if (packet.opcode == 'SMSG_COMPRESSED_UPDATE_OBJECT') {
             var updates = packet.payload.updates;
             for (var j = 0; j < updates.length; j++) {
-                if (updates[j].updateType == 'UPDATE_TYPE_CREATE_FULL'){
+                if (updates[j].updateType == 'UPDATE_TYPE_CREATE_FULL' || updates[j].updateType == 'UPDATE_TYPE_CREATE_SELF'){
 
                     var update = updates[j];
                     var updateFields = update.updateFields;
@@ -57,9 +59,14 @@ class WorldObjectManager {
 
                     if (this.objectMap[guid]) continue;
 
-                    if (update.obj_type == 3) {
+                    if (update.obj_type == 3 || update.obj_type == 4) {
 
-                        var newWorldUnit = new WorldUnit(this.sceneApi);
+                        var newWorldUnit
+                        if (update.obj_type == 4) {
+                            newWorldUnit = new WorldPlayer(this.sceneApi);
+                        } else {
+                            newWorldUnit = new WorldUnit(this.sceneApi);
+                        }
                         this.objectMap[guid] = newWorldUnit;
 
                         newWorldUnit.setSpeedWalk(update.speedWalk);
@@ -100,6 +107,7 @@ class WorldObjectManager {
                                 )
                             }
                         }
+                        newWorldUnit.complete()
 
                     } else if (update.obj_type == 5) {
                         var newWorldGameObject = new WorldGameObject(this.sceneApi);
@@ -123,6 +131,7 @@ class WorldObjectManager {
                         if (updateFields.hasOwnProperty("OBJECT_FIELD_SCALE_X")) {
                             newWorldGameObject.setScale(updateFields["OBJECT_FIELD_SCALE_X"])
                         }
+
 
                     }
                 }
