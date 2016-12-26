@@ -8,7 +8,7 @@ export default function characterFacialHairStylesDBC(){
 
     if (charHairGeosetsDBCFile === null) {
         charHairGeosetsDBCFile = []
-        var promise = loadDBC("DBFilesClient/CharacterFacialHairStyles.dbc");
+        var promise = loadDBC("DBFilesClient/CharHairGeosets.dbc");
 
         promise.then(function(dbcObject){
             for (var i = 0; i < dbcObject.getRowCount(); i++ ) {

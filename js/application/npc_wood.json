@@ -1,0 +1,156 @@
+[
+  {
+    "date": 1206685007,
+    "tickcount": 396099078,
+    "direction": "ServerToClient",
+    "opcode": "SMSG_COMPRESSED_UPDATE_OBJECT",
+    "payload": {
+      "unk_int8": 0,
+      "updates": [
+        {
+          "updateType": "UPDATE_TYPE_CREATE_FULL",
+          "objectGuid": "17379391150934201555",
+          "obj_type": 3,
+          "create_flag0": 112,
+          "movementflag": 134217985,
+          "movementflagExt": 0,
+          "timestamp": 43199333,
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "f": 0,
+          "unk_long": 0,
+          "speedWalk": 1.6666699647903442,
+          "speedRun": 8.0,
+          "speedRunBack": 4.5,
+          "speedSwim": 4.722222328186035,
+          "speedSwimBack": 2.5,
+          "speedFly": 7.0,
+          "speedFlyBack": 4.5,
+          "speedTurnRate": 3.1415927410125732,
+          "pos_count_flags0": 0,
+          "curr_time": 10860,
+          "total_time": 22704,
+          "unk_10_long": 11,
+          "updateFields": {
+            "OBJECT_FIELD_GUID": [
+              {
+                "index": 0,
+                "value": 4227863763
+              },
+              {
+                "index": 1,
+                "value": 4046454827
+              }
+            ],
+            "OBJECT_FIELD_TYPE": 9,
+            "OBJECT_FIELD_ENTRY": 11260,
+            "OBJECT_FIELD_SCALE_X": 1.0,
+            "UNIT_FIELD_HEALTH": 100,
+            "UNIT_FIELD_POWER3": 100,
+            "UNIT_FIELD_POWER5": 1000000,
+            "UNIT_FIELD_MAXHEALTH": 100,
+            "UNIT_FIELD_MAXPOWER3": 100,
+            "UNIT_FIELD_MAXPOWER5": 1000000,
+            "UNIT_FIELD_LEVEL": 1,
+            "UNIT_FIELD_FACTIONTEMPLATE": 12,
+            "UNIT_FIELD_BYTES_0": [
+              0,
+              1,
+              0,
+              1
+            ],
+            "UNIT_VIRTUAL_ITEM_SLOT_DISPLAY": [
+              {
+                "index": 0,
+                "value": 7428
+              }
+            ],
+            "UNIT_VIRTUAL_ITEM_INFO": [
+              {
+                "index": 0,
+                "value": [
+                  2,
+                  0,
+                  255,
+                  1
+                ]
+              },
+              {
+                "index": 1,
+                "value": [
+                  13,
+                  3,
+                  0,
+                  0
+                ]
+              }
+            ],
+            "UNIT_FIELD_FLAGS": 256,
+            "UNIT_FIELD_AURA": [
+              {
+                "index": 0,
+                "value": 9127
+              }
+            ],
+            "UNIT_FIELD_AURAFLAGS": [
+              {
+                "index": 0,
+                "value": [
+                  25,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ],
+            "UNIT_FIELD_AURALEVELS": [
+              {
+                "index": 0,
+                "value": [
+                  1,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ],
+            "UNIT_FIELD_AURAAPPLICATIONS": [
+              {
+                "index": 0,
+                "value": [
+                  255,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ],
+            "UNIT_FIELD_BASEATTACKTIME": [
+              {
+                "index": 0,
+                "value": 2000
+              },
+              {
+                "index": 1,
+                "value": 2000
+              }
+            ],
+            "UNIT_FIELD_BOUNDINGRADIUS": 1.0,
+            "UNIT_FIELD_COMBATREACH": 1.0,
+            "UNIT_FIELD_DISPLAYID": 89,
+            "UNIT_FIELD_NATIVEDISPLAYID": 11354,
+            "UNIT_MOD_CAST_SPEED": 1.0,
+            "UNIT_NPC_EMOTESTATE": 234,
+            "UNIT_FIELD_BYTES_2": [
+              1,
+              16,
+              0,
+              0
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

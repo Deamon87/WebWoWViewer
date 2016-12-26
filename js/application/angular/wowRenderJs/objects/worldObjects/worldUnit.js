@@ -140,12 +140,12 @@ class WorldUnit extends WorldObject {
         if (charSect != null)
             replaceTextures[6] = charSect.texture1;
 
-        var charHair = findHairGeosetRec(chgd, race, gender, hairType);
+        var charHair = findHairGeosetRec(chgd, race, gender, hairStyle);
         if ((charHair != null) && (charHair.geoset != 0))
             meshIds[0] = charHair.geoset;
 
         //FaceHair
-        var charSect = findSectionRec(csd, race,gender, 2,faceHairStyle, hairStyle);
+        var charSect = findSectionRec(csd, race,gender, 2, faceHairStyle, hairStyle);
         if (charSect != null) {
             replaceTextures[8] = charSect.texture1;
         }
@@ -155,6 +155,11 @@ class WorldUnit extends WorldObject {
                 if (charFHStyle.geoset[i] != 0)
                     meshIds[fHairGeoset[i]] = charFHStyle.geoset[i];
         }
+        //Face
+        var charSect = findSectionRec(csd, race,gender, 1, hairType, hairStyle);
+        if (charSect != null)
+            replaceTextures[6] = charSect.texture1;
+
 
         /* Items */
         var ItemDInfo = idid[helmItem];
@@ -186,6 +191,10 @@ class WorldUnit extends WorldObject {
         ItemDInfo = idid[bootsItem];
         if (ItemDInfo) {
             meshIds[5] = 1 + ItemDInfo.geosetGroup_1;
+            var legLowerTexture = "item/texturecomponents/leglowertexture/" + ItemDInfo.texture_7 + '.BLP';
+            var legHigherTexture = "item/texturecomponents/leguppertexture/" + ItemDInfo.texture_8 + '.BLP';
+
+            //replaceTextures[11] = legHigherTexture;
         }
         ItemDInfo = idid[glovesItem];
         if (ItemDInfo) {
@@ -203,8 +212,7 @@ class WorldUnit extends WorldObject {
         }
     }
     createModelFromDisplayId(value) {
-
-
+        //value = 11354;
         var cdid = this.sceneApi.dbc.getCreatureDisplayInfoDBC();
         var cdied = this.sceneApi.dbc.getCreatureDisplayInfoExtraDBC();
         var cmdd = this.sceneApi.dbc.getCreatureModelDataDBC();
@@ -324,9 +332,9 @@ class WorldUnit extends WorldObject {
         }
 
         /* 2. Update position for all models */
-        var properScale = this.displayIDScale;
+        var properScale = this.displayIDScale * this.modelScale;
         if (this.scale > 0.0001) {
-            properScale = this.displayIDScale * this.scale;
+            properScale = this.displayIDScale * this.modelScale *  this.scale;
         }
 
         if (this.mountModel && objectModelIsLoaded) {

@@ -18,7 +18,8 @@ export default function creatureDisplayInfoExtraDBC(){
 
                 record.unk            = dbcObject.readInt32(i, 1);
                 record.modelName      = dbcObject.readText(i, 2);
-                record.modelScale     = dbcObject.readFloat32(i, 3);
+                record.sizeClass      = dbcObject.readInt32(i, 3);
+                record.modelScale     = dbcObject.readFloat32(i, 4);
 
                 record.minCorner      = {
                     x : dbcObject.readFloat32(i, 18),
