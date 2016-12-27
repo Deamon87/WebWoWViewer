@@ -26,8 +26,31 @@ class WorldPlayer extends WorldUnit {
         super(sceneApi);
     }
 
-    createMaterialFromOwnItem() {
+    setPlayerFaceFeatures(faceFeatures){
+        this.playerFaceFeatures = faceFeatures;
+    }
+    setPlayerSkin(skin) {
+        this.playerSkin = skin;
+    }
+    setPlayerFace(face){
+        this.playerFace = face;
+    }
+    setPlayerHair(hair) {
+        this.playerHair = hair;
+    }
+    setPlayerHairColor(hairColor) {
+        this.playerHairColor = hairColor;
+    }
 
+    createMaterialFromOwnItem(replaceTextures, meshIds) {
+        this.createMaterialData(replaceTextures, meshIds,
+            this.unitRace, this.unitGender,
+
+            this.playerSkin, this.playerFace, this.playerHair, this.playerHairColor, this.playerFaceFeatures,
+
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
+
+        return true;
     }
 }
 export default WorldPlayer;

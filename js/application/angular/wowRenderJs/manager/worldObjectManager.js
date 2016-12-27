@@ -2,9 +2,9 @@ import WorldUnit from '../objects/worldObjects/worldUnit.js'
 import WorldPlayer from '../objects/worldObjects/worldPlayer.js'
 import WorldGameObject from '../objects/worldObjects/worldGameObject.js'
 //import packetList from '../../../mountedNpc.json'
-//import packetList from '../../../47EC8D2E.json'
+import packetList from '../../../47EC8D2E.json'
 //import packetList from '../../../npc_wood.json'
-import packetList from '../../../player.json'
+//import packetList from '../../../player.json'
 //import packetList from '../../../attacketdMinion1.json'
 //let packetList = [];
 import {vec3} from 'gl-matrix'
@@ -114,9 +114,38 @@ class WorldObjectManager {
                                 )
                             }
                         }
+                        if (updateFields.hasOwnProperty('UNIT_FIELD_BYTES_0')) {
+
+                            var race = updateFields['UNIT_FIELD_BYTES_0'][0];
+                            var clas = updateFields['UNIT_FIELD_BYTES_0'][1];
+                            var gender = updateFields['UNIT_FIELD_BYTES_0'][2];
+                            var powerType = updateFields['UNIT_FIELD_BYTES_0'][3];
+                            newWorldUnit.setUnitRace(race);
+                            newWorldUnit.setUnitClass(clas);
+                            newWorldUnit.setUnitGender(gender);
+                            newWorldUnit.setUnitPowerType(powerType);
+                        }
+
                         if (update.obj_type == 4) {
                             //Player
+                            if (updateFields.hasOwnProperty("PLAYER_BYTES")) {
+                                // skin, face, hair, haircolor
+                                var skin = updateFields['PLAYER_BYTES'][0];
+                                var face = updateFields['PLAYER_BYTES'][1];
+                                var hair = updateFields['PLAYER_BYTES'][2];
+                                var hairColor = updateFields['PLAYER_BYTES'][3];
 
+                                newWorldUnit.setPlayerSkin(skin);
+                                newWorldUnit.setPlayerFace(face);
+                                newWorldUnit.setPlayerHair(hair);
+                                newWorldUnit.setPlayerHairColor(hairColor);
+                            }
+
+                            if (updateFields.hasOwnProperty("PLAYER_BYTES_2")) {
+                                // facehair
+                                var faceFeatures = updateFields['PLAYER_BYTES_2'][0];
+                                newWorldUnit.setPlayerFaceFeatures(faceFeatures);
+                            }
 
                         }
 
