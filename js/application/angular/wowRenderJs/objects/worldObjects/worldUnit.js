@@ -140,16 +140,17 @@ class WorldUnit extends WorldObject {
         //Base Skin
         var charSect = findSectionRec(csd, race,gender, 0, -1, skin);
         if (charSect != null) {
+            //TODO: Create a texture composition service
             if (!replaceTextures[1]) {
                 replaceTextures[1] = charSect.texture1
             }
-            debugger;
+            //debugger;
         }
         //Face
         var charSect = findSectionRec(csd, race,gender, 1, face, skin);
         if (charSect != null) {
             //replaceTextures[6] = charSect.texture1;
-            debugger;
+            //debugger;
         }
         //FaceHair
         var charSect = findSectionRec(csd, race,gender, 2, faceHairStyle, hairStyle);
@@ -179,6 +180,15 @@ class WorldUnit extends WorldObject {
         }
         ItemDInfo = idid[shoulderItem];
         if (ItemDInfo) {
+            var leftModel = ItemDInfo.leftModel;
+            var rightModel = ItemDInfo.rightModel;
+
+            var leftModelTexture = ItemDInfo.leftTextureModel;
+            var rightModelTexture = ItemDInfo.rightTextureModel;
+
+            this.leftShoulder = this.createShoulderFromItemDisplayInfo(leftModel, leftModelTexture);
+            this.rightShoulder = this.createShoulderFromItemDisplayInfo(rightModel, rightModelTexture);
+
 
         }
         ItemDInfo = idid[shirtItem];
@@ -294,6 +304,21 @@ class WorldUnit extends WorldObject {
         var model = this.sceneApi.objects.loadWorldM2Obj(modelName, null, replaceTextures);
         return model
     }
+    createShoulderFromItemDisplayInfo(modelName, texture) {
+        var shoulderPath = "item/objectcomponents/shoulder/";
+        var suffix = '';
+        var trueModelName = shoulderPath + modelName;
+        var nameTemplate = trueModelName.split('.')[0];
+        trueModelName = nameTemplate + suffix + '.m2';
+
+        var replaceTextures = [];
+        if (texture)
+            replaceTextures[2] = shoulderPath + texture + '.blp';
+
+
+        var model = this.sceneApi.objects.loadWorldM2Obj(trueModelName, null, replaceTextures);
+        return model
+    }
 
     update (deltaTime, cameraPos, viewMat) {
         var objectModelIsLoaded = this.objectModel && this.objectModel.m2Geom && this.objectModel.m2Geom.m2File;
@@ -404,6 +429,23 @@ class WorldUnit extends WorldObject {
 
             if (this.helmet.loaded) {
                 this.helmet.objectUpdate(deltaTime, cameraPos, viewMat);
+            }
+        }
+
+        if (objectModelIsLoaded && objectModelHasBones && this.leftShoulder) {
+            /* Update left shoulder model */
+            this.leftShoulder.createPlacementMatrixFromParent(this.objectModel, 6, properScale);
+
+            if (this.leftShoulder.loaded) {
+                this.leftShoulder.objectUpdate(deltaTime, cameraPos, viewMat);
+            }
+        }
+        if (objectModelIsLoaded && objectModelHasBones && this.rightShoulder) {
+            /* Update right shoulder model */
+            this.rightShoulder.createPlacementMatrixFromParent(this.objectModel, 5, properScale);
+
+            if (this.rightShoulder.loaded) {
+                this.rightShoulder.objectUpdate(deltaTime, cameraPos, viewMat);
             }
         }
 
