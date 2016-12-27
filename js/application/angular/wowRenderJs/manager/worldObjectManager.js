@@ -3,8 +3,8 @@ import WorldPlayer from '../objects/worldObjects/worldPlayer.js'
 import WorldGameObject from '../objects/worldObjects/worldGameObject.js'
 //import packetList from '../../../mountedNpc.json'
 //import packetList from '../../../47EC8D2E.json'
-import packetList from '../../../npc_wood.json'
-//import packetList from '../../../player.json'
+//import packetList from '../../../npc_wood.json'
+import packetList from '../../../player.json'
 //import packetList from '../../../attacketdMinion1.json'
 //let packetList = [];
 import {vec3} from 'gl-matrix'
@@ -60,8 +60,9 @@ class WorldObjectManager {
 
                     if (this.objectMap[guid]) continue;
 
-                    if (update.obj_type == 3 || update.obj_type == 4) {
 
+                    if (update.obj_type == 3 || update.obj_type == 4) {
+                        //Player + unit;
                         var newWorldUnit
                         if (update.obj_type == 4) {
                             newWorldUnit = new WorldPlayer(this.sceneApi);
@@ -91,7 +92,12 @@ class WorldObjectManager {
                         newWorldUnit.setCurrentTime(update.timestamp);
                         newWorldUnit.setPosition(vec3.fromValues(update.x, update.y, update.z));
                         newWorldUnit.setRotation(update.f);
-                        newWorldUnit.setDisplayId(updateFields["UNIT_FIELD_DISPLAYID"]);
+                        if (updateFields.hasOwnProperty("UNIT_FIELD_DISPLAYID")) {
+                            newWorldUnit.setDisplayId(updateFields["UNIT_FIELD_DISPLAYID"]);
+                        }
+                        if (updateFields.hasOwnProperty("UNIT_FIELD_NATIVEDISPLAYID")) {
+                            newWorldUnit.setNativeDisplayId(updateFields["UNIT_FIELD_NATIVEDISPLAYID"]);
+                        }
                         if (updateFields.hasOwnProperty("UNIT_FIELD_MOUNTDISPLAYID")) {
                             newWorldUnit.setMountDisplayId(updateFields["UNIT_FIELD_MOUNTDISPLAYID"])
                         }
@@ -108,6 +114,12 @@ class WorldObjectManager {
                                 )
                             }
                         }
+                        if (update.obj_type == 4) {
+                            //Player
+
+
+                        }
+
                         newWorldUnit.complete()
 
                     } else if (update.obj_type == 5) {

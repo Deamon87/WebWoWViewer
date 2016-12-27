@@ -24,6 +24,8 @@ export default function creatureDisplayInfoDBC(){
                 record.skin2        = dbcObject.readText(i, 7);
                 record.skin3        = dbcObject.readText(i, 8);
 
+                record.creatureGeosetData = dbcObject.readUInt32(i, 14);
+
                 creatureDisplayInfoDBCFile[id] = record;
             }
 

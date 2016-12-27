@@ -395,9 +395,12 @@ class WmoObject {
         ambientColor[0] /= 255.0; ambientColor[1] /= 255.0;
         ambientColor[2] /= 255.0; ambientColor[3] /= 255.0;
 
+        if (!this.hasPortals()) {
+            this.draw();
+            return;
+        }
 
         if (fromInteriorGroup) {
-            this.sceneApi.shaders.activateWMOShader();
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
             if (this.placementMatrix) {
                 gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
@@ -422,12 +425,7 @@ class WmoObject {
                     }
                 }
             }
-
-
-            this.sceneApi.shaders.deactivateWMOShader();
         } else {
-            this.sceneApi.shaders.activateWMOShader();
-
             var uniforms = this.sceneApi.shaders.getShaderUniforms();
             if (this.placementMatrix) {
                 gl.uniformMatrix4fv(uniforms.uPlacementMat, false, this.placementMatrix);
@@ -459,8 +457,6 @@ class WmoObject {
                     }
                 }
             }
-
-            this.sceneApi.shaders.deactivateWMOShader();
         }
     }
     drawBB () {

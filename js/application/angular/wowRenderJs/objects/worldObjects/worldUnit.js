@@ -212,7 +212,6 @@ class WorldUnit extends WorldObject {
         }
     }
     createModelFromDisplayId(value) {
-        //value = 11354;
         var cdid = this.sceneApi.dbc.getCreatureDisplayInfoDBC();
         var cdied = this.sceneApi.dbc.getCreatureDisplayInfoExtraDBC();
         var cmdd = this.sceneApi.dbc.getCreatureModelDataDBC();
@@ -236,13 +235,16 @@ class WorldUnit extends WorldObject {
         if (displayInf.skin3 != '')
             replaceTextures[13] = extractFilePath(modelFilename)+displayInf.skin3+'.blp';
 
-        var meshIds = [];
-        for (var i = 0; i < 19; i++)
-            meshIds[i] = 1;
+        var meshIds = null;
 
-        meshIds[7] = 1; // ears
+        if (displayInf.displayExtra > 0 || displayInf.creatureGeosetData > 0) {
+            meshIds = [];
+            for (var i = 0; i < 19; i++)
+                meshIds[i] = 1;
+        }
 
         if (displayInf.displayExtra > 0) {
+
             var displayExtraInfo = cdied[displayInf.displayExtra];
 
             replaceTextures[1] = 'Textures\\BakedNpcTextures\\'+displayExtraInfo.skinTexture;
@@ -513,26 +515,31 @@ class WorldUnit extends WorldObject {
     }
 
     setMountDisplayId(value) {
-        var model = this.createModelFromDisplayId(value);
+        this.mountDisplayId = value;
+        this.mountModelChanged = true;
 
-        this.mountModel = model;
     }
     setDisplayId( value ) {
-        var model = this.createModelFromDisplayId(value);
-
-        this.objectModel = model;
+        this.displayId = value;
+        this.modelChanged = value;
+    }
+    setNativeDisplayId( value ) {
+        this.nativeDisplayId = value;
+        this.modelChanged = true;
     }
     setEntry ( value ) {
         this.entry = value;
-
-        //1. Get displayId from entry
-
-
-        //2. Set displayId
-        //this.setDisplayId(0)
     }
     complete () {
+        if (this.modelChanged)  {
+            var model = this.createModelFromDisplayId(this.nativeDisplayId);
+            this.objectModel = model;
+        }
 
+        if (this.mountModelChanged) {
+            var model = this.createModelFromDisplayId(this.mountDisplayId);
+            this.mountModel = model;
+        }
     }
 }
 

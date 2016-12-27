@@ -353,8 +353,7 @@ class MDXObject {
                var subMesh = subMeshes[skinTextureDefinition.submeshIndex];
 
                if (meshIds && (meshIds.length > 0) && (subMesh.meshID > 0) && (meshIds[(subMesh.meshID / 100) | 0] != (subMesh.meshID % 100))) {
-                   console.log("rejected meshId = "+subMesh.meshID);
-                   continue;
+                    continue;
                }
 
                materialArray.push(materialData);
