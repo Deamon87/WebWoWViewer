@@ -115,6 +115,7 @@ class Texture {
 
         gl.bindTexture(gl.TEXTURE_2D, null);
     };
+
     destroy () {
         var gl = this.gl;
         if (this.texture) {

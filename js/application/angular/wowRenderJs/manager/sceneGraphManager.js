@@ -521,7 +521,9 @@ class GraphManager {
         this.m2TranspRenderedThisFrame = {};
 
         if (this.currentWMO && config.getUsePortalCulling()) {
+            this.sceneApi.shaders.activateWMOShader();
             this.currentWMO.drawPortalBased(true);
+            this.sceneApi.shaders.deactivateWMOShader();
 
             if (this.currentWMO.exteriorPortals.length > 0) {
                 this.drawExterior()
@@ -537,7 +539,9 @@ class GraphManager {
 
             this.sceneApi.shaders.activateFrustumBoxShader();
             //Draw Wmo portal frustums
-            this.sceneApi.drawCamera()
+            if (this.sceneApi.getIsDebugCamera()) {
+                this.sceneApi.drawCamera()
+            }
         } else {
             this.drawExterior();
             this.drawM2s();
@@ -551,7 +555,9 @@ class GraphManager {
             }
             this.sceneApi.shaders.activateFrustumBoxShader();
             //Draw Wmo portal frustums
-            this.sceneApi.drawCamera()
+            if (this.sceneApi.getIsDebugCamera()) {
+                this.sceneApi.drawCamera()
+            }
         }
     }
 }

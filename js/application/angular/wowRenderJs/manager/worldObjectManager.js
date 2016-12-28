@@ -9,6 +9,7 @@ import packetList from '../../../47EC8D2E.json'
 //let packetList = [];
 import {vec3} from 'gl-matrix'
 
+
 class WorldObjectManager {
     constructor(sceneApi){
         this.objectMap = {};
@@ -147,6 +148,75 @@ class WorldObjectManager {
                                 newWorldUnit.setPlayerFaceFeatures(faceFeatures);
                             }
 
+                            //Head
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_1_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_1_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[k].index == 0) {
+                                        newWorldUnit.setHeadItem(itemData[kk].value);
+                                    }
+                                }
+                            }
+                            //Neck
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_2_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_2_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setNeckItem(itemData[kk].value);
+                                    }
+                                }
+                            }
+                            //Shoulders
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_3_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_3_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setShouldersItem(itemData[kk].value);
+                                    }
+                                }
+                            }
+
+                            //BODY
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_4_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_4_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setBodyItem(itemData[kk].value);
+                                    }
+                                }
+                            }
+
+                            //Chest
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_5_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_5_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setChestItem(itemData[kk].value);
+                                    }
+                                }
+                            }
+
+                            //Waist
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_6_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_6_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setWaistItem(itemData[kk].value);
+                                    }
+                                }
+                            }
+
+                            //Legs
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_7_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_7_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setLegsItem(itemData[kk].value);
+                                    }
+                                }
+                            }
+
+
                         }
 
                         newWorldUnit.complete()
@@ -155,8 +225,6 @@ class WorldObjectManager {
                         var newWorldGameObject = new WorldGameObject(this.sceneApi);
 
                         this.objectMap[guid] = newWorldGameObject;
-
-
 
                         newWorldGameObject.setPosition(
                             vec3.fromValues(updates[j].static_x, update.static_y, update.static_z));
@@ -173,6 +241,7 @@ class WorldObjectManager {
                         if (updateFields.hasOwnProperty("OBJECT_FIELD_SCALE_X")) {
                             newWorldGameObject.setScale(updateFields["OBJECT_FIELD_SCALE_X"])
                         }
+
 
 
                     }

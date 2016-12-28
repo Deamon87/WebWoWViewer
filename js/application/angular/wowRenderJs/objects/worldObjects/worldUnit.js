@@ -1,4 +1,6 @@
 import WorldObject from './worldObject.js'
+import TextureCompositionManager from './../../manager/textureCompositionManager.js'
+import WowTextureRegions from './../../math/wowTextureRegions.js';
 import {vec4, mat4, vec3, quat} from 'gl-matrix';
 
 
@@ -63,6 +65,8 @@ function findFaceHairStyleRec(cfhsd, race, gender, type ) {
     return null;
 }
 
+
+
 class WorldUnit extends WorldObject {
     constructor(sceneApi){
         super();
@@ -90,6 +94,7 @@ class WorldUnit extends WorldObject {
         this.mountModel = null;
         this.items = new Array(3);
         this.helmet = null;
+        this.textureCompositionManager = new TextureCompositionManager(sceneApi);
     }
     setSpeedWalk(value){
         this.speedWalk = value;
@@ -138,24 +143,40 @@ class WorldUnit extends WorldObject {
         var cfhsd = this.sceneApi.dbc.getCharacterFacialHairStylesDBC();
 
         //Base Skin
+        var compositionTextures = new Array(13);
+
         var charSect = findSectionRec(csd, race,gender, 0, -1, skin);
         if (charSect != null) {
-            //TODO: Create a texture composition service
-            if (!replaceTextures[1]) {
-                replaceTextures[1] = charSect.texture1
-            }
-            //debugger;
+            this.textureCompositionManager.addTexture(WowTextureRegions.Base, charSect.texture1);
         }
         //Face
         var charSect = findSectionRec(csd, race,gender, 1, face, skin);
         if (charSect != null) {
-            //replaceTextures[6] = charSect.texture1;
-            //debugger;
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceLower, charSect.texture1);
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceUpper, charSect.texture2);
         }
+
+        //Hair
+        var charSect = findSectionRec(csd, race,gender, 3, hairType, hairStyle);
+        if (charSect != null) {
+            replaceTextures[6] = charSect.texture1;
+
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceLower, charSect.texture2);
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceUpper, charSect.texture3);
+            //charSect.texture2 == scalp Lower
+            //charSect.texture3 == scalp Upper
+        }
+
+        var charHair = findHairGeosetRec(chgd, race, gender, hairType);
+        if ((charHair != null) && (charHair.geoset != 0))
+            meshIds[0] = charHair.geoset;
+
         //FaceHair
         var charSect = findSectionRec(csd, race,gender, 2, faceHairStyle, hairStyle);
         if (charSect != null) {
-            replaceTextures[8] = charSect.texture1;
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceLower, charSect.texture1);
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceUpper, charSect.texture2);
+
         }
         var charFHStyle = findFaceHairStyleRec(cfhsd, race, gender, faceHairStyle);
         if (charFHStyle != null) {
@@ -163,15 +184,6 @@ class WorldUnit extends WorldObject {
                 if (charFHStyle.geoset[i] != 0)
                     meshIds[fHairGeoset[i]] = charFHStyle.geoset[i];
         }
-        //Hair
-        var charSect = findSectionRec(csd, race,gender, 3, hairType, hairStyle);
-        if (charSect != null)
-            replaceTextures[6] = charSect.texture1;
-
-        var charHair = findHairGeosetRec(chgd, race, gender, hairType);
-        if ((charHair != null) && (charHair.geoset != 0))
-            meshIds[0] = charHair.geoset;
-
 
         /* Items */
         var ItemDInfo = idid[helmItem];
@@ -198,28 +210,42 @@ class WorldUnit extends WorldObject {
         ItemDInfo = idid[chestItem];
         if (ItemDInfo) {
             meshIds[8] = 1 + ItemDInfo.geosetGroup_1;
+            this.textureCompositionManager.addTexture(WowTextureRegions.ArmUpper, 'item/texturecomponents/armuppertexture/'+ItemDInfo.texture_1+'.blp');
+
+            this.textureCompositionManager.addTexture(WowTextureRegions.TorsoUpper, 'item/texturecomponents/torsouppertexture/'+ItemDInfo.texture_4+'.blp');
+            this.textureCompositionManager.addTexture(WowTextureRegions.TorsoLower, 'item/texturecomponents/torsolowertexture/'+ItemDInfo.texture_5+'.blp');
         }
 
         ItemDInfo = idid[beltItem];
         if (ItemDInfo) {
             meshIds[18] = 1 + ItemDInfo.geosetGroup_3;
+
+            this.textureCompositionManager.addTexture(WowTextureRegions.LegUpper, 'item/texturecomponents/leguppertexture/'+ItemDInfo.texture_6+'.blp');
         }
         ItemDInfo = idid[legsItem];
         if (ItemDInfo) {
             if (meshIds[8] > 1)
                 meshIds[13] = 1 + ItemDInfo.geosetGroup_3;
+
+            this.textureCompositionManager.addTexture(WowTextureRegions.LegUpper, 'item/texturecomponents/leguppertexture/'+ItemDInfo.texture_6+'.blp');
+            this.textureCompositionManager.addTexture(WowTextureRegions.LegLower, 'item/texturecomponents/leglowertexture/'+ItemDInfo.texture_7+'.blp');
         }
         ItemDInfo = idid[bootsItem];
         if (ItemDInfo) {
             meshIds[5] = 1 + ItemDInfo.geosetGroup_1;
-            var legLowerTexture = "item/texturecomponents/leglowertexture/" + ItemDInfo.texture_7 + '.BLP';
-            var legHigherTexture = "item/texturecomponents/leguppertexture/" + ItemDInfo.texture_8 + '.BLP';
+            //var legLowerTexture = "item/texturecomponents/leglowertexture/" + ItemDInfo.texture_7 + '.BLP';
+            //var legHigherTexture = "item/texturecomponents/leguppertexture/" + ItemDInfo.texture_8 + '.BLP';
 
-            //replaceTextures[11] = legHigherTexture;
+            this.textureCompositionManager.addTexture(WowTextureRegions.LegLower, 'item/texturecomponents/leglowertexture/'+ItemDInfo.texture_7+'.blp');
+            this.textureCompositionManager.addTexture(WowTextureRegions.Foot, 'item/texturecomponents/foottexture/'+ItemDInfo.texture_8+'.blp');
+
         }
         ItemDInfo = idid[glovesItem];
         if (ItemDInfo) {
             meshIds[4] = 1 + ItemDInfo.geosetGroup_1;
+
+            this.textureCompositionManager.addTexture(WowTextureRegions.ArmLower, 'item/texturecomponents/armlowertexture/'+ItemDInfo.texture_2+'.blp');
+            this.textureCompositionManager.addTexture(WowTextureRegions.Hand, 'item/texturecomponents/handtexture/'+ItemDInfo.texture_3+'.blp');
         }
         ItemDInfo = idid[tabardItem];
         if (ItemDInfo) {

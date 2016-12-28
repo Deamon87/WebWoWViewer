@@ -1,8 +1,8 @@
 //from ZamModelViewer
-export default {
+var WowRegions = {
     ArmUpper: 0,
     ArmLower: 1,
-    Hand: 2,
+    Hand: 2, //HA?
     TorsoUpper: 3,
     TorsoLower: 4,
     LegUpper: 5,
@@ -131,3 +131,5 @@ export default {
         h: 1
     }]
 };
+
+export default WowRegions;

@@ -518,6 +518,9 @@ class Scene {
             getFogColor: function () {
                 return self.fogColor;
             },
+            getIsDebugCamera() {
+                return self.isDebugCamera;
+            },
             extensions : {
                 getInstancingExt : function (){
                     return self.instancing_ext;
@@ -1180,7 +1183,7 @@ class Scene {
 
         var perspectiveMatrix = mat4.create();
         mat4.perspective(perspectiveMatrix, fov, this.canvas.width / this.canvas.height, nearPlane, farPlane);
-        //var o_height = (this.canvas.height * (533.333/256/* zoom 7 in Alram viewer */))/ 2 ;
+        //var o_height = (this.canvas.height * (533.333/256/* zoom 7 in Alram viewer */))/ 8 ;
         //var o_width = o_height * this.canvas.width / this.canvas.height;
         //mat4.ortho(perspectiveMatrix, -o_width, o_width, -o_height, o_height, 1, 1000);
 
@@ -1226,6 +1229,7 @@ class Scene {
 
         if (config.getDoubleCameraDebug()) {
             //Draw static camera
+            this.isDebugCamera = true;
             this.lookAtMat4 = secondLookAtMat;
             gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 
@@ -1242,6 +1246,8 @@ class Scene {
             this.activateRenderFrameShader();
             gl.enableVertexAttribArray(0);
             this.drawFrameBuffer();
+
+            this.isDebugCamera = false;
         }
 
         //Render real camera
