@@ -147,6 +147,7 @@ class WorldUnit extends WorldObject {
 
         var charSect = findSectionRec(csd, race,gender, 0, -1, skin);
         if (charSect != null) {
+            replaceTextures[1] = charSect.texture1
             this.textureCompositionManager.addTexture(WowTextureRegions.Base, charSect.texture1);
         }
         //Face

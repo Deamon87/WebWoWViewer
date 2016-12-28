@@ -42,7 +42,9 @@ import lightIntBandDBC              from './../services/dbc/lightIntBandDBC.js'
 import creatureDisplayInfoExtraDBC  from './../services/dbc/creatureDisplayInfoExtraDBC.js'
 import creatureModelDataDBC         from './../services/dbc/creatureModelDataDBC.js'
 import gameObjectDisplayInfoDBC     from './../services/dbc/gameObjectDisplayInfoDBC.js'
+import helmetGeosetVisDataDBC       from './../services/dbc/helmetGeosetVisDataDBC.js'
 import itemDisplayInfoDBC           from './../services/dbc/itemDisplayInfoDBC.js'
+import itemDBC                      from './../services/dbc/itemDBC.js'
 import mapDBC                       from './../services/dbc/mapDBC.js'
 
 /*************/
@@ -130,11 +132,19 @@ class Scene {
         itemDisplayInfoDBC().then(function success(a) {
             self.itemDisplayInfoDBC = a;
         });
+        itemDBC().then(function success(a) {
+            self.itemDBC = a;
+        });
+        helmetGeosetVisDataDBC().then(function success(a) {
+            self.helmetGeosetVisDataDBC = a;
+        });
 
         /* Map and area data */
         mapDBC().then(function success(a) {
             self.mapDBC = a;
         });
+
+
 
         /* Lights information */
         lightDBC().then(function success(a) {
@@ -609,6 +619,9 @@ class Scene {
                 },
                 getItemDisplayInfoDBC : function () {
                     return self.itemDisplayInfoDBC;
+                },
+                getItemDBC : function () {
+                    return self.itemDBC;
                 },
 
                 /* Map and area data */

@@ -62,60 +62,103 @@ class WorldPlayer extends WorldUnit {
     }
 
     /* Items */
-    setHeadItem(displayId) {
-        this.headItemId = displayId;
+    setHeadItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.headItemId = itemRecord.displayId;
+        }
+
     }
 
-    setNeckItem(displayId) {
-        this.neckItemId = displayId;
+    setNeckItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.neckItemId = itemRecord.displayId;
+        }
     }
 
-    setShouldersItem(displayId) {
-        this.shoulderItemId = displayId;
+    setShouldersItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.shoulderItemId = itemRecord.displayId;
+        }
     }
 
-    setBodyItem(displayId) {
-        this.bodyItemId = displayId;
+    setBodyItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.bodyItemId = itemRecord.displayId;
+        }
     }
 
-    setChestItem(displayId) {
-        this.chestItemId = displayId;
+    setChestItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.chestItemId = itemRecord.displayId;
+        }
     }
 
-    setWaistItem(displayId) {
-        this.waistItemId = displayId;
+    setWaistItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.waistItemId = itemRecord.displayId;
+        }
     }
 
-    setLegsItem(displayId) {
-        this.legsItemId = displayId;
+    setLegsItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.legsItemId = itemRecord.displayId;
+        }
     }
 
-    setFeetItem(displayId) {
-        this.feetItemId = displayId;
+    setFeetItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.feetItemId = itemRecord.displayId;
+        }
     }
 
-    setWristItem(displayId) {
-        this.wristItemId = displayId;
+    setWristItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.wristItemId = itemRecord.displayId;
+        }
     }
 
-    setHandsItem(displayId) {
-        this.handsItemId = displayId;
+    setHandsItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.handsItemId = itemRecord.displayId;
+        }
     }
 
-    setBackItem(displayId) {
-        this.backItemId = displayId;
+    setBackItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.backItemId = itemRecord.displayId;
+        }
     }
 
-    setMainHandItem(displayId) {
-        this.mainHandItemId = displayId;
+    setMainHandItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.mainHandItemId = itemRecord.displayId;
+        }
     }
 
-    setOffHandItem(displayId) {
-        this.offHandItemId = displayId;
+    setOffHandItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.offHandItemId = itemRecord.displayId;
+        }
     }
 
-    setTabardItem(displayId) {
-        this.tabardItemId = displayId;
+    setTabardItem(entry) {
+        var itemRecord = this.sceneApi.dbc.getItemDBC()[entry];
+        if (itemRecord) {
+            this.tabardItemId = itemRecord.displayId;
+        }
     }
 
     /* ---------------*/
@@ -124,10 +167,11 @@ class WorldPlayer extends WorldUnit {
         this.createMaterialData(replaceTextures, meshIds,
             this.unitRace, this.unitGender,
 
+
             this.playerSkin, this.playerFace, this.playerHair, this.playerHairColor, this.playerFaceFeatures,
-             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1);
-            //this.headItemId, this.shoulderItemId, this.backItemId, this.backItemId, -1, this.tabardItemId,
-            //this.wristItemId, this.handsItemId, this.waistItemId, this.legsItemId, this.feetItemId);
+             //-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1);
+            this.headItemId, this.shoulderItemId, this.backItemId, this.chestItemId, -1, this.tabardItemId,
+            this.wristItemId, this.handsItemId, this.waistItemId, this.legsItemId, this.feetItemId);
 
         return true;
     }
