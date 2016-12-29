@@ -1,15 +1,16 @@
 import Stats from 'stats.js';
 import axios from 'axios';
 
-import drawDepthShader         from 'drawDepthShader.glsl';
-import renderFrameBufferShader from 'renderFrameBufferShader.glsl';
-import readDepthBuffer         from 'readDepthBuffer.glsl';
-import wmoShader               from 'WmoShader.glsl';
-import m2Shader                from 'm2Shader.glsl';
-import drawBBShader            from 'drawBBShader.glsl';
-import adtShader               from 'adtShader.glsl';
-import drawPortalShader        from 'drawPortalShader.glsl';
-import drawFrustumShader       from 'drawFrustum.glsl';
+import drawDepthShader          from 'drawDepthShader.glsl';
+import renderFrameBufferShader  from 'renderFrameBufferShader.glsl';
+import readDepthBuffer          from 'readDepthBuffer.glsl';
+import wmoShader                from 'WmoShader.glsl';
+import m2Shader                 from 'm2Shader.glsl';
+import drawBBShader             from 'drawBBShader.glsl';
+import adtShader                from 'adtShader.glsl';
+import drawPortalShader         from 'drawPortalShader.glsl';
+import drawFrustumShader        from 'drawFrustum.glsl';
+import textureCompositionShader from 'textureCompositionShader.glsl';
 
 import GraphManager from './manager/sceneGraphManager.js'
 import WorldObjectManager from './manager/worldObjectManager.js'
@@ -101,6 +102,7 @@ class Scene {
         self.createBlackPixelTexture();
 
         self.initBoxVBO();
+        self.initTextureCompVBO();
         self.initCaches();
         self.initCamera(canvas, document);
 
@@ -360,6 +362,8 @@ class Scene {
         var self = this;
 
         /* Get and compile shaders */
+        self.textureCompositionShader = self.compileShader(textureCompositionShader, textureCompositionShader);
+
         self.renderFrameShader = self.compileShader(renderFrameBufferShader, renderFrameBufferShader);
 
         self.drawDepthBuffer = self.compileShader(drawDepthShader, drawDepthShader);
@@ -561,7 +565,12 @@ class Scene {
                 activateDrawPortalShader : function () {
                     self.activateDrawPortalShader();
                 },
-
+                activateTextureCompositionShader : function (texture) {
+                    self.activateTextureCompositionShader(texture);
+                },
+                deactivateTextureCompositionShader: function () {
+                    self.deactivateTextureCompositionShader();
+                },
                 activateWMOShader : function () {
                     self.activateWMOShader()
                 },
@@ -740,6 +749,53 @@ class Scene {
             ibo_elements : ibo_elements
         }
     }
+    initTextureCompVBO (){
+        var gl = this.gl;
+
+        var framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
+        // Create the depth texture
+        var depthTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, 1024, 1024, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        //From https://en.wikibooks.org/wiki/OpenGL_Programming/Bounding_box
+        var textureCoords = [
+            0,0,
+            1,0,
+            0,1,
+            0,0,
+        ];
+
+        var textureCoordsVBO = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordsVBO);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var elements = [
+            0,1,2,
+            1,3,2
+        ];
+        var elementsIBO = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementsIBO);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(elements), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+
+        this.textureCompVars = {
+            textureCoords : textureCoordsVBO,
+            elements : elementsIBO,
+            framebuffer: framebuffer
+        }
+    }
 
     glClearScreen (gl, fogColor){
         gl.clearDepth(1.0);
@@ -772,12 +828,38 @@ class Scene {
             }
         }
     }
+    activateTextureCompositionShader(texture) {
+        this.currentShaderProgram = this.textureCompositionShader;
+        if (this.currentShaderProgram) {
+            var gl = this.gl;
+            gl.useProgram(this.currentShaderProgram.program);
+            var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.textureCompVars.framebuffer);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCompVars.textureCoords);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.textureCompVars.elements);
+
+
+            gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.aTextCoord, 2, gl.FLOAT, false, 0, 0);  // position
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
+
+            gl.clearColor(0,0,1,1);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        }
+    }
     activateRenderDepthShader () {
         this.currentShaderProgram = this.drawDepthBuffer;
         if (this.currentShaderProgram) {
             var gl = this.gl;
             gl.useProgram(this.currentShaderProgram.program);
             var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+
 
             gl.activeTexture(gl.TEXTURE0);
         }
@@ -874,6 +956,16 @@ class Scene {
 
         gl.disableVertexAttribArray(shaderAttributes.aColor);
         gl.disableVertexAttribArray(shaderAttributes.aColor2);
+    }
+    deactivateTextureCompositionShader() {
+        var gl = this.gl;
+        gl.useProgram(this.currentShaderProgram.program);
+        var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
     activateM2ShaderAttribs() {

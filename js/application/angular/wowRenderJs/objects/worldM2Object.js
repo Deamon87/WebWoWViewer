@@ -53,6 +53,28 @@ class WorldMDXObject extends MDXObject {
         return super.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
     }
 
+    overrideModelTexture(texture) {
+        var self = this;
+        var mdxObject = this.m2Geom;
+        var skinObject = this.skinGeom;
+
+        for (var i = 0; i < this.materialArray.length; i++) {
+            var material = this.materialArray[i];
+            var mdxTextureDefinition1 = mdxObject.m2File.textureDefinition[material.mdxTextureIndex1];
+            if (mdxTextureDefinition1 && mdxTextureDefinition1.texType == 1) {
+                material.texUnit1Texture = texture;
+            }
+            var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[material.mdxTextureIndex2];
+            if (mdxTextureDefinition2 && mdxTextureDefinition2.texType == 1) {
+                material.texUnit2Texture = texture;
+            }
+            var mdxTextureDefinition3 = mdxObject.m2File.textureDefinition[material.mdxTextureIndex3];
+            if (mdxTextureDefinition3 && mdxTextureDefinition3.texType == 1) {
+                material.texUnit3Texture = texture;
+            }
+        }
+    }
+
 
     createPlacementMatrix (pos, f, scale, rotationMatrix){
         var placementMatrix = mat4.create();

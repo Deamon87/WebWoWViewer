@@ -389,6 +389,7 @@ class MDXObject {
                    var mdxTextureIndex = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex];
                    var mdxTextureDefinition = mdxObject.m2File.textureDefinition[mdxTextureIndex];
                    materialData.texUnit1TexIndex = i;
+                   materialData.mdxTextureIndex1 = mdxTextureIndex;
                    materialData.xWrapTex1 = mdxTextureDefinition.flags & 1 > 0;
                    materialData.yWrapTex1 = mdxTextureDefinition.flags & 2 > 0;
 
@@ -401,6 +402,7 @@ class MDXObject {
                if (op_count > 1) {
                    var mdxTextureIndex1 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 1];
                    var mdxTextureDefinition1 = mdxObject.m2File.textureDefinition[mdxTextureIndex1];
+                   materialData.mdxTextureIndex2 = mdxTextureIndex1;
                    materialData.xWrapTex2 = mdxTextureDefinition.flags & 1 > 0;
                    materialData.yWrapTex2 = mdxTextureDefinition.flags & 2 > 0;
                    materialData.texUnit2TexIndex = i;
@@ -414,6 +416,7 @@ class MDXObject {
                if (op_count > 2) {
                    var mdxTextureIndex2 = mdxObject.m2File.texLookup[skinTextureDefinition.textureIndex + 2];
                    var mdxTextureDefinition2 = mdxObject.m2File.textureDefinition[mdxTextureIndex2];
+                   materialData.mdxTextureIndex3 = mdxTextureIndex2;
                    materialData.xWrapTex3 = mdxTextureDefinition.flags & 1 > 0;
                    materialData.yWrapTex3 = mdxTextureDefinition.flags & 2 > 0;
                    materialData.texUnit3TexIndex = i;

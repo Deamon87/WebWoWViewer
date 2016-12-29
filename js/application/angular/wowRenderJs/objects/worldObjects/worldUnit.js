@@ -234,8 +234,6 @@ class WorldUnit extends WorldObject {
         ItemDInfo = idid[bootsItem];
         if (ItemDInfo) {
             meshIds[5] = 1 + ItemDInfo.geosetGroup_1;
-            //var legLowerTexture = "item/texturecomponents/leglowertexture/" + ItemDInfo.texture_7 + '.BLP';
-            //var legHigherTexture = "item/texturecomponents/leguppertexture/" + ItemDInfo.texture_8 + '.BLP';
 
             this.textureCompositionManager.addTexture(WowTextureRegions.LegLower, 'item/texturecomponents/leglowertexture/'+ItemDInfo.texture_7+'.blp');
             this.textureCompositionManager.addTexture(WowTextureRegions.Foot, 'item/texturecomponents/foottexture/'+ItemDInfo.texture_8+'.blp');
@@ -488,6 +486,13 @@ class WorldUnit extends WorldObject {
                 }
             }
         }
+
+        if (this.objectModel && this.objectModel.loaded) {
+            if (this.textureCompositionManager.update()) {
+                this.objectModel.overrideModelTexture(this.textureCompositionManager.texture);
+            }
+        }
+
 
 
 
