@@ -95,7 +95,7 @@ class Texture {
 
             case "BGRA":
                 for( var k = 0; k < mipmaps.length; k++) {
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE,  mipmaps[k].texture);
+                    gl.texImage2D(gl.TEXTURE_2D, k, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE,  mipmaps[k].texture);
                 }
                 break;
         }

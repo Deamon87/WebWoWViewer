@@ -772,7 +772,7 @@ class Scene {
             0,0,
             1,0,
             0,1,
-            0,0,
+            1,1,
         ];
 
         var textureCoordsVBO = gl.createBuffer();
@@ -793,7 +793,8 @@ class Scene {
         this.textureCompVars = {
             textureCoords : textureCoordsVBO,
             elements : elementsIBO,
-            framebuffer: framebuffer
+            framebuffer: framebuffer,
+            depthTexture: depthTexture
         }
     }
 
@@ -837,6 +838,7 @@ class Scene {
 
             gl.bindFramebuffer(gl.FRAMEBUFFER, this.textureCompVars.framebuffer);
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.textureCompVars.depthTexture, 0);
 
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCompVars.textureCoords);
@@ -848,15 +850,14 @@ class Scene {
             gl.activeTexture(gl.TEXTURE0);
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
 
-
-            gl.depthMask(false);
-            gl.disable(gl.BLEND);
+            gl.depthMask(true);
             gl.disable(gl.CULL_FACE);
 
             gl.clearColor(0,0,1,1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             gl.disable(gl.DEPTH_TEST);
-            gl.activeTexture(gl.TEXTURE0);
+            gl.depthMask(false);
+            gl.viewport(0,0,1024,1024)
         }
     }
     activateRenderDepthShader () {
@@ -973,6 +974,10 @@ class Scene {
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
     }
 
     activateM2ShaderAttribs() {
@@ -1338,7 +1343,7 @@ class Scene {
         this.graphManager.sortGeometry(perspectiveMatrixForCulling, lookAtMat4);
 
 
-
+        gl.viewport(0,0,this.canvas.width, this.canvas.height);
         if (config.getDoubleCameraDebug()) {
             //Draw static camera
             this.isDebugCamera = true;

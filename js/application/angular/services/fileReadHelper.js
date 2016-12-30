@@ -65,12 +65,9 @@ export default function (arrayBuffer, start, end){
             return result;
         },
         readFloat32 : function (offsetObj) {
-            try {
-                var result = dataView.getFloat32(offsetObj.offs, isLittleEndian);
-                offsetObj.offs += 4;
-            }catch(e) {
-                debugger;
-            }
+            var result = dataView.getFloat32(offsetObj.offs, isLittleEndian);
+            offsetObj.offs += 4;
+
             return result;
         },
         readFloat64 : function (offsetObj) {

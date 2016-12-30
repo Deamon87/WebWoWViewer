@@ -134,6 +134,24 @@ class WorldUnit extends WorldObject {
     createMaterialFromOwnItem(){
 
     }
+    addAllTextures(itemDisplayInfoRec, gender) {
+        if (itemDisplayInfoRec.texture_1 != '')
+            this.textureCompositionManager.addTexture(WowTextureRegions.ArmUpper,   'item/texturecomponents/armuppertexture/'+itemDisplayInfoRec.texture_1+'.blp', null);
+        if (itemDisplayInfoRec.texture_2 != '')
+            this.textureCompositionManager.addTexture(WowTextureRegions.ArmLower,   'item/texturecomponents/armlowertexture/'+itemDisplayInfoRec.texture_2+'.blp', null);
+        if (itemDisplayInfoRec.texture_3 != '')
+            this.textureCompositionManager.addTexture(WowTextureRegions.Hand,       'item/texturecomponents/handtexture/'+itemDisplayInfoRec.texture_3+'.blp', null);
+        if (itemDisplayInfoRec.texture_4 != '')
+            this.textureCompositionManager.addTexture(WowTextureRegions.TorsoUpper, 'item/texturecomponents/torsouppertexture/'+itemDisplayInfoRec.texture_4, gender);
+        if (itemDisplayInfoRec.texture_5 != '')
+            this.textureCompositionManager.addTexture(WowTextureRegions.TorsoLower, 'item/texturecomponents/torsolowertexture/'+itemDisplayInfoRec.texture_5, gender);
+        if (itemDisplayInfoRec.texture_6 != '')
+            this.textureCompositionManager.addTexture(WowTextureRegions.LegUpper,   'item/texturecomponents/leguppertexture/'+itemDisplayInfoRec.texture_6, gender);
+        if (itemDisplayInfoRec.texture_7 != '')
+            this.textureCompositionManager.addTexture(WowTextureRegions.LegLower,   'item/texturecomponents/leglowertexture/'+itemDisplayInfoRec.texture_7, gender);
+        if (itemDisplayInfoRec.texture_8 != '')
+            this.textureCompositionManager.addTexture(WowTextureRegions.Foot,       'item/texturecomponents/foottexture/'+itemDisplayInfoRec.texture_8+'.blp', null);
+    }
     createMaterialData(replaceTextures, meshIds, race, gender,
                        skin, face, hairType, hairStyle, faceHairStyle,
                        helmItem, shoulderItem, capeItem, chestItem, shirtItem, tabardItem, wristItem, glovesItem, beltItem, legsItem, bootsItem) {
@@ -147,7 +165,7 @@ class WorldUnit extends WorldObject {
 
         var charSect = findSectionRec(csd, race,gender, 0, -1, skin);
         if (charSect != null) {
-            replaceTextures[1] = charSect.texture1
+            //replaceTextures[1] = charSect.texture1
             this.textureCompositionManager.addTexture(WowTextureRegions.Base, charSect.texture1);
         }
         //Face
@@ -187,6 +205,7 @@ class WorldUnit extends WorldObject {
         }
 
         /* Items */
+        var gender_prefix = (gender == 0) ? "_m" : "_f";
         var ItemDInfo = idid[helmItem];
         if (ItemDInfo) {
             this.helmet = this.createHelmetFromItemDisplayInfo(race, gender, ItemDInfo)
@@ -206,55 +225,51 @@ class WorldUnit extends WorldObject {
         }
         ItemDInfo = idid[shirtItem];
         if (ItemDInfo){
-
+            this.addAllTextures(ItemDInfo, gender_prefix);
         }
         ItemDInfo = idid[chestItem];
         if (ItemDInfo) {
             meshIds[8] = 1 + ItemDInfo.geosetGroup_1;
-            this.textureCompositionManager.addTexture(WowTextureRegions.ArmUpper, 'item/texturecomponents/armuppertexture/'+ItemDInfo.texture_1+'.blp');
-
-            this.textureCompositionManager.addTexture(WowTextureRegions.TorsoUpper, 'item/texturecomponents/torsouppertexture/'+ItemDInfo.texture_4+'.blp');
-            this.textureCompositionManager.addTexture(WowTextureRegions.TorsoLower, 'item/texturecomponents/torsolowertexture/'+ItemDInfo.texture_5+'.blp');
+            this.addAllTextures(ItemDInfo, gender_prefix);
         }
 
         ItemDInfo = idid[beltItem];
         if (ItemDInfo) {
             meshIds[18] = 1 + ItemDInfo.geosetGroup_3;
-
-            this.textureCompositionManager.addTexture(WowTextureRegions.LegUpper, 'item/texturecomponents/leguppertexture/'+ItemDInfo.texture_6+'.blp');
+            this.addAllTextures(ItemDInfo, gender_prefix);
         }
         ItemDInfo = idid[legsItem];
         if (ItemDInfo) {
             if (meshIds[8] > 1)
                 meshIds[13] = 1 + ItemDInfo.geosetGroup_3;
 
-            this.textureCompositionManager.addTexture(WowTextureRegions.LegUpper, 'item/texturecomponents/leguppertexture/'+ItemDInfo.texture_6+'.blp');
-            this.textureCompositionManager.addTexture(WowTextureRegions.LegLower, 'item/texturecomponents/leglowertexture/'+ItemDInfo.texture_7+'.blp');
+            this.addAllTextures(ItemDInfo, gender_prefix);
         }
         ItemDInfo = idid[bootsItem];
         if (ItemDInfo) {
             meshIds[5] = 1 + ItemDInfo.geosetGroup_1;
 
-            this.textureCompositionManager.addTexture(WowTextureRegions.LegLower, 'item/texturecomponents/leglowertexture/'+ItemDInfo.texture_7+'.blp');
-            this.textureCompositionManager.addTexture(WowTextureRegions.Foot, 'item/texturecomponents/foottexture/'+ItemDInfo.texture_8+'.blp');
-
+            this.addAllTextures(ItemDInfo, gender_prefix);
         }
         ItemDInfo = idid[glovesItem];
         if (ItemDInfo) {
             meshIds[4] = 1 + ItemDInfo.geosetGroup_1;
 
-            this.textureCompositionManager.addTexture(WowTextureRegions.ArmLower, 'item/texturecomponents/armlowertexture/'+ItemDInfo.texture_2+'.blp');
-            this.textureCompositionManager.addTexture(WowTextureRegions.Hand, 'item/texturecomponents/handtexture/'+ItemDInfo.texture_3+'.blp');
+            this.addAllTextures(ItemDInfo, gender_prefix);
         }
         ItemDInfo = idid[tabardItem];
         if (ItemDInfo) {
-            if (meshIds[8] == 1)
+            if (meshIds[8] == 1) {
                 meshIds[12] = 1 + ItemDInfo.geosetGroup_1;
+                this.addAllTextures(ItemDInfo, gender_prefix);
+            }
+
         }
         ItemDInfo = idid[capeItem];
         if (ItemDInfo) {
             replaceTextures[2] ='Item\\ObjectComponents\\Cape\\'+ ItemDInfo.leftTextureModel + '.BLP';
             meshIds[15] = 1 + ItemDInfo.geosetGroup_1;
+            this.addAllTextures(ItemDInfo, gender_prefix);
         }
     }
     createModelFromDisplayId(value) {

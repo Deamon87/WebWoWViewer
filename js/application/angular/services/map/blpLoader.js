@@ -141,7 +141,7 @@ export default function (filePath) {
             return resultBLPObject;
         },
         function error(errorObj) {
-            return errorObj;
+            throw errorObj;
         });
 
     return newPromise;

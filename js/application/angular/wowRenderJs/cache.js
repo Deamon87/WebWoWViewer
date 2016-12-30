@@ -34,6 +34,7 @@ class Cache {
                 self.resolve(fileName);
             }, function error(object) {
                 self.reject(fileName);
+
             });
         }
         queue.push(deferred);

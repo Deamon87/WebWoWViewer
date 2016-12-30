@@ -208,16 +208,13 @@ export default function (filePath , arrayBuffer) {
         return linedFileObj;
     } else {
         return fileLoader(filePath).then(function success(a) {
-            if (typeof a != 'object' || !(a instanceof ArrayBuffer)) {
-                $log.log("Failed to load file = " + filePath);
-                return;
-            }
             var linedFileObj = parseLinedFileObj(a);
             linedFileObj.filePath = filePath;
 
             return linedFileObj;
         }, function error(e) {
-            return e;
+            throw e;
         });
     }
+
 };

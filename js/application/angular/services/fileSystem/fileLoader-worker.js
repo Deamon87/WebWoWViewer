@@ -37,6 +37,7 @@ self.addEventListener('message', function(e) {
                 //debugger;
                 if (!a) {
                     console.log("Unable to load file \""+filePath+"\"");
+                    self.postMessage({opcode: 'fileLoaded', messageId: messageId, message: null});
                 } else {
                     self.postMessage({opcode: 'fileLoaded', messageId: messageId, message: a.buffer}, [a.buffer]);
                 }

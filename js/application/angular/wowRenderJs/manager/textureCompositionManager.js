@@ -7,7 +7,6 @@ class TextureCompositionManager {
 
         this.textureArray = new Array(13);
 
-
         var gl = this.sceneApi.getGlContext();
         var colorTexture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, colorTexture);
@@ -25,13 +24,24 @@ class TextureCompositionManager {
     clear() {
         this.textureArray = new Array(13);
     }
-    addTexture(slot, textureName) {
+    addTexture(slot, textureName, gender) {
         if (!this.textureArray[slot]) {
             this.textureArray[slot] = new Array();
         }
+        var actualTextureName = textureName;
         var recordForOverideTexture = {fileName: textureName, textureObj: null}
-        this.sceneApi.resources.loadTexture(textureName).then(function(texture) {
+        if (gender != null) {
+            var gender_prefix = (gender == 0) ? "_m" : "_f";
+            actualTextureName = textureName+gender_prefix+'.blp';
+        }
+        this.sceneApi.resources.loadTexture(actualTextureName).then(function(texture) {
             recordForOverideTexture.textureObj = texture;
+        }, function (error) {
+            actualTextureName = textureName+'_u'+'.blp';
+            recordForOverideTexture.fileName = actualTextureName;
+            this.sceneApi.resources.loadTexture(actualTextureName).then(function(texture) {
+                recordForOverideTexture.textureObj = texture;
+            });
         });
 
         this.textureArray[slot].push(recordForOverideTexture);
@@ -42,7 +52,7 @@ class TextureCompositionManager {
     drawTexturesFromArray(slot) {
         var gl = this.sceneApi.getGlContext();
         var shaderUniforms = this.sceneApi.shaders.getShaderUniforms();
-        var textureArray = this.textureArray[slot]
+        var textureArray = this.textureArray[slot];
         if (!textureArray) return;
 
         var region = wowTextureRegions.old[slot];
@@ -55,7 +65,6 @@ class TextureCompositionManager {
         for (var i = 0; i < textureArray.length; i++) {
 
             if (!textureArray[i].textureObj) {
-                this.needsUpdate = true;
                 continue;
             }
 
@@ -68,13 +77,26 @@ class TextureCompositionManager {
         this.needsUpdate = false;
 
         this.sceneApi.shaders.activateTextureCompositionShader(this.texture.texture);
-
+        var gl = this.sceneApi.getGlContext();
         //1. draw body
+        gl.disable(gl.BLEND);
         this.drawTexturesFromArray(wowTextureRegions.Base);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // default blend func
         this.drawTexturesFromArray(wowTextureRegions.FaceUpper);
         this.drawTexturesFromArray(wowTextureRegions.FaceLower);
-        //this.drawTexturesFromArray(wowTextureRegions.LegLower);
-        //this.drawTexturesFromArray(wowTextureRegions.LegUpper);
+        this.drawTexturesFromArray(wowTextureRegions.LegLower);
+        this.drawTexturesFromArray(wowTextureRegions.LegUpper);
+
+        this.drawTexturesFromArray(wowTextureRegions.TorsoUpper);
+        this.drawTexturesFromArray(wowTextureRegions.TorsoLower);
+
+        this.drawTexturesFromArray(wowTextureRegions.ArmUpper);
+        this.drawTexturesFromArray(wowTextureRegions.ArmLower);
+
+        this.drawTexturesFromArray(wowTextureRegions.Foot);
+        this.drawTexturesFromArray(wowTextureRegions.Hand);
+
 
         this.sceneApi.shaders.deactivateTextureCompositionShader();
 

@@ -22,7 +22,7 @@ worker.onmessage = function(e) {
         if (message) {
             defer.onResolve(message);
         } else {
-            //$log.info("Could not load file = " + fileName);
+            defer.onResolve(message);
         }
         delete messageTable[recv_messageId];
     }
@@ -44,7 +44,13 @@ export default function (fileName) {
     var promise = new Promise(function(resolve, reject) {
         defer.onResolve = function (value) {
             "use strict";
-            resolve(value)
+            //if (typeof value != 'object' || !(value instanceof ArrayBuffer)) {
+            if (!value) {
+                console.log("Failed to load file = " + fileName);
+                reject()
+            } else {
+                resolve(value)
+            }
         }
     });
     worker.postMessage({opcode: 'loadFile', messageId: messageId, message: fileName});

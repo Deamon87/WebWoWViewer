@@ -464,7 +464,6 @@ class MDXObject {
 
        } catch(e) {
            console.log(e);
-           debugger;
        }
 
     }

@@ -9,11 +9,15 @@ varying vec2 vTextCoords;
 void main() {
     vTextCoords = aTextCoord;
 
-    vec2 pos;
-    pos.x = x + aTextCoord.x*width;
-    pos.y = y + aTextCoord.y*height;
 
-    gl_Position = vec4(vec2(2.0)*pos - vec2(1.0), 0, 1);
+    vec2 pos = vec2(
+        //(x + aTextCoord.x*width)/( (1024.0 - 529.0) /1024.0) - 1.0,
+        (x + aTextCoord.x*width)*2.0 - 1.0,
+        //(y + aTextCoord.y*height)/( (753.0) /1024.0) - 1.0
+        (y + aTextCoord.y*height)*2.0 - 1.0
+    );
+
+    gl_Position = vec4(pos.x, pos.y, 0, 1);
 }
 #endif //COMPILING_VS
 #ifdef COMPILING_FS
@@ -23,7 +27,7 @@ varying vec2 vTextCoords;
 uniform sampler2D uTexture;
 
 void main() {
-    vec4 alpha = texture2D( uTexture, vTextCoords );
+    vec4 alpha = texture2D( uTexture, vTextCoords.xy );
     gl_FragColor = alpha;
 }
 #endif //COMPILING_FS
