@@ -848,8 +848,15 @@ class Scene {
             gl.activeTexture(gl.TEXTURE0);
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.uTexture, 0);
 
+
+            gl.depthMask(false);
+            gl.disable(gl.BLEND);
+            gl.disable(gl.CULL_FACE);
+
             gl.clearColor(0,0,1,1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.disable(gl.DEPTH_TEST);
+            gl.activeTexture(gl.TEXTURE0);
         }
     }
     activateRenderDepthShader () {
