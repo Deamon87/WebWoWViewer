@@ -35,14 +35,12 @@ self.addEventListener('message', function(e) {
             promise.then(function success(a){
                 //console.log("Worker sent file = "+a);
                 //debugger;
-                if (!a) {
-                    console.log("Unable to load file \""+filePath+"\"");
-                    self.postMessage({opcode: 'fileLoaded', messageId: messageId, message: null});
-                } else {
+                if (a) {
                     self.postMessage({opcode: 'fileLoaded', messageId: messageId, message: a.buffer}, [a.buffer]);
                 }
             }, function error() {
-                //debugger;
+                console.log("Unable to load file \""+filePath+"\"");
+                self.postMessage({opcode: 'fileLoaded', messageId: messageId, message: null});
             })
         })(self, messageId)
     }

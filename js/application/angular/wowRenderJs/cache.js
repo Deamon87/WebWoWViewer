@@ -24,7 +24,7 @@ class Cache {
 
         /* 2. Otherwise put the deferred to queue for resolving later */
         var queue = this.queueForLoad[fileName];
-        if (queue === undefined) {
+        if (!queue) {
             /* 2.1 If object is not loading yet - launch the loading process */
             queue = [];
             this.load(fileName).then(function success(loadedObj) {

@@ -136,9 +136,9 @@ class WorldUnit extends WorldObject {
     }
     addAllTextures(itemDisplayInfoRec, gender) {
         if (itemDisplayInfoRec.texture_1 != '')
-            this.textureCompositionManager.addTexture(WowTextureRegions.ArmUpper,   'item/texturecomponents/armuppertexture/'+itemDisplayInfoRec.texture_1+'.blp', null);
+            this.textureCompositionManager.addTexture(WowTextureRegions.ArmUpper,   'item/texturecomponents/armuppertexture/'+itemDisplayInfoRec.texture_1, gender);
         if (itemDisplayInfoRec.texture_2 != '')
-            this.textureCompositionManager.addTexture(WowTextureRegions.ArmLower,   'item/texturecomponents/armlowertexture/'+itemDisplayInfoRec.texture_2+'.blp', null);
+            this.textureCompositionManager.addTexture(WowTextureRegions.ArmLower,   'item/texturecomponents/armlowertexture/'+itemDisplayInfoRec.texture_2, gender);
         if (itemDisplayInfoRec.texture_3 != '')
             this.textureCompositionManager.addTexture(WowTextureRegions.Hand,       'item/texturecomponents/handtexture/'+itemDisplayInfoRec.texture_3+'.blp', null);
         if (itemDisplayInfoRec.texture_4 != '')

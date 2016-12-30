@@ -175,6 +175,7 @@ export default function (configService, $q) {
                 return new Uint8Array(a.data);
             }, function error(a) {
                 console.log("axios error" + e);
+                throw a;
             });
         } else if (configService.getFileReadMethod() == 'zip') {
             if (filePath) {

@@ -25,6 +25,7 @@ class TextureCompositionManager {
         this.textureArray = new Array(13);
     }
     addTexture(slot, textureName, gender) {
+        var self = this;
         if (!this.textureArray[slot]) {
             this.textureArray[slot] = new Array();
         }
@@ -36,17 +37,19 @@ class TextureCompositionManager {
         }
         this.sceneApi.resources.loadTexture(actualTextureName).then(function(texture) {
             recordForOverideTexture.textureObj = texture;
+            self.needsUpdate = true;
         }, function (error) {
             actualTextureName = textureName+'_u'+'.blp';
             recordForOverideTexture.fileName = actualTextureName;
             this.sceneApi.resources.loadTexture(actualTextureName).then(function(texture) {
                 recordForOverideTexture.textureObj = texture;
+                self.needsUpdate = true;
             });
         });
 
         this.textureArray[slot].push(recordForOverideTexture);
 
-        this.needsUpdate = true;
+        //this.needsUpdate = true;
     }
 
     drawTexturesFromArray(slot) {
