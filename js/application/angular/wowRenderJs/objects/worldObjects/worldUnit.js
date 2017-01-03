@@ -1,6 +1,7 @@
 import WorldObject from './worldObject.js'
 import TextureCompositionManager from './../../manager/textureCompositionManager.js'
 import WowTextureRegions from './../../math/wowTextureRegions.js';
+import CharacterComponents from '../../algorithms/characterComponents'
 import {vec4, mat4, vec3, quat} from 'gl-matrix';
 
 
@@ -134,45 +135,28 @@ class WorldUnit extends WorldObject {
     createMaterialFromOwnItem(){
 
     }
-    addAllTextures(itemDisplayInfoRec, gender) {
-        if (itemDisplayInfoRec.texture_1 != '')
-            this.textureCompositionManager.addTexture(WowTextureRegions.ArmUpper,   'item/texturecomponents/armuppertexture/'+itemDisplayInfoRec.texture_1, gender);
-        if (itemDisplayInfoRec.texture_2 != '')
-            this.textureCompositionManager.addTexture(WowTextureRegions.ArmLower,   'item/texturecomponents/armlowertexture/'+itemDisplayInfoRec.texture_2, gender);
-        if (itemDisplayInfoRec.texture_3 != '')
-            this.textureCompositionManager.addTexture(WowTextureRegions.Hand,       'item/texturecomponents/handtexture/'+itemDisplayInfoRec.texture_3+'.blp', null);
-        if (itemDisplayInfoRec.texture_4 != '')
-            this.textureCompositionManager.addTexture(WowTextureRegions.TorsoUpper, 'item/texturecomponents/torsouppertexture/'+itemDisplayInfoRec.texture_4, gender);
-        if (itemDisplayInfoRec.texture_5 != '')
-            this.textureCompositionManager.addTexture(WowTextureRegions.TorsoLower, 'item/texturecomponents/torsolowertexture/'+itemDisplayInfoRec.texture_5, gender);
-        if (itemDisplayInfoRec.texture_6 != '')
-            this.textureCompositionManager.addTexture(WowTextureRegions.LegUpper,   'item/texturecomponents/leguppertexture/'+itemDisplayInfoRec.texture_6, gender);
-        if (itemDisplayInfoRec.texture_7 != '')
-            this.textureCompositionManager.addTexture(WowTextureRegions.LegLower,   'item/texturecomponents/leglowertexture/'+itemDisplayInfoRec.texture_7, gender);
-        if (itemDisplayInfoRec.texture_8 != '')
-            this.textureCompositionManager.addTexture(WowTextureRegions.Foot,       'item/texturecomponents/foottexture/'+itemDisplayInfoRec.texture_8+'.blp', null);
-    }
+
     createMaterialData(replaceTextures, meshIds, race, gender,
                        skin, face, hairType, hairStyle, faceHairStyle,
                        helmItem, shoulderItem, capeItem, chestItem, shirtItem, tabardItem, wristItem, glovesItem, beltItem, legsItem, bootsItem) {
+
+
         var idid = this.sceneApi.dbc.getItemDisplayInfoDBC();
         var csd = this.sceneApi.dbc.getCharSectionsDBC();
         var chgd = this.sceneApi.dbc.getCharHairGeosetsDBC();
         var cfhsd = this.sceneApi.dbc.getCharacterFacialHairStylesDBC();
 
         //Base Skin
-        var compositionTextures = new Array(13);
-
         var charSect = findSectionRec(csd, race,gender, 0, -1, skin);
         if (charSect != null) {
             //replaceTextures[1] = charSect.texture1
-            this.textureCompositionManager.addTexture(WowTextureRegions.Base, charSect.texture1);
+            this.textureCompositionManager.addTexture(WowTextureRegions.Base, charSect.texture1, null);
         }
         //Face
         var charSect = findSectionRec(csd, race,gender, 1, face, skin);
         if (charSect != null) {
-            this.textureCompositionManager.addTexture(WowTextureRegions.FaceLower, charSect.texture1);
-            this.textureCompositionManager.addTexture(WowTextureRegions.FaceUpper, charSect.texture2);
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceLower, charSect.texture1, null);
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceUpper, charSect.texture2, null);
         }
 
         //Hair
@@ -180,8 +164,8 @@ class WorldUnit extends WorldObject {
         if (charSect != null) {
             replaceTextures[6] = charSect.texture1;
 
-            this.textureCompositionManager.addTexture(WowTextureRegions.FaceLower, charSect.texture2);
-            this.textureCompositionManager.addTexture(WowTextureRegions.FaceUpper, charSect.texture3);
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceLower, charSect.texture2, null);
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceUpper, charSect.texture3, null);
             //charSect.texture2 == scalp Lower
             //charSect.texture3 == scalp Upper
         }
@@ -193,8 +177,8 @@ class WorldUnit extends WorldObject {
         //FaceHair
         var charSect = findSectionRec(csd, race,gender, 2, faceHairStyle, hairStyle);
         if (charSect != null) {
-            this.textureCompositionManager.addTexture(WowTextureRegions.FaceLower, charSect.texture1);
-            this.textureCompositionManager.addTexture(WowTextureRegions.FaceUpper, charSect.texture2);
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceLower, charSect.texture1, null);
+            this.textureCompositionManager.addTexture(WowTextureRegions.FaceUpper, charSect.texture2, null);
 
         }
         var charFHStyle = findFaceHairStyleRec(cfhsd, race, gender, faceHairStyle);
@@ -204,8 +188,15 @@ class WorldUnit extends WorldObject {
                     meshIds[fHairGeoset[i]] = charFHStyle.geoset[i];
         }
 
+        //Underwear
+        var charSect = findSectionRec(csd, race,gender, 4, -1, skin);
+        if (charSect != null) {
+            //replaceTextures[1] = charSect.texture1
+            this.textureCompositionManager.addTexture(WowTextureRegions.LegUpper, charSect.texture1, null);
+            this.textureCompositionManager.addTexture(WowTextureRegions.TorsoUpper, charSect.texture2, null);
+        }
+
         /* Items */
-        var gender_prefix = (gender == 0) ? "_m" : "_f";
         var ItemDInfo = idid[helmItem];
         if (ItemDInfo) {
             this.helmet = this.createHelmetFromItemDisplayInfo(race, gender, ItemDInfo)
@@ -225,43 +216,49 @@ class WorldUnit extends WorldObject {
         }
         ItemDInfo = idid[shirtItem];
         if (ItemDInfo){
-            this.addAllTextures(ItemDInfo, gender_prefix);
+            CharacterComponents.addAllTextures(this.textureCompositionManager, ItemDInfo, gender);
         }
+        ItemDInfo = idid[wristItem];
+        if (ItemDInfo){
+            CharacterComponents.addAllTextures(this.textureCompositionManager, ItemDInfo, gender);
+        }
+
+
         ItemDInfo = idid[chestItem];
         if (ItemDInfo) {
             meshIds[8] = 1 + ItemDInfo.geosetGroup_1;
-            this.addAllTextures(ItemDInfo, gender_prefix);
+            CharacterComponents.addAllTextures(this.textureCompositionManager, ItemDInfo, gender);
         }
 
         ItemDInfo = idid[beltItem];
         if (ItemDInfo) {
             meshIds[18] = 1 + ItemDInfo.geosetGroup_3;
-            this.addAllTextures(ItemDInfo, gender_prefix);
+            CharacterComponents.addAllTextures(this.textureCompositionManager, ItemDInfo, gender);
         }
         ItemDInfo = idid[legsItem];
         if (ItemDInfo) {
             if (meshIds[8] > 1)
                 meshIds[13] = 1 + ItemDInfo.geosetGroup_3;
 
-            this.addAllTextures(ItemDInfo, gender_prefix);
+            CharacterComponents.addAllTextures(this.textureCompositionManager, ItemDInfo, gender);
         }
         ItemDInfo = idid[bootsItem];
         if (ItemDInfo) {
             meshIds[5] = 1 + ItemDInfo.geosetGroup_1;
 
-            this.addAllTextures(ItemDInfo, gender_prefix);
+            CharacterComponents.addAllTextures(this.textureCompositionManager, ItemDInfo, gender);
         }
         ItemDInfo = idid[glovesItem];
         if (ItemDInfo) {
             meshIds[4] = 1 + ItemDInfo.geosetGroup_1;
 
-            this.addAllTextures(ItemDInfo, gender_prefix);
+            CharacterComponents.addAllTextures(this.textureCompositionManager, ItemDInfo, gender);
         }
         ItemDInfo = idid[tabardItem];
         if (ItemDInfo) {
             if (meshIds[8] == 1) {
                 meshIds[12] = 1 + ItemDInfo.geosetGroup_1;
-                this.addAllTextures(ItemDInfo, gender_prefix);
+                CharacterComponents.addAllTextures(this.textureCompositionManager, ItemDInfo, gender);
             }
 
         }
@@ -269,7 +266,7 @@ class WorldUnit extends WorldObject {
         if (ItemDInfo) {
             replaceTextures[2] ='Item\\ObjectComponents\\Cape\\'+ ItemDInfo.leftTextureModel + '.BLP';
             meshIds[15] = 1 + ItemDInfo.geosetGroup_1;
-            this.addAllTextures(ItemDInfo, gender_prefix);
+            CharacterComponents.addAllTextures(this.textureCompositionManager, ItemDInfo, gender);
         }
     }
     createModelFromDisplayId(value) {
@@ -595,33 +592,35 @@ class WorldUnit extends WorldObject {
     setUnitPowerType(powerType){
 
     }
-    setVirtualItemSlot(slot, displayId) {
+    setVirtualItemSlot(slot, displayId, itemClass, itemSubClass, itemInventoryType) {
         var idid = this.sceneApi.dbc.getItemDisplayInfoDBC();
 
         /* 1. Free previous model */
 
         /* 2. Configure new model */
         var modelPath;
-        if (slot == 0) {
-            modelPath = "item/objectcomponents/weapon/";
-        } else if (slot == 1)  {
+        if (itemInventoryType == 14) {
             modelPath = "item/objectcomponents/shield/";
-        } else if (slot == 2) {
+        } else {
             modelPath = "item/objectcomponents/weapon/";
         }
         var ItemDInfo = idid[displayId];
         if (ItemDInfo) {
             var modelName;
-            if (slot == UNIT_MAINHAND_SLOT || slot == UNIT_RANGED_SLOT) {
-                modelName = ItemDInfo.leftModel
-            } else {
-                modelName = ItemDInfo.leftModel
-            }
-            modelName = modelPath + modelName;
-
             var replaceTextures = [];
+
+            modelName = ItemDInfo.leftModel;
             if (ItemDInfo.leftTextureModel)
                 replaceTextures[2] = modelPath + ItemDInfo.leftTextureModel + '.blp';
+
+            if (slot != UNIT_MAINHAND_SLOT) {
+                if (ItemDInfo.rightModel != "") {
+                    modelName = ItemDInfo.rightModel;
+                    if (ItemDInfo.rightTextureModel)
+                        replaceTextures[2] = modelPath + ItemDInfo.rightTextureModel + '.blp';
+                }
+            }
+            modelName = modelPath + modelName;
 
             var model = this.sceneApi.objects.loadWorldM2Obj(modelName, null, replaceTextures);
 

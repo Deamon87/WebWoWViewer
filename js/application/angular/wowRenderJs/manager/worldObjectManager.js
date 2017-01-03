@@ -2,9 +2,10 @@ import WorldUnit from '../objects/worldObjects/worldUnit.js'
 import WorldPlayer from '../objects/worldObjects/worldPlayer.js'
 import WorldGameObject from '../objects/worldObjects/worldGameObject.js'
 //import packetList from '../../../mountedNpc.json'
-import packetList from '../../../47EC8D2E.json'
+//import packetList from '../../../47EC8D2E.json'
 //import packetList from '../../../npc_wood.json'
 //import packetList from '../../../player.json'
+import packetList from '../../../player2.json'
 //import packetList from '../../../packet.json'
 //import packetList from '../../../attacketdMinion1.json'
 //let packetList = [];
@@ -108,14 +109,44 @@ class WorldObjectManager {
                             newWorldUnit.setScale(updateFields["OBJECT_FIELD_SCALE_X"])
                         }
 
+                        //Items to wear
+                        var itemsToWear = [];
                         if (updateFields['UNIT_VIRTUAL_ITEM_SLOT_DISPLAY']) {
                             for (var k = 0; k < updateFields['UNIT_VIRTUAL_ITEM_SLOT_DISPLAY'].length; k++) {
-                                newWorldUnit.setVirtualItemSlot(
-                                    updateFields['UNIT_VIRTUAL_ITEM_SLOT_DISPLAY'][k].index,
-                                    updateFields['UNIT_VIRTUAL_ITEM_SLOT_DISPLAY'][k].value
-                                )
+                                var item_index = updateFields['UNIT_VIRTUAL_ITEM_SLOT_DISPLAY'][k].index;
+
+                                itemsToWear[item_index] = {
+                                    displayId: updateFields['UNIT_VIRTUAL_ITEM_SLOT_DISPLAY'][k].value
+                                }
                             }
                         }
+                        if (updateFields['UNIT_VIRTUAL_ITEM_INFO']) {
+                            for (var k = 0; k < updateFields['UNIT_VIRTUAL_ITEM_INFO'].length; k++) {
+                                var infoIndex = updateFields['UNIT_VIRTUAL_ITEM_INFO'][k].index;
+                                var itemIndex = (infoIndex / 2) | 0;
+                                var itemInfoType = infoIndex % 2;
+
+                                var item_valueInfo = updateFields['UNIT_VIRTUAL_ITEM_INFO'][k].value;
+                                var itemToWear = itemsToWear[itemIndex];
+
+                                if (itemInfoType == 0) {
+                                    itemToWear.itemClass = item_valueInfo[0];
+                                    itemToWear.itemSubClass = item_valueInfo[1];
+                                    itemToWear.itemMaterial = item_valueInfo[2];
+                                } else if (itemInfoType == 1) {
+                                    itemToWear.itemInventoryType = item_valueInfo[0];
+                                    itemToWear.itemSheath = item_valueInfo[1];
+                                }
+                            }
+                        }
+
+                        for (var k = 0; k < itemsToWear.length; k++) {
+                            var itemToWear = itemsToWear[k];
+                            newWorldUnit.setVirtualItemSlot(k, itemToWear.displayId, itemToWear.itemClass,
+                                itemToWear.itemSubClass, itemToWear.itemInventoryType)
+                        }
+
+
                         if (updateFields.hasOwnProperty('UNIT_FIELD_BYTES_0')) {
 
                             var race = updateFields['UNIT_FIELD_BYTES_0'][0];

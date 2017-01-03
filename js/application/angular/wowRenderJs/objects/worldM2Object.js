@@ -103,6 +103,11 @@ class WorldMDXObject extends MDXObject {
         var attIndex = parentM2File.attachLookups[attachment];
         var attachInfo = parentM2File.attachments[attIndex];
 
+
+        if (!attachInfo) {
+            debugger;
+        }
+
         var boneId = attachInfo.bone;
         var parentBoneTransMat = parentM2.bonesMatrices[boneId];
 

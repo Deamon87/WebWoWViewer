@@ -8,12 +8,13 @@ class Texture {
 
         this.texture = null;
     }
-    loadFromMipmaps (mipmaps, textureFormat){
+    loadFromMipmaps (mipmaps, textureFormat, hasAlpha){
         var gl = this.sceneApi.getGlContext();
         var anisFilterExt = this.sceneApi.extensions.getAnisotropicExt();
         var ext = this.sceneApi.extensions.getComprTextExt();
 
         this.texture = gl.createTexture();
+        this.hasAlpha = hasAlpha;
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
 
         var textureGPUFormat = null;
@@ -137,7 +138,7 @@ class TextureWoWCache {
 
         }, function process(blpFile) {
             var textureObj = new Texture(sceneApi);
-            textureObj.loadFromMipmaps(blpFile.mipmaps, blpFile.textureFormat);
+            textureObj.loadFromMipmaps(blpFile.mipmaps, blpFile.textureFormat, blpFile.alphaChannelBitDepth > 0);
             textureObj.fileName = blpFile.fileName;
 
             return textureObj

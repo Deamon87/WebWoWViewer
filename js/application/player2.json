@@ -1,0 +1,135 @@
+[
+  {
+    "date": 1206685007,
+    "tickcount": 396099078,
+    "direction": "ServerToClient",
+    "opcode": "SMSG_COMPRESSED_UPDATE_OBJECT",
+    "payload": {
+      "unk_int8": 0,
+      "updates": [
+        {
+          "updateType": "UPDATE_TYPE_CREATE_FULL",
+          "objectGuid": "17786930",
+          "obj_type": 4,
+          "create_flag0": 112,
+          "movementflag": 0,
+          "movementflagExt": 0,
+          "timestamp": 4087023331,
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "f": 0,
+          "unk_long": 115,
+          "speedWalk": 2.5,
+          "speedRun": 7.0,
+          "speedRunBack": 4.5,
+          "speedSwim": 4.722222328186035,
+          "speedSwimBack": 2.5,
+          "speedFly": 7.0,
+          "speedFlyBack": 4.5,
+          "speedTurnRate": 3.1415927410125732,
+          "unk_10_long": 9,
+          "updateFields": {
+            "OBJECT_FIELD_GUID": [
+              {
+                "index": 0,
+                "value": 17786930
+              }
+            ],
+            "OBJECT_FIELD_TYPE": 25,
+            "OBJECT_FIELD_SCALE_X": 1.0,
+            "UNIT_FIELD_TARGET": [
+              {
+                "index": 0,
+                "value": 922752565
+              },
+              {
+                "index": 1,
+                "value": 4046454787
+              }
+            ],
+            "UNIT_FIELD_HEALTH": 100,
+            "UNIT_FIELD_POWER1": 140,
+            "UNIT_FIELD_MAXHEALTH": 100,
+            "UNIT_FIELD_MAXPOWER1": 140,
+            "UNIT_FIELD_MAXPOWER2": 1000,
+            "UNIT_FIELD_MAXPOWER3": 100,
+            "UNIT_FIELD_MAXPOWER4": 100,
+            "UNIT_FIELD_LEVEL": 1,
+            "UNIT_FIELD_FACTIONTEMPLATE": 1,
+            "UNIT_FIELD_BYTES_0": [
+              1,
+              9,
+              0,
+              0
+            ],
+            "UNIT_FIELD_FLAGS": 8,
+            "UNIT_FIELD_BASEATTACKTIME": [
+              {
+                "index": 0,
+                "value": 1600
+              },
+              {
+                "index": 1,
+                "value": 2000
+              }
+            ],
+            "UNIT_FIELD_BOUNDINGRADIUS": 0.3059999942779541,
+            "UNIT_FIELD_COMBATREACH": 1.5,
+            "UNIT_FIELD_DISPLAYID": 49,
+            "UNIT_FIELD_NATIVEDISPLAYID": 49,
+            "UNIT_MOD_CAST_SPEED": 1.0,
+            "UNIT_FIELD_BYTES_2": [
+              0,
+              40,
+              0,
+              0
+            ],
+            "PLAYER_BYTES": [
+              7,
+              6,
+              6,
+              8
+            ],
+            "PLAYER_BYTES_2": [
+              1,
+              0,
+              0,
+              2
+            ],
+            "PLAYER_VISIBLE_ITEM_4_0": [
+              {
+                "index": 0,
+                "value": 6097
+              }
+            ],
+            "PLAYER_VISIBLE_ITEM_5_0": [
+              {
+                "index": 0,
+                "value": 57
+              }
+            ],
+            "PLAYER_VISIBLE_ITEM_7_0": [
+              {
+                "index": 0,
+                "value": 1396
+              }
+            ],
+            "PLAYER_VISIBLE_ITEM_8_0": [
+              {
+                "index": 0,
+                "value": 59
+              }
+            ],
+            "PLAYER_VISIBLE_ITEM_16_0": [
+              {
+                "index": 0,
+                "value": 2092
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]
