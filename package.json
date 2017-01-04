@@ -53,6 +53,8 @@
     "axios": "^0.9.1",
     "bluebird": "^3.3.4",
     "gl-matrix": "^2.3.2",
+    "glslify-loader": "^1.0.2",
+    "raw-loader": "^0.5.1",
     "stats.js": "0.0.14-master"
   },
   "jspm": {

@@ -822,6 +822,7 @@ class Scene {
 
             gl.disableVertexAttribArray(1);
 
+            gl.uniform2fv(this.currentShaderProgram.shaderUniforms.uResolution, new Float32Array([this.canvas.height, this.canvas.width]))
 
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.u_sampler, 0);
             if (this.currentShaderProgram.shaderUniforms.u_depth) {
@@ -1361,6 +1362,7 @@ class Scene {
             //Draw debug camera from framebuffer into screen
             this.glClearScreen(gl, this.fogColor);
             this.activateRenderFrameShader();
+            gl.viewport(0,0,this.canvas.width, this.canvas.height);
             gl.enableVertexAttribArray(0);
             this.drawFrameBuffer();
 
@@ -1384,6 +1386,7 @@ class Scene {
             this.glClearScreen(gl, this.fogColor);
             gl.enableVertexAttribArray(0);
             this.activateRenderFrameShader();
+            gl.viewport(0,0,this.canvas.width, this.canvas.height);
             this.drawFrameBuffer();
         } else {
             //Draw real camera into square at bottom of screen

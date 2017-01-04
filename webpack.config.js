@@ -39,7 +39,11 @@ module.exports = {
             },
             {
                 test: /\.glsl?$/,
-                loader: 'webpack-glsl'
+                loader: 'raw'
+            },
+            {
+                test: /\.glsl?$/,
+                loader: 'glslify'
             },
             { test: /\.css$/, loader: "style-loader!css-loader" },
             {

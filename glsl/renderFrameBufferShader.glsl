@@ -14,6 +14,7 @@ void main() {
 
 #ifdef COMPILING_FS
 
+
 precision mediump float;
 varying vec2 v_texcoord;
 uniform sampler2D u_sampler;
@@ -21,6 +22,8 @@ uniform sampler2D u_depth;
 
 uniform float gauss_offsets[5];
 uniform float gauss_weights[5];
+
+uniform vec2 uResolution;
 
 void main() {
    /*
@@ -38,125 +41,55 @@ void main() {
 
     final.a = 1.0;
     gl_FragColor = final;   */
+    //gl_FragColor = vec4(texture2D(u_sampler, v_texcoord).rgb, 0);
+    //gl_FragColor = apply(u_sampler, v_texcoord, uResolution);
+    float FXAA_SPAN_MAX = 8.0;
+    float FXAA_REDUCE_MUL = 1.0/8.0;
+    float FXAA_REDUCE_MIN = 1.0/128.0;
 
+    vec3 rgbNW=texture2D(u_sampler,v_texcoord+(vec2(-1.0,-1.0)/uResolution)).xyz;
+    vec3 rgbNE=texture2D(u_sampler,v_texcoord+(vec2(1.0,-1.0)/uResolution)).xyz;
+    vec3 rgbSW=texture2D(u_sampler,v_texcoord+(vec2(-1.0,1.0)/uResolution)).xyz;
+    vec3 rgbSE=texture2D(u_sampler,v_texcoord+(vec2(1.0,1.0)/uResolution)).xyz;
+    vec3 rgbM=texture2D(u_sampler,v_texcoord).xyz;
 
-    gl_FragColor = vec4(texture2D(u_sampler, v_texcoord).rgb, 0);
+    vec3 luma=vec3(0.299, 0.587, 0.114);
+    float lumaNW = dot(rgbNW, luma);
+    float lumaNE = dot(rgbNE, luma);
+    float lumaSW = dot(rgbSW, luma);
+    float lumaSE = dot(rgbSE, luma);
+    float lumaM  = dot(rgbM,  luma);
+
+    float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));
+    float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));
+
+    vec2 dir;
+    dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));
+    dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));
+
+    float dirReduce = max(
+        (lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL),
+        FXAA_REDUCE_MIN);
+
+    float rcpDirMin = 1.0/(min(abs(dir.x), abs(dir.y)) + dirReduce);
+
+    dir = min(vec2( FXAA_SPAN_MAX,  FXAA_SPAN_MAX),
+          max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX),
+          dir * rcpDirMin)) / uResolution;
+
+    vec3 rgbA = (1.0/2.0) * (
+        texture2D(u_sampler, v_texcoord.xy + dir * (1.0/3.0 - 0.5)).xyz +
+        texture2D(u_sampler, v_texcoord.xy + dir * (2.0/3.0 - 0.5)).xyz);
+    vec3 rgbB = rgbA * (1.0/2.0) + (1.0/4.0) * (
+        texture2D(u_sampler, v_texcoord.xy + dir * (0.0/3.0 - 0.5)).xyz +
+        texture2D(u_sampler, v_texcoord.xy + dir * (3.0/3.0 - 0.5)).xyz);
+    float lumaB = dot(rgbB, luma);
+
+    if((lumaB < lumaMin) || (lumaB > lumaMax)){
+        gl_FragColor.xyz=rgbA;
+    }else{
+        gl_FragColor.xyz=rgbB;
+    }
 }
 
 #endif //COMPILING_FS
-
-
-#ifdef deffered_light
-precision highp float;
-
-#define DISPLAY_DEPTH 0
-#define DISPLAY_NORMAL 1
-#define DISPLAY_POSITION 2
-#define DISPLAY_COLOR 3
-#define DISPLAY_TOTAL 4
-#define DISPLAY_LIGHTS 5
-#define DISPLAY_NONTILE_LIGHTS 6
-#define DISPLAY_INK 7
-#define DISPLAY_DEBUGTILE 8
-#define MAXLIGHTNUM 1000
-
-uniform sampler2D u_Depthtex;
-uniform sampler2D u_Normaltex;
-uniform sampler2D u_Positiontex;
-uniform sampler2D u_Colortex;
-//for light
-uniform sampler2D u_LightGridtex;
-uniform sampler2D u_LightIndextex;
-uniform sampler2D u_LightPositiontex;
-uniform sampler2D u_LightColorRadiustex;
-uniform int u_LightNum;
-uniform int u_DisplayType;
-//uniform float u_Far;
-//uniform float u_Near;
-//uniform float u_Width;
-//uniform float u_Height;
-uniform int u_MaxTileLightNum;
-uniform int u_TileSize;
-//uniform Light u_Lights[LIGHTNUM];
-uniform int u_LightIndexImageSize;
-uniform float u_FloatLightIndexSize;
-uniform float u_WidthTile;
-uniform float u_HeightTile;
-varying vec2 fs_Texcoord;
-float linearizeDepth(float exp_depth, float near, float far) {
-    return  (2.0 * near) / (far + near -  exp_depth * (far - near));
-}
-void main(void)
-{
-    vec3 normal = texture2D(u_Normaltex, fs_Texcoord).xyz;
-    vec3 position = texture2D(u_Positiontex, fs_Texcoord).xyz;
-    vec3 color = texture2D(u_Colortex, fs_Texcoord).xyz;
-    //vec3 depth = texture2D(u_Depthtex, fs_Texcoord).xyz;
-    //float exp_depth = texture2D(u_Depthtex, fs_Texcoord).r;
-    //float lin_depth = linearizeDepth(exp_depth,u_Near,u_Far);
-    //get the grid data index
-    vec2 gridIndex = vec2(((fs_Texcoord.x*u_Width) / float(u_TileSize)) / (u_WidthTile), ((fs_Texcoord.y*u_Height) / float(u_TileSize)) / (u_HeightTile));
-    //x for offset, y for count
-    vec3 gridInfo = texture2D(u_LightGridtex, gridIndex).xyz;
-    int offset = int(gridInfo.x);
-    int count = int(gridInfo.y);
-    int offset2 = int(gridInfo.z);
-    vec3 lightColor = vec3(0.0);
-    int lightCount = 0;
-    if(count > 0){
-        for(int i = 0; i < MAXLIGHTNUM; i++){
-            if(i < count){
-                int lightId;
-                //float temp = (mod(float(offset+i), u_FloatLightIndexSize));
-                float temp = float(offset + i);
-                int addNext = 0;
-
-                if(temp >= u_FloatLightIndexSize){
-                    temp -= u_FloatLightIndexSize;
-                    addNext++;
-                }
-
-                //precision problem
-                if(temp == u_FloatLightIndexSize)
-                   temp = 0.0;
-                float lightSize =  u_FloatLightIndexSize-1.0;
-                vec2 dataIndex = vec2(
-                    temp / lightSize,
-                    //floor(float((offset2+i) / (u_LightIndexImageSize))) / (lightSize)
-                    float(offset2 + addNext) / lightSize
-                    );
-
-                //vec2 dataIndex = vec2(float(offset+i) / float(u_LightIndexImageSize-1), 1.0);
-                lightId = int((texture2D(u_LightIndextex, dataIndex).x));
-                vec3 lightPos = texture2D(u_LightPositiontex, vec2(float(lightId)/float(u_LightNum-1))).xyz;
-                vec4 lightColorRadius = texture2D(u_LightColorRadiustex, vec2(float(lightId)/float(u_LightNum-1))).xyzw;
-                if(distance(lightPos, position) < lightColorRadius.w){
-                    //float distoL = distance(lightPos, position);
-                    //distoL = max(lightColorRadius.w - distoL, 0.0);
-                    float diffuse = abs(dot(normal, normalize(lightPos - position)));
-                    //max(dot(normal, normalize(lightPos - position)),0.0);
-                    // if(diffuse == 0.0)
-                    //     diffuse = dot(-normal, normalize(lightPos - position));
-                    float dist = distance(lightPos, position);
-                    float lightR = lightColorRadius.w;
-                    float attenuation = dist/(1.0 - (dist/lightR) * (dist/lightR));
-                    attenuation = attenuation / lightR + 1.0;
-                    attenuation = 1.0 / (attenuation * attenuation);
-
-                    lightColor += diffuse * lightColorRadius.xyz * attenuation* color;// * ((lightColorRadius.w - distance(lightPos, position)) /     lightColorRadius.w);
-
-                    //lightColor += lightColorRadius.xyz;
-                    //if(distoL > 0.0)
-                    lightCount ++;
-                }
-            }
-            else
-                break;
-        }
-        lightColor = mix(vec3(0.0), vec3(1.0), lightColor);
-        lightColor = clamp(lightColor, vec3(0.0), vec3(1.0));
-    }
-    //gl_FragData[0] = vec4(vec3(float(count) / float(LIGHTNUM)),1.0);
-    gl_FragColor = vec4(lightColor * 0.7, 1.0) + vec4(color * 0.3,1.0);
-}
-#endif
