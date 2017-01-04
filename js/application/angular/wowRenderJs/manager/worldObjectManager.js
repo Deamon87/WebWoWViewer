@@ -247,6 +247,15 @@ class WorldObjectManager {
                                     }
                                 }
                             }
+                            //Boots
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_8_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_8_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setFeetItem(itemData[kk].value);
+                                    }
+                                }
+                            }
 
 
                         }
