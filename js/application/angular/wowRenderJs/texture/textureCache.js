@@ -1,6 +1,6 @@
 import cacheTemplate from './../cache.js';
 import blpLoader from './../../services/map/blpLoader.js';
-import dxtLib from 'decodeDXT/decodeDXT.js';
+import decodeDxt from 'decode-dxt';
 
 class Texture {
     constructor(sceneApi) {
@@ -40,8 +40,7 @@ class Texture {
         }
 
         /* S3TC is not supported on mobile platforms */
-        var useDXT1Decoding = ((!ext) || (!ext.COMPRESSED_RGB_S3TC_DXT1_EXT)) ||
-            ((!ext) || (!ext.COMPRESSED_RGBA_S3TC_DXT1_EXT));
+        var useDXT1Decoding = ((!ext) || (!ext.COMPRESSED_RGB_S3TC_DXT1_EXT)) || ((!ext) || (!ext.COMPRESSED_RGBA_S3TC_DXT1_EXT));
         var useDXT3Decoding = ((!ext) || (!ext.COMPRESSED_RGBA_S3TC_DXT3_EXT));
         var useDXT5Decoding = ((!ext) || (!ext.COMPRESSED_RGBA_S3TC_DXT5_EXT));
 
@@ -61,9 +60,9 @@ class Texture {
             case "S3TC_RGBA_DXT1":
                 for( var k = 0; k < mipmaps.length; k++) {
                     if (useDXT1Decoding) {
-                        var decodedResult = dxtLib.decodeDXT1toBitmap32(mipmaps[k].texture, mipmaps[k].width, mipmaps[k].height);
+                        var decodedResult = decodeDxt(new DataView(mipmaps[k].texture.buffer), mipmaps[k].width, mipmaps[k].height, 'dxt1');
 
-                        gl.texImage2D(gl.TEXTURE_2D, k, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE, decodedResult.decData);
+                        gl.texImage2D(gl.TEXTURE_2D, k, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE, decodedResult);
                     } else {
                         gl.compressedTexImage2D(gl.TEXTURE_2D, k, textureGPUFormat, mipmaps[k].width, mipmaps[k].height, 0, mipmaps[k].texture);
                     }
@@ -73,8 +72,9 @@ class Texture {
             case "S3TC_RGBA_DXT3":
                 for( var k = 0; k < mipmaps.length; k++) {
                     if (useDXT3Decoding) {
-                        var decodedResult = dxtLib.decodeDXT3toBitmap32(mipmaps[k].texture , mipmaps[k].width, mipmaps[k].height);
-                        gl.texImage2D(gl.TEXTURE_2D, k, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE,  decodedResult.decData);
+                        var decodedResult = decodeDxt(new DataView(mipmaps[k].texture.buffer), mipmaps[k].width, mipmaps[k].height, 'dxt3');
+                        //var decodedResult = dxtLib.decodeDXT3toBitmap32(mipmaps[k].texture , mipmaps[k].width, mipmaps[k].height);
+                        gl.texImage2D(gl.TEXTURE_2D, k, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE,  decodedResult);
                     } else {
                         gl.compressedTexImage2D(gl.TEXTURE_2D, k, textureGPUFormat, mipmaps[k].width, mipmaps[k].height, 0, mipmaps[k].texture);
                     }
@@ -85,8 +85,9 @@ class Texture {
             case "S3TC_RGBA_DXT5":
                 for( var k = 0; k < mipmaps.length; k++) {
                     if (useDXT5Decoding) {
-                        var decodedResult = dxtLib.decodeDXT5toBitmap32(mipmaps[k].texture , mipmaps[k].width, mipmaps[k].height);
-                        gl.texImage2D(gl.TEXTURE_2D, k, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE,  decodedResult.decData);
+                        var decodedResult = decodeDxt(new DataView(mipmaps[k].texture.buffer), mipmaps[k].width, mipmaps[k].height, 'dxt5');
+                        //var decodedResult = dxtLib.decodeDXT5toBitmap32(mipmaps[k].texture , mipmaps[k].width, mipmaps[k].height);
+                        gl.texImage2D(gl.TEXTURE_2D, k, gl.RGBA, mipmaps[k].width, mipmaps[k].height, 0, gl.RGBA, gl.UNSIGNED_BYTE,  decodedResult);
                     } else {
                         gl.compressedTexImage2D(gl.TEXTURE_2D, k, textureGPUFormat, mipmaps[k].width, mipmaps[k].height, 0, mipmaps[k].texture);
                     }

@@ -52,6 +52,7 @@
     "angular-ui-router": "^0.2.18",
     "axios": "^0.9.1",
     "bluebird": "^3.3.4",
+    "decode-dxt": "^1.0.0",
     "gl-matrix": "^2.3.2",
     "glslify-loader": "^1.0.2",
     "raw-loader": "^0.5.1",
