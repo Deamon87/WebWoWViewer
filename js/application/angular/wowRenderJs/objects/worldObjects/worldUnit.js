@@ -145,6 +145,7 @@ class WorldUnit extends WorldObject {
         var csd = this.sceneApi.dbc.getCharSectionsDBC();
         var chgd = this.sceneApi.dbc.getCharHairGeosetsDBC();
         var cfhsd = this.sceneApi.dbc.getCharacterFacialHairStylesDBC();
+        var hgvd = this.sceneApi.dbc.getHelmetGeosetVisDataDBC();
 
         //Base Skin
         var charSect = findSectionRec(csd, race,gender, 0, -1, skin);
@@ -197,11 +198,7 @@ class WorldUnit extends WorldObject {
         }
 
         /* Items */
-        var ItemDInfo = idid[helmItem];
-        if (ItemDInfo) {
-            this.helmet = this.createHelmetFromItemDisplayInfo(race, gender, ItemDInfo)
-        }
-        ItemDInfo = idid[shoulderItem];
+        var ItemDInfo = idid[shoulderItem];
         if (ItemDInfo) {
             var leftModel = ItemDInfo.leftModel;
             var rightModel = ItemDInfo.rightModel;
@@ -267,6 +264,39 @@ class WorldUnit extends WorldObject {
             replaceTextures[2] ='Item\\ObjectComponents\\Cape\\'+ ItemDInfo.leftTextureModel + '.BLP';
             meshIds[15] = 1 + ItemDInfo.geosetGroup_1;
             CharacterComponents.addAllTextures(this.textureCompositionManager, ItemDInfo, gender);
+        }
+
+        var ItemDInfo = idid[helmItem];
+        if (ItemDInfo) {
+            this.helmet = this.createHelmetFromItemDisplayInfo(race, gender, ItemDInfo)
+
+            if (gender == 1) {
+                var helmetGeoset = ItemDInfo.helmetGeosetVis_m;
+            } else {
+                var helmetGeoset = ItemDInfo.helmetGeosetVis_f;
+            }
+            if (helmetGeoset > 0) {
+                var hgvdRec = hgvd[helmetGeoset];
+                if (hgvdRec) {
+                    function checkGeoset(geoset, mask) {
+                        if (mask == 0) return geoset;
+                        if ((mask & (1 << geoset)) > 0) {
+                            return 0;
+                        } else {
+                            return geoset;
+                        }
+                    }
+
+                    meshIds[0] =  checkGeoset(meshIds[0], hgvdRec.geoset0);
+                    meshIds[1] =  checkGeoset(meshIds[1], hgvdRec.geoset1);
+                    meshIds[2] =  checkGeoset(meshIds[2], hgvdRec.geoset2);
+                    meshIds[3] =  checkGeoset(meshIds[3], hgvdRec.geoset3);
+                    meshIds[7] =  checkGeoset(meshIds[7], hgvdRec.geoset4);
+                    meshIds[16] = checkGeoset(meshIds[16], hgvdRec.geoset5);
+                    meshIds[17] = checkGeoset(meshIds[17], hgvdRec.geoset6);
+                }
+            }
+
         }
     }
     createModelFromDisplayId(value) {

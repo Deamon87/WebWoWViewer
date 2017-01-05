@@ -27,8 +27,8 @@ export default function itemDisplayInfoDBC(){
                 record.flags               = dbcObject.readInt32(i, 10);
                 record.spellVisualID       = dbcObject.readInt32(i, 11);
                 record.groupSoundIndex     = dbcObject.readInt32(i, 12);
-                record.helmetGeosetVis_1   = dbcObject.readInt32(i, 13);
-                record.helmetGeosetVis_2   = dbcObject.readInt32(i, 14);
+                record.helmetGeosetVis_m   = dbcObject.readInt32(i, 13);
+                record.helmetGeosetVis_f   = dbcObject.readInt32(i, 14);
                 record.texture_1           = dbcObject.readText(i, 15);
                 record.texture_2           = dbcObject.readText(i, 16);
                 record.texture_3           = dbcObject.readText(i, 17);

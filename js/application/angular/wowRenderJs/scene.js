@@ -626,6 +626,9 @@ class Scene {
                 getGameObjectDisplayInfoDBC : function () {
                     return self.gameObjectDisplayInfoDBC;
                 },
+                getHelmetGeosetVisDataDBC : function() {
+                    return self.helmetGeosetVisDataDBC;
+                },
                 getItemDisplayInfoDBC : function () {
                     return self.itemDisplayInfoDBC;
                 },

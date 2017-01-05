@@ -168,15 +168,10 @@ void main() {
     float a3 = alpha.b;
     float a4 = alpha.a;
 
-
-
     vec3 tex4 = texture2D(uLayer3, vTexCoord).rgb;
     vec3 tex3 = texture2D(uLayer2, vTexCoord).rgb;
     vec3 tex2 = texture2D(uLayer1, vTexCoord).rgb;
     vec3 tex1 = texture2D(uLayer0, vTexCoord).rgb;
-
-
-
 
     //Mix formula for 4 texture mixing
     vec4 finalColor;
@@ -186,7 +181,6 @@ void main() {
         finalColor = vec4(mixTextures(mixTextures(mixTextures(tex1,tex2,a2),tex3, a3), tex4, a4), 1);
         //finalColor = vec4(a4 * tex4 - (a4  - 1.0) * ( (a3 - 1.0)*( tex1 * (a2 - 1.0) - a2*tex2) + a3*tex3), 1);
     }
-
 
     // --- Fog start ---
     vec3 fogColor = uFogColor;
@@ -209,7 +203,6 @@ void main() {
 
     finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, vec3(min(expFog, endFadeFog)));
     // --- Fog end ---
-
 
     finalColor.a = 1.0;
     gl_FragColor = finalColor;
