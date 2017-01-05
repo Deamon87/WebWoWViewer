@@ -270,7 +270,7 @@ class WorldUnit extends WorldObject {
         if (ItemDInfo) {
             this.helmet = this.createHelmetFromItemDisplayInfo(race, gender, ItemDInfo)
 
-            if (gender == 1) {
+            if (gender == 0) {
                 var helmetGeoset = ItemDInfo.helmetGeosetVis_m;
             } else {
                 var helmetGeoset = ItemDInfo.helmetGeosetVis_f;

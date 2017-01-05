@@ -231,46 +231,43 @@ class GraphManager {
                     }
                 }
             }
-            //3.2 Iterate over all global WMOs and M2s (they have uniqueIds)
-            m2ObjectsCandidates.forEach(function(value) {
-                var m2Object = value;
-                if(!m2Object ) return;
-
-                var frustumResult = m2Object.checkFrustumCulling(self.position, frustumPlanes, num_planes);
-                if (frustumResult) {
-                    m2Object.setIsRendered(true);
-                    m2RenderedThisFrame.add(m2Object);
-                }
-            });
-
-
-
-            wmoCandidates.forEach(function(value) {
-                var wmoObject = value;
-                if(!wmoObject) return;
-                if(wmoRenderedThisFrame.has(value)) return;
-                if (!wmoObject.loaded) {
-                    wmoRenderedThisFrame.add(wmoObject);
-                    return
-                }
-
-                if (wmoObject.wmoObj.nPortals != 0 && config.getUsePortalCulling()) {
-                    if(self.portalCullingAlgo.startTraversingFromExterior(wmoObject, self.position,
-                        lookAtMat4, frustumPlanes, m2RenderedThisFrame)){
-                        wmoRenderedThisFrame.add(wmoObject);
-                    }
-                } else {
-                    if (wmoObject.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame)) {
-                        wmoRenderedThisFrame.add(wmoObject);
-                    }
-                }
-            });
-
-
         } else {
-            //wmoRenderedThisFrame.add(this.wmoMap);
-            //this.wmoMap.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame);
+            wmoCandidates.add(this.wmoMap);
         }
+
+        //3.2 Iterate over all global WMOs and M2s (they have uniqueIds)
+        m2ObjectsCandidates.forEach(function(value) {
+            var m2Object = value;
+            if(!m2Object ) return;
+
+            var frustumResult = m2Object.checkFrustumCulling(self.position, frustumPlanes, num_planes);
+            if (frustumResult) {
+                m2Object.setIsRendered(true);
+                m2RenderedThisFrame.add(m2Object);
+            }
+        });
+
+        wmoCandidates.forEach(function(value) {
+            var wmoObject = value;
+            if(!wmoObject) return;
+            if(wmoRenderedThisFrame.has(value)) return;
+            if (!wmoObject.loaded) {
+                wmoRenderedThisFrame.add(wmoObject);
+                return
+            }
+
+            if (wmoObject.wmoObj.nPortals != 0 && config.getUsePortalCulling()) {
+                if(self.portalCullingAlgo.startTraversingFromExterior(wmoObject, self.position,
+                        lookAtMat4, frustumPlanes, m2RenderedThisFrame)){
+                    wmoRenderedThisFrame.add(wmoObject);
+                }
+            } else {
+                if (wmoObject.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame)) {
+                    wmoRenderedThisFrame.add(wmoObject);
+                }
+            }
+        });
+
     }
 
     sortGeometry(frustumMat, lookAtMat4) {

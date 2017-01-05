@@ -52,8 +52,6 @@ class WmoObject {
         var candidateGroups = [];
 
         for (var i = 0; i < this.wmoGroupArray.length; i++) {
-            if (!this.wmoGroupArray[i].loaded) continue;
-
             this.wmoGroupArray[i].checkIfInsideGroup(cameraVec4, cameraLocal, candidateGroups)
 
             /* Test: iterate through portals in 5 value radius and check if it fits there */
@@ -757,8 +755,6 @@ class WmoGroupObject {
 
     checkIfInsideGroup(cameraVec4, cameraLocal, candidateGroups) {
         var bbArray = this.volumeWorldGroupBorder;
-        var groupFile = this.wmoGeom.wmoGroupFile;
-
         var groupInfo = this.groupInfo;
 
         //1. Check if group wmo is interior wmo
@@ -775,7 +771,14 @@ class WmoGroupObject {
         //wmoGroupsInside++;
         //lastWmoGroupInside = i;
 
+
+        if (!this.loaded) {
+            this.startLoading();
+            return;
+        }
+
         //3. Query bsp tree for leafs around the position of object(camera)
+        var groupFile = this.wmoGeom.wmoGroupFile;
 
         var epsilon = 0.4;
         var cameraBBMin = vec3.fromValues(cameraLocal[0]-epsilon, cameraLocal[1]-epsilon, groupInfo.bb1.z-epsilon);
