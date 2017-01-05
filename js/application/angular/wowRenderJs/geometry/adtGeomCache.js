@@ -39,13 +39,13 @@ function parseAlphaTextures(adtObj, wdtObj){
                         readCnt++; readForThisLayer++;
                         offO += 4;
 
-                        /*
+
                         if (readCnt >=64) {
-                            offO = offO + xStride - 64;
+                            //offO = offO + xStride - 64;
                             readCnt = 0;
-                            readForThisLayer++;
+                            readForThisLayer++; //TODO: should it be here?
                         }
-                        */
+
 
                         if( !fill ) alphaOffs++;
                     }
@@ -74,7 +74,7 @@ function parseAlphaTextures(adtObj, wdtObj){
                             currentLayer[offO] = (alphaArray[alphaOffs] & 0x0f ) * 17;
                             offO += 4;
                             currentLayer[offO] =  ((alphaArray[alphaOffs] & 0xf0 ) >> 4) * 17;
-                            offO+=4;
+                            offO += 4;
                             readCnt+=2; readForThisLayer+=2; alphaOffs++;
                             /*
                             if (readCnt >=64) {
@@ -127,8 +127,8 @@ class ADTGeom {
         var maxAlphaTexPerChunk = 4;
         var alphaTexSize = 64;
 
-        var texWidth = maxAlphaTexPerChunk * alphaTexSize;
-        //var texWidth = alphaTexSize;
+        //var texWidth = maxAlphaTexPerChunk * alphaTexSize;
+        var texWidth = alphaTexSize;
         var texHeight = alphaTexSize;
 
         var megaAlphaTexture = parseAlphaTextures(this.adtFile, this.wdtFile);

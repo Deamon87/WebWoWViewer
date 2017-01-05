@@ -162,7 +162,7 @@ void main() {
     vec2 vTexCoord = vChunkCoords;
     const float threshold = 1.5;
 
-    vec2 alphaCoord = vec2(vChunkCoords.x/8.0 /4.0, vChunkCoords.y/8.0 );
+    vec2 alphaCoord = vec2(vChunkCoords.x/8.0, vChunkCoords.y/8.0 );
     vec4 alpha = texture2D( uAlphaTexture, alphaCoord);
     float a2 = alpha.g;
     float a3 = alpha.b;

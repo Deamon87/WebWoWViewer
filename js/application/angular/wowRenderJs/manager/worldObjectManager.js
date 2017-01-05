@@ -2,10 +2,10 @@ import WorldUnit from '../objects/worldObjects/worldUnit.js'
 import WorldPlayer from '../objects/worldObjects/worldPlayer.js'
 import WorldGameObject from '../objects/worldObjects/worldGameObject.js'
 //import packetList from '../../../mountedNpc.json'
-//import packetList from '../../../47EC8D2E.json'
+import packetList from '../../../47EC8D2E.json'
 //import packetList from '../../../npc_wood.json'
 //import packetList from '../../../player.json'
-import packetList from '../../../player2.json'
+//import packetList from '../../../player2.json'
 //import packetList from '../../../packet.json'
 //import packetList from '../../../attacketdMinion1.json'
 //let packetList = [];
@@ -184,7 +184,7 @@ class WorldObjectManager {
                             if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_1_0")) {
                                 var itemData = updateFields['PLAYER_VISIBLE_ITEM_1_0'];
                                 for (var kk =0 ; kk < itemData.length; kk++) {
-                                    if (itemData[k].index == 0) {
+                                    if (itemData[kk].index == 0) {
                                         newWorldUnit.setHeadItem(itemData[kk].value);
                                     }
                                 }
@@ -256,7 +256,51 @@ class WorldObjectManager {
                                     }
                                 }
                             }
-
+                            //Wrist
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_9_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_9_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setWristItem(itemData[kk].value);
+                                    }
+                                }
+                            }
+                            //Hands
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_10_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_10_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setHandsItem(itemData[kk].value);
+                                    }
+                                }
+                            }
+                            //Back
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_15_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_15_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setBackItem(itemData[kk].value);
+                                    }
+                                }
+                            }
+                            //Main hand
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_15_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_15_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setMainHandItem(itemData[kk].value);
+                                    }
+                                }
+                            }
+                            //Off hand
+                            if (updateFields.hasOwnProperty("PLAYER_VISIBLE_ITEM_16_0")) {
+                                var itemData = updateFields['PLAYER_VISIBLE_ITEM_16_0'];
+                                for (var kk =0 ; kk < itemData.length; kk++) {
+                                    if (itemData[kk].index == 0) {
+                                        newWorldUnit.setMainHandItem(itemData[kk].value);
+                                    }
+                                }
+                            }
 
                         }
 

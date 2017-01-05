@@ -822,7 +822,7 @@ class Scene {
 
             gl.disableVertexAttribArray(1);
 
-            gl.uniform2fv(this.currentShaderProgram.shaderUniforms.uResolution, new Float32Array([this.canvas.height, this.canvas.width]))
+            gl.uniform2fv(this.currentShaderProgram.shaderUniforms.uResolution, new Float32Array([this.canvas.width, this.canvas.height]))
 
             gl.uniform1i(this.currentShaderProgram.shaderUniforms.u_sampler, 0);
             if (this.currentShaderProgram.shaderUniforms.u_depth) {
