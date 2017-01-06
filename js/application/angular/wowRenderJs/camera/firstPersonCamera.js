@@ -1,252 +1,143 @@
 import {vec3} from 'gl-matrix';
 
-export default function initCamera(canvas, document) {
-    /* Handlers for elem */
-    var camera = [0, 0, 0];
-    var MDDepth = 0, MDHorizontal = 0, MDVertical = 0;
-    var staticCamera = false;
+function  degToRad(degrees) {
+    return degrees * ( Math.PI / 180 );
+}
 
-    var mleft_pressed = 0;
-    var m_x = 0, m_y = 0;
-    var ah = 0, av = 0;
-    var _document = document;
-    _document.cameraSpeed = 0.02;
+class Camera {
+    constructor () {
+        this.camera = [0, 0, 0];
+        this.MDDepthPlus = 0;
+        this.MDDepthMinus = 0;
+        this.MDHorizontalPlus = 0;
+        this.MDHorizontalMinus = 0;
 
-    function keyDown(event) {
-        var key = String.fromCharCode(event.keyCode || event.charCode);
-        switch (key) {
-            case 'W' :
-                MDDepth = 1;
-                break;
-            case 'S' :
-                MDDepth = -1;
-                break;
-            case 'A' :
-                MDHorizontal = -1;
-                break;
-            case 'D':
-                MDHorizontal = 1;
-                break;
-            case 'Q':
-                MDVertical = 1;
-                break;
+        this.MDVerticalPlus = 0;
+        this.MDVerticalMinus = 0;
 
-            case 'K' :
-                staticCamera = !staticCamera;
-                break;
+        this.depthDiff = 0;
 
-            case 'E':
-                MDVertical = -1;
-                break;
+        this.staticCamera = false;
+
+        this.ah = 0;
+        this.av = 0;
+    }
+
+    addDepthDiff(val) {
+        this.depthDiff = this.depthDiff + val;
+    }
+    addHorizontalViewDir(val) {
+        var ah = this.ah;
+        ah += val;
+
+        this.ah = ah;
+    }
+    addVerticalViewDir(val) {
+        var av = this.av;
+        av += val;
+
+        if (av < -89.99999) {
+            av = -89.99999
+        } else if (av > 89.99999) {
+            av = 89.99999;
+        }
+        this.av = av;
+    }
+
+    startMovingForward(){
+        this.MDDepthPlus = 1;
+    }
+    stopMovingForward(){
+        this.MDDepthPlus = 0;
+    }
+    startMovingBackwards(){
+        this.MDDepthMinus = 1;
+    }
+    stopMovingBackwards(){
+        this.MDDepthMinus = 0;
+    }
+
+    startStrafingLeft(){
+        this.MDHorizontalMinus = 1;
+    }
+    stopStrafingLeft(){
+        this.MDHorizontalMinus = 0;
+    }
+    startStrafingRight(){
+        this.MDHorizontalPlus = 1;
+    }
+    stopStrafingRight(){
+        this.MDHorizontalPlus = 0;
+    }
+
+    startMovingUp(){
+        this.MDVerticalPlus = 1;
+    }
+    stopMovingUp(){
+        this.MDVerticalPlus = 0;
+    }
+    startMovingDown(){
+        this.MDVerticalMinus = 1;
+    }
+    stopMovingDown(){
+        this.MDVerticalMinus = 0;
+    }
+
+
+    tick (timeDelta) {
+        var dir = [1, 0, 0];
+        var moveSpeed = 0.02;
+        var camera = this.camera;
+
+        var dTime = timeDelta;
+
+        var horizontalDiff = dTime * moveSpeed * (this.MDHorizontalPlus - this.MDHorizontalMinus);
+        var depthDiff      = dTime * moveSpeed * (this.MDDepthPlus - this.MDDepthMinus) + this.depthDiff;
+        var verticalDiff   = dTime * moveSpeed * (this.MDVerticalPlus - this.MDVerticalMinus);
+
+        this.depthDiff = 0;
+
+        /* Calc look at position */
+        dir = vec3.rotateY(dir, dir, [0, 0, 0], degToRad(this.av));
+        dir = vec3.rotateZ(dir, dir, [0, 0, 0], degToRad(-this.ah));
+        vec3.normalize(dir,dir);
+
+        var lookat = [];
+
+        /* Calc camera position */
+        if (horizontalDiff != 0) {
+            var right = [];
+            vec3.rotateZ(right, dir, [0, 0, 0], degToRad(-90));
+            right[2] = 0;
+
+            vec3.normalize(right, right);
+            vec3.scale(right, right, horizontalDiff);
+
+            vec3.add(camera, camera, right);
+        }
+
+        if (depthDiff !== 0) {
+            var movDir = [];
+            vec3.copy(movDir, dir);
+
+            vec3.scale(movDir, movDir, depthDiff);
+            vec3.add(camera, camera, movDir);
+        }
+        if (verticalDiff !== 0) {
+            camera[2] = camera[2] + verticalDiff;
+        }
+
+        vec3.add(lookat, camera, dir);
+
+        return {
+            lookAtVec3: lookat,
+            cameraVec3: camera
         }
     }
-
-    function keyUp(event) {
-        var key = String.fromCharCode(event.keyCode || event.charCode);
-        switch (key) {
-            case 'W' :
-                MDDepth = 0;
-                break;
-            case 'S' :
-                MDDepth = 0;
-                break;
-            case 'A' :
-                MDHorizontal = 0;
-                break;
-            case 'D':
-                MDHorizontal = 0;
-                break;
-            case 'Q':
-                MDVertical = 0;
-                break;
-
-            case 'E':
-                MDVertical = 0;
-                break;
-        }
+    setCameraPos (x, y, z) {
+        this.camera = [x, y, z];
     }
 
-    function mouseDown(event) {
-        if (event.button === 0) {
-            mleft_pressed = 1;
-            m_x = event.pageX;
-            m_y = event.pageY;
-        }
-    }
+}
 
-    function touchStart(event) {
-        mleft_pressed = 1;
-        m_x = event.touches[0].pageX;
-        m_y = event.touches[0].pageY;
-    }
-
-    function touchMove(event) {
-        var x = event.touches[0].pageX; // Собираем данные
-        var y = event.touches[0].pageY; // и еще
-
-        if (mleft_pressed === 1) {
-            ah = ah + (x - m_x) / 4.0;
-            av = av + (y - m_y) / 4.0;
-            if (av < -100) {
-                av = -100
-            } else if (av > 100) {
-                av = 100;
-            }
-            m_x = x;
-            m_y = y;
-        }
-    }
-
-    function mouseUp(event) {
-        if (event.button === 0) {
-            mleft_pressed = 0;
-        }
-    }
-
-    function mouseMove(event) {
-        if (!pointerIsLocked) {
-            if (mleft_pressed === 1) {
-                ah = ah + (event.pageX - m_x) / 4.0;
-                av = av + (event.pageY - m_y) / 4.0;
-                if (av < -89.99999) {
-                    av = -89.99999
-                } else if (av > 89.99999) {
-                    av = 89.99999;
-                }
-                m_x = event.pageX;
-                m_y = event.pageY;
-            }
-        } else {
-            var delta_x = event.movementX ||
-                event.mozMovementX          ||
-                event.webkitMovementX       ||
-                0;
-            var delta_y = event.movementY ||
-                event.mozMovementY      ||
-                event.webkitMovementY   ||
-                0;
-
-            ah = ah + (delta_x) / 4.0;
-            av = av + (delta_y) / 4.0;
-            if (av < -89.99999) {
-                av = -89.99999
-            } else if (av > 89.99999) {
-                av = 89.99999;
-            }
-
-        }
-    }
-
-    function mouseout(event) {
-        mleft_pressed = 0;
-    }
-
-    //From http://www.html5rocks.com/en/tutorials/pointerlock/intro/
-    var havePointerLock = 'pointerLockElement' in document ||
-        'mozPointerLockElement' in document ||
-        'webkitPointerLockElement' in document;
-
-    if (havePointerLock) {
-        canvas.addEventListener("click", function () {
-            "use strict";
-            canvas.requestPointerLock = canvas.requestPointerLock ||
-                canvas.mozRequestPointerLock ||
-                canvas.webkitRequestPointerLock;
-            // Ask the browser to lock the pointer
-            canvas.requestPointerLock();
-        }, false);
-
-        var pointerIsLocked = false;
-        var pointerLockCallback = function (e) {
-            "use strict";
-
-            pointerIsLocked =
-                (document.pointerLockElement === canvas ||
-                document.mozPointerLockElement === canvas ||
-                document.webkitPointerLockElement === canvas);
-        };
-        document.addEventListener('pointerlockchange', pointerLockCallback, false);
-        document.addEventListener('mozpointerlockchange', pointerLockCallback, false);
-        document.addEventListener('webkitpointerlockchange', pointerLockCallback, false);
-    }
-
-    canvas.addEventListener('mousemove', mouseMove, false);
-    canvas.addEventListener('touchmove', touchMove, false);
-    canvas.addEventListener('mousedown', mouseDown, false);
-    canvas.addEventListener('touchstart', touchStart, false);
-    canvas.addEventListener('mouseup', mouseUp, false);
-    canvas.addEventListener('touchend', mouseUp, false);
-    canvas.addEventListener('mouseout', mouseout, false);
-
-    var lastDownTarget;
-    document.addEventListener('mousedown', function (event) {
-        lastDownTarget = event.target;
-    }, false);
-
-    document.addEventListener('keydown', function (event) {
-        if (lastDownTarget == canvas) {
-            keyDown(event)
-        }
-    }, false);
-    document.addEventListener('keyup', function (event) {
-        if (lastDownTarget == canvas) {
-            keyUp(event)
-        }
-    }, false);
-
-    function degToRad(degrees) {
-        return degrees * ( Math.PI / 180 );
-    }
-
-
-    return {
-        tick: function (timeDelta) {
-            var dir = [1, 0, 0];
-            var moveSpeed = _document.cameraSpeed;
-
-            var dTime = timeDelta;
-
-            /* Calc look at position */
-            //av = 90;
-            dir = vec3.rotateY(dir, dir, [0, 0, 0], degToRad(av));
-            dir = vec3.rotateZ(dir, dir, [0, 0, 0], degToRad(-ah));
-            vec3.normalize(dir,dir);
-
-            var lookat = [];
-
-            /* Calc camera position */
-            if (MDHorizontal !== 0) {
-                var right = [];
-                vec3.rotateZ(right, dir, [0, 0, 0], degToRad(-90));
-                right[2] = 0;
-
-                vec3.normalize(right, right);
-                vec3.scale(right, right, dTime * moveSpeed * MDHorizontal);
-
-                vec3.add(camera, camera, right);
-            }
-
-            if (MDDepth !== 0) {
-                var movDir = [];
-                vec3.copy(movDir, dir);
-
-                vec3.scale(movDir, movDir, dTime * moveSpeed * MDDepth);
-                vec3.add(camera, camera, movDir);
-            }
-            if (MDVertical !== 0) {
-                camera[2] = camera[2] + dTime * moveSpeed * MDVertical;
-            }
-
-            vec3.add(lookat, camera, dir);
-
-            return {
-                lookAtVec3: lookat,
-                cameraVec3: camera,
-                staticCamera: staticCamera
-            }
-        },
-        setCameraPos: function (x, y, z) {
-            camera = [x, y, z];
-        }
-    }
-};
+export default Camera

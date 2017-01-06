@@ -104,7 +104,7 @@ class Scene {
         self.initBoxVBO();
         self.initTextureCompVBO();
         self.initCaches();
-        self.initCamera(canvas, document);
+        self.initCamera();
 
         /* Unit and Player data */
         animationDataDBC().then(function success(a) {
@@ -712,8 +712,8 @@ class Scene {
             }
         };
     }
-    initCamera (canvas, document){
-        this.camera = firstPersonCamera(canvas, document);
+    initCamera (){
+        this.camera = new firstPersonCamera();
     }
     initBoxVBO (){
         var gl = this.gl;

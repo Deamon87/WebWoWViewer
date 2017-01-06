@@ -2,6 +2,214 @@ import angular from 'angular';
 import Scene from './../wowRenderJs/scene.js';
 import config from './../services/config.js';
 
+import 'hammerjs';
+import 'imports?window=>global!hammerjs';
+import 'hammer-timejs';
+
+var events = function (element, camera) {
+    "use strict";
+
+    var mleft_pressed = 0;
+    var m_x = 0, m_y = 0;
+
+    var _document = document;
+    _document.cameraSpeed = 0.02;
+
+    function keyDown(event) {
+        var key = String.fromCharCode(event.keyCode || event.charCode);
+        switch (key) {
+            case 'W' :
+                camera.startMovingForward();
+                break;
+            case 'S' :
+                camera.startMovingBackwards();
+                break;
+            case 'A' :
+                camera.startStrafingLeft();
+                break;
+            case 'D':
+                camera.startStrafingRight();
+                break;
+            case 'Q':
+                camera.startMovingUp();
+                break;
+            case 'E':
+                camera.startMovingDown();
+                break;
+        }
+    }
+
+    function keyUp(event) {
+        var key = String.fromCharCode(event.keyCode || event.charCode);
+        switch (key) {
+            case 'W' :
+                camera.stopMovingForward();
+                break;
+            case 'S' :
+                camera.stopMovingBackwards();
+                break;
+            case 'A' :
+                camera.stopStrafingLeft();
+                break;
+            case 'D':
+                camera.stopStrafingRight();
+                break;
+            case 'Q':
+                camera.stopMovingUp();
+                break;
+
+            case 'E':
+                camera.stopMovingDown();
+                break;
+        }
+    }
+
+    function mouseDown(event) {
+        if (event.button === 0) {
+            mleft_pressed = 1;
+            m_x = event.pageX;
+            m_y = event.pageY;
+        }
+    }
+
+    function mouseUp(event) {
+        if (event.button === 0) {
+            mleft_pressed = 0;
+        }
+    }
+
+    function mouseMove(event) {
+        if (!pointerIsLocked) {
+            if (mleft_pressed === 1) {
+                camera.addHorizontalViewDir((event.pageX - m_x) / 4.0);
+                camera.addVerticalViewDir((event.pageY - m_y) / 4.0);
+
+                m_x = event.pageX;
+                m_y = event.pageY;
+            }
+        } else {
+            var delta_x = event.movementX ||
+                event.mozMovementX          ||
+                event.webkitMovementX       ||
+                0;
+            var delta_y = event.movementY ||
+                event.mozMovementY      ||
+                event.webkitMovementY   ||
+                0;
+
+            camera.addHorizontalViewDir((delta_x) / 4.0);
+            camera.addVerticalViewDir((delta_y) / 4.0);
+        }
+    }
+
+    function mouseout(event) {
+        mleft_pressed = 0;
+    }
+
+    //From http://www.html5rocks.com/en/tutorials/pointerlock/intro/
+    var havePointerLock = 'pointerLockElement' in document ||
+        'mozPointerLockElement' in document ||
+        'webkitPointerLockElement' in document;
+
+    if (havePointerLock) {
+        element.addEventListener("click", function () {
+            "use strict";
+            element.requestPointerLock = element.requestPointerLock ||
+                element.mozRequestPointerLock ||
+                element.webkitRequestPointerLock;
+            // Ask the browser to lock the pointer
+            element.requestPointerLock();
+        }, false);
+
+        var pointerIsLocked = false;
+        var pointerLockCallback = function (e) {
+            "use strict";
+
+            pointerIsLocked =
+                (document.pointerLockElement === element ||
+                document.mozPointerLockElement === element ||
+                document.webkitPointerLockElement === element);
+        };
+        document.addEventListener('pointerlockchange', pointerLockCallback, false);
+        document.addEventListener('mozpointerlockchange', pointerLockCallback, false);
+        document.addEventListener('webkitpointerlockchange', pointerLockCallback, false);
+    }
+
+    element.addEventListener('mousemove', mouseMove, false);
+    element.addEventListener('mousedown', mouseDown, false);
+    element.addEventListener('mouseup', mouseUp, false);
+    element.addEventListener('mouseout', mouseout, false);
+
+
+
+    var lastDownTarget;
+    document.addEventListener('mousedown', function (event) {
+        lastDownTarget = event.target;
+    }, false);
+
+    document.addEventListener('keydown', function (event) {
+        if (lastDownTarget == element) {
+            keyDown(event)
+        }
+    }, false);
+    document.addEventListener('keyup', function (event) {
+        if (lastDownTarget == element) {
+            keyUp(event)
+        }
+    }, false);
+
+
+    var isPitchGoingOn = false;
+    function touchStart(event) {
+        if (isPitchGoingOn) return;
+        mleft_pressed = 1;
+        m_x = event.touches[0].pageX;
+        m_y = event.touches[0].pageY;
+    }
+
+    function touchMove(event) {
+        if (isPitchGoingOn) return;
+        var x = event.touches[0].pageX; // Собираем данные
+        var y = event.touches[0].pageY; // и еще
+
+        if (mleft_pressed === 1) {
+            camera.addHorizontalViewDir((x - m_x) / 4.0);
+            camera.addVerticalViewDir((y - m_y) / 4.0);
+
+            m_x = x;
+            m_y = y;
+        }
+    }
+    function touchEnd(event) {
+        mleft_pressed = 0;
+    }
+
+
+    element.addEventListener('touchstart', touchStart, false);
+    element.addEventListener('touchmove', touchMove, false);
+    element.addEventListener('touchend', touchEnd, false);
+
+    var mc = new Hammer(element);
+    mc.get('pinch').set({ enable: true });
+    var pinchScale = 0;
+    mc.on("pinchstart pinchin pinchout pinchend", function(ev) {
+        if (ev.type == 'pinchstart') {
+            pinchScale = ev.scale;
+            isPitchGoingOn = true;
+        } else if (ev.type == 'pinchend') {
+            pinchScale = 0;
+            isPitchGoingOn = false;
+        } else if (ev.type == 'pinchin') {
+            camera.addDepthDiff((ev.scale - pinchScale) * 5);
+            pinchScale = ev.scale;
+        } else if (ev.type == 'pinchout') {
+
+            camera.addDepthDiff((ev.scale - pinchScale) * 5);
+            pinchScale = ev.scale;
+        }
+    });
+}
+
 
 var wowJsRender = angular.module('main.directives.wowJsRender', []);
 wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window',
@@ -88,6 +296,7 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                 scope.useSecondCamera = config.getUseSecondCamera();
                 scope.doubleCameraDebug = config.getDoubleCameraDebug();
 
+                events(canvas, sceneObj.camera)
 
                 scope.$watch('drawM2BB', function (newValue) {
                     config.setDrawM2BB(newValue);

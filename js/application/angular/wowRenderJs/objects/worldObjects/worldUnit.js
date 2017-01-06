@@ -278,22 +278,22 @@ class WorldUnit extends WorldObject {
             if (helmetGeoset > 0) {
                 var hgvdRec = hgvd[helmetGeoset];
                 if (hgvdRec) {
-                    function checkGeoset(geoset, mask) {
-                        if (mask == 0) return geoset;
-                        if ((mask & (1 << geoset)) > 0) {
-                            return 0;
+
+                    function checkGeoset(geoset, race, mask) {
+                        if ((mask & (1 << race)) > 0) {
+                            return 1;
                         } else {
                             return geoset;
                         }
                     }
 
-                    meshIds[0] =  checkGeoset(meshIds[0], hgvdRec.geoset0);
-                    meshIds[1] =  checkGeoset(meshIds[1], hgvdRec.geoset1);
-                    meshIds[2] =  checkGeoset(meshIds[2], hgvdRec.geoset2);
-                    meshIds[3] =  checkGeoset(meshIds[3], hgvdRec.geoset3);
-                    meshIds[7] =  checkGeoset(meshIds[7], hgvdRec.geoset4);
-                    meshIds[16] = checkGeoset(meshIds[16], hgvdRec.geoset5);
-                    meshIds[17] = checkGeoset(meshIds[17], hgvdRec.geoset6);
+                    meshIds[0] =  checkGeoset(meshIds[0], race, hgvdRec.geoset0);
+                    meshIds[1] =  checkGeoset(meshIds[1], race, hgvdRec.geoset1);
+                    meshIds[2] =  checkGeoset(meshIds[2], race, hgvdRec.geoset2);
+                    meshIds[3] =  checkGeoset(meshIds[3], race, hgvdRec.geoset3);
+                    meshIds[7] =  checkGeoset(meshIds[7], race, hgvdRec.geoset4);
+                    meshIds[16] = checkGeoset(meshIds[16], race, hgvdRec.geoset5);
+                    meshIds[17] = checkGeoset(meshIds[17], race, hgvdRec.geoset6);
                 }
             }
 
