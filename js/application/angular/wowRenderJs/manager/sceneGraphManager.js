@@ -370,6 +370,9 @@ class GraphManager {
             this.lastFogParamCheck = this.currentTime;
         }
 
+        //7. Check ADT Chunk we're in
+
+
         this.currentTime = this.currentTime + deltaTime;
         return {interiorGroupNum: interiorGroupNum, nodeId: bspNodeId};
     }
