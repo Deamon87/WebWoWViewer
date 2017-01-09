@@ -107,7 +107,7 @@ class Texture {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
         if (anisFilterExt) {
-            var max_anisotropy = gl.getParameter(anisFilterExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+            var max_anisotropy = this.sceneApi.extensions.getMaxTextAnisotropic();
             gl.texParameterf(gl.TEXTURE_2D, anisFilterExt.TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
         }
 

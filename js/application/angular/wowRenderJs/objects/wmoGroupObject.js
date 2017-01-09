@@ -233,9 +233,9 @@ class WmoGroupObject {
         //3. Query bsp tree for leafs around the position of object(camera)
         var groupFile = this.wmoGeom.wmoGroupFile;
 
-        var epsilon = 0.4;
-        var cameraBBMin = vec3.fromValues(cameraLocal[0]-epsilon, cameraLocal[1]-epsilon, groupInfo.bb1.z-epsilon);
-        var cameraBBMax = vec3.fromValues(cameraLocal[0]+epsilon, cameraLocal[1]+epsilon, groupInfo.bb2.z+epsilon);
+        var epsilon = 1;
+        var cameraBBMin = vec3.fromValues(cameraLocal[0]-epsilon, cameraLocal[1]-epsilon, groupInfo.bb1.z);
+        var cameraBBMax = vec3.fromValues(cameraLocal[0]+epsilon, cameraLocal[1]+epsilon, groupInfo.bb2.z);
 
         var nodeId = 0;
         var nodes = groupFile.nodes;

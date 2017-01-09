@@ -310,6 +310,8 @@ class Scene {
         var anisotropic_ext = gl.getExtension('EXT_texture_filter_anisotropic');
         if (anisotropic_ext) {
             this.anisotropic_ext = anisotropic_ext;
+            this.maxTextAnisotropic = gl.getParameter(anisotropic_ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+
         }
     }
     initVertexArrayObjectExt () {
@@ -542,6 +544,10 @@ class Scene {
                 getAnisotropicExt : function () {
                     return self.anisotropic_ext;
                 },
+                getMaxTextAnisotropic : function () {
+                    return self.maxTextAnisotropic;
+                },
+
                 getComprTextExt : function () {
                     return self.comp_tex_ext;
                 },

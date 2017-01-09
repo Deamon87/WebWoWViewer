@@ -64,20 +64,31 @@ class WmoObject {
         var minDist = 999999;
         var resObj = null;
         for (var i = 0; i < candidateGroups.length; i++) {
-            if (candidateGroups[i].topBottom.bottomZ < 99999 && candidateGroups[i].topBottom.topZ > -99999) {
-                var dist = candidateGroups[i].topBottom.topZ - candidateGroups[i].topBottom.bottomZ;
+            if (candidateGroups[i].topBottom.bottomZ < 99999) {
+                var dist = Math.abs(cameraLocal[2] - candidateGroups[i].topBottom.bottomZ);
                 if (dist < minDist) {
                     minDist = dist;
                     this.currentNodeId = candidateGroups[i].nodeId;
                     this.currentGroupId = i;
                     resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId};
                 }
-            } else if (minDist > 9999) {
-                resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId}
             }
+            if (candidateGroups[i].topBottom.topZ > -99999) {
+                var dist = Math.abs(candidateGroups[i].topBottom.topZ - cameraLocal[2]);
+                if (dist < minDist) {
+                    minDist = dist;
+                    this.currentNodeId = candidateGroups[i].nodeId;
+                    this.currentGroupId = i;
+                    resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId};
+                }
+            } 
         }
+
+
         if (resObj != null){
-            return resObj;
+            var groupInfo = this.wmoObj.groupInfos[resObj.groupId];
+            if ((groupInfo.flags & 0x2000) != 0)
+                return resObj;
         }
 
 

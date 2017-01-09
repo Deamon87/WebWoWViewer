@@ -169,7 +169,7 @@ export default class PortalCullingAlgo {
             if (!fromInterior && (wmoObject.wmoObj.groupInfos[nextGroup].flags & 0x2000) == 0) continue;
 
             var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal));
-            dotResult = dotResult + relation.side * 0.01;
+            //dotResult = dotResult + relation.side * 0.01;
             var isInsidePortalThis = (relation.side < 0) ? (dotResult <= 0) : (dotResult >= 0);
             if (!isInsidePortalThis) continue;
 

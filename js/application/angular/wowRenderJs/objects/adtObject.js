@@ -34,6 +34,7 @@ class ADTObject {
                 continue;
             }
 
+
             //2. Check aabb is inside camera frustum
             var result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes);
             this.drawChunk[i] = result;
@@ -57,6 +58,7 @@ class ADTObject {
             }
         }
 
+        this.drawChunk[1] = true;
         return atLeastOneIsDrawn;
     }
 

@@ -168,8 +168,8 @@ class MathHelper {
     static createPlaneFromVertexes(vertex1, vertex2, vertex3) {
         var edgeDir1 = vec4.create();
 
-        vec3.subtract(edgeDir, vertex1, vertex2);
-        vec3.normalize(edgeDir, edgeDir);
+        vec3.subtract(edgeDir1, vertex1, vertex2);
+        vec3.normalize(edgeDir1, edgeDir1);
 
         var edgeDir2 = vec4.create();
 
@@ -177,7 +177,7 @@ class MathHelper {
         vec3.normalize(edgeDir2, edgeDir2);
 
         var planeNorm = vec4.create();
-        vec3.cross(planeNorm, edgeDir2, edgeDir);
+        vec3.cross(planeNorm, edgeDir2, edgeDir1);
         vec3.normalize(planeNorm, planeNorm);
 
         planeNorm[3] = 1;
@@ -264,6 +264,7 @@ class MathHelper {
         var d00 = vec3.dot(v0, v0);
         var d01 = vec3.dot(v0, v1);
         var d11 = vec3.dot(v1, v1);
+
         var d20 = vec3.dot(v2, v0);
         var d21 = vec3.dot(v2, v1);
         var denom = d00 * d11 - d01 * d01;
