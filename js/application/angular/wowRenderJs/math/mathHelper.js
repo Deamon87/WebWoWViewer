@@ -42,20 +42,23 @@ class MathHelper {
 
         return planes;
     }
+
     static fixNearPlane(planes, camera) {
         var nearPlane = planes[5];
-        var cameraVec4 = vec4.fromValues(camera[0], camera[1],camera[2],1);
+        var cameraVec4 = vec4.fromValues(camera[0], camera[1], camera[2], 1);
         var dist = vec4.dot(nearPlane, cameraVec4);
         nearPlane[3] -= dist;
     }
-    static isPointInsideAABB(aabb, p ) {
+
+    static isPointInsideAABB(aabb, p) {
         var result = p[0] > aabb[0][0] && p[0] < aabb[1][0] &&
             p[1] > aabb[0][1] && p[1] < aabb[1][1] &&
             p[2] > aabb[0][2] && p[2] < aabb[1][2];
         return result;
     }
+
     static distanceFromAABBToPoint(aabb, p) {
-        function distance_aux(p, lower, upper){
+        function distance_aux(p, lower, upper) {
             if (p < lower) return lower - p;
             if (p > upper)  return p - upper;
             return 0
@@ -70,6 +73,7 @@ class MathHelper {
         else
             return Math.sqrt(dx * dx + dy * dy + dz * dz)
     }
+
     static sortVec3ArrayAgainstPlane(thisPortalVertices, plane) {
         var center = vec3.fromValues(0, 0, 0);
         for (var j = 0; j < thisPortalVertices.length; j++) {
@@ -92,7 +96,7 @@ class MathHelper {
         });
     }
 
-    static planeCull (points, planes) {
+    static planeCull(points, planes) {
         function intersection(p1, p2, k) {
             return vec4.fromValues(
                 p1[0] + k * (p2[0] - p1[0]),
@@ -104,19 +108,19 @@ class MathHelper {
 
         // check box outside/inside of frustum
         var vec4Points = new Array(points.length);
-        for( var j = 0; j < points.length; j++) {
+        for (var j = 0; j < points.length; j++) {
             vec4Points[j] = vec4.fromValues(points[j][0], points[j][1], points[j][2], 1.0)
         }
 
-        for ( var i=0; i< planes.length; i++ ) {
+        for (var i = 0; i < planes.length; i++) {
             var out = 0;
             var epsilon = 0;
 
-            for( var j = 0; j < vec4Points.length; j++) {
+            for (var j = 0; j < vec4Points.length; j++) {
                 out += ((vec4.dot(planes[i], vec4Points[j]) + epsilon < 0.0 ) ? 1 : 0);
             }
 
-            if( out==vec4Points.length ) return false;
+            if (out == vec4Points.length) return false;
 
             //---------------------------------
             // Cull by points by current plane
@@ -124,11 +128,11 @@ class MathHelper {
             var resultPoints = new Array();
             var pointO;
             if (planes[i][2] != 0) {
-                pointO = vec3.fromValues(0,0,-planes[i][3]/planes[i][2]);
+                pointO = vec3.fromValues(0, 0, -planes[i][3] / planes[i][2]);
             } else if (planes[i][1] != 0) {
-                pointO = vec3.fromValues(0,-planes[i][3]/planes[i][1],0);
+                pointO = vec3.fromValues(0, -planes[i][3] / planes[i][1], 0);
             } else if (planes[i][0] != 0) {
-                pointO = vec3.fromValues(-planes[i][3]/planes[i][0],0,0);
+                pointO = vec3.fromValues(-planes[i][3] / planes[i][0], 0, 0);
             } else {
                 continue;
             }
@@ -146,10 +150,10 @@ class MathHelper {
                 if (t1 > 0 && t2 > 0) { //p1 InFront and p2 InFront
                     resultPoints.push(p2)
                 } else if (t1 > 0 && t2 < 0) { //p1 InFront and p2 Behind
-                    var k = t1/(t1 - t2);
+                    var k = t1 / (t1 - t2);
                     resultPoints.push(intersection(p1, p2, k))
                 } else if (t1 < 0 && t2 > 0) { //p1 Behind and p2 Behind
-                    var k = t1/(t1 - t2);
+                    var k = t1 / (t1 - t2);
                     resultPoints.push(intersection(p1, p2, k))
                     resultPoints.push(p2)
                 }
@@ -157,7 +161,7 @@ class MathHelper {
             vec4Points = resultPoints;
         }
 
-        for( var j = 0; j < vec4Points.length; j++) {
+        for (var j = 0; j < vec4Points.length; j++) {
             points[j] = vec4Points[j];
         }
 
@@ -253,7 +257,8 @@ class MathHelper {
 
         return l1 * p1[2] + l2 * p2[2] + l3 * p3[2];
     }
-    static getBarycentric( p, a, b, c) {
+
+    static getBarycentric(p, a, b, c) {
         var v0 = vec3.create();
         vec3.subtract(v0, b, a);
         var v1 = vec3.create();
@@ -268,40 +273,57 @@ class MathHelper {
         var d20 = vec3.dot(v2, v0);
         var d21 = vec3.dot(v2, v1);
         var denom = d00 * d11 - d01 * d01;
+        if ((denom < 0.0001) && (denom > -0.0001)) {
+            return vec3.fromValues(-1, -1, -1)
+        };
+
         var v = (d11 * d20 - d01 * d21) / denom;
         var w = (d00 * d21 - d01 * d20) / denom;
         var u = 1.0 - v - w;
         return vec3.fromValues(u, v, w)
     }
-    static checkFrustum (planes, box, num_planes, points) {
-      // check box outside/inside of frustum
-        for(var i=0; i< num_planes; i++ )
-        {
+
+    static checkFrustum(planes, box, num_planes, points) {
+        // check box outside/inside of frustum
+        for (var i = 0; i < num_planes; i++) {
             var out = 0;
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[0][1], box[0][2], 1.0) ) < 0.0 )?1:0);
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], box[0][2], 1.0) ) < 0.0 )?1:0);
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[1][1], box[0][2], 1.0) ) < 0.0 )?1:0);
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[1][1], box[0][2], 1.0) ) < 0.0 )?1:0);
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[0][1], box[1][2], 1.0) ) < 0.0 )?1:0);
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], box[1][2], 1.0) ) < 0.0 )?1:0);
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[1][1], box[1][2], 1.0) ) < 0.0 )?1:0);
-            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[1][1], box[1][2], 1.0) ) < 0.0 )?1:0);
-            if( out==8 ) return false;
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[0][1], box[0][2], 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], box[0][2], 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[1][1], box[0][2], 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[1][1], box[0][2], 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[0][1], box[1][2], 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], box[1][2], 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[1][1], box[1][2], 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[1][1], box[1][2], 1.0)) < 0.0 ) ? 1 : 0);
+            if (out == 8) return false;
         }
 
         // check frustum outside/inside box
         if (points) {
-            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][0] > box[1][0]) ? 1 : 0); if (out == 8) return false;
-            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][0] < box[0][0]) ? 1 : 0); if (out == 8) return false;
-            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][1] > box[1][1]) ? 1 : 0); if (out == 8) return false;
-            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][1] < box[0][1]) ? 1 : 0); if (out == 8) return false;
-            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][2] > box[1][2]) ? 1 : 0); if (out == 8) return false;
-            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][2] < box[0][2]) ? 1 : 0); if (out == 8) return false;
+            out = 0;
+            for (var i = 0; i < 8; i++) out += ((points[i][0] > box[1][0]) ? 1 : 0);
+            if (out == 8) return false;
+            out = 0;
+            for (var i = 0; i < 8; i++) out += ((points[i][0] < box[0][0]) ? 1 : 0);
+            if (out == 8) return false;
+            out = 0;
+            for (var i = 0; i < 8; i++) out += ((points[i][1] > box[1][1]) ? 1 : 0);
+            if (out == 8) return false;
+            out = 0;
+            for (var i = 0; i < 8; i++) out += ((points[i][1] < box[0][1]) ? 1 : 0);
+            if (out == 8) return false;
+            out = 0;
+            for (var i = 0; i < 8; i++) out += ((points[i][2] > box[1][2]) ? 1 : 0);
+            if (out == 8) return false;
+            out = 0;
+            for (var i = 0; i < 8; i++) out += ((points[i][2] < box[0][2]) ? 1 : 0);
+            if (out == 8) return false;
         }
 
         return true;
     }
-    static getFrustumPoints(perspectiveMatrix, viewMatrix){
+
+    static getFrustumPoints(perspectiveMatrix, viewMatrix) {
         const frustumPoints =
             [
                 [-1, -1, -1], //0
@@ -323,27 +345,28 @@ class MathHelper {
         for (var i = 0; i < 8; i++) {
             points[i] = vec4.fromValues(frustumPoints[i][0], frustumPoints[i][1], frustumPoints[i][2], 1);
             vec4.transformMat4(points[i], points[i], inverseMat);
-            vec4.scale(points[i], points[i], 1/points[i][3])
+            vec4.scale(points[i], points[i], 1 / points[i][3])
         }
 
         return points;
     }
-    static transformAABBWithMat4 (mat4,aabb) {
+
+    static transformAABBWithMat4(mat4, aabb) {
         //Adapted from http://dev.theomader.com/transform-bounding-boxes/
         var xa = vec4.create();
         var xb = vec4.create();
-        vec4.scale(xa, vec4.fromValues(mat4[0],mat4[1],mat4[2],mat4[3]), aabb[0][0]);
-        vec4.scale(xb, vec4.fromValues(mat4[0],mat4[1],mat4[2],mat4[3]), aabb[1][0]);
+        vec4.scale(xa, vec4.fromValues(mat4[0], mat4[1], mat4[2], mat4[3]), aabb[0][0]);
+        vec4.scale(xb, vec4.fromValues(mat4[0], mat4[1], mat4[2], mat4[3]), aabb[1][0]);
 
         var ya = vec4.create();
         var yb = vec4.create();
-        vec4.scale(ya, vec4.fromValues(mat4[4],mat4[5],mat4[6],mat4[7]), aabb[0][1]);
-        vec4.scale(yb, vec4.fromValues(mat4[4],mat4[5],mat4[6],mat4[7]), aabb[1][1]);
+        vec4.scale(ya, vec4.fromValues(mat4[4], mat4[5], mat4[6], mat4[7]), aabb[0][1]);
+        vec4.scale(yb, vec4.fromValues(mat4[4], mat4[5], mat4[6], mat4[7]), aabb[1][1]);
 
         var za = vec4.create();
         var zb = vec4.create();
-        vec4.scale(za, vec4.fromValues(mat4[8],mat4[9],mat4[10],mat4[11]), aabb[0][2]);
-        vec4.scale(zb, vec4.fromValues(mat4[8],mat4[9],mat4[10],mat4[11]), aabb[1][2]);
+        vec4.scale(za, vec4.fromValues(mat4[8], mat4[9], mat4[10], mat4[11]), aabb[0][2]);
+        vec4.scale(zb, vec4.fromValues(mat4[8], mat4[9], mat4[10], mat4[11]), aabb[1][2]);
 
         var vecx_min = vec4.create();
         var vecy_min = vec4.create();
@@ -352,11 +375,14 @@ class MathHelper {
         var vecy_max = vec4.create();
         var vecz_max = vec4.create();
 
-        vec3.min(vecx_min, xa, xb); vec3.max(vecx_max, xa, xb);
-        vec3.min(vecy_min, ya, yb); vec3.max(vecy_max, ya, yb);
-        vec3.min(vecz_min, za, zb); vec3.max(vecz_max, za, zb);
+        vec3.min(vecx_min, xa, xb);
+        vec3.max(vecx_max, xa, xb);
+        vec3.min(vecy_min, ya, yb);
+        vec3.max(vecy_max, ya, yb);
+        vec3.min(vecz_min, za, zb);
+        vec3.max(vecz_max, za, zb);
 
-        var translation = vec4.fromValues(mat4[12],mat4[13],mat4[14],0);
+        var translation = vec4.fromValues(mat4[12], mat4[13], mat4[14], 0);
 
         var bb_min = vec4.create();
         var bb_max = vec4.create();
@@ -374,13 +400,14 @@ class MathHelper {
             bb_max
         ];
     }
+
     /*
-       WMO specific algorithms
-    */
+     WMO specific algorithms
+     */
     static queryBspTree(bbox, nodeId, nodes, bspLeafIdList) {
         if (nodeId == -1) return;
 
-        if ((nodes[nodeId].planeType&0x4)){
+        if ((nodes[nodeId].planeType & 0x4)) {
             bspLeafIdList.push(nodeId);
         } else if ((nodes[nodeId].planeType == 0)) {
             var leftSide = MathHelper.checkFrustum([[-1, 0, 0, nodes[nodeId].fDist]], bbox, 1);
@@ -415,34 +442,36 @@ class MathHelper {
         }
     }
 
-    static getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, bspLeafList) {
+    static getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, parentWmoFile, bspLeafList) {
         var result = 0;
         var nodes = groupFile.nodes;
         var topZ = -999999;
         var bottomZ = 999999;
         var minPositiveDistanceToCamera = 99999;
+
+        //1. Loop through bsp results
         for (var i = 0; i < bspLeafList.length; i++) {
             var node = nodes[bspLeafList[i]];
 
-            for (var j = node.firstFace; j < node.firstFace+node.numFaces; j++) {
-                var vertexInd1 = groupFile.indicies[3*groupFile.mobr[j] + 0];
-                var vertexInd2 = groupFile.indicies[3*groupFile.mobr[j] + 1];
-                var vertexInd3 = groupFile.indicies[3*groupFile.mobr[j] + 2];
+            for (var j = node.firstFace; j < node.firstFace + node.numFaces; j++) {
+                var vertexInd1 = groupFile.indicies[3 * groupFile.mobr[j] + 0];
+                var vertexInd2 = groupFile.indicies[3 * groupFile.mobr[j] + 1];
+                var vertexInd3 = groupFile.indicies[3 * groupFile.mobr[j] + 2];
 
                 var vert1 = vec3.fromValues(
-                    groupFile.verticles[3*vertexInd1 + 0],
-                    groupFile.verticles[3*vertexInd1 + 1],
-                    groupFile.verticles[3*vertexInd1 + 2]);
+                    groupFile.verticles[3 * vertexInd1 + 0],
+                    groupFile.verticles[3 * vertexInd1 + 1],
+                    groupFile.verticles[3 * vertexInd1 + 2]);
 
                 var vert2 = vec3.fromValues(
-                    groupFile.verticles[3*vertexInd2 + 0],
-                    groupFile.verticles[3*vertexInd2 + 1],
-                    groupFile.verticles[3*vertexInd2 + 2]);
+                    groupFile.verticles[3 * vertexInd2 + 0],
+                    groupFile.verticles[3 * vertexInd2 + 1],
+                    groupFile.verticles[3 * vertexInd2 + 2]);
 
                 var vert3 = vec3.fromValues(
-                    groupFile.verticles[3*vertexInd3 + 0],
-                    groupFile.verticles[3*vertexInd3 + 1],
-                    groupFile.verticles[3*vertexInd3 + 2]);
+                    groupFile.verticles[3 * vertexInd3 + 0],
+                    groupFile.verticles[3 * vertexInd3 + 1],
+                    groupFile.verticles[3 * vertexInd3 + 2]);
 
                 //1. Get if camera position inside vertex
 
@@ -460,23 +489,27 @@ class MathHelper {
                 );
                 if (!testPassed) continue;
 
-                var z = MathHelper.calcZ(vert1,vert2,vert3,cameraLocal[0],cameraLocal[1]);
+                var plane = MathHelper.createPlaneFromEyeAndVertexes(vert1, vert2, vert3);
+                //var z = MathHelper.calcZ(vert1,vert2,vert3,cameraLocal[0],cameraLocal[1]);
+                if ((plane[2] < 0.0001) && (plane[2] > -0.0001)) continue;
+
+                var z = (-plane[3] - cameraLocal[0] * plane[0] - cameraLocal[1] * plane[1]) / plane[2];
 
                 //2. Get if vertex top or bottom
                 var normal1 = vec3.fromValues(
-                    groupFile.normals[3*vertexInd1 + 0],
-                    groupFile.normals[3*vertexInd1 + 1],
-                    groupFile.normals[3*vertexInd1 + 2]
+                    groupFile.normals[3 * vertexInd1 + 0],
+                    groupFile.normals[3 * vertexInd1 + 1],
+                    groupFile.normals[3 * vertexInd1 + 2]
                 );
                 var normal2 = vec3.fromValues(
-                    groupFile.normals[3*vertexInd2 + 0],
-                    groupFile.normals[3*vertexInd2 + 1],
-                    groupFile.normals[3*vertexInd2 + 2]
+                    groupFile.normals[3 * vertexInd2 + 0],
+                    groupFile.normals[3 * vertexInd2 + 1],
+                    groupFile.normals[3 * vertexInd2 + 2]
                 );
                 var normal3 = vec3.fromValues(
-                    groupFile.normals[3*vertexInd3 + 0],
-                    groupFile.normals[3*vertexInd3 + 1],
-                    groupFile.normals[3*vertexInd3 + 2]
+                    groupFile.normals[3 * vertexInd3 + 0],
+                    groupFile.normals[3 * vertexInd3 + 1],
+                    groupFile.normals[3 * vertexInd3 + 2]
                 );
 
                 var bary = MathHelper.getBarycentric(
@@ -486,12 +519,9 @@ class MathHelper {
                     vert3
                 );
 
-                /*if (testPassed && cameraLocal[2] < vert1[2] || cameraLocal[2] < vert2[2] || cameraLocal[2] < vert3[2]){
-                 debugger;
-                 } */
                 if ((bary[0] < 0) || (bary[1] < 0) || (bary[2] < 0)) continue;
 
-                var normal_avg = bary[0]*normal1[2]+bary[1]*normal2[2]+bary[2]*normal3[2];
+                var normal_avg = bary[0] * normal1[2] + bary[1] * normal2[2] + bary[2] * normal3[2];
                 if (normal_avg > 0) {
                     //Bottom
                     var distanceToCamera = cameraLocal[2] - z;
@@ -502,9 +532,68 @@ class MathHelper {
                     topZ = Math.max(z, topZ);
                 }
             }
-
         }
-        return {'topZ' : topZ, 'bottomZ' : bottomZ};
+        //2. Try to get top and bottom from portal planes
+        var moprIndex = groupFile.mogp.moprIndex;
+        var numItems = groupFile.mogp.numItems;
+
+        for (var j = moprIndex; j < moprIndex + numItems; j++) {
+            var relation = parentWmoFile.portalRelations[j];
+            var portalInfo = parentWmoFile.portalInfos[relation.portal_index];
+
+            var nextGroup = relation.group_index;
+            var plane = portalInfo.plane;
+            plane = [plane.x, plane.y, plane.z, plane.w];
+            var base_index = portalInfo.base_index;
+            var portalVerticles = parentWmoFile.portalVerticles;
+
+
+            var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal));
+            var isInsidePortalThis = (relation.side < 0) ? (dotResult <= 0) : (dotResult >= 0);
+            //If we are going to borrow z from this portal, we should be inside it
+            if (!isInsidePortalThis) continue;
+
+            if ((plane[2] < 0.0001) && (plane[2] > -0.0001)) continue;
+            var z = (-plane[3] - cameraLocal[0] * plane[0] - cameraLocal[1] * plane[1]) / plane[2];
+
+            for (var k =0; k < portalInfo.index_count-2; k++) {
+                var portalIndex;
+                portalIndex = base_index+0;
+                var point1 = vec3.fromValues(
+                    portalVerticles[3 * (portalIndex)],
+                    portalVerticles[3 * (portalIndex) + 1],
+                    portalVerticles[3 * (portalIndex) + 2]);
+                portalIndex = base_index+k+1;
+                var point2 = vec3.fromValues(
+                    portalVerticles[3 * (portalIndex)],
+                    portalVerticles[3 * (portalIndex) + 1],
+                    portalVerticles[3 * (portalIndex) + 2]);
+                portalIndex = base_index+k+2;
+                var point3 = vec3.fromValues(
+                    portalVerticles[3 * (portalIndex)],
+                    portalVerticles[3 * (portalIndex) + 1],
+                    portalVerticles[3 * (portalIndex) + 2]);
+
+                var bary = MathHelper.getBarycentric(
+                    vec3.fromValues(cameraLocal[0], cameraLocal[1], z),
+                    point1,
+                    point2,
+                    point3
+                );
+                if ((bary[0] < 0) || (bary[1] < 0) || (bary[2] < 0)) continue;
+                if (z > cameraLocal[2]) {
+                    if (topZ < -99999)
+                        topZ = z;
+                }
+                if (z < cameraLocal[2]) {
+                    if (bottomZ > 99999)
+                        bottomZ = z;
+                }
+            }
+        }
+
+
+        return {'topZ': topZ, 'bottomZ': bottomZ};
     }
 }
 

@@ -81,7 +81,7 @@ class WmoObject {
                     this.currentGroupId = i;
                     resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId};
                 }
-            } 
+            }
         }
 
 

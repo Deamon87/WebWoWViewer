@@ -167,7 +167,6 @@ class WmoGroupObject {
     checkIfInsideGroup(cameraVec4, cameraLocal, candidateGroups) {
         var bbArray = this.volumeWorldGroupBorder;
         var groupInfo = this.groupInfo;
-
         //1. Check if group wmo is interior wmo
         //if ((groupInfo.flags & 0x2000) == 0) return null;
         //interiorGroups++;
@@ -183,10 +182,13 @@ class WmoGroupObject {
         //lastWmoGroupInside = i;
 
 
+
         if (!this.loaded) {
             this.startLoading();
             return null;
         }
+        var groupFile = this.wmoGeom.wmoGroupFile;
+        var parentWmoFile = this.parentWmo.wmoObj;
 
         var moprIndex = this.wmoGeom.wmoGroupFile.mogp.moprIndex;
         var numItems = this.wmoGeom.wmoGroupFile.mogp.numItems;
@@ -223,7 +225,7 @@ class WmoGroupObject {
 
             var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal));
             var isInsidePortalThis = (relation.side < 0) ? (dotResult <= 0) : (dotResult >= 0);
-            if (!isInsidePortalThis && (Math.abs(dotResult) < 5) && (Math.abs(distanceToBB) < 5)) {
+            if (!isInsidePortalThis && (Math.abs(dotResult) < 0.1) && (Math.abs(distanceToBB) < 0.1)) {
                 insidePortals = false;
                 break;
             }
@@ -231,7 +233,7 @@ class WmoGroupObject {
         if (!insidePortals) return;
 
         //3. Query bsp tree for leafs around the position of object(camera)
-        var groupFile = this.wmoGeom.wmoGroupFile;
+
 
         var epsilon = 1;
         var cameraBBMin = vec3.fromValues(cameraLocal[0]-epsilon, cameraLocal[1]-epsilon, groupInfo.bb1.z);
@@ -241,21 +243,7 @@ class WmoGroupObject {
         var nodes = groupFile.nodes;
         var bspLeafList = [];
         mathHelper.queryBspTree([cameraBBMin, cameraBBMax], nodeId, nodes, bspLeafList);
-        var topBottom = mathHelper.getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, bspLeafList);
-
-        //4. Check min\max Z value. If object(camera) pos is not in range - the object do not belong this wmo group
-        /*
-        if (topBottom.bottomZ > 99999 && topBottom.topZ < -99999) return null;
-        if (topBottom.bottomZ < 99999 && cameraLocal[2] < topBottom.bottomZ) return null
-        if (topBottom.bottomZ > topBottom.topZ){
-            if (cameraLocal[2] > topBottom.bottomZ) {
-                topBottom.topZ = -99999;
-            } else {
-                topBottom.bottomZ = 99999;
-            }
-        }
-        if (topBottom.topZ > -99999 && cameraLocal[2] > topBottom.topZ) return null;
-          */
+        var topBottom = mathHelper.getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, parentWmoFile, bspLeafList);
 
         //5. The object(camera) is inside WMO group. Get the actual nodeId
         while (nodeId >=0 && ((nodes[nodeId].planeType&0x4) == 0)){
