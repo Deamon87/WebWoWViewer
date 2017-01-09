@@ -64,6 +64,10 @@ class WmoObject {
         var minDist = 999999;
         var resObj = null;
         for (var i = 0; i < candidateGroups.length; i++) {
+            if ((candidateGroups[i].topBottom.bottomZ < 99999) && (candidateGroups[i].topBottom.topZ > -99999)){
+                if ((cameraLocal[2] < candidateGroups[i].topBottom.bottomZ) || (cameraLocal[2] > candidateGroups[i].topBottom.topZ))
+                    continue
+            }
             if (candidateGroups[i].topBottom.bottomZ < 99999) {
                 var dist = Math.abs(cameraLocal[2] - candidateGroups[i].topBottom.bottomZ);
                 if (dist < minDist) {
