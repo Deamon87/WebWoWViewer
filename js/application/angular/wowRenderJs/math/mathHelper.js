@@ -548,7 +548,7 @@ class MathHelper {
             var portalVerticles = parentWmoFile.portalVerticles;
 
 
-            var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal));
+            var dotResult = (vec4.dot(plane, cameraLocal));
             var isInsidePortalThis = (relation.side < 0) ? (dotResult <= 0) : (dotResult >= 0);
             //If we are going to borrow z from this portal, we should be inside it
             if (!isInsidePortalThis) continue;
