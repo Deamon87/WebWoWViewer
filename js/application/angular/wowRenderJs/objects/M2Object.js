@@ -478,7 +478,7 @@ class MDXObject {
         ) return true;
 
         //2. Check aabb is inside camera frustum
-        var result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes);
+        var result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, null);
         return result;
     }
     checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, placementMatrix, checkDepth) {

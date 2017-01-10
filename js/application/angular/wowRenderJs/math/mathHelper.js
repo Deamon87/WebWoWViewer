@@ -410,8 +410,8 @@ class MathHelper {
         if ((nodes[nodeId].planeType & 0x4)) {
             bspLeafIdList.push(nodeId);
         } else if ((nodes[nodeId].planeType == 0)) {
-            var leftSide = MathHelper.checkFrustum([[-1, 0, 0, nodes[nodeId].fDist]], bbox, 1);
-            var rightSide = MathHelper.checkFrustum([[1, 0, 0, -nodes[nodeId].fDist]], bbox, 1);
+            var leftSide = MathHelper.checkFrustum([[-1, 0, 0, nodes[nodeId].fDist]], bbox, 1, null);
+            var rightSide = MathHelper.checkFrustum([[1, 0, 0, -nodes[nodeId].fDist]], bbox, 1, null);
 
             if (leftSide) {
                 MathHelper.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)
@@ -420,8 +420,8 @@ class MathHelper {
                 MathHelper.queryBspTree(bbox, nodes[nodeId].children2, nodes, bspLeafIdList)
             }
         } else if ((nodes[nodeId].planeType == 1)) {
-            var leftSide = MathHelper.checkFrustum([[0, -1, 0, nodes[nodeId].fDist]], bbox, 1);
-            var rightSide = MathHelper.checkFrustum([[0, 1, 0, -nodes[nodeId].fDist]], bbox, 1);
+            var leftSide = MathHelper.checkFrustum([[0, -1, 0, nodes[nodeId].fDist]], bbox, 1, null);
+            var rightSide = MathHelper.checkFrustum([[0, 1, 0, -nodes[nodeId].fDist]], bbox, 1, null);
 
             if (leftSide) {
                 MathHelper.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)
@@ -430,8 +430,8 @@ class MathHelper {
                 MathHelper.queryBspTree(bbox, nodes[nodeId].children2, nodes, bspLeafIdList)
             }
         } else if ((nodes[nodeId].planeType == 2)) {
-            var leftSide = MathHelper.checkFrustum([[0, 0, -1, nodes[nodeId].fDist]], bbox, 1);
-            var rightSide = MathHelper.checkFrustum([[0, 0, 1, -nodes[nodeId].fDist]], bbox, 1);
+            var leftSide = MathHelper.checkFrustum([[0, 0, -1, nodes[nodeId].fDist]], bbox, 1, null);
+            var rightSide = MathHelper.checkFrustum([[0, 0, 1, -nodes[nodeId].fDist]], bbox, 1, null);
 
             if (leftSide) {
                 MathHelper.queryBspTree(bbox, nodes[nodeId].children1, nodes, bspLeafIdList)

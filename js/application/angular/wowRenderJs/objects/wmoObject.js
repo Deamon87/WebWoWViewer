@@ -113,7 +113,7 @@ class WmoObject {
 
         //2. Check aabb is inside camera frustum
         if (!result) {
-            result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes);
+            result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, null);
         }
         this.isRendered = result;
         if (result) {
