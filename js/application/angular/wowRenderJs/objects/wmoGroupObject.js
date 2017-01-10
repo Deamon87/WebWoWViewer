@@ -193,43 +193,7 @@ class WmoGroupObject {
         var moprIndex = this.wmoGeom.wmoGroupFile.mogp.moprIndex;
         var numItems = this.wmoGeom.wmoGroupFile.mogp.numItems;
 
-        var insidePortals = true;
-        for (var j = moprIndex; j < moprIndex+numItems; j++) {
-            var relation = this.parentWmo.wmoObj.portalRelations[j];
-            var portalInfo = this.parentWmo.wmoObj.portalInfos[relation.portal_index];
-
-            var nextGroup = relation.group_index;
-            var plane = portalInfo.plane;
-
-            var minX = 99999;
-            var minY = 99999;
-            var minZ = 99999;
-            var maxX = -99999;
-            var maxY = -99999;
-            var maxZ = -99999;
-
-
-            var base_index = portalInfo.base_index;
-            var portalVerticles = this.parentWmo.wmoObj.portalVerticles;
-            for (var k = 0; k < portalInfo.index_count; k++) {
-                minX = Math.min(minX, portalVerticles[3 * (base_index + k)    ]);
-                minY = Math.min(minY, portalVerticles[3 * (base_index + k) + 1]);
-                minZ = Math.min(minZ, portalVerticles[3 * (base_index + k) + 2]);
-
-                maxX = Math.max(maxX, portalVerticles[3 * (base_index + k)    ]);
-                maxY = Math.max(maxX, portalVerticles[3 * (base_index + k) + 1]);
-                maxZ = Math.max(maxZ, portalVerticles[3 * (base_index + k) + 2]);
-            }
-
-            var distanceToBB = mathHelper.distanceFromAABBToPoint([[minX, minY, minZ],[maxX, maxY, maxZ]], cameraLocal);
-
-            var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), cameraLocal));
-            var isInsidePortalThis = (relation.side < 0) ? (dotResult <= 0) : (dotResult >= 0);
-            if (!isInsidePortalThis && (Math.abs(dotResult) < 0.1) && (Math.abs(distanceToBB) < 0.1)) {
-                insidePortals = false;
-                break;
-            }
-        }
+        var insidePortals = mathHelper.checkIfInsidePortals(cameraLocal, groupFile, parentWmoFile);
         if (!insidePortals) return;
 
         //3. Query bsp tree for leafs around the position of object(camera)
@@ -244,6 +208,7 @@ class WmoGroupObject {
         var bspLeafList = [];
         mathHelper.queryBspTree([cameraBBMin, cameraBBMax], nodeId, nodes, bspLeafList);
         var topBottom = mathHelper.getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, parentWmoFile, bspLeafList);
+        if (!topBottom) return;
 
         //5. The object(camera) is inside WMO group. Get the actual nodeId
         while (nodeId >=0 && ((nodes[nodeId].planeType&0x4) == 0)){

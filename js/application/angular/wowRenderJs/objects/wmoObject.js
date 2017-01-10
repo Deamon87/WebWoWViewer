@@ -55,51 +55,46 @@ class WmoObject {
 
         for (var i = 0; i < this.wmoGroupArray.length; i++) {
             this.wmoGroupArray[i].checkIfInsideGroup(cameraVec4, cameraLocal, candidateGroups)
-
             /* Test: iterate through portals in 5 value radius and check if it fits there */
-
         }
 
         //6. Iterate through result group list and find the one with maximal bottom z coordinate for object position
         var minDist = 999999;
         var resObj = null;
+        // for (var i = 0; i < candidateGroups.length; i++) {
+        //     /*if ((candidateGroups[i].topBottom.bottomZ < 99999) && (candidateGroups[i].topBottom.topZ > -99999)){
+        //         if ((cameraLocal[2] < candidateGroups[i].topBottom.bottomZ) || (cameraLocal[2] > candidateGroups[i].topBottom.topZ))
+        //             continue
+        //     } */
+        //     if (candidateGroups[i].topBottom.bottomZ < 99999) {
+        //         var dist = Math.abs(cameraLocal[2] - candidateGroups[i].topBottom.bottomZ);
+        //         if (dist < minDist) {
+        //             minDist = dist;
+        //             this.currentNodeId = candidateGroups[i].nodeId;
+        //             this.currentGroupId = i;
+        //             resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId};
+        //         }
+        //     }
+        //     if (candidateGroups[i].topBottom.topZ > -99999) {
+        //         var dist = Math.abs(candidateGroups[i].topBottom.topZ - cameraLocal[2]);
+        //         if (dist < minDist) {
+        //             minDist = dist;
+        //             this.currentNodeId = candidateGroups[i].nodeId;
+        //             this.currentGroupId = i;
+        //             resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId};
+        //         }
+        //     }
+        // }
+
+        var result = [];
         for (var i = 0; i < candidateGroups.length; i++) {
-            if ((candidateGroups[i].topBottom.bottomZ < 99999) && (candidateGroups[i].topBottom.topZ > -99999)){
-                if ((cameraLocal[2] < candidateGroups[i].topBottom.bottomZ) || (cameraLocal[2] > candidateGroups[i].topBottom.topZ))
-                    continue
-            }
-            if (candidateGroups[i].topBottom.bottomZ < 99999) {
-                var dist = Math.abs(cameraLocal[2] - candidateGroups[i].topBottom.bottomZ);
-                if (dist < minDist) {
-                    minDist = dist;
-                    this.currentNodeId = candidateGroups[i].nodeId;
-                    this.currentGroupId = i;
-                    resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId};
-                }
-            }
-            if (candidateGroups[i].topBottom.topZ > -99999) {
-                var dist = Math.abs(candidateGroups[i].topBottom.topZ - cameraLocal[2]);
-                if (dist < minDist) {
-                    minDist = dist;
-                    this.currentNodeId = candidateGroups[i].nodeId;
-                    this.currentGroupId = i;
-                    resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId};
-                }
-            }
-        }
-
-
-        if (resObj != null){
-            var groupInfo = this.wmoObj.groupInfos[resObj.groupId];
+            var candidate = candidateGroups[i];
+            var groupInfo = this.wmoObj.groupInfos[candidate.groupId];
             if ((groupInfo.flags & 0x2000) != 0)
-                return resObj;
+                result.push(candidate)
         }
 
-
-        this.currentNodeId = -1;
-        this.currentGroupId = -1;
-
-        return {groupId : -1, nodeId : -1};
+        return result;
     }
     checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, m2RenderedThisFrame) {
         if (!this.loaded) {

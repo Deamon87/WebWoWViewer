@@ -442,6 +442,51 @@ class MathHelper {
         }
     }
 
+    static checkIfInsidePortals(point, groupFile, parentWmoFile) {
+        var moprIndex = groupFile.mogp.moprIndex;
+        var numItems = groupFile.mogp.numItems;
+
+        var insidePortals = true;
+        for (var j = moprIndex; j < moprIndex+numItems; j++) {
+            var relation = parentWmoFile.portalRelations[j];
+            var portalInfo = parentWmoFile.portalInfos[relation.portal_index];
+
+            var nextGroup = relation.group_index;
+            var plane = portalInfo.plane;
+
+            var minX = 99999;
+            var minY = 99999;
+            var minZ = 99999;
+            var maxX = -99999;
+            var maxY = -99999;
+            var maxZ = -99999;
+
+
+            var base_index = portalInfo.base_index;
+            var portalVerticles = parentWmoFile.portalVerticles;
+            for (var k = 0; k < portalInfo.index_count; k++) {
+                minX = Math.min(minX, portalVerticles[3 * (base_index + k)    ]);
+                minY = Math.min(minY, portalVerticles[3 * (base_index + k) + 1]);
+                minZ = Math.min(minZ, portalVerticles[3 * (base_index + k) + 2]);
+
+                maxX = Math.max(maxX, portalVerticles[3 * (base_index + k)    ]);
+                maxY = Math.max(maxX, portalVerticles[3 * (base_index + k) + 1]);
+                maxZ = Math.max(maxZ, portalVerticles[3 * (base_index + k) + 2]);
+            }
+
+            var distanceToBB = MathHelper.distanceFromAABBToPoint([[minX, minY, minZ],[maxX, maxY, maxZ]], point);
+
+            var dotResult = (vec4.dot(vec4.fromValues(plane.x, plane.y, plane.z, plane.w), point));
+            var isInsidePortalThis = (relation.side < 0) ? (dotResult <= 0) : (dotResult >= 0);
+            if (!isInsidePortalThis && (Math.abs(dotResult) < 0.1) && (Math.abs(distanceToBB) < 0.1)) {
+                insidePortals = false;
+                break;
+            }
+        }
+
+        return insidePortals;
+    }
+
     static getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, parentWmoFile, bspLeafList) {
         var result = 0;
         var nodes = groupFile.nodes;
@@ -512,14 +557,16 @@ class MathHelper {
                     groupFile.normals[3 * vertexInd3 + 2]
                 );
 
+                var suggestedPoint = vec3.fromValues(cameraLocal[0], cameraLocal[1], z);
                 var bary = MathHelper.getBarycentric(
-                    vec3.fromValues(cameraLocal[0], cameraLocal[1], z),
+                    suggestedPoint,
                     vert1,
                     vert2,
                     vert3
                 );
 
                 if ((bary[0] < 0) || (bary[1] < 0) || (bary[2] < 0)) continue;
+                if (!MathHelper.checkIfInsidePortals(suggestedPoint, groupFile, parentWmoFile)) continue;
 
                 var normal_avg = bary[0] * normal1[2] + bary[1] * normal2[2] + bary[2] * normal3[2];
                 if (normal_avg > 0) {
@@ -591,7 +638,9 @@ class MathHelper {
                 }
             }
         }
-
+        if ((bottomZ > 99999) && (topZ < -99999)) {
+            return null;
+        }
 
         return {'topZ': topZ, 'bottomZ': bottomZ};
     }

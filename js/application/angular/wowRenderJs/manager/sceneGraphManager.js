@@ -148,14 +148,14 @@ class GraphManager {
         var m2RenderedThisFrame = new Set();
         var wmoRenderedThisFrame = new Set();
 
-        if (this.currentInteriorGroup >= 0 && config.getUsePortalCulling()) {
+        if (this.currentInteriorGroups != null && config.getUsePortalCulling()) {
             var combinedMat4 = mat4.create();
             mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
             var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
             mathHelper.fixNearPlane(frustumPlanes, this.position);
 
             //Travel through portals
-            if (this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroup, this.position,
+            if (this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroups, this.position,
                 lookAtMat4, frustumPlanes, m2RenderedThisFrame)) {
 
                 wmoRenderedThisFrame.add(this.currentWMO);
@@ -349,17 +349,17 @@ class GraphManager {
 
 
         //5. Check what WMO instance we're in
-        this.currentInteriorGroup = -1;
+        this.currentInteriorGroups = null;
         this.currentWMO = null;
         var bspNodeId = -1;
         var interiorGroupNum = -1;
         for (var i = 0; i < this.wmoObjects.length; i++) {
             var result = this.wmoObjects[i].isInsideInterior(this.position);
-            interiorGroupNum = result.groupId;
 
-            if (interiorGroupNum >= 0) {
+            if (result && result.length > 0) {
                 this.currentWMO = this.wmoObjects[i];
-                this.currentInteriorGroup = interiorGroupNum;
+                this.currentInteriorGroups = result;
+                interiorGroupNum = result[0].groupId; // ToDo: support multiple groups
                 bspNodeId = result.nodeId;
                 break;
             }
@@ -371,8 +371,6 @@ class GraphManager {
         }
 
         //7. Check ADT Chunk we're in
-
-
         this.currentTime = this.currentTime + deltaTime;
         return {interiorGroupNum: interiorGroupNum, nodeId: bspNodeId};
     }

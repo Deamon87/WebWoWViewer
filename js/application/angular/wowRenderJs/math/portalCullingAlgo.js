@@ -4,7 +4,7 @@ import {vec4,vec3} from 'gl-matrix';
 
 
 export default class PortalCullingAlgo {
-    startTraversingFromInteriorWMO (wmoObject, groupId, cameraVec4, lookat, frustumPlanes, m2RenderedThisFrame) {
+    startTraversingFromInteriorWMO (wmoObject, wmoGroupsResult, cameraVec4, lookat, frustumPlanes, m2RenderedThisFrame) {
         //CurrentVisibleM2 and visibleWmo is array of global m2 objects, that are visible after frustum
         var cameraLocal = vec4.create();
         vec4.transformMat4(cameraLocal, cameraVec4, wmoObject.placementInvertMatrix);
@@ -27,8 +27,11 @@ export default class PortalCullingAlgo {
         this.exteriorPortals = new Array();
         this.interiorPortals = new Array();
 
-        this.interiorPortals.push({groupId: groupId, portalIndex : -1, frustumPlanes: [frustumPlanes], level : 0});
-        this.transverseGroupWMO(wmoObject, groupId, true, cameraVec4, cameraLocal, lookat, [frustumPlanes], 0, m2RenderedThisFrame);
+        for (var i = 0; i < wmoGroupsResult.length; i++) {
+            this.interiorPortals.push({groupId: wmoGroupsResult[i].groupId, portalIndex: -1, frustumPlanes: [frustumPlanes], level: 0});
+            this.transverseGroupWMO(wmoObject, wmoGroupsResult[i].groupId, true, cameraVec4, cameraLocal, lookat, [frustumPlanes], 0, m2RenderedThisFrame);
+        }
+
 
         //If there are portals leading to exterior, we need to go through all exterior wmos.
         //Because it's not guaranteed that exterior wmo, that portals lead to, have portal connections to all visible interior wmo
