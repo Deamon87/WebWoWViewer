@@ -58,7 +58,6 @@ class ADTObject {
             }
         }
 
-        this.drawChunk[1] = true;
         return atLeastOneIsDrawn;
     }
 
@@ -97,7 +96,6 @@ class ADTObject {
 
         this.m2Array = new Array(m2Positions.length);
         for (var i = 0; i < m2Positions.length; i++) {
-            //for (var i = 0; i < (doodadsSet.doodads.length > 10) ? 10 : doodadsSet.doodads.length; i++) {
             var doodad = m2Positions[i];
             //this.loadM2(i, doodad);
             this.m2Array[i] = this.sceneApi.objects.loadAdtM2Obj(doodad);

@@ -1,4 +1,4 @@
-import {vec4, vec3, mat4} from 'gl-matrix';
+import {vec4, vec3, mat4, mat3} from 'gl-matrix';
 
 class MathHelper {
     static getFrustumClipsFromMatrix(mat) {
@@ -300,24 +300,12 @@ class MathHelper {
 
         // check frustum outside/inside box
         if (points) {
-            out = 0;
-            for (var i = 0; i < 8; i++) out += ((points[i][0] > box[1][0]) ? 1 : 0);
-            if (out == 8) return false;
-            out = 0;
-            for (var i = 0; i < 8; i++) out += ((points[i][0] < box[0][0]) ? 1 : 0);
-            if (out == 8) return false;
-            out = 0;
-            for (var i = 0; i < 8; i++) out += ((points[i][1] > box[1][1]) ? 1 : 0);
-            if (out == 8) return false;
-            out = 0;
-            for (var i = 0; i < 8; i++) out += ((points[i][1] < box[0][1]) ? 1 : 0);
-            if (out == 8) return false;
-            out = 0;
-            for (var i = 0; i < 8; i++) out += ((points[i][2] > box[1][2]) ? 1 : 0);
-            if (out == 8) return false;
-            out = 0;
-            for (var i = 0; i < 8; i++) out += ((points[i][2] < box[0][2]) ? 1 : 0);
-            if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][0] > box[1][0]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][0] < box[0][0]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][1] > box[1][1]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][1] < box[0][1]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][2] > box[1][2]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][2] < box[0][2]) ? 1 : 0); if (out == 8) return false;
         }
 
         return true;
@@ -485,6 +473,45 @@ class MathHelper {
         }
 
         return insidePortals;
+    }
+    calculateFrustumPoints(planes, numPlanes) {
+        var points = [];
+        for (var i = 0; i < numPlanes-2; i++) {
+            for (var j = i+1; j < numPlanes-1; j++) {
+                for (var k = j + 1; k < numPlanes; k++) {
+                    //Using Cramer's rule
+                    var detMat3 = mat3.fromValues(
+                        planes[i][0],planes[j][0],planes[k][0],
+                        planes[i][1],planes[j][1],planes[k][1],
+                        planes[i][2],planes[j][2],planes[k][2],
+                    );
+                    var det = mat3.determinant(detMat3);
+                    if ((det > -0.0001) && (det < 0.0001)) continue;
+
+                    var det1Mat3 = mat3.fromValues(
+                        -planes[i][3],-planes[j][3],-planes[k][3],
+                        planes[i][1],planes[j][1],planes[k][1],
+                        planes[i][2],planes[j][2],planes[k][2],
+                    );
+                    var det2Mat3 = mat3.fromValues(
+                        planes[i][0],planes[j][0],planes[k][0],
+                        -planes[i][3],-planes[j][3],-planes[k][3],
+                        planes[i][2],planes[j][2],planes[k][2],
+                    );
+                    var det3Mat3 = mat3.fromValues(
+                        planes[i][0],planes[j][0],planes[k][0],
+                        planes[i][1],planes[j][1],planes[k][1],
+                        -planes[i][3],-planes[j][3],-planes[k][3],
+                    );
+                    var x = mat3.determinant(det1Mat3) / det;
+                    var y = mat3.determinant(det2Mat3) / det;
+                    var z = mat3.determinant(det3Mat3) / det;
+
+                    points.push(vec3.fromValues(x,y,z))
+                }
+            }
+        }
+
     }
 
     static getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, parentWmoFile, bspLeafList) {
