@@ -209,6 +209,7 @@ class WmoGroupObject {
         mathHelper.queryBspTree([cameraBBMin, cameraBBMax], nodeId, nodes, bspLeafList);
         var topBottom = mathHelper.getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, parentWmoFile, bspLeafList);
         if (!topBottom) return;
+        if (topBottom.bottomZ > 99999) return;
 
         //5. The object(camera) is inside WMO group. Get the actual nodeId
         while (nodeId >=0 && ((nodes[nodeId].planeType&0x4) == 0)){

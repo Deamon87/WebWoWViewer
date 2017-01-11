@@ -61,38 +61,34 @@ class WmoObject {
         //6. Iterate through result group list and find the one with maximal bottom z coordinate for object position
         var minDist = 999999;
         var resObj = null;
-        // for (var i = 0; i < candidateGroups.length; i++) {
-        //     /*if ((candidateGroups[i].topBottom.bottomZ < 99999) && (candidateGroups[i].topBottom.topZ > -99999)){
-        //         if ((cameraLocal[2] < candidateGroups[i].topBottom.bottomZ) || (cameraLocal[2] > candidateGroups[i].topBottom.topZ))
-        //             continue
-        //     } */
-        //     if (candidateGroups[i].topBottom.bottomZ < 99999) {
-        //         var dist = Math.abs(cameraLocal[2] - candidateGroups[i].topBottom.bottomZ);
-        //         if (dist < minDist) {
-        //             minDist = dist;
-        //             this.currentNodeId = candidateGroups[i].nodeId;
-        //             this.currentGroupId = i;
-        //             resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId};
-        //         }
-        //     }
-        //     if (candidateGroups[i].topBottom.topZ > -99999) {
-        //         var dist = Math.abs(candidateGroups[i].topBottom.topZ - cameraLocal[2]);
-        //         if (dist < minDist) {
-        //             minDist = dist;
-        //             this.currentNodeId = candidateGroups[i].nodeId;
-        //             this.currentGroupId = i;
-        //             resObj = { groupId : candidateGroups[i].groupId, nodeId : candidateGroups[i].nodeId};
-        //         }
-        //     }
-        // }
-
+        var result = [];
+        for (var i = 0; i < candidateGroups.length; i++) {
+            var candidate = candidateGroups[i];
+            var groupInfo = this.wmoObj.groupInfos[candidate.groupId];
+            /*if ((candidate.topBottom.bottomZ < 99999) && (candidate.topBottom.topZ > -99999)){
+                if ((cameraLocal[2] < candidateGroups[i].topBottom.bottomZ) || (cameraLocal[2] > candidateGroups[i].topBottom.topZ))
+                    continue
+            } */
+            if (candidate.topBottom.bottomZ < 99999) {
+                var dist = cameraLocal[2] - candidate.topBottom.bottomZ;
+                if (dist > 0 && dist < minDist) {
+                    minDist = dist;
+                    if ((groupInfo.flags & 0x2000) != 0) {
+                        result = [candidateGroups[i]];
+                    } else {
+                        result = [];
+                    }
+                }
+            }
+        }
+         /*
         var result = [];
         for (var i = 0; i < candidateGroups.length; i++) {
             var candidate = candidateGroups[i];
             var groupInfo = this.wmoObj.groupInfos[candidate.groupId];
             if ((groupInfo.flags & 0x2000) != 0)
                 result.push(candidate)
-        }
+        }  */
 
         return result;
     }
@@ -113,7 +109,7 @@ class WmoObject {
 
         //2. Check aabb is inside camera frustum
         if (!result) {
-            result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, null);
+            result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes);
         }
         this.isRendered = result;
         if (result) {
