@@ -109,14 +109,16 @@ class WmoObject {
 
         //2. Check aabb is inside camera frustum
         if (!result) {
-            result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes);
+            var points = mathHelper.calculateFrustumPoints(frustumPlanes, num_planes);
+            result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, points);
         }
         this.isRendered = result;
+
         if (result) {
             var wmoM2Candidates = new Set();
             //1. Calculate visibility for groups
             for (var i = 0; i < this.wmoGroupArray.length; i++) {
-                this.wmoGroupArray[i].checkGroupFrustum(cameraVec4, frustumPlanes, null, wmoM2Candidates);
+                this.wmoGroupArray[i].checkGroupFrustum(cameraVec4, frustumPlanes, points, wmoM2Candidates);
             }
 
             //2. Check all m2 candidates

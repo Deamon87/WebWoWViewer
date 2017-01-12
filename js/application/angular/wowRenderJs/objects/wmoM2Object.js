@@ -24,13 +24,6 @@ class WmoM2Object extends MDXObject {
     getInvertModelMatrix() {
         return this.placementInvertMatrix;
     }
-    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes) {
-        if (!this.loaded) {
-            return true;
-        }
-        var inFrustum = super.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
-        return inFrustum;
-    }
     checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, getDepth) {
         this.setIsRendered(this.getIsRendered() && super.checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, this.placementMatrix, getDepth));
     }

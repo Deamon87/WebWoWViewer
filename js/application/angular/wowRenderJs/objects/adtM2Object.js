@@ -42,13 +42,6 @@ class AdtM2Object extends MDXObject {
         var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
         this.setIsRendered(this.getIsRendered() && inFrustum);
     }
-    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes) {
-        if (!this.loaded) {
-            return true;
-        }
-        var inFrustum = super.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
-        return inFrustum;
-    }
     checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, getDepth) {
         this.setIsRendered(this.getIsRendered() && super.checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, this.placementMatrix, getDepth));
     }

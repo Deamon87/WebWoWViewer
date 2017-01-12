@@ -46,13 +46,6 @@ class WorldMDXObject extends MDXObject {
         }
         super.createAABB();
     }
-    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes) {
-        if (!this.aabb) return false;
-        if (!this.loaded) return true;
-
-        return super.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
-    }
-
     overrideModelTexture(texture) {
         var self = this;
         var mdxObject = this.m2Geom;

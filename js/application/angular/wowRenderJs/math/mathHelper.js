@@ -474,7 +474,7 @@ class MathHelper {
 
         return insidePortals;
     }
-    calculateFrustumPoints(planes, numPlanes) {
+    static calculateFrustumPoints(planes, numPlanes) {
         var points = [];
         for (var i = 0; i < numPlanes-2; i++) {
             for (var j = i+1; j < numPlanes-1; j++) {
@@ -483,7 +483,7 @@ class MathHelper {
                     var detMat3 = mat3.fromValues(
                         planes[i][0],planes[j][0],planes[k][0],
                         planes[i][1],planes[j][1],planes[k][1],
-                        planes[i][2],planes[j][2],planes[k][2],
+                        planes[i][2],planes[j][2],planes[k][2]
                     );
                     var det = mat3.determinant(detMat3);
                     if ((det > -0.0001) && (det < 0.0001)) continue;
@@ -491,17 +491,17 @@ class MathHelper {
                     var det1Mat3 = mat3.fromValues(
                         -planes[i][3],-planes[j][3],-planes[k][3],
                         planes[i][1],planes[j][1],planes[k][1],
-                        planes[i][2],planes[j][2],planes[k][2],
+                        planes[i][2],planes[j][2],planes[k][2]
                     );
                     var det2Mat3 = mat3.fromValues(
                         planes[i][0],planes[j][0],planes[k][0],
                         -planes[i][3],-planes[j][3],-planes[k][3],
-                        planes[i][2],planes[j][2],planes[k][2],
+                        planes[i][2],planes[j][2],planes[k][2]
                     );
                     var det3Mat3 = mat3.fromValues(
                         planes[i][0],planes[j][0],planes[k][0],
                         planes[i][1],planes[j][1],planes[k][1],
-                        -planes[i][3],-planes[j][3],-planes[k][3],
+                        -planes[i][3],-planes[j][3],-planes[k][3]
                     );
                     var x = mat3.determinant(det1Mat3) / det;
                     var y = mat3.determinant(det2Mat3) / det;
@@ -512,6 +512,7 @@ class MathHelper {
             }
         }
 
+        return points;
     }
 
     static getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, parentWmoFile, bspLeafList) {

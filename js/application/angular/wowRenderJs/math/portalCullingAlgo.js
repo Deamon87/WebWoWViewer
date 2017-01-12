@@ -32,6 +32,7 @@ export default class PortalCullingAlgo {
             this.transverseGroupWMO(wmoObject, wmoGroupsResult[i].groupId, true, cameraVec4, cameraLocal, lookat, [frustumPlanes], 0, m2RenderedThisFrame);
         }
 
+        var points = mathHelper.calculateFrustumPoints(frustumPlanes, frustumPlanes.length);
 
         //If there are portals leading to exterior, we need to go through all exterior wmos.
         //Because it's not guaranteed that exterior wmo, that portals lead to, have portal connections to all visible interior wmo
@@ -39,7 +40,8 @@ export default class PortalCullingAlgo {
         if (this.exteriorPortals.length > 0) {
             for (var i = 0; i< wmoObject.wmoGroupArray.length; i++) {
                 if ((wmoObject.wmoObj.groupInfos[i].flags & 0x8) > 0) { //exterior
-                    if (wmoObject.wmoGroupArray[i].checkGroupFrustum(cameraVec4, frustumPlanes, null, wmoM2Candidates)) {
+
+                    if (wmoObject.wmoGroupArray[i].checkGroupFrustum(cameraVec4, frustumPlanes, points, wmoM2Candidates)) {
                         this.exteriorPortals.push({groupId: i, portalIndex : -1, frustumPlanes: [frustumPlanes], level : 0});
                         this.transverseGroupWMO(wmoObject, i, false, cameraVec4, cameraLocal, lookat, [frustumPlanes], 0, m2RenderedThisFrame)
                     }
@@ -87,10 +89,12 @@ export default class PortalCullingAlgo {
         this.exteriorPortals = new Array();
         this.interiorPortals = new Array();
 
+        var points = mathHelper.calculateFrustumPoints(frustumPlanes, frustumPlanes.length);
+
         var wmoM2Candidates = new Set();
         for (var i = 0; i< wmoObject.wmoGroupArray.length; i++) {
             if ((wmoObject.wmoObj.groupInfos[i].flags & 0x8) > 0) { //exterior
-                if (wmoObject.wmoGroupArray[i].checkGroupFrustum(cameraVec4,  frustumPlanes, null, wmoM2Candidates)) {
+                if (wmoObject.wmoGroupArray[i].checkGroupFrustum(cameraVec4,  frustumPlanes, points, wmoM2Candidates)) {
                     this.exteriorPortals.push({groupId: i, portalIndex : -1, frustumPlanes: [frustumPlanes], level : 0});
                     this.transverseGroupWMO(wmoObject, i, false, cameraVec4, cameraLocal, lookat, [frustumPlanes], 0, wmoM2Candidates)
                 }
