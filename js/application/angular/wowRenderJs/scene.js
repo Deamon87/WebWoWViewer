@@ -1433,11 +1433,14 @@ class Scene {
 
         return {cameraVecs : cameraVecs, updateResult : updateRes};
     }
-    loadM2File (mddf) {
-        return this.sceneApi.objects.loadAdtM2Obj(mddf);
+    loadM2File (filename) {
+        return this.sceneApi.objects.loadWorldM2Obj(filename, null, null);
     }
     loadWMOFile(modf){
         this.graphManager.loadWmoMap(modf);
+    }
+    setM2Scene(value) {
+        this.graphManager.setM2Scene(value);
     }
     loadMap (mapName, x, y){
         var self = this;

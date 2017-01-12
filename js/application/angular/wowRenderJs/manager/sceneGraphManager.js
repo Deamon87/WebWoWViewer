@@ -56,6 +56,9 @@ class GraphManager {
         this.isWmoMap = true;
         this.wmoMap = this.addWmoObject(modf);
     }
+    setM2Scene(value) {
+        this.isM2Scene = value
+    }
     addAdtM2Object(doodad) {
         if (this.uniqueIdM2Map[doodad.uniqueId]) {
             return this.uniqueIdM2Map[doodad.uniqueId];
@@ -69,7 +72,7 @@ class GraphManager {
         this.uniqueIdM2Map[doodad.uniqueId] = adtM2;
         return adtM2;
     }
-    addWorldMDXObject(modelName, meshIds,replaceTextures) {
+    addWorldMDXObject(modelName, meshIds, replaceTextures) {
         var worldMdxObject = new WorldMDXObject(this.sceneApi);
         worldMdxObject.setLoadParams(modelName, 0, meshIds,replaceTextures);
         worldMdxObject.sceneNumber = this.globalM2Counter++;
@@ -288,7 +291,11 @@ class GraphManager {
 
         if (config.getRenderM2()) {
             for (i = 0; i < this.m2RenderedThisFrame.length; i++) {
-                this.m2RenderedThisFrame[i].update(deltaTime, this.position, this.lookAtMat);
+                var m2Object = this.m2RenderedThisFrame[i];
+                m2Object.update(deltaTime, this.position, this.lookAtMat);
+                if (this.isM2Scene && m2Object.objectUpdate) {
+                    m2Object.objectUpdate(deltaTime, this.position, this.lookAtMat);
+                }
             }
         }
 

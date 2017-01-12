@@ -356,6 +356,7 @@ class MDXObject {
                     continue;
                }
 
+
                materialArray.push(materialData);
 
                var op_count = skinTextureDefinition.op_count;
@@ -371,7 +372,11 @@ class MDXObject {
                materialData.isRendered = true;
                materialData.isTransparent = isTransparent;
                materialData.meshIndex = skinTextureDefinition.submeshIndex;
+               materialData.renderFlagIndex = skinTextureDefinition.renderFlagIndex;
+               materialData.flags = skinTextureDefinition.flags;
                materialData.shaderNames = shaderNames;
+
+
 
                materialData.renderFlag =  mdxObject.m2File.renderFlags[renderFlagIndex].flags;
                materialData.renderBlending = mdxObject.m2File.renderFlags[renderFlagIndex].blend;
@@ -597,7 +602,7 @@ class MDXObject {
         var skinGeom = this.skinGeom;
 
         var modelViewMat = mat4.create();
-        mat4.multiply(modelViewMat, this.placementMatrix, lookAtMat4);
+        mat4.multiply(modelViewMat, lookAtMat4, this.placementMatrix);
 
         var zeroVect = vec3.create();
 
@@ -619,6 +624,10 @@ class MDXObject {
                     var aabb1_t = transformedAABB[a.meshIndex];
                     var aabb2_t = transformedAABB[b.meshIndex];
 
+                    if (a.renderBlending != b.renderBlending) {
+                        return a.renderBlending - b.renderBlending
+                    }
+
                     var isInsideAABB1 = mathHelper.isPointInsideAABB(aabb1_t, zeroVect);
                     var isInsideAABB2 = mathHelper.isPointInsideAABB(aabb2_t, zeroVect);
 
@@ -629,10 +638,19 @@ class MDXObject {
                     }
 
                     var result;
-                    if (isInsideAABB1 && isInsideAABB1) {
-                        result = aabb1_t[0][2] - aabb2_t[0][2];
-                    } else if (!(isInsideAABB1 && isInsideAABB1)) {
-                        result = aabb2_t[0][2] - aabb1_t[0][2];
+                    if (isInsideAABB1 && isInsideAABB2) {
+                        if (((a.flags == 1024) > 0) && ((b.flags == 512) > 0)) {
+                            result = 1
+                        } else if (((b.flags == 1024) > 0) && ((a.flags == 512) > 0)) {
+                            result = -1
+                        } else {
+                            result = -aabb1_t[1][2] + aabb2_t[1][2];
+                            //result = 0
+                        }
+
+
+                    } else if (!(isInsideAABB1 && isInsideAABB2)) {
+                        result = -aabb2_t[0][2] + aabb1_t[0][2];
                     }
 
                     return result;
@@ -752,6 +770,8 @@ class MDXObject {
             if (!(materialData.isTransparent ^ !drawTransparent)) continue;
 
             if (meshIdsTobeRendered && !meshIdsTobeRendered[materialData.texUnit1TexIndex]) continue;
+
+            if (window.shownLayer != null && materialData.layer != window.shownLayer ) continue;
 
             /* Get right texture animation matrix */
             var textureMatrix1 = identMat;

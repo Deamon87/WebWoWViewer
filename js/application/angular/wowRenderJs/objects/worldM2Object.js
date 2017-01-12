@@ -41,7 +41,7 @@ class WorldMDXObject extends MDXObject {
         super.update(deltaTime, cameraPos, viewMat);
     }
     createAABB() {
-        if (!this.placementMatrix || !this.loaded) {
+        if (!this.placementMatrix || !this.localBB) {
             return
         }
         super.createAABB();

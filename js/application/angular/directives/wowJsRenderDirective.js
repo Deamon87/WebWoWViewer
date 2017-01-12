@@ -265,13 +265,10 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                     });
 
                 } else if (sceneParams.sceneType == 'm2') {
-                    var m2Object = sceneObj.loadM2File({
-                        fileName : sceneParams.modelName,
-                        uniqueId : 0,
-                        pos      : {x : 0 + 17066.666666656, y : 0, z : 0 + 17066.666666656},
-                        rotation : {x : 0, y : 0, z : 0},
-                        scale    : 1024
-                    });
+                    sceneObj.setM2Scene(true);
+                    var m2Object = sceneObj.loadM2File(sceneParams.modelName)
+                    m2Object.createPlacementMatrix([0,0,0], 0, 1, null);
+                    //m2Object.updateLocalBB(false)
                     if (sceneParams.cameraIndex !== undefined) {
                         config.setCameraM2(m2Object);
                     }
