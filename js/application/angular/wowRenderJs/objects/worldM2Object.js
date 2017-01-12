@@ -9,9 +9,6 @@ class WorldMDXObject extends MDXObject {
         this.diffuseColor = new Float32Array([1,1,1,1]);
         this.aabb = null;
     }
-    calcDistance (position) {
-        this.currentDistance = 0;
-    }
     getIsInstancable() {
         return false;
     }

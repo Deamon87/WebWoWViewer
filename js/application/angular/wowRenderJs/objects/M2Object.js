@@ -90,7 +90,7 @@ class MDXObject {
         }
     }
     calcDistance (position) {
-        if (this.loaded && this.getIs) {
+        if (this.loaded && this.aabb) {
             this.currentDistance = mathHelper.distanceFromAABBToPoint(this.aabb, position);
         }
     }
@@ -758,46 +758,54 @@ class MDXObject {
     * Draw functions
     *
     * */
-
-    drawMeshes(drawTransparent, instanceCount) {
-        var originalFogColor = this.sceneApi.getFogColor();
+    drawMaterial(materialData, drawTransparent, instanceCount) {
         var identMat = mat4.create();
         mat4.identity(identMat);
+        var originalFogColor = this.sceneApi.getFogColor();
 
         var meshIdsTobeRendered = window.meshestoBeRendered;
-        for (var i = 0; i < this.materialArray.length; i++) {
-            var materialData = this.materialArray[i];
-            if (!(materialData.isTransparent ^ !drawTransparent)) continue;
+        if (!(materialData.isTransparent ^ !drawTransparent)) return;
+        if (meshIdsTobeRendered && !meshIdsTobeRendered[materialData.texUnit1TexIndex]) return;
+        if (window.shownLayer != null && materialData.layer != window.shownLayer ) return;
 
-            if (meshIdsTobeRendered && !meshIdsTobeRendered[materialData.texUnit1TexIndex]) continue;
-
-            if (window.shownLayer != null && materialData.layer != window.shownLayer ) continue;
-
-            /* Get right texture animation matrix */
-            var textureMatrix1 = identMat;
-            var textureMatrix2 = identMat;
-            var skinData = this.skinGeom.skinFile.header;
-            if (materialData.texUnit1TexIndex >= 0 && skinData.texs[materialData.texUnit1TexIndex]) {
-                var textureAnim = skinData.texs[materialData.texUnit1TexIndex].textureAnim;
-                var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
+        /* Get right texture animation matrix */
+        var textureMatrix1 = identMat;
+        var textureMatrix2 = identMat;
+        var skinData = this.skinGeom.skinFile.header;
+        if (materialData.texUnit1TexIndex >= 0 && skinData.texs[materialData.texUnit1TexIndex]) {
+            var textureAnim = skinData.texs[materialData.texUnit1TexIndex].textureAnim;
+            var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim];
+            if (textureMatIndex !== undefined && this.textAnimMatrices && textureMatIndex >= 0 && textureMatIndex <  this.textAnimMatrices.length) {
+                textureMatrix1 = this.textAnimMatrices[textureMatIndex];
+            }
+            if (materialData.texUnit2TexIndex >= 0) {
+                var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim+1];
                 if (textureMatIndex !== undefined && this.textAnimMatrices && textureMatIndex >= 0 && textureMatIndex <  this.textAnimMatrices.length) {
-                    textureMatrix1 = this.textAnimMatrices[textureMatIndex];
-                }
-                if (materialData.texUnit2TexIndex >= 0) {
-                    var textureMatIndex = this.m2Geom.m2File.texAnimLookup[textureAnim+1];
-                    if (textureMatIndex !== undefined && this.textAnimMatrices && textureMatIndex >= 0 && textureMatIndex <  this.textAnimMatrices.length) {
-                        textureMatrix2 = this.textAnimMatrices[textureMatIndex];
-                    }
+                    textureMatrix2 = this.textAnimMatrices[textureMatIndex];
                 }
             }
-            var meshColor = this.getCombinedColor(skinData, materialData, this.subMeshColors);
-            var transparency = this.getTransparency(skinData, materialData, this.transparencies)
+        }
+        var meshColor = this.getCombinedColor(skinData, materialData, this.subMeshColors);
+        var transparency = this.getTransparency(skinData, materialData, this.transparencies);
 
-            //Don't draw meshes with 0 transp
-            if ((transparency < 0.0001) || (meshColor[3] < 0.001)) continue;
+        //Don't draw meshes with 0 transp
+        if ((transparency < 0.0001) || (meshColor[3] < 0.001)) return;
 
-            var pixelShaderIndex = pixelShaderTable[materialData.shaderNames.pixel];
-            this.m2Geom.drawMesh(materialData, this.skinGeom, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, originalFogColor, instanceCount)
+        var pixelShaderIndex = pixelShaderTable[materialData.shaderNames.pixel];
+        this.m2Geom.drawMesh(materialData, this.skinGeom, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, originalFogColor, instanceCount)
+    }
+
+    drawMeshes(drawTransparent, instanceCount) {
+        if (!drawTransparent) {
+            for (var i = 0; i < this.materialArray.length; i++) {
+                var materialData = this.materialArray[i];
+                this.drawMaterial(materialData, drawTransparent, instanceCount);
+            }
+        } else {
+            for (var i = this.materialArray.length-1; i >=0; i--) {
+                var materialData = this.materialArray[i];
+                this.drawMaterial(materialData, drawTransparent, instanceCount);
+            }
         }
     }
     drawInstanced(drawTransparent, instanceCount, placementVBO) {
