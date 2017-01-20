@@ -614,6 +614,23 @@ class MDXObject {
                 transformedAABB[i] = mathHelper.transformAABBWithMat4(modelViewMat, aabb);
             }
 
+            var sortDistArray = new Array(skinData.subMeshes.length);
+            for (var i = 0; i < sortDistArray.length; i++) {
+                var submesh = skinData.subMeshes[i];
+                var centerBB = submesh.centerBoundingBox;
+                var centerBBVec3 = vec3.fromValues(centerBB.x, centerBB.y, centerBB.z);
+
+
+                var boneMat = this.bonesMatrices[submesh.rootBone];
+                vec3.transformMat4(centerBBVec3, centerBBVec3, boneMat);
+                vec3.transformMat4(centerBBVec3, centerBBVec3, lookAtMat4);
+                var value = vec3.length(centerBBVec3);
+
+
+                sortDistArray[i] = value;
+            }
+
+
             QuickSort.multiQuickSort(
                 this.materialArray,
                 0, this.materialArray.length - 1,
@@ -628,30 +645,19 @@ class MDXObject {
                         return a.renderBlending - b.renderBlending
                     }
 
+                    /*
                     var isInsideAABB1 = mathHelper.isPointInsideAABB(aabb1_t, zeroVect);
                     var isInsideAABB2 = mathHelper.isPointInsideAABB(aabb2_t, zeroVect);
+                    */
 
+                    /*
                     if (!isInsideAABB1 && isInsideAABB2) {
                         return 1
                     } else if (isInsideAABB1 && !isInsideAABB2) {
                         return -1
-                    }
+                    }*/
 
-                    var result;
-                    if (isInsideAABB1 && isInsideAABB2) {
-                        if (((a.flags == 1024) > 0) && ((b.flags == 512) > 0)) {
-                            result = 1
-                        } else if (((b.flags == 1024) > 0) && ((a.flags == 512) > 0)) {
-                            result = -1
-                        } else {
-                            result = -aabb1_t[1][2] + aabb2_t[1][2];
-                            //result = 0
-                        }
-
-
-                    } else if (!(isInsideAABB1 && isInsideAABB2)) {
-                        result = -aabb2_t[0][2] + aabb1_t[0][2];
-                    }
+                    var result = sortDistArray[a.meshIndex] - sortDistArray[b.meshIndex];
 
                     return result;
                 }
