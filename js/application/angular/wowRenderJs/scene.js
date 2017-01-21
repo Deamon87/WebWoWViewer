@@ -338,6 +338,8 @@ class Scene {
         var depth_texture_ext = gl.getExtension('WEBGL_depth_texture');
         if (depth_texture_ext) {
             this.depth_texture_ext = depth_texture_ext;
+        } else {
+            this.depth_texture_ext = null;
         }
     }
     initDeferredRendering (){
@@ -457,7 +459,7 @@ class Scene {
     }
     initRenderBuffers () {
         var gl = this.gl;
-        if(!this.depth_texture_ext) { return; }
+        //if(!this.depth_texture_ext) { return; }
 
         var framebuffer = gl.createFramebuffer();
         if (this.enableDeferred) {
@@ -475,20 +477,23 @@ class Scene {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
         // Create the depth texture
-        var depthTexture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.canvas.width, this.canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
-
+        var depthTexture = null;
+        if (this.depth_texture_ext) {
+            depthTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.canvas.width, this.canvas.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+        }
 
         if (!this.enableDeferred) {
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
         }
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
-
+        if (this.depth_texture_ext) {
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
+        }
         this.frameBuffer = framebuffer;
         this.frameBufferColorTexture = colorTexture;
         this.frameBufferDepthTexture = depthTexture;
@@ -759,15 +764,17 @@ class Scene {
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
         // Create the depth texture
-        var depthTexture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, 1024, 1024, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
-
+        var depthTexture = null;
+        if (this.depth_texture_ext) {
+            var depthTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, 1024, 1024, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
+        }
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         //From https://en.wikibooks.org/wiki/OpenGL_Programming/Bounding_box
@@ -842,8 +849,9 @@ class Scene {
 
             gl.bindFramebuffer(gl.FRAMEBUFFER, this.textureCompVars.framebuffer);
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.textureCompVars.depthTexture, 0);
-
+            if (this.textureCompVars.depthTexture) {
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.textureCompVars.depthTexture, 0);
+            }
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCompVars.textureCoords);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.textureCompVars.elements);
@@ -1192,7 +1200,11 @@ class Scene {
             gl.bindTexture(gl.TEXTURE_2D, this.frameBufferColorTexture);
 
             gl.activeTexture(gl.TEXTURE1);
-            gl.bindTexture(gl.TEXTURE_2D, this.frameBufferDepthTexture);
+            if (this.depth_texture_ext) {
+                gl.bindTexture(gl.TEXTURE_2D, this.frameBufferDepthTexture);
+            } else {
+                gl.bindTexture(gl.TEXTURE_2D, this.blackPixelTexture);
+            }
         }
         var uniforms = this.currentShaderProgram.shaderUniforms;
 
@@ -1403,7 +1415,7 @@ class Scene {
                 this.canvas.height * 0.40,
                 this.canvas.width, this.canvas.height);
         }
-        if (config.getDrawDepthBuffer()) {
+        if (config.getDrawDepthBuffer() && this.depth_texture_ext) {
             this.activateRenderDepthShader();
             gl.enableVertexAttribArray(0);
             gl.uniform1f(this.drawDepthBuffer.shaderUniforms.uFarPlane, farPlane);

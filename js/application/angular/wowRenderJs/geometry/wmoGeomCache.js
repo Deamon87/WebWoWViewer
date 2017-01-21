@@ -137,13 +137,13 @@ class WmoGeom {
 
         gl.enableVertexAttribArray(shaderAttributes.aPosition);
         gl.vertexAttribPointer(shaderAttributes.aPosition, 3, gl.FLOAT, false, 0, 0); // position
-        if (shaderAttributes.aNormal !== undefined) {
+        if (shaderAttributes.aNormal != null) {
             gl.vertexAttribPointer(shaderAttributes.aNormal, 3, gl.FLOAT, false, 0, this.normalOffset*4); // normal
         }
         gl.vertexAttribPointer(shaderAttributes.aTexCoord, 2, gl.FLOAT, false, 0, this.textOffset*4); // texcoord
 
 
-        if (shaderAttributes.aTexCoord2) {
+        if (shaderAttributes.aTexCoord2 != null) {
             if ((wmoGroupObject.textCoords2) && (wmoGroupObject.textCoords2.length > 0)) {
                 gl.enableVertexAttribArray(shaderAttributes.aTexCoord2);
                 gl.vertexAttribPointer(shaderAttributes.aTexCoord2, 2, gl.FLOAT, false, 0, this.textOffset2 * 4); // texcoord
@@ -153,7 +153,7 @@ class WmoGeom {
             }
         }
 
-        if (shaderAttributes.aColor) {
+        if (shaderAttributes.aColor != null) {
             if (isIndoor && (wmoGroupObject.colorVerticles) &&(wmoGroupObject.colorVerticles.length > 1)) {
                 gl.enableVertexAttribArray(shaderAttributes.aColor);
                 gl.vertexAttribPointer(shaderAttributes.aColor, 4, gl.UNSIGNED_BYTE, true, 0, this.colorOffset * 4); // color
@@ -165,7 +165,7 @@ class WmoGeom {
 
 
         //Color2 array
-        if (shaderAttributes.aColor2) {
+        if (shaderAttributes.aColor2 != null) {
             if (isIndoor && (wmoGroupObject.colorVerticles2) &&(wmoGroupObject.colorVerticles2.length > 0)) {
                 gl.enableVertexAttribArray(shaderAttributes.aColor2);
                 gl.vertexAttribPointer(shaderAttributes.aColor2, 4, gl.UNSIGNED_BYTE, true, 0, this.colorOffset2 * 4); // color
