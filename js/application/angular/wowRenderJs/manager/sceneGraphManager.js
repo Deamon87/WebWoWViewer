@@ -326,22 +326,24 @@ class GraphManager {
 
 //        if (this.currentTime + deltaTime - this.lastInstanceCollect > 30) {
             var map = {};
-            for (var j = 0; j < this.m2RenderedThisFrame.length; j++) {
-                var m2Object = this.m2RenderedThisFrame[j];
+            if (this.sceneApi.extensions.getInstancingExt()) {
+                for (var j = 0; j < this.m2RenderedThisFrame.length; j++) {
+                    var m2Object = this.m2RenderedThisFrame[j];
 
-                if (!m2Object.m2Geom) continue;
-                if (m2Object.getHasBillboarded() || !m2Object.getIsInstancable()) continue;
-                if (!m2Object.getIsRendered()) continue;
+                    if (!m2Object.m2Geom) continue;
+                    if (m2Object.getHasBillboarded() || !m2Object.getIsInstancable()) continue;
+                    if (!m2Object.getIsRendered()) continue;
 
-                var fileIdent = m2Object.getFileNameIdent();
+                    var fileIdent = m2Object.getFileNameIdent();
 
-                if (map[fileIdent] != undefined) {
-                    this.addM2ObjectToInstanceManager(m2Object);
-                    if (!map[fileIdent].instanceManager) {
-                        this.addM2ObjectToInstanceManager(map[fileIdent]);
+                    if (map[fileIdent] != undefined) {
+                        this.addM2ObjectToInstanceManager(m2Object);
+                        if (!map[fileIdent].instanceManager) {
+                            this.addM2ObjectToInstanceManager(map[fileIdent]);
+                        }
+                    } else {
+                        map[fileIdent] = m2Object;
                     }
-                } else {
-                    map[fileIdent] = m2Object;
                 }
             }
 

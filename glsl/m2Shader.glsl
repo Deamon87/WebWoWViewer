@@ -22,7 +22,7 @@ attribute vec4 boneWeights;
 attribute vec2 aTexCoord;
 attribute vec2 aTexCoord2;
 
-uniform highp mat4 uLookAtMat;
+uniform mediump mat4 uLookAtMat;
 uniform mat4 uPMatrix;
 uniform mat4 uBoneMatrixes[MAX_MATRIX_NUM];
 uniform int isEnviroment;
@@ -121,7 +121,7 @@ void main() {
 
 #ifdef COMPILING_FS
 
-precision highp float;
+precision mediump float;
 varying vec3 vNormal;
 varying vec2 vTexCoord;
 varying vec2 vTexCoord2;
@@ -150,7 +150,7 @@ uniform mat4 uTextMat2;
 uniform float uFogStart;
 uniform float uFogEnd;
 
-uniform highp mat4 uLookAtMat;
+uniform mediump mat4 uLookAtMat;
 
 uniform lowp int uUseDiffuseColor;
 struct LocalLight
