@@ -49,6 +49,9 @@ export default function (filePath , arrayBuffer) {
                     case "int32Array" :
                         result = fileObject.readInt32Array(offset, len);
                         break;
+                    case "vector2f" :
+                        result = fileObject.readVector2f(offset);
+                        break;
                     case "vector3f" :
                         result = fileObject.readVector3f(offset);
                         break;
@@ -120,6 +123,42 @@ export default function (filePath , arrayBuffer) {
                         }
 
                         break;
+                    case "fablock" :
+
+                        result = {};
+
+                        /* 1. Timestamps  */
+                        var timeStampAnimationsCnt = fileObject.readInt32(offset);
+                        var timeStampAnimationsOffset = fileObject.readInt32(offset);
+
+                        timeStampAnimationsCnt = (timeStampAnimationsCnt < 0) ? 0 : timeStampAnimationsCnt;
+
+                        result.timestamps = new Array(timeStampAnimationsCnt);
+
+                        var off1 = {offs: timeStampAnimationsOffset};
+                        for (var i = 0; i < timeStampAnimationsCnt; i++) {
+                            result.timestamps[i] = fileObject.readUint32(off1);
+                        }
+
+                        /* 2. Values */
+                        var valuesCnt = fileObject.readInt32(offset);
+                        var valuesOffset = fileObject.readInt32(offset);
+
+                        valuesCnt = (valuesCnt <= 0) ? 0 : valuesCnt;
+
+                        result.values = new Array(valuesCnt);
+
+                        var offs1 = {offs: valuesOffset} ;
+                        for (var i = 0; i < valuesCnt; i++) {
+                            result.values[i] = self.readType(
+                                fileObject,
+                                {type : sectionDef.valType, len: sectionDef.len},
+                                offs1,
+                                sectionDef.len
+                            );
+                        }
+
+                        break;
                     case "layout" :
                         /*
                          * Parse layout
@@ -131,9 +170,16 @@ export default function (filePath , arrayBuffer) {
                             throw "layout is not array";
                         }
 
+                        var startOffset = offset.offs;
                         for (var i = 0; i < layout.length; i++) {
                             var paramName = layout[i].name;
+                            var localOffset = offset.offs - startOffset;
+
                             resultObj[paramName] = this.parseSectionDefinition(resultObj, layout[i], fileObject, offset);
+                            /*
+                            if (sectionDef.name == "particleEmitters") {
+                                console.log("paramName =",paramName,"offset =",localOffset,"value  =",resultObj[paramName]);
+                            }*/
                         }
 
                         return resultObj;

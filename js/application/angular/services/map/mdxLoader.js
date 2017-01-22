@@ -425,7 +425,134 @@ const mdx_ver264 = {
                 }
             ]
         },
+        {
+            name: "particleEmitters",
+            offset: "ofsParticleEmitters",
+            count: "nParticleEmitters",
+            type: "layout",
+            layout: [
+                {name :"_unknown0", type: "uint32"},
+                {name :"flags", type: "uint32"},
+                {name :"position", type: "vector3f"},
+                {name :"bone", type: "uint16"},
+                {name :"texture", type: "uint16"},
 
+                {name :"ofsModel_filename", type: "uint32"},
+                {name :"nModel_filename", type: "uint32"},
+                {name :"ofsChild_emitter_filename", type: "uint32"},
+                {name :"nChild_emitter_filename", type: "uint32"},
+
+                {name :"blendingType", type: "uint8"},
+                {name :"emitterType", type: "uint8"},
+                {name :"particleColorIndex", type: "uint16"},
+                {name :"particleType", type: "uint8"},
+                {name :"headorTail", type: "uint8"},
+
+                {name :"textureTileRotation",       type: "uint16"},
+                {name :"textureDimensions_rows",    type: "uint16"},
+                {name :"textureDimensions_columns", type: "uint16"},
+                {
+                    name: "emissionSpeed",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "speedVariation",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "verticalRange",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "horizontalRange",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "gravity",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "lifespan",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {name :"lifespanVary", type: "int32"},
+                {
+                    name: "emissionRate",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {name :"emissionRateVary", type: "float32"},
+                {
+                    name: "emissionAreaLength",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "emissionAreaWidth",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "zSource",
+                    type: "ablock",
+                    valType: "float32"
+                },
+                {
+                    name: "colorTrack",
+                    type: "fablock",
+                    valType: "vector3f"
+                },
+                {
+                    name: "alphaTrack",
+                    type: "fablock",
+                    valType: "uint16"
+                },
+                {
+                    name: "scaleTrack",
+                    type: "fablock",
+                    valType: "vector2f"
+                },
+                {name :"scaleVary", type: "vector2f"},
+                {
+                    name: "headCellTrack",
+                    type: "fablock",
+                    valType: "vector2f"
+                },
+                {
+                    name: "scaleTrack",
+                    type: "fablock",
+                    valType: "vector2f"
+                },
+                {name :"something_particle_style", type: "float32"},
+                {name :"spread1", type: "float32"},
+                {name :"spread2", type: "float32"},
+                {name :"twinkleScale", type: "vector2f"},
+                {name :"_unk1", type: "float32"},
+                {name :"drag", type: "float32"},
+                {name :"baseSpin", type: "float32"},
+                {name :"baseSpinVary", type: "float32"},
+                {name :"Spin", type: "float32"},
+                {name :"spinVary", type: "float32"},
+                {name :"_unknown2", type: "float32"},
+                {name :"model_1_rotation", type: "vector3f"},
+                {name :"model_2_rotation", type: "vector3f"},
+                {name :"model_translation", type: "vector3f"},
+                {name :"followParams", type: "vector4f"},
+                {name: "nUnknown3", type: "uint32"},
+                {name: "ofsUnknown3", type: "uint32"},
+                {
+                    name: "enabledIn",
+                    type: "ablock",
+                    valType: "uint8"
+                },
+            ]
+        }
     ]
 };
 const mdx_ver274 = {

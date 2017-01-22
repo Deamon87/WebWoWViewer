@@ -645,7 +645,6 @@ class MDXObject {
                         return b.flags - a.flags
                     }
 
-
                     /*
                     var isInsideAABB1 = mathHelper.isPointInsideAABB(aabb1_t, zeroVect);
                     var isInsideAABB2 = mathHelper.isPointInsideAABB(aabb2_t, zeroVect);
