@@ -623,7 +623,7 @@ class MDXObject {
 
                 var boneMat = this.bonesMatrices[submesh.rootBone];
                 vec3.transformMat4(centerBBVec3, centerBBVec3, boneMat);
-                vec3.transformMat4(centerBBVec3, centerBBVec3, lookAtMat4);
+                vec3.transformMat4(centerBBVec3, centerBBVec3, modelViewMat);
                 var value = vec3.length(centerBBVec3);
 
 
@@ -641,9 +641,10 @@ class MDXObject {
                     var aabb1_t = transformedAABB[a.meshIndex];
                     var aabb2_t = transformedAABB[b.meshIndex];
 
-                    if (a.renderBlending != b.renderBlending) {
-                        return a.renderBlending - b.renderBlending
+                    if (a.flags != b.flags) {
+                        return b.flags - a.flags
                     }
+
 
                     /*
                     var isInsideAABB1 = mathHelper.isPointInsideAABB(aabb1_t, zeroVect);
@@ -656,10 +657,13 @@ class MDXObject {
                     } else if (isInsideAABB1 && !isInsideAABB2) {
                         return -1
                     }*/
-
-                    var result = sortDistArray[a.meshIndex] - sortDistArray[b.meshIndex];
-
-                    return result;
+                    if (sortDistArray[a.meshIndex] > sortDistArray[b.meshIndex]) {
+                        return 1
+                    }
+                    if (sortDistArray[a.meshIndex] < sortDistArray[b.meshIndex]) {
+                        return -1
+                    }
+                    return a.layer - b.layer;
                 }
             );
         }

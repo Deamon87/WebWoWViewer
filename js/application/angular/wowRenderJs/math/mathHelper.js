@@ -285,6 +285,7 @@ class MathHelper {
 
     static checkFrustum(planes, box, num_planes, points) {
         // check box outside/inside of frustum
+        points = null;
         for (var i = 0; i < num_planes; i++) {
             var out = 0;
             out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[0][1], box[0][2], 1.0)) < 0.0 ) ? 1 : 0);
