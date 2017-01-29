@@ -137,7 +137,7 @@ export default function (filePath , arrayBuffer) {
 
                         var off1 = {offs: timeStampAnimationsOffset};
                         for (var i = 0; i < timeStampAnimationsCnt; i++) {
-                            result.timestamps[i] = fileObject.readUint32(off1);
+                            result.timestamps[i] = fileObject.readInt16(off1);
                         }
 
                         /* 2. Values */

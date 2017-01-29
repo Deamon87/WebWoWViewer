@@ -311,6 +311,9 @@ export default class AnimationManager {
             return result;
         }
     }
+    getTimedValueWithAnim(currTime){
+
+    }
     getTimedValue (value_type, currTime, maxTime, animation, animationBlock, globalSequenceTimes) {
         function convertUint16ToFloat(value){
             return (value * 0.000030518044) - 1.0;
@@ -917,6 +920,87 @@ export default class AnimationManager {
             lights[i].attenuation_end = attenuation_end;
             lights[i].position = position;
             lights[i].unk_ambient = unk_ambient;
+        }
+    }
+    calcParticleEmitters(particlesArray, bonesMatrices, animationIndex, animationTime) {
+        var m2File = this.m2File;
+
+        var particleEmitterRecords = m2File.particleEmitters;
+        if (!particleEmitterRecords) return;
+
+        var animationRecord = this.m2File.animations[animationIndex];
+
+        for (var i = 0; i < particleEmitterRecords.length; i++) {
+            var particleEmitterRecord = particleEmitterRecords[i];
+
+
+            var emissionSpeed = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                particleEmitterRecord.emissionSpeed)[0];
+            var speedVariation = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                particleEmitterRecord.speedVariation)[0];
+            var verticalRange = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                particleEmitterRecord.verticalRange)[0];
+            var horizontalRange = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                particleEmitterRecord.horizontalRange)[0];
+            var gravity = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                particleEmitterRecord.gravity)[0];
+            var lifespan = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                particleEmitterRecord.lifespan)[0];
+            var emissionRate = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                particleEmitterRecord.emissionRate)[0];
+            var emissionAreaLength = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                particleEmitterRecord.emissionAreaLength)[0];
+            var emissionAreaWidth = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                particleEmitterRecord.emissionAreaWidth)[0];
+            var zSource = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                particleEmitterRecord.zSource)[0];
+            var zSource = this.getTimedValue(
+                4,
+                animationTime,
+                animationRecord.length,
+                animationIndex,
+                particleEmitterRecord.enabledIn)[0];
+
         }
     }
 }

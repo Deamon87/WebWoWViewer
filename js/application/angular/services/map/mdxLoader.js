@@ -437,10 +437,23 @@ const mdx_ver264 = {
                 {name :"bone", type: "uint16"},
                 {name :"texture", type: "uint16"},
 
-                {name :"ofsModel_filename", type: "uint32"},
                 {name :"nModel_filename", type: "uint32"},
-                {name :"ofsChild_emitter_filename", type: "uint32"},
+                {name :"ofsModel_filename", type: "uint32"},
+                {
+                    name: "model_filename",
+                    offset: "ofsModel_filename",
+                    len: "nModel_filename",
+                    type: "string"
+                },
+
                 {name :"nChild_emitter_filename", type: "uint32"},
+                {name :"ofsChild_emitter_filename", type: "uint32"},
+                {
+                    name: "child_emitter_filename",
+                    offset: "ofsChild_emitter_filename",
+                    len: "nChild_emitter_filename",
+                    type: "string"
+                },
 
                 {name :"blendingType", type: "uint8"},
                 {name :"emitterType", type: "uint8"},
@@ -525,7 +538,7 @@ const mdx_ver264 = {
                     valType: "vector2f"
                 },
                 {
-                    name: "scaleTrack",
+                    name: "tailCellTrack",
                     type: "fablock",
                     valType: "vector2f"
                 },

@@ -634,9 +634,6 @@ class MDXObject {
             QuickSort.multiQuickSort(
                 this.materialArray,
                 0, this.materialArray.length - 1,
-                function sortOnLevel(a, b) {
-                    return a.layer - b.layer;
-                },
                 function test1(a, b) {
                     var aabb1_t = transformedAABB[a.meshIndex];
                     var aabb2_t = transformedAABB[b.meshIndex];
@@ -645,17 +642,6 @@ class MDXObject {
                         return b.flags - a.flags
                     }
 
-                    /*
-                    var isInsideAABB1 = mathHelper.isPointInsideAABB(aabb1_t, zeroVect);
-                    var isInsideAABB2 = mathHelper.isPointInsideAABB(aabb2_t, zeroVect);
-                    */
-
-                    /*
-                    if (!isInsideAABB1 && isInsideAABB2) {
-                        return 1
-                    } else if (isInsideAABB1 && !isInsideAABB2) {
-                        return -1
-                    }*/
                     if (sortDistArray[a.meshIndex] > sortDistArray[b.meshIndex]) {
                         return 1
                     }
