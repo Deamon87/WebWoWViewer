@@ -1,8 +1,12 @@
+import GeneratorAniProp from './containerClasses/generatorAniProp.js';
+
 class ParticleEmitter {
-    constructor(m2File) {
-        this.m2File = m2File;
-        this.m_ParticleGenerator = null;
+    constructor(particleRecord) {
+        this.m_particleGenerator = null;
         this.seed = 0;
         this.childEmitters = null;
+        this.generatorAniProp = new GeneratorAniProp();
     }
 }
+
+export default ParticleEmitter;

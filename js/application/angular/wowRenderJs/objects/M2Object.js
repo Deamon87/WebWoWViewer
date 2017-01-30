@@ -1,6 +1,7 @@
 import $q from 'q';
 import config from './../../services/config';
 import AnimationManager from './../manager/animationManager.js'
+import ParticleEmitter from './emitters/particle/particleEmitter.js'
 import mathHelper from './../math/mathHelper.js';
 import QuickSort from './../math/quickSort';
 import {vec4, mat4, vec3, quat} from 'gl-matrix';
@@ -149,6 +150,7 @@ class MDXObject {
                       self.createAABB();
 
                       self.initAnimationManager(m2Geom.m2File);
+                      self.initParticleSystem();
                       self.initBoneAnimMatrices();
                       self.initSubmeshColors();
                       self.initTextureAnimMatrices();
@@ -580,7 +582,7 @@ class MDXObject {
 
         /* 2. Update animation values */
         this.animationManager.update(deltaTime, cameraInlocalPos, this.bonesMatrices, this.textAnimMatrices,
-            this.subMeshColors, this.transparencies, this.cameras, this.lights);
+            this.subMeshColors, this.transparencies, this.cameras, this.lights, this.particleEmittersArray);
 
         for (var i = 0; i < this.lights.length; i++) {
             var light = this.lights[i];
@@ -725,6 +727,15 @@ class MDXObject {
         }
 
         this.bonesMatrices = bonesMatrices;
+    }
+    initParticleSystem() {
+        var m2File = this.m2Geom.m2File;
+        var particleEmittersArray = new Array(m2File.nParticleEmitters);
+        for (var i = 0; i < m2File.nParticleEmitters; i++) {
+            particleEmittersArray[i] = new ParticleEmitter(m2File.particleEmitters[i]);
+        }
+
+        this.particleEmittersArray = particleEmittersArray;
     }
     initSubmeshColors() {
         var m2File = this.m2Geom.m2File;

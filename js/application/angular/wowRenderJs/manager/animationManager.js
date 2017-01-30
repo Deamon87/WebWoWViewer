@@ -154,7 +154,7 @@ export default class AnimationManager {
 
         this.calcCameras(cameraDetails, currentAnimationIndex, currentAnimationTime, globalSequenceTimes);
     }
-    update(deltaTime, cameraPosInLocal, bonesMatrices, textAnimMatrices, subMeshColors, transparencies, cameraDetails, lights) {
+    update(deltaTime, cameraPosInLocal, bonesMatrices, textAnimMatrices, subMeshColors, transparencies, cameraDetails, lights, particleEmitters) {
         var m2File = this.m2File;
         var mainAnimationRecord = m2File.animations[this.mainAnimationIndex];
         var currentAnimationRecord = m2File.animations[this.currentAnimationIndex];
@@ -253,6 +253,7 @@ export default class AnimationManager {
 
         this.calcCameras(cameraDetails, this.currentAnimationIndex, this.currentAnimationTime);
         this.calcLights(lights, bonesMatrices, this.currentAnimationIndex, this.currentAnimationTime)
+        this.calcParticleEmitters(particleEmitters, this.currentAnimationIndex, this.currentAnimationTime)
     }
 
     /* Init function */
@@ -310,9 +311,6 @@ export default class AnimationManager {
 
             return result;
         }
-    }
-    getTimedValueWithAnim(currTime){
-
     }
     getTimedValue (value_type, currTime, maxTime, animation, animationBlock, globalSequenceTimes) {
         function convertUint16ToFloat(value){
@@ -922,7 +920,7 @@ export default class AnimationManager {
             lights[i].unk_ambient = unk_ambient;
         }
     }
-    calcParticleEmitters(particlesArray, bonesMatrices, animationIndex, animationTime) {
+    calcParticleEmitters(particleEmittersArray, animationIndex, animationTime) {
         var m2File = this.m2File;
 
         var particleEmitterRecords = m2File.particleEmitters;
@@ -932,7 +930,7 @@ export default class AnimationManager {
 
         for (var i = 0; i < particleEmitterRecords.length; i++) {
             var particleEmitterRecord = particleEmitterRecords[i];
-
+            var particleEmitterProp = particleEmittersArray[i].generatorAniProp;
 
             var emissionSpeed = this.getTimedValue(
                 4,
@@ -994,12 +992,30 @@ export default class AnimationManager {
                 animationRecord.length,
                 animationIndex,
                 particleEmitterRecord.zSource)[0];
-            var zSource = this.getTimedValue(
-                4,
-                animationTime,
-                animationRecord.length,
-                animationIndex,
-                particleEmitterRecord.enabledIn)[0];
+
+            var enabledIn;
+            if (particleEmitterRecord.enabledIn.timestampsPerAnimation.length > 0) {
+                enabledIn = this.getTimedValue(
+                    4,
+                    animationTime,
+                    animationRecord.length,
+                    animationIndex,
+                    particleEmitterRecord.enabledIn);
+            } else {
+                enabledIn = 1;
+            }
+
+
+            particleEmitterProp.emissionSpeed = emissionSpeed;
+            particleEmitterProp.speedVariation = speedVariation;
+            particleEmitterProp.lifespan = lifespan;
+            particleEmitterProp.emissionRate = emissionRate;
+            particleEmitterProp.gravity = gravity;
+            particleEmitterProp.zSource = zSource;
+            particleEmitterProp.emissionAreaX = emissionAreaLength;
+            particleEmitterProp.emissionAreaY = emissionAreaWidth;
+            particleEmitterProp.verticalRange = verticalRange;
+            particleEmitterProp.horizontalRange = horizontalRange;
 
         }
     }
