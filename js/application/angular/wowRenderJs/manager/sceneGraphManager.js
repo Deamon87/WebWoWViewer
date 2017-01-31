@@ -117,12 +117,14 @@ class GraphManager {
     }
     addM2ObjectToInstanceManager(m2Object, newBucket) {
         var fileIdent = m2Object.getFileNameIdent();
-        var instanceManager = this.instanceMap.get(fileIdent);
         //1. Create Instance manager for this type of file if it was not created yet
-        if (!instanceManager) {
+        var instanceManager = null;
+        if (!this.instanceMap.has(fileIdent)) {
             instanceManager = new InstanceManager(this.sceneApi);
             this.instanceMap.set(fileIdent, instanceManager);
             this.instanceList.push(instanceManager);
+        } else {
+            instanceManager = this.instanceMap.get(fileIdent);
         }
 
         //2. Add object to instance
@@ -343,7 +345,7 @@ class GraphManager {
                         this.addM2ObjectToInstanceManager(m2Object);
                         this.addM2ObjectToInstanceManager(m2ObjectInstanced);
                     } else {
-                        map[fileIdent] = m2Object;
+                        map.set(fileIdent, m2Object);
                     }
                 }
             }

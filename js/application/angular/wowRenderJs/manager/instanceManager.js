@@ -9,7 +9,8 @@ export default class InstanceManager {
     }
 
     clearList() {
-        this.mdxObjectList.clear();
+        this.mdxObjectList = [];
+        this.sceneObjNumMap = {};
     }
     addMDXObject(MDXObject) {
         if (this.sceneObjNumMap[MDXObject.sceneNumber]) return; // The object has already been added to this manager
@@ -29,38 +30,32 @@ export default class InstanceManager {
         var permanentBuffer = [];
 
         //1. Collect objects
-        var newList = [];
-        for (var i = 0; i < this.mdxObjectList.length; i++) {
-            var mdxObject = this.mdxObjectList[i];
-            if (mdxObject.getIsRendered()) {
-                newList.push(mdxObject);
-            }
-        }
+        if (this.mdxObjectList.length > 0) {
+            for (var i = 0; i < this.mdxObjectList.length; i++) {
+                var mdxObject = this.mdxObjectList[i];
 
-        for (var i = 0; i < newList.length; i++) {
-            var mdxObject = newList[i];
+                var placementMatrix = mdxObject.placementMatrix;
+                var diffuseColor = mdxObject.getDiffuseColor();
+                for (var j = 0; j < 16; j++) {
+                    permanentBuffer[written * 20 + j] = placementMatrix[j];
+                }
+                for (var j = 0; j < 4; j++) {
+                    permanentBuffer[written * 20 + 16 + j] = diffuseColor[j];
+                }
 
-            var placementMatrix = mdxObject.placementMatrix;
-            var diffuseColor = mdxObject.getDiffuseColor();
-            for (var j = 0; j < 16; j++) {
-                permanentBuffer[written*20+j] = placementMatrix[j];
-            }
-            for (var j = 0; j < 4; j++) {
-                permanentBuffer[written*20+16+j] = diffuseColor[j];
+                written++;
             }
 
-            written++;
-        }
+            if (written > 0) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, paramsVbo);
+                if (written > this.maxAmountWritten) {
+                    var typedBuf = new Float32Array(permanentBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, typedBuf, gl.DYNAMIC_DRAW);
 
-        if (written>0) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, paramsVbo);
-            if (written > this.maxAmountWritten) {
-                var typedBuf = new Float32Array(permanentBuffer);
-                gl.bufferData(gl.ARRAY_BUFFER, typedBuf, gl.DYNAMIC_DRAW);
-
-                this.maxAmountWritten = written;
-            } else {
-                gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(permanentBuffer));
+                    this.maxAmountWritten = written;
+                } else {
+                    gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(permanentBuffer));
+                }
             }
         }
         this.placementVBO = paramsVbo;
@@ -68,7 +63,8 @@ export default class InstanceManager {
     }
     drawInstancedNonTransparentMeshes(opaqueMap) {
         if (!this.mdxObjectList[0]) return;
-        var lastDrawn;
+
+        var lastDrawn = null;
         for (var i = 0; i < this.mdxObjectList.length; i++) {
             opaqueMap[this.mdxObjectList[i].sceneNumber] = true;
             if (this.mdxObjectList[i].getIsRendered()) {
@@ -76,7 +72,9 @@ export default class InstanceManager {
             }
         }
 
-        lastDrawn.drawInstancedNonTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
+        if (lastDrawn) {
+            lastDrawn.drawInstancedNonTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
+        }
     }
     drawInstancedTransparentMeshes(transparentMap) {
         if (!this.mdxObjectList[0]) return;
@@ -87,7 +85,8 @@ export default class InstanceManager {
                 lastDrawn = this.mdxObjectList[i];
             }
         }
-
-        lastDrawn.drawInstancedTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
+        if (lastDrawn) {
+            lastDrawn.drawInstancedTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);
+        }
     }
 }
