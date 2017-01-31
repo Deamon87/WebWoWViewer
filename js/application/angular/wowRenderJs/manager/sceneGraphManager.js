@@ -20,7 +20,7 @@ class GraphManager {
         this.sceneApi = sceneApi;
         this.m2Objects = [];
         this.worldM2Objects = [];
-        this.instanceMap = {};
+        this.instanceMap = new Map();
         this.instanceList = [];
         this.wmoObjects = [];
         this.wmoRenderedThisFrame = [];
@@ -117,19 +117,16 @@ class GraphManager {
     }
     addM2ObjectToInstanceManager(m2Object, newBucket) {
         var fileIdent = m2Object.getFileNameIdent();
-        var instanceManager = this.instanceMap[fileIdent];
+        var instanceManager = this.instanceMap.get(fileIdent);
         //1. Create Instance manager for this type of file if it was not created yet
         if (!instanceManager) {
             instanceManager = new InstanceManager(this.sceneApi);
-            this.instanceMap[fileIdent] = instanceManager;
+            this.instanceMap.set(fileIdent, instanceManager);
             this.instanceList.push(instanceManager);
         }
 
         //2. Add object to instance
         instanceManager.addMDXObject(m2Object, newBucket);
-
-        //3. Assign instance to object
-        m2Object.instanceManager = instanceManager;
     }
 
     /*
@@ -325,8 +322,13 @@ class GraphManager {
 
 
 //        if (this.currentTime + deltaTime - this.lastInstanceCollect > 30) {
-            var map = {};
+            var map = new Map();
             if (this.sceneApi.extensions.getInstancingExt()) {
+                //Clear instance lists
+                for (var j = 0; j < this.instanceList.length; j++) {
+                    this.instanceList[i].clearList();
+                }
+
                 for (var j = 0; j < this.m2RenderedThisFrame.length; j++) {
                     var m2Object = this.m2RenderedThisFrame[j];
 
@@ -336,11 +338,10 @@ class GraphManager {
 
                     var fileIdent = m2Object.getFileNameIdent();
 
-                    if (map[fileIdent] != undefined) {
+                    if (map.has(fileIdent)) {
+                        var m2ObjectInstanced = map.get(fileIdent);
                         this.addM2ObjectToInstanceManager(m2Object);
-                        if (!map[fileIdent].instanceManager) {
-                            this.addM2ObjectToInstanceManager(map[fileIdent]);
-                        }
+                        this.addM2ObjectToInstanceManager(m2ObjectInstanced);
                     } else {
                         map[fileIdent] = m2Object;
                     }
@@ -451,13 +452,15 @@ class GraphManager {
                 var m2Object = this.m2RenderedThisFrame[i];
                 if (this.m2OpaqueRenderedThisFrame[m2Object.sceneNumber]) continue;
                 if (!m2Object.getIsRendered()) continue;
+                var fileIdent = m2Object.getFileNameIdent();
 
-                if (m2Object.instanceManager) {
+                if (this.instanceMap.has(fileIdent)) {
+                    var instanceManager = this.instanceMap.get(fileIdent);
                     if (!lastWasDrawInstanced) {
                         this.sceneApi.shaders.activateM2InstancingShader();
                     }
 
-                    m2Object.instanceManager.drawInstancedNonTransparentMeshes(this.m2OpaqueRenderedThisFrame)
+                    instanceManager.drawInstancedNonTransparentMeshes(this.m2OpaqueRenderedThisFrame);
                     lastWasDrawInstanced = true;
                 } else {
                     if (lastWasDrawInstanced) {
@@ -485,13 +488,15 @@ class GraphManager {
                 var m2Object = this.m2RenderedThisFrame[i];
                 if (this.m2TranspRenderedThisFrame[m2Object.sceneNumber]) continue;
                 if (!m2Object.getIsRendered()) continue;
+                var fileIdent = m2Object.getFileNameIdent();
 
-                if (m2Object.instanceManager) {
+                if (this.instanceMap.has(fileIdent)) {
+                    var instanceManager = this.instanceMap.get(fileIdent);
                     if (!lastWasDrawInstanced) {
                         this.sceneApi.shaders.activateM2InstancingShader();
                     }
 
-                    m2Object.instanceManager.drawInstancedTransparentMeshes(this.m2TranspRenderedThisFrame)
+                    instanceManager.drawInstancedTransparentMeshes(this.m2TranspRenderedThisFrame);
                     lastWasDrawInstanced = true;
                 } else {
                     if (lastWasDrawInstanced) {

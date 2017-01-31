@@ -8,6 +8,9 @@ export default class InstanceManager {
         this.previousObjectList = [];
     }
 
+    clearList() {
+        this.mdxObjectList.clear();
+    }
     addMDXObject(MDXObject) {
         if (this.sceneObjNumMap[MDXObject.sceneNumber]) return; // The object has already been added to this manager
 
@@ -32,10 +35,6 @@ export default class InstanceManager {
             if (mdxObject.getIsRendered()) {
                 newList.push(mdxObject);
             }
-        }
-
-        if (this.previousObjectList) {
-            newList
         }
 
         for (var i = 0; i < newList.length; i++) {
