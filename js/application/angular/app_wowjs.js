@@ -121,6 +121,16 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 z: 29.0698
             },
             {
+                name: 'Undercity',
+                source: 'http',
+                sceneType: 'map',
+                //mapId: 0,
+                mapName: 'Azeroth',
+                x: 2031.957879860837,
+                y: 236.26329900560341,
+                z: 73.61365772444515
+            },
+            {
                 name: 'Tree at dalaran zone (Halls Of Reflection)',
                 source: 'http',
                 sceneType: 'map',

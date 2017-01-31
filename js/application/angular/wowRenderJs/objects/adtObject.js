@@ -13,6 +13,7 @@ class ADTObject {
         }
     }
 
+
     checkFrustumCulling (cameraVec4, frustumPlanes, lookAtMat4, num_planes, m2ObjectsCandidates, wmoCandidates) {
         if (!this.adtGeom) return false;
         var adtFile = this.adtGeom.adtFile;
@@ -21,27 +22,32 @@ class ADTObject {
         for (var i = 0; i < 256; i++) {
             var mcnk = adtFile.mcnkObjs[i];
             var aabb = this.aabbs[i];
+            this.drawChunk[i] = false;
             if (!aabb) continue;
 
             //1. Check if camera position is inside Bounding Box
+            var cameraOnChunk =
+                (cameraVec4[0] > aabb[0][0] && cameraVec4[0] < aabb[1][0] &&
+                cameraVec4[1] > aabb[0][1] && cameraVec4[1] < aabb[1][1]) ;
             if (
-                cameraVec4[0] > aabb[0][0] && cameraVec4[0] < aabb[1][0] &&
-                cameraVec4[1] > aabb[0][1] && cameraVec4[1] < aabb[1][1] &&
+                cameraOnChunk &&
                 cameraVec4[2] > aabb[0][2] && cameraVec4[2] < aabb[1][2]
             ) {
                 this.drawChunk[i] = true;
                 atLeastOneIsDrawn = true;
-                continue;
             }
 
 
             //2. Check aabb is inside camera frustum
-            var result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, null);
-            this.drawChunk[i] = result;
+            var result = false;
+            if (!this.drawChunk[i]) {
+                result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, null);
+                this.drawChunk[i] = result;
+                atLeastOneIsDrawn = atLeastOneIsDrawn || result ;
+            }
 
             //3. If the chunk is set to be drawn, set all M2s and WMOs into candidate for drawing
-            if (result) {
-                atLeastOneIsDrawn = true;
+            if (result || cameraOnChunk) {
                 if (mcnk.m2Refs) {
                     for (var j= 0; j < mcnk.m2Refs.length; j++) {
                         var m2Ref = mcnk.m2Refs[j];

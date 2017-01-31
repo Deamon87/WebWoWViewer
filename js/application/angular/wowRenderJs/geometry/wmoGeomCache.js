@@ -189,8 +189,6 @@ class WmoGeom {
                 texIndex = renderBatch.tex;
             }
 
-
-
             var color = this.momt[texIndex].color1;
             var colorVector = [color&0xff, (color>> 8)&0xff,
                 (color>>16)&0xff, (color>> 24)&0xff];

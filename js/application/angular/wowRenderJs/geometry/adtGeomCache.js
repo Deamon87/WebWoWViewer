@@ -286,7 +286,7 @@ class ADTGeom {
                     gl.bindTexture(gl.TEXTURE_2D, blackPixelTexture);
                 }
 
-                var stripLength = (i == 0) ? 0 : stripOffsets[i + 1] - stripOffsets[i];
+                var stripLength = stripOffsets[i + 1] - stripOffsets[i];
                 gl.drawElements(gl.TRIANGLE_STRIP, stripLength, gl.UNSIGNED_SHORT, stripOffsets[i] * 2);
             }
         }

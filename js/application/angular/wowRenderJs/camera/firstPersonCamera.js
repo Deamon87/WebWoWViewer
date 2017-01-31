@@ -86,7 +86,7 @@ class Camera {
 
     tick (timeDelta) {
         var dir = [1, 0, 0];
-        var moveSpeed = 0.02;
+        var moveSpeed = (document.moveSpeed != null) ? document.moveSpeed : 0.02;
         var camera = this.camera;
 
         var dTime = timeDelta;

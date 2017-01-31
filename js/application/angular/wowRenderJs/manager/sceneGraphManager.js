@@ -188,7 +188,7 @@ class GraphManager {
 
             var frustumResult = true;
             if( m2Object.loaded ) {
-                var frustumResult = m2Object.checkFrustumCulling(this.position, frustumPlanes, 6);
+                frustumResult = m2Object.checkFrustumCulling(this.position, frustumPlanes, 6);
             }
 
 
@@ -203,9 +203,12 @@ class GraphManager {
         this.m2RenderedThisFrame = Array.from(m2RenderedThisFrame);
         this.wmoRenderedThisFrame = Array.from(wmoRenderedThisFrame);
 
-        for (var i = 0; i < this.m2RenderedThisFrame.length; i++){
-            this.m2RenderedThisFrame[i].setIsRendered(true)
-        }
+        this.m2RenderedThisFrame = this.m2RenderedThisFrame.filter(function(a){
+            if (!a.loaded && !a.loading) {
+                a.startLoading();
+            }
+            return a.loaded;
+        })
     }
 
     checkExterior(frustumPlanes, lookAtMat4, num_planes,
@@ -328,7 +331,7 @@ class GraphManager {
             if (this.sceneApi.extensions.getInstancingExt()) {
                 //Clear instance lists
                 for (var j = 0; j < this.instanceList.length; j++) {
-                    this.instanceList[i].clearList();
+                    this.instanceList[j].clearList();
                 }
 
                 for (var j = 0; j < this.m2RenderedThisFrame.length; j++) {
@@ -453,11 +456,14 @@ class GraphManager {
             for (var i = 0; i < this.m2RenderedThisFrame.length; i++) {
                 var m2Object = this.m2RenderedThisFrame[i];
                 if (this.m2OpaqueRenderedThisFrame[m2Object.sceneNumber]) continue;
-                if (!m2Object.getIsRendered()) continue;
-                var fileIdent = m2Object.getFileNameIdent();
+                 var fileIdent = m2Object.getFileNameIdent();
 
+                var drawInstanced = false;
                 if (this.instanceMap.has(fileIdent)) {
                     var instanceManager = this.instanceMap.get(fileIdent);
+                    drawInstanced = instanceManager.mdxObjectList.length > 1;
+                }
+                if (drawInstanced) {
                     if (!lastWasDrawInstanced) {
                         this.sceneApi.shaders.activateM2InstancingShader();
                     }
@@ -489,7 +495,6 @@ class GraphManager {
             for (var i = this.m2RenderedThisFrame.length-1; i >= 0; i--) {
                 var m2Object = this.m2RenderedThisFrame[i];
                 if (this.m2TranspRenderedThisFrame[m2Object.sceneNumber]) continue;
-                if (!m2Object.getIsRendered()) continue;
                 var fileIdent = m2Object.getFileNameIdent();
 
                 if (this.instanceMap.has(fileIdent)) {

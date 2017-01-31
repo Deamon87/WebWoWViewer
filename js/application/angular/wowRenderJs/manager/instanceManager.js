@@ -3,19 +3,19 @@ export default class InstanceManager {
     constructor(sceneApi) {
         this.sceneApi = sceneApi;
         this.mdxObjectList = [];
-        this.sceneObjNumMap = {};
+        this.sceneObjNumSet = new Set();
         this.lastUpdatedNumber = 0;
         this.previousObjectList = [];
     }
 
     clearList() {
         this.mdxObjectList = [];
-        this.sceneObjNumMap = {};
+        this.sceneObjNumSet = new Set();
     }
     addMDXObject(MDXObject) {
-        if (this.sceneObjNumMap[MDXObject.sceneNumber]) return; // The object has already been added to this manager
+        if (this.sceneObjNumSet.has(MDXObject.sceneNumber)) return; // The object has already been added to this manager
 
-        this.sceneObjNumMap[MDXObject.sceneNumber] = MDXObject;
+        this.sceneObjNumSet.add(MDXObject.sceneNumber);
         this.mdxObjectList.push(MDXObject);
     }
     updatePlacementVBO() {
@@ -67,9 +67,7 @@ export default class InstanceManager {
         var lastDrawn = null;
         for (var i = 0; i < this.mdxObjectList.length; i++) {
             opaqueMap[this.mdxObjectList[i].sceneNumber] = true;
-            if (this.mdxObjectList[i].getIsRendered()) {
-                lastDrawn = this.mdxObjectList[i];
-            }
+            lastDrawn = this.mdxObjectList[i];
         }
 
         if (lastDrawn) {
@@ -81,9 +79,7 @@ export default class InstanceManager {
         var lastDrawn;
         for (var i = 0; i < this.mdxObjectList.length; i++) {
             transparentMap[this.mdxObjectList[i].sceneNumber] = true;
-            if (this.mdxObjectList[i].getIsRendered()) {
-                lastDrawn = this.mdxObjectList[i];
-            }
+            lastDrawn = this.mdxObjectList[i];
         }
         if (lastDrawn) {
             lastDrawn.drawInstancedTransparentMeshes(this.lastUpdatedNumber, this.placementVBO);

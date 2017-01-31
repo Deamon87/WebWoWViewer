@@ -34,7 +34,7 @@ void main() {
     //On Intel Graphics ">" is equal to ">="
     if (iX > 8.1) {
         worldPoint.x = uPos.x - (iX - 8.5) * UNITSIZE;
-        worldPoint.y = uPos.x - (iY + 0.5) * UNITSIZE;
+        worldPoint.y = uPos.y - (iY + 0.5) * UNITSIZE;
         vChunkCoords.x = (iY-8.5);
     }
 
