@@ -43,7 +43,6 @@ function parseAlphaTextures(adtObj, wdtObj){
                         if (readCnt >=64) {
                             //offO = offO + xStride - 64;
                             readCnt = 0;
-                            readForThisLayer++; //TODO: should it be here?
                         }
 
 
@@ -54,6 +53,7 @@ function parseAlphaTextures(adtObj, wdtObj){
             } else {
                 //Uncompressed
                 if (((wdtObj.flags & 0x4) > 0) || ((wdtObj.flags & 0x80) > 0)) {
+                    //Uncompressed (4096)
                     for (var iX =0; iX < 64; iX++) {
                         for (var iY = 0; iY < 64; iY++){
                             currentLayer[offO] = alphaArray[alphaOffs];
@@ -68,6 +68,7 @@ function parseAlphaTextures(adtObj, wdtObj){
                         }
                     }
                 } else {
+                    //Uncompressed (2048)
                     for (var iX =0; iX < 64; iX++) {
                         for (var iY = 0; iY < 32; iY++){
                             //Old world

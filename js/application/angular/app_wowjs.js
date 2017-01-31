@@ -131,6 +131,16 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 z: 267.0332923206179
             },
             {
+                name: 'Tree at dalaran zone (Northrend)',
+                source: 'http',
+                sceneType: 'map',
+                //mapId: 0,
+                mapName: 'Northrend',
+                x: 5551.2461346537075,
+                y: 993.6550422193939,
+                z: 267.0332923206179
+            },
+            {
                 name: 'Karazahn',
                 source: 'http',
                 sceneType: 'map',
