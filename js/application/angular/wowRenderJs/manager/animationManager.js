@@ -337,17 +337,21 @@ export default class AnimationManager {
         var globalSequence = animationBlock.global_sequence;
         var interpolType = animationBlock.interpolation_type;
 
+        if (animationBlock.timestampsPerAnimation.length == 0) {
+            return [0,0,0,0];
+        }
+
         var times = animationBlock.timestampsPerAnimation[animation];
         var values =  animationBlock.valuesPerAnimation[animation];
 
         //Hack
-        if (times == undefined) {
+        if (times == null) {
             animation = 0;
             times = animationBlock.timestampsPerAnimation[animation];
             values =  animationBlock.valuesPerAnimation[animation];
         }
         if (!times || times.length == 0) {
-            return undefined;
+            return [0,0,0,0];
         }
 
         if (globalSequence >=0) {
