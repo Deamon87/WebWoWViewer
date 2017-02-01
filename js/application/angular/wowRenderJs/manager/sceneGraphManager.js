@@ -356,9 +356,30 @@ class GraphManager {
   //      }
 
 
-        //5. Check what WMO instance we're in
+        //5. Get adtChunk we're in
+        var mcnkChunk = null;
+        if (!this.isWmoMap) {
+            var adt_x = Math.floor((32 - (this.position[1] / 533.33333)));
+            var adt_y = Math.floor((32 - (this.position[0] / 533.33333)));
+
+            for (var i = adt_x - 1; i <= adt_x + 1; i++) {
+                for (var j = adt_y - 1; j <= adt_y + 1; j++) {
+                    if ((i < 0) || (i > 64)) continue;
+                    if ((j < 0) || (j > 64)) continue;
+                    var adtObject = this.adtObjectsMap[i][j];
+                    if (adtObject) {
+                        mcnkChunk = adtObject.getMCNKCameraIsOn(this.position);
+                        if (mcnkChunk) break;
+                    }
+                }
+                if (mcnkChunk) break;
+            }
+        }
+
+        //6. Check what WMO instance we're in
         this.currentInteriorGroups = null;
         this.currentWMO = null;
+
         var bspNodeId = -1;
         var interiorGroupNum = -1;
         for (var i = 0; i < this.wmoObjects.length; i++) {
@@ -367,18 +388,24 @@ class GraphManager {
             if (result && result.length > 0) {
                 this.currentWMO = this.wmoObjects[i];
                 this.currentInteriorGroups = result;
-                interiorGroupNum = result[0].groupId; // ToDo: support multiple groups
+                interiorGroupNum = result[0].groupId;
                 bspNodeId = result.nodeId;
                 break;
             }
         }
 
-        //6. Check fog color every 2 seconds
+        //7. Get AreaId and Area Name
+        if (this.currentWMO) {
+            var wmoId = this.currentWMO.wmoObj.wmoId;
+            var wmoGroupId = this.currentWMO.wmoGroupArray[interiorGroupNum].wmoGeom.wmoGroupFile.mogp.groupID
+        }
+
+        //8. Check fog color every 2 seconds
         if (this.currentTime + deltaTime - this.lastFogParamCheck > 2000) {
             this.lastFogParamCheck = this.currentTime;
         }
 
-        //7. Check ADT Chunk we're in
+        //9. Check ADT Chunk we're in
         this.currentTime = this.currentTime + deltaTime;
         return {interiorGroupNum: interiorGroupNum, nodeId: bspNodeId};
     }

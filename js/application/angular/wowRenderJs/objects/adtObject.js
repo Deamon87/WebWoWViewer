@@ -12,7 +12,26 @@ class ADTObject {
             this.drawChunk[i] = true;
         }
     }
+    getMCNKCameraIsOn(cameraVec4){
+        if (!this.adtGeom) return null;
+        var adtFile = this.adtGeom.adtFile;
 
+        for (var i = 0; i < 256; i++) {
+            var mcnk = adtFile.mcnkObjs[i];
+            var aabb = this.aabbs[i];
+            this.drawChunk[i] = false;
+            if (!aabb) continue;
+
+            //1. Check if camera position is inside Bounding Box
+            var cameraOnChunk =
+                (cameraVec4[0] > aabb[0][0] && cameraVec4[0] < aabb[1][0] &&
+                cameraVec4[1] > aabb[0][1] && cameraVec4[1] < aabb[1][1]);
+            if (cameraOnChunk ) {
+                return mcnk;
+            }
+        }
+        return null;
+    }
 
     checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, frustumPoints, lookAtMat4, m2ObjectsCandidates, wmoCandidates) {
         if (!this.adtGeom) return false;

@@ -21,14 +21,15 @@ function wmoGroupLoader(wmoFilePath, loadPlainVertexes) {
                 mogp.numBatchesA     = chunk.readInt16(offset);
                 mogp.numBatchesB     = chunk.readInt16(offset);
                 mogp.numBatchesC     = chunk.readInt16(offset);
+                mogp.Unk1            = chunk.readInt16(offset);
                 mogp.Indeces         = chunk.readUint8Array(offset, 4);
-                mogp.Unk1            = chunk.readInt32(offset);
+                mogp.liquidType      = chunk.readInt32(offset);
                 mogp.groupID         = chunk.readInt32(offset);
                 mogp.Unk2            = chunk.readInt32(offset);
                 mogp.Unk3            = chunk.readInt32(offset);
 
                 /* Skip 14 more bytes */
-                offset.offs += 10;
+                offset.offs += 8;
 
                 groupWMOObject.mogp = mogp;
 
@@ -215,7 +216,7 @@ function wmoLoader(wmoFilePath){
             wmoObj.nDoodads = chunk.readInt32(offset);
             wmoObj.nDoodadSets = chunk.readInt32(offset);
             wmoObj.ambColor = chunk.readUint32(offset);
-            wmoObj.unk1 = chunk.readInt32(offset);
+            wmoObj.wmoId = chunk.readInt32(offset);
 
             wmoObj.BoundBoxCorner1 = chunk.readVector3f(offset);
             wmoObj.BoundBoxCorner2 = chunk.readVector3f(offset);
