@@ -38,10 +38,6 @@ class AdtM2Object extends MDXObject {
     drawInstancedTransparentMeshes (instanceCount, placementVBO) {
         super.drawInstanced(true, instanceCount, placementVBO, 0xffffffff);
     }
-    checkFrustumCullingAndSet (cameraVec4, frustumPlanes, num_planes) {
-        var inFrustum = this.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes);
-        this.setIsRendered(this.getIsRendered() && inFrustum);
-    }
     checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, getDepth) {
         this.setIsRendered(this.getIsRendered() && super.checkAgainstDepthBuffer(frustrumMatrix, lookAtMat4, this.placementMatrix, getDepth));
     }

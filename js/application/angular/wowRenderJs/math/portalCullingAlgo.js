@@ -53,7 +53,7 @@ export default class PortalCullingAlgo {
             var m2Object = value;
             if (!m2Object) return;
 
-            var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, 6, false);
+            var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, 6, points);
             m2Object.setIsRendered(result);
             if (result) m2RenderedThisFrame.add(m2Object);
         });
@@ -106,7 +106,7 @@ export default class PortalCullingAlgo {
             var m2Object = value;
             if (!m2Object) return;
 
-            var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, 6, false);
+            var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, 6, points);
             m2Object.setIsRendered(result);
             if (result) m2RenderedThisFrame.add(m2Object);
         });
@@ -138,7 +138,7 @@ export default class PortalCullingAlgo {
                 var inFrustum = true;
                 if (mdxObject.loaded) {
                     for (var i = 0; inFrustum && i < frustumPlanes.length; i++) {
-                        inFrustum = inFrustum && mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes[i], frustumPlanes[i].length);
+                        inFrustum = inFrustum && mdxObject.checkFrustumCulling(cameraVec4, frustumPlanes[i], frustumPlanes[i].length, null);
                     }
                 }
                 if (inFrustum) {

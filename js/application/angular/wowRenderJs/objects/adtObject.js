@@ -14,7 +14,7 @@ class ADTObject {
     }
 
 
-    checkFrustumCulling (cameraVec4, frustumPlanes, lookAtMat4, num_planes, m2ObjectsCandidates, wmoCandidates) {
+    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, frustumPoints, lookAtMat4, m2ObjectsCandidates, wmoCandidates) {
         if (!this.adtGeom) return false;
         var adtFile = this.adtGeom.adtFile;
         var atLeastOneIsDrawn = false;
@@ -41,15 +41,20 @@ class ADTObject {
             //2. Check aabb is inside camera frustum
             var result = false;
             if (!this.drawChunk[i]) {
-                result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, null);
+                result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, frustumPoints);
+                //cameraOnChunk = mathHelper.checkFrustum2D(frustumPlanes, aabb, num_planes, frustumPoints);
                 this.drawChunk[i] = result;
+                //this.drawChunk[i] = result;
                 atLeastOneIsDrawn = atLeastOneIsDrawn || result ;
             }
-
+        }
+        if (atLeastOneIsDrawn) {
             //3. If the chunk is set to be drawn, set all M2s and WMOs into candidate for drawing
-            if (result || cameraOnChunk) {
+            for (var i = 0; i < 256; i++) {
+                var mcnk = adtFile.mcnkObjs[i];
+
                 if (mcnk.m2Refs) {
-                    for (var j= 0; j < mcnk.m2Refs.length; j++) {
+                    for (var j = 0; j < mcnk.m2Refs.length; j++) {
                         var m2Ref = mcnk.m2Refs[j];
 
                         m2ObjectsCandidates.add(this.m2Array[m2Ref])
@@ -61,6 +66,7 @@ class ADTObject {
                         wmoCandidates.add(this.wmoArray[wmoRef])
                     }
                 }
+
             }
         }
 

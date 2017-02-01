@@ -474,7 +474,7 @@ class MDXObject {
        }
 
     }
-    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, points) {
+    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, frustumPoints) {
         if (!this.loaded) {
             return true;
         }
@@ -490,7 +490,7 @@ class MDXObject {
         ) return true;
 
         //2. Check aabb is inside camera frustum
-        var result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, points);
+        var result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, frustumPoints);
         return result;
     }
     checkAgainstDepthBuffer(frustumMatrix, lookAtMat4, placementMatrix, checkDepth) {

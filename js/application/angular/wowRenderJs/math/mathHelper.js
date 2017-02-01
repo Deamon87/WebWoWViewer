@@ -311,6 +311,26 @@ class MathHelper {
 
         return true;
     }
+    static checkFrustum2D(planes, box, num_planes, points) {
+        // check box outside/inside of frustum
+        points = null;
+        for (var i = 0; i < num_planes; i++) {
+            var out = 0;
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[0][1], -999999, 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], -999999, 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[1][1], -999999, 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[1][1], -999999, 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[0][1], 999999, 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], 999999, 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[0][0], box[1][1], 999999, 1.0)) < 0.0 ) ? 1 : 0);
+            out += ((vec4.dot(planes[i], vec4.fromValues(box[1][0], box[1][1], 999999, 1.0)) < 0.0 ) ? 1 : 0);
+            if (out == 8) return false;
+        }
+
+        return true;
+    }
+
+
 
     static getFrustumPoints(perspectiveMatrix, viewMatrix) {
         const frustumPoints =

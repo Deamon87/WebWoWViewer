@@ -150,12 +150,13 @@ class GraphManager {
         var m2RenderedThisFrame = new Set();
         var wmoRenderedThisFrame = new Set();
 
-        if (this.currentInteriorGroups != null && config.getUsePortalCulling()) {
-            var combinedMat4 = mat4.create();
-            mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
-            var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
-            mathHelper.fixNearPlane(frustumPlanes, this.position);
+        var combinedMat4 = mat4.create();
+        mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
+        var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
+        mathHelper.fixNearPlane(frustumPlanes, this.position);
+        var frustumPoints = mathHelper.calculateFrustumPoints(frustumPlanes,6);
 
+        if (this.currentInteriorGroups != null && config.getUsePortalCulling()) {
             //Travel through portals
             if (this.portalCullingAlgo.startTraversingFromInteriorWMO(this.currentWMO, this.currentInteriorGroups, this.position,
                 lookAtMat4, frustumPlanes, m2RenderedThisFrame)) {
@@ -163,21 +164,13 @@ class GraphManager {
                 wmoRenderedThisFrame.add(this.currentWMO);
 
                 if (this.currentWMO.exteriorPortals.length > 0) {
-                    this.checkExterior(frustumPlanes, lookAtMat4, 6,
+                    this.checkExterior(frustumPlanes, 6, frustumPoints, lookAtMat4,
                         m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame);
                 }
             }
         } else {
-            /* 1. Extract planes */
-            var combinedMat4 = mat4.create();
-            mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
-            var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
-            mathHelper.fixNearPlane(frustumPlanes, this.position);
-
-            var points = mathHelper.getFrustumPoints(frustumMat, lookAtMat4);
-
             //Plain check for exterior
-            this.checkExterior(frustumPlanes, lookAtMat4, 6,
+            this.checkExterior(frustumPlanes, 6, frustumPoints, lookAtMat4,
                 m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame);
         }
 
@@ -188,9 +181,8 @@ class GraphManager {
 
             var frustumResult = true;
             if( m2Object.loaded ) {
-                frustumResult = m2Object.checkFrustumCulling(this.position, frustumPlanes, 6);
+                frustumResult = m2Object.checkFrustumCulling(this.position, frustumPlanes, 6, frustumPoints);
             }
-
 
             if (frustumResult) {
                 m2Object.setIsRendered(true);
@@ -211,7 +203,7 @@ class GraphManager {
         })
     }
 
-    checkExterior(frustumPlanes, lookAtMat4, num_planes,
+    checkExterior(frustumPlanes, num_planes, frustumPoints, lookAtMat4,
                   m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame) {
         var self = this;
         /* 3. Check frustum for graphs */
@@ -229,7 +221,8 @@ class GraphManager {
                     if ((j < 0) || (j > 64)) continue;
                     var adtObject = this.adtObjectsMap[i][j];
                     if (adtObject) {
-                        var result = adtObject.checkFrustumCulling(this.position, frustumPlanes, lookAtMat4, num_planes, m2ObjectsCandidates, wmoCandidates);
+                        var result = adtObject.checkFrustumCulling(this.position, frustumPlanes, num_planes, frustumPoints,
+                            lookAtMat4, m2ObjectsCandidates, wmoCandidates);
                         if (result) {
                             adtRenderedThisFrame.add(adtObject);
                         }
@@ -245,7 +238,7 @@ class GraphManager {
             var m2Object = value;
             if(!m2Object ) return;
 
-            var frustumResult = m2Object.checkFrustumCulling(self.position, frustumPlanes, num_planes);
+            var frustumResult = m2Object.checkFrustumCulling(self.position, frustumPlanes, num_planes, frustumPoints);
             if (frustumResult) {
                 m2Object.setIsRendered(true);
                 m2RenderedThisFrame.add(m2Object);
@@ -267,7 +260,7 @@ class GraphManager {
                     wmoRenderedThisFrame.add(wmoObject);
                 }
             } else {
-                if (wmoObject.checkFrustumCulling(self.position, frustumPlanes, num_planes, m2RenderedThisFrame)) {
+                if (wmoObject.checkFrustumCulling(self.position, frustumPlanes, num_planes, frustumPoints, m2RenderedThisFrame)) {
                     wmoRenderedThisFrame.add(wmoObject);
                 }
             }

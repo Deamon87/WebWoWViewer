@@ -92,7 +92,7 @@ class WmoObject {
 
         return result;
     }
-    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, m2RenderedThisFrame) {
+    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, frustumPoints, m2RenderedThisFrame) {
         if (!this.loaded) {
             return true;
         }
@@ -109,8 +109,7 @@ class WmoObject {
 
         //2. Check aabb is inside camera frustum
         if (!result) {
-            var points = mathHelper.calculateFrustumPoints(frustumPlanes, num_planes);
-            result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, points);
+            result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, frustumPoints);
         }
         this.isRendered = result;
 
@@ -118,7 +117,7 @@ class WmoObject {
             var wmoM2Candidates = new Set();
             //1. Calculate visibility for groups
             for (var i = 0; i < this.wmoGroupArray.length; i++) {
-                this.wmoGroupArray[i].checkGroupFrustum(cameraVec4, frustumPlanes, points, wmoM2Candidates);
+                this.wmoGroupArray[i].checkGroupFrustum(cameraVec4, frustumPlanes, frustumPoints, wmoM2Candidates);
             }
 
             //2. Check all m2 candidates
@@ -126,7 +125,7 @@ class WmoObject {
                 var m2Object = value;
                 if (!m2Object) return;
 
-                var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes, false);
+                var result = m2Object.checkFrustumCulling(cameraVec4, frustumPlanes, num_planes, frustumPoints);
                 m2Object.setIsRendered(result);
                 if (result) m2RenderedThisFrame.add(m2Object);
             });
