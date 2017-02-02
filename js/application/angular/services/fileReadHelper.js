@@ -121,42 +121,52 @@ export default function (arrayBuffer, start, end){
             return vector;
         },
         readInt8Array : function (offsetObj, length) {
-            var vector = new Int8Array(length);
-            for (var i = 0; i < length; i ++) {
-                vector[i] = this.readInt8(offsetObj);
-            }
+            var newArrayBuffer = this.sliceArrayBuffer(dataView.byteOffset + offsetObj.offs, dataView.byteOffset+offsetObj.offs+length);
+            var vector = new Int8Array(newArrayBuffer);
+            offsetObj.offs += length;
 
             return vector;
         },
         readUint16Array : function (offsetObj, length) {
-            var vector = [];
-            for (var i = 0; i < length; i ++) {
-                vector[i] = this.readUint16(offsetObj);
-            }
+            var vectorByteOffset = dataView.byteOffset + offsetObj.offs;
+            var vectorByteLength = length * 2;
+
+            var newArrayBuffer = this.sliceArrayBuffer(vectorByteOffset, vectorByteOffset+vectorByteLength);
+            var vector = new Uint16Array(newArrayBuffer);
+
+            offsetObj.offs += vectorByteLength;
 
             return vector;
         },
         readInt16Array : function (offsetObj, length) {
-            var vector = [];
-            for (var i = 0; i < length; i ++) {
-                vector[i] = this.readInt16(offsetObj);
-            }
+            var vectorByteOffset = dataView.byteOffset + offsetObj.offs;
+            var vectorByteLength = length * 2;
+
+            var newArrayBuffer = this.sliceArrayBuffer(vectorByteOffset, vectorByteOffset+vectorByteLength);
+            var vector = new Int16Array(newArrayBuffer);
+
+            offsetObj.offs += vectorByteLength;
 
             return vector;
         },
         readInt32Array : function (offsetObj, length) {
-            var vector = [];
-            for (var i = 0; i < length; i ++) {
-                vector[i] = this.readInt32(offsetObj);
-            }
+            var vectorByteOffset = dataView.byteOffset + offsetObj.offs;
+            var vectorByteLength = length * 4;
 
+            var newArrayBuffer = this.sliceArrayBuffer(vectorByteOffset, vectorByteOffset+vectorByteLength);
+            var vector = new Int32Array(newArrayBuffer);
+
+            offsetObj.offs += vectorByteLength;
             return vector;
         },
         readFloat32Array : function (offsetObj, length) {
-            var vector = [];
-            for (var i = 0; i < length; i ++) {
-                vector[i] = this.readFloat32(offsetObj);
-            }
+            var vectorByteOffset = dataView.byteOffset + offsetObj.offs;
+            var vectorByteLength = length * 4;
+
+            var newArrayBuffer = this.sliceArrayBuffer(vectorByteOffset, vectorByteOffset+vectorByteLength);
+            var vector = new Float32Array(newArrayBuffer);
+
+            offsetObj.offs += vectorByteLength;
 
             return vector;
         },

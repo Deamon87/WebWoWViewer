@@ -116,6 +116,8 @@ class M2Geom {
 
         if (boneMatrix) {
             gl.uniformMatrix4fv(uniforms.uBoneMatrixes, false, boneMatrix);
+        } else {
+            gl.uniformMatrix4fv(uniforms.uBoneMatrixes, false, new Float32Array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,]));
         }
 
         //Set proper color
