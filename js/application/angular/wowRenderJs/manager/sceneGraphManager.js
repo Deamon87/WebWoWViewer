@@ -382,22 +382,52 @@ class GraphManager {
 
         var bspNodeId = -1;
         var interiorGroupNum = -1;
+        var currentWmoGroup = -1;
         for (var i = 0; i < this.wmoObjects.length; i++) {
-            var result = this.wmoObjects[i].isInsideInterior(this.position);
+            var checkingWmoObj = this.wmoObjects[i];
+            var result = checkingWmoObj.getGroupWmoThatCameraIsInside(this.position);
 
-            if (result && result.length > 0) {
-                this.currentWMO = this.wmoObjects[i];
-                this.currentInteriorGroups = result;
-                interiorGroupNum = result[0].groupId;
+            if (result) {
+                this.currentWMO = checkingWmoObj;
+                currentWmoGroup = result.groupId;
+                if (checkingWmoObj.isGroupWmoInterior(result.groupId)) {
+                    this.currentInteriorGroups = [result];
+                    interiorGroupNum = result.groupId;
+                } else {
+                }
+
                 bspNodeId = result.nodeId;
                 break;
             }
         }
 
         //7. Get AreaId and Area Name
+        var currentAreaName = '';
+        var wmoAreaTableDBC = this.sceneApi.dbc.getWmoAreaTableDBC();
+        var areaTableDBC = this.sceneApi.dbc.getAreaTableDBC();
         if (this.currentWMO) {
             var wmoId = this.currentWMO.wmoObj.wmoId;
-            var wmoGroupId = this.currentWMO.wmoGroupArray[interiorGroupNum].wmoGeom.wmoGroupFile.mogp.groupID
+            var wmoGroupId = this.currentWMO.wmoGroupArray[currentWmoGroup].wmoGeom.wmoGroupFile.mogp.groupID;
+            var nameSetId = this.currentWMO.nameSet;
+
+
+            var wmoAreaTabeRecord = wmoAreaTableDBC.findRecord(wmoId, nameSetId, wmoGroupId);
+            if (wmoAreaTabeRecord) {
+                if (wmoAreaTabeRecord.name == '') {
+                    var areaRecord = areaTableDBC[wmoAreaTabeRecord.areaId];
+                    if (areaRecord) {
+                        currentAreaName = areaRecord.name
+                    }
+                } else {
+                    currentAreaName = wmoAreaTabeRecord.name;
+                }
+            }
+        }
+        if (currentAreaName == '' && mcnkChunk) {
+            var areaRecord = areaTableDBC[mcnkChunk.areaId];
+            if (areaRecord) {
+                currentAreaName = areaRecord.name
+            }
         }
 
         //8. Check fog color every 2 seconds
@@ -407,7 +437,7 @@ class GraphManager {
 
         //9. Check ADT Chunk we're in
         this.currentTime = this.currentTime + deltaTime;
-        return {interiorGroupNum: interiorGroupNum, nodeId: bspNodeId};
+        return {interiorGroupNum: interiorGroupNum, nodeId: bspNodeId, currentAreaName: currentAreaName};
     }
 
     /*

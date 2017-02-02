@@ -32,6 +32,7 @@ import {mat4, vec4, vec3, glMatrix} from 'gl-matrix'
 /* DBC stuff */
 import $q from 'q';
 import animationDataDBC             from './../services/dbc/animationDataDBC.js'
+import areaTableDBC                 from './../services/dbc/areaTableDBC.js'
 import characterFacialHairStylesDBC from './../services/dbc/characterFacialHairStylesDBC.js'
 import charHairGeosetsDBC           from './../services/dbc/charHairGeosetsDBC.js'
 import charSectionsDBC              from './../services/dbc/charSectionsDBC.js'
@@ -47,6 +48,7 @@ import helmetGeosetVisDataDBC       from './../services/dbc/helmetGeosetVisDataD
 import itemDisplayInfoDBC           from './../services/dbc/itemDisplayInfoDBC.js'
 import itemDBC                      from './../services/dbc/itemDBC.js'
 import mapDBC                       from './../services/dbc/mapDBC.js'
+import wmoAreaTableDBC              from './../services/dbc/wmoAreaTableDBC.js'
 
 /*************/
 
@@ -145,7 +147,12 @@ class Scene {
         mapDBC().then(function success(a) {
             self.mapDBC = a;
         });
-
+        wmoAreaTableDBC().then(function success(a) {
+            self.wmoAreaTableDBC = a;
+        });
+        areaTableDBC().then(function success(a) {
+            self.areaTableDBC = a;
+        });
 
 
         /* Lights information */
@@ -651,6 +658,13 @@ class Scene {
                 getMapDBC : function () {
                     return self.mapDBC;
                 },
+                getWmoAreaTableDBC : function () {
+                    return self.wmoAreaTableDBC;
+                },
+                getAreaTableDBC : function () {
+                    return self.areaTableDBC;
+                },
+
 
                 /* Lights information */
                 getLightDBC : function () {

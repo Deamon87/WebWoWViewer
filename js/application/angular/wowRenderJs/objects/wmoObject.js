@@ -32,8 +32,13 @@ class WmoObject {
         return this.wmoObj && this.wmoObj.portalInfos && (this.wmoObj.portalInfos.length > 0);
     }
 
-    isInsideInterior (cameraVec4) {
-        if (!this.wmoGroupArray || this.wmoGroupArray.length ==0) return -1;
+    isGroupWmoInterior(groupId) {
+        var groupInfo = this.wmoObj.groupInfos[groupId];
+        var result = ((groupInfo.flags & 0x2000) != 0);
+        return result;
+    }
+    getGroupWmoThatCameraIsInside (cameraVec4) {
+        if (!this.wmoGroupArray || this.wmoGroupArray.length ==0) return null;
 
         //Transform camera into local coordinates
         var cameraLocal = vec4.create();
@@ -45,7 +50,7 @@ class WmoObject {
             cameraLocal[1] > this.wmoObj.BoundBoxCorner1.y && cameraLocal[1] < this.wmoObj.BoundBoxCorner2.y &&
             cameraLocal[2] > this.wmoObj.BoundBoxCorner1.z && cameraLocal[2] < this.wmoObj.BoundBoxCorner2.z
         );
-        if (!isInsideWMOBB) return -1;
+        if (!isInsideWMOBB) return null;
 
         //Loop
         var wmoGroupsInside = 0;
@@ -61,7 +66,7 @@ class WmoObject {
         //6. Iterate through result group list and find the one with maximal bottom z coordinate for object position
         var minDist = 999999;
         var resObj = null;
-        var result = [];
+        var result = null;
         for (var i = 0; i < candidateGroups.length; i++) {
             var candidate = candidateGroups[i];
             var groupInfo = this.wmoObj.groupInfos[candidate.groupId];
@@ -73,22 +78,11 @@ class WmoObject {
                 var dist = cameraLocal[2] - candidate.topBottom.bottomZ;
                 if (dist > 0 && dist < minDist) {
                     minDist = dist;
-                    if ((groupInfo.flags & 0x2000) != 0) {
-                        result = [candidateGroups[i]];
-                    } else {
-                        result = [];
-                    }
+                    result = candidate;
                 }
             }
         }
-         /*
-        var result = [];
-        for (var i = 0; i < candidateGroups.length; i++) {
-            var candidate = candidateGroups[i];
-            var groupInfo = this.wmoObj.groupInfos[candidate.groupId];
-            if ((groupInfo.flags & 0x2000) != 0)
-                result.push(candidate)
-        }  */
+
 
         return result;
     }
@@ -180,6 +174,7 @@ class WmoObject {
 
         var filename = modf.fileName;
         this.doodadSet = modf.doodadSet;
+        this.nameSet   = modf.nameSet;
 
         this.fileName = filename;
 

@@ -1,13 +1,13 @@
 import $q from 'q';
 import loadDBC from './../dbcLoader.js';
 
-var animationDataDBCFile = null;
+var areaTableDBCFile = null;
 
 export default function areaTableDBC(){
     var deferred = $q.defer();
 
-    if (animationDataDBCFile === null) {
-        animationDataDBCFile = [];
+    if (areaTableDBCFile === null) {
+        areaTableDBCFile = [];
         var promise = loadDBC("DBFilesClient/AreaTable.dbc");
 
         promise.then(function(dbcObject){
@@ -28,15 +28,15 @@ export default function areaTableDBC(){
                 record.name                         = dbcObject.readText(i, 11);
 
 
-                areaTableDBC[record.id] = record;
+                areaTableDBCFile[record.id] = record;
             }
 
-            deferred.resolve(areaTableDBC);
+            deferred.resolve(areaTableDBCFile);
         }, function (error) {
             deferred.reject();
         });
     } else {
-        deferred.resolve(areaTableDBC);
+        deferred.resolve(areaTableDBCFile);
     }
 
     return deferred.promise;
