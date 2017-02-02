@@ -1,12 +1,14 @@
 import * as textEncodeModule from "text-encoding";
 
 var isLittleEndian = true;
-var textDecoder;
-if (TextDecoder !== undefined) {
+var textDecoder = null;
+
+try {
     textDecoder = new TextDecoder("utf-8");
-} else {
+} catch (e) {
     textDecoder = new textEncodeModule.TextDecoder("utf-8");
 }
+
 
 function reverseStr(str) {
     var newStr = '', i;
