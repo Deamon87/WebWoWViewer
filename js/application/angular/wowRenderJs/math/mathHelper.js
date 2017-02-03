@@ -283,6 +283,36 @@ class MathHelper {
         return vec3.fromValues(u, v, w)
     }
 
+    static checkFrustum_opt(planes, box, num_planes, points) {
+        // check box outside/inside of frustum
+        points = null;
+        for (var i = 0; i < num_planes; i++) {
+            var out = 0;
+            out += (((planes[i][0]*box[0][0]+ planes[i][1]*box[0][1]+ planes[i][2]*box[0][2]+planes[i][3]) < 0.0 ) ? 1 : 0);
+            out += (((planes[i][0]*box[1][0]+ planes[i][1]*box[0][1]+ planes[i][2]*box[0][2]+planes[i][3]) < 0.0 ) ? 1 : 0);
+            out += (((planes[i][0]*box[0][0]+ planes[i][1]*box[1][1]+ planes[i][2]*box[0][2]+planes[i][3]) < 0.0 ) ? 1 : 0);
+            out += (((planes[i][0]*box[1][0]+ planes[i][1]*box[1][1]+ planes[i][2]*box[0][2]+planes[i][3]) < 0.0 ) ? 1 : 0);
+            out += (((planes[i][0]*box[0][0]+ planes[i][1]*box[0][1]+ planes[i][2]*box[1][2]+planes[i][3]) < 0.0 ) ? 1 : 0);
+            out += (((planes[i][0]*box[1][0]+ planes[i][1]*box[0][1]+ planes[i][2]*box[1][2]+planes[i][3]) < 0.0 ) ? 1 : 0);
+            out += (((planes[i][0]*box[0][0]+ planes[i][1]*box[1][1]+ planes[i][2]*box[1][2]+planes[i][3]) < 0.0 ) ? 1 : 0);
+            out += (((planes[i][0]*box[1][0]+ planes[i][1]*box[1][1]+ planes[i][2]*box[1][2]+planes[i][3]) < 0.0 ) ? 1 : 0);
+
+            if (out == 8) return false;
+        }
+
+        // check frustum outside/inside box
+        if (points) {
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][0] > box[1][0]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][0] < box[0][0]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][1] > box[1][1]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][1] < box[0][1]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][2] > box[1][2]) ? 1 : 0); if (out == 8) return false;
+            out = 0; for (var i = 0; i < 8; i++) out += ((points[i][2] < box[0][2]) ? 1 : 0); if (out == 8) return false;
+        }
+
+        return true;
+    }
+
     static checkFrustum(planes, box, num_planes, points) {
         // check box outside/inside of frustum
         points = null;

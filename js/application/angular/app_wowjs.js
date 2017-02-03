@@ -121,6 +121,16 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 z: 29.0698
             },
             {
+                name: 'Shattrath (http)',
+                source: 'http',
+                sceneType: 'map',
+                mapId: 530,
+                mapName: 'Expansion01',
+                x: -1663,
+                y: 5098,
+                z: 27
+            },
+            {
                 name: 'Undercity',
                 source: 'http',
                 sceneType: 'map',

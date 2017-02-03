@@ -587,7 +587,7 @@ class GraphManager {
         this.m2OpaqueRenderedThisFrame = {};
         this.m2TranspRenderedThisFrame = {};
 
-        if (this.currentWMO && config.getUsePortalCulling()) {
+        if (this.currentWMO && this.currentInteriorGroups != null && config.getUsePortalCulling()) {
             this.sceneApi.shaders.activateWMOShader();
             this.currentWMO.drawPortalBased(true);
             this.sceneApi.shaders.deactivateWMOShader();
