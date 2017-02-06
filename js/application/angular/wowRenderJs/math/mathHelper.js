@@ -283,7 +283,7 @@ class MathHelper {
         return vec3.fromValues(u, v, w)
     }
 
-    static checkFrustum_opt(planes, box, num_planes, points) {
+    static checkFrustum(planes, box, num_planes, points) {
         // check box outside/inside of frustum
         points = null;
         for (var i = 0; i < num_planes; i++) {
@@ -313,7 +313,7 @@ class MathHelper {
         return true;
     }
 
-    static checkFrustum(planes, box, num_planes, points) {
+    static checkFrustum_nonopt(planes, box, num_planes, points) {
         // check box outside/inside of frustum
         points = null;
         for (var i = 0; i < num_planes; i++) {

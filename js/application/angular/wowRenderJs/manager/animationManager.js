@@ -312,6 +312,10 @@ export default class AnimationManager {
             return result;
         }
     }
+    isTimedValueExists(animationBlock, animationIndex) {
+        return (animationBlock.valuesPerAnimation.length >= animationIndex+1 &&
+                animationBlock.valuesPerAnimation[animationIndex].length != 0);
+    }
     getTimedValue (value_type, currTime, maxTime, animation, animationBlock, globalSequenceTimes) {
         function convertUint16ToFloat(value){
             return (value * 0.000030518044) - 1.0;
@@ -719,18 +723,18 @@ export default class AnimationManager {
             }
 
             subMeshColors[i] = colorResult1;
-
-            var alpha = this.getTimedValue(
-                2,
-                time,
-                animationRecord.length,
-                animationIndex,
-                colors[i].alpha);
-
             var resultAlpha1 = 1.0;
-            if (alpha) {
+            if (this.isTimedValueExists(colors[i].alpha, animationIndex)) {
+                var alpha = this.getTimedValue(
+                    2,
+                    time,
+                    animationRecord.length,
+                    animationIndex,
+                    colors[i].alpha);
+
                 resultAlpha1 = alpha[0];
             }
+
 
             // Support for blend
             if (blendAnimationRecord != null) {

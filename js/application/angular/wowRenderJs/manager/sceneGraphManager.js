@@ -405,28 +405,30 @@ class GraphManager {
         var currentAreaName = '';
         var wmoAreaTableDBC = this.sceneApi.dbc.getWmoAreaTableDBC();
         var areaTableDBC = this.sceneApi.dbc.getAreaTableDBC();
-        if (this.currentWMO) {
-            var wmoId = this.currentWMO.wmoObj.wmoId;
-            var wmoGroupId = this.currentWMO.wmoGroupArray[currentWmoGroup].wmoGeom.wmoGroupFile.mogp.groupID;
-            var nameSetId = this.currentWMO.nameSet;
+        if (wmoAreaTableDBC && areaTableDBC) {
+            if (this.currentWMO) {
+                var wmoId = this.currentWMO.wmoObj.wmoId;
+                var wmoGroupId = this.currentWMO.wmoGroupArray[currentWmoGroup].wmoGeom.wmoGroupFile.mogp.groupID;
+                var nameSetId = this.currentWMO.nameSet;
 
 
-            var wmoAreaTabeRecord = wmoAreaTableDBC.findRecord(wmoId, nameSetId, wmoGroupId);
-            if (wmoAreaTabeRecord) {
-                if (wmoAreaTabeRecord.name == '') {
-                    var areaRecord = areaTableDBC[wmoAreaTabeRecord.areaId];
-                    if (areaRecord) {
-                        currentAreaName = areaRecord.name
+                var wmoAreaTabeRecord = wmoAreaTableDBC.findRecord(wmoId, nameSetId, wmoGroupId);
+                if (wmoAreaTabeRecord) {
+                    if (wmoAreaTabeRecord.name == '') {
+                        var areaRecord = areaTableDBC[wmoAreaTabeRecord.areaId];
+                        if (areaRecord) {
+                            currentAreaName = areaRecord.name
+                        }
+                    } else {
+                        currentAreaName = wmoAreaTabeRecord.name;
                     }
-                } else {
-                    currentAreaName = wmoAreaTabeRecord.name;
                 }
             }
-        }
-        if (currentAreaName == '' && mcnkChunk) {
-            var areaRecord = areaTableDBC[mcnkChunk.areaId];
-            if (areaRecord) {
-                currentAreaName = areaRecord.name
+            if (currentAreaName == '' && mcnkChunk) {
+                var areaRecord = areaTableDBC[mcnkChunk.areaId];
+                if (areaRecord) {
+                    currentAreaName = areaRecord.name
+                }
             }
         }
 

@@ -342,13 +342,32 @@ class MDXObject {
            var subMeshes = skinObject.skinFile.header.subMeshes;
            for (var i = 0; i < skinObject.skinFile.header.texs.length; i++) {
                var materialData = {
-                   isRendered: false,
-                   isTransparent: false,
-                   isEnviromentMapping: false,
-                   meshIndex: -1,
-                   textureTexUnit1: null,
-                   textureTexUnit2: null,
-                   textureTexUnit3: null
+                    isRendered: false,
+                    isTransparent: false,
+                    isEnviromentMapping: false,
+                    meshIndex: -1,
+                    textureTexUnit1: null,
+                    textureTexUnit2: null,
+                    textureTexUnit3: null,
+
+
+                    texUnit1TexIndex : 0,
+                    mdxTextureIndex1 : 0,
+                    xWrapTex1 : false,
+                    yWrapTex1 : false,
+                    textureUnit1TexName: '',
+
+                    texUnit2TexIndex : 0,
+                    mdxTextureIndex2 : 0,
+                    xWrapTex2 : false,
+                    yWrapTex2 : false,
+                    textureUnit2TexName: '',
+
+                    texUnit3TexIndex : 0,
+                    mdxTextureIndex3 : 0,
+                    xWrapTex3 : false,
+                    yWrapTex3 : false,
+                    textureUnit3TexName: ''
                };
 
                var skinTextureDefinition = skinObject.skinFile.header.texs[i];
@@ -377,7 +396,7 @@ class MDXObject {
                materialData.renderFlagIndex = skinTextureDefinition.renderFlagIndex;
                materialData.flags = skinTextureDefinition.flags;
                materialData.shaderNames = shaderNames;
-
+               materialData.m2BatchIndex = i;
 
 
                materialData.renderFlag =  mdxObject.m2File.renderFlags[renderFlagIndex].flags;
@@ -570,7 +589,6 @@ class MDXObject {
     }
     update (deltaTime, cameraPos, viewMat) {
         if (!this.loaded) return;
-        if (!this.getIsRendered()) return;
         var invPlacementMat = this.getInvertModelMatrix();
 
         //if (!this.materialArray) return;
@@ -597,7 +615,6 @@ class MDXObject {
 
     sortMaterials(lookAtMat4) {
         if (!this.loaded ) return;
-        if (!this.getIsRendered()) return;
 
         /* 3. Resort m2 meshes against distance to screen */
         var skinData = this.skinGeom.skinFile.header;
@@ -650,6 +667,7 @@ class MDXObject {
                     if (sortDistArray[a.meshIndex] < sortDistArray[b.meshIndex]) {
                         return -1
                     }
+
                     return a.layer - b.layer;
                 }
             );
@@ -765,14 +783,18 @@ class MDXObject {
     *
     * */
     drawMaterial(materialData, drawTransparent, instanceCount) {
+        if (!(materialData.isTransparent ^ !drawTransparent)) return;
+        /*
+        var meshIdsTobeRendered = window.meshestoBeRendered;
+        if (meshIdsTobeRendered && !meshIdsTobeRendered[materialData.texUnit1TexIndex]) return;
+        if (window.shownLayer != null && materialData.layer != window.shownLayer ) return;
+          */
+
         var identMat = mat4.create();
         mat4.identity(identMat);
         var originalFogColor = this.sceneApi.getFogColor();
 
-        var meshIdsTobeRendered = window.meshestoBeRendered;
-        if (!(materialData.isTransparent ^ !drawTransparent)) return;
-        if (meshIdsTobeRendered && !meshIdsTobeRendered[materialData.texUnit1TexIndex]) return;
-        if (window.shownLayer != null && materialData.layer != window.shownLayer ) return;
+
 
         /* Get right texture animation matrix */
         var textureMatrix1 = identMat;
