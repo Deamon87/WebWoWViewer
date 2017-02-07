@@ -547,8 +547,12 @@ class GraphManager {
                 if (this.m2TranspRenderedThisFrame[m2Object.sceneNumber]) continue;
                 var fileIdent = m2Object.getFileNameIdent();
 
+                var drawInstanced = false;
                 if (this.instanceMap.has(fileIdent)) {
                     var instanceManager = this.instanceMap.get(fileIdent);
+                    drawInstanced = instanceManager.mdxObjectList.length > 1;
+                }
+                if (drawInstanced) {
                     if (!lastWasDrawInstanced) {
                         this.sceneApi.shaders.activateM2InstancingShader();
                     }
