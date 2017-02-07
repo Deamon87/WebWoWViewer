@@ -44,6 +44,7 @@ class MDXObject {
 
         this.loaded = false;
         this.loading = false;
+        this.materialArray = [];
     }
 
     getFileNameIdent(){

@@ -183,10 +183,10 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 modelName: 'creature\\forsakencatapult\\forsakencatapult.m2'
             },
             {
-                name: 'bugging crystal',
+                name: 'blackrock_lower_instance',
                 source: 'http',
-                sceneType: 'm2',
-                modelName: 'world\\expansion01\\doodads\\hellfirepeninsula\\crystals\\hellfirecrystalformation_01.m2'
+                sceneType: 'wmo',
+                fileName: 'world/wmo/dungeon/az_blackrock/blackrock_lower_instance.wmo'
             },
             {
                 name: 'Sniff',
