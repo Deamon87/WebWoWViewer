@@ -1501,7 +1501,7 @@ class Scene {
                             break;
                         }
                     }
-                    var value = mapIter.next().value;
+                    value = mapIter.next().value;
                 }
             } else {
                 self.mapId = mapId;

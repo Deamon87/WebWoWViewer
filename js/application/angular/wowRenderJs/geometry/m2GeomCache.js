@@ -197,8 +197,8 @@ class M2Geom {
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
         var fogChanged = false;
 
-        gl.uniformMatrix4fv(uniforms.uTextMat1, false, textureMatrix1);
-        gl.uniformMatrix4fv(uniforms.uTextMat2, false, textureMatrix2);
+        gl.uniformMatrix4fv(uniforms.uTextMat1, false, new Float32Array(textureMatrix1));
+        gl.uniformMatrix4fv(uniforms.uTextMat2, false, new Float32Array(textureMatrix2));
         gl.uniform4fv(uniforms.uColor, meshColor);
         gl.uniform1f(uniforms.uTransparency, transparency);
         gl.uniform1i(uniforms.uPixelShader, pixelShaderIndex);
