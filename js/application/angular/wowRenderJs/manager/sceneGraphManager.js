@@ -12,7 +12,7 @@ import PortalCullingAlgo from './../math/portalCullingAlgo.js';
 
 import config from './../../services/config.js';
 
-import {mat4} from 'gl-matrix';
+import {mat4, vec4} from 'gl-matrix';
 
 
 class GraphManager {
@@ -189,7 +189,6 @@ class GraphManager {
                 m2RenderedThisFrame.add(m2Object);
             }
         }
-
 
         this.adtRenderedThisFrame = Array.from(adtRenderedThisFrame);
         this.m2RenderedThisFrame = Array.from(m2RenderedThisFrame);
@@ -405,22 +404,24 @@ class GraphManager {
         var currentAreaName = '';
         var wmoAreaTableDBC = this.sceneApi.dbc.getWmoAreaTableDBC();
         var areaTableDBC = this.sceneApi.dbc.getAreaTableDBC();
+        var areaRecord = null;
         if (wmoAreaTableDBC && areaTableDBC) {
             if (this.currentWMO) {
-                var wmoId = this.currentWMO.wmoObj.wmoId;
+                var wmoFile = this.currentWMO.wmoObj;
+                var wmoId = wmoFile.wmoId;
                 var wmoGroupId = this.currentWMO.wmoGroupArray[currentWmoGroup].wmoGeom.wmoGroupFile.mogp.groupID;
                 var nameSetId = this.currentWMO.nameSet;
 
-
-                var wmoAreaTabeRecord = wmoAreaTableDBC.findRecord(wmoId, nameSetId, wmoGroupId);
-                if (wmoAreaTabeRecord) {
-                    if (wmoAreaTabeRecord.name == '') {
-                        var areaRecord = areaTableDBC[wmoAreaTabeRecord.areaId];
+                var wmoAreaTableRecord = wmoAreaTableDBC.findRecord(wmoId, nameSetId, wmoGroupId);
+                var areaRecord = areaTableDBC[wmoAreaTableRecord.areaId];
+                if (wmoAreaTableRecord) {
+                    if (wmoAreaTableRecord.name == '') {
+                        var areaRecord = areaTableDBC[wmoAreaTableRecord.areaId];
                         if (areaRecord) {
                             currentAreaName = areaRecord.name
                         }
                     } else {
-                        currentAreaName = wmoAreaTabeRecord.name;
+                        currentAreaName = wmoAreaTableRecord.name;
                     }
                 }
             }
@@ -433,9 +434,56 @@ class GraphManager {
         }
 
         //8. Check fog color every 2 seconds
+        var fogRecordWasFound = false;
         if (this.currentTime + deltaTime - this.lastFogParamCheck > 2000) {
+            if (this.currentWMO) {
+                var wmoFile = this.currentWMO.wmoObj;
+                var cameraLocal = vec4.create();
+                vec4.transformMat4(cameraLocal, this.position, this.currentWMO.placementInvertMatrix);
+
+                for (var i = wmoFile.mfogArray.length-1; i >= 0; i--) {
+                    var fogRecord = wmoFile.mfogArray[i];
+                    var fogPosVec = vec4.fromValues(fogRecord.pos.x,fogRecord.pos.y,fogRecord.pos.z,1);
+
+                    var distanceToFog = vec4.distance(fogPosVec, cameraLocal);
+                    if ((distanceToFog < fogRecord.larger_radius) /*|| fogRecord.larger_radius == 0*/) {
+                        this.sceneApi.setFogColor(fogRecord.fog_colorF);
+                        //this.sceneApi.setFogStart(wmoFile.mfog.fog_end);
+                        this.sceneApi.setFogEnd(fogRecord.fog_end);
+                        fogRecordWasFound = true;
+                        break;
+                    }
+                }
+            }
+            var lightIntBandDBC = this.sceneApi.dbc.getLightIntBandDBC();
+            if (!fogRecordWasFound && lightIntBandDBC) {
+                //Check areaRecord
+                /*
+                //It's always 0 in WotLK
+                if (areaRecord && lightTableDBC) {
+                    var lightRecord = lightTableDBC[areaRecord.lightId];
+                }
+                */
+                //Query Light Record
+                var result = this.sceneApi.findLightRecord(this.position);
+                if (result && result.length > 0) {
+                    result.sort(function(a,b){
+                        if (a.distance < b.distance) return -1;
+                        if (a.distance > b.distance) return 1;
+                        return 0;
+                    });
+                    var fogIntRec = lightIntBandDBC[result[0].record.skyAndFog*18-17 + 7];
+                    this.sceneApi.setFogColor(fogIntRec.floatValues[3]);
+
+                    //Take fog params from here
+
+                }
+
+            }
             this.lastFogParamCheck = this.currentTime;
         }
+        this.currentTime += deltaTime;
+
 
         return {interiorGroupNum: interiorGroupNum, nodeId: bspNodeId, currentAreaName: currentAreaName};
     }

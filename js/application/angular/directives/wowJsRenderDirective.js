@@ -254,7 +254,7 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                     var adt_x = Math.floor((32 - (sceneParams.y / 533.33333)));
                     var adt_y = Math.floor((32 - (sceneParams.x / 533.33333)));
 
-                    sceneObj.loadMap(sceneParams.mapName, adt_x, adt_y);
+                    sceneObj.loadMap(sceneParams.mapId, sceneParams.mapName, adt_x, adt_y);
                     sceneObj.setCameraPos(sceneParams.x, sceneParams.y, sceneParams.z);
                 } else if (sceneParams.sceneType == 'wmo') {
                     sceneObj.loadWMOFile({

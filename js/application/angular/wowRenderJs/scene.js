@@ -541,13 +541,25 @@ class Scene {
                 return self.blackPixelTexture;
             },
             setFogColor: function (color) {
-                self.fogColor = color;
+                self.setFogColor(color);
+            },
+            setFogStart(value) {
+                self.setFogStart(value);
+            },
+            setFogEnd(value) {
+                this.uFogEnd = value;
             },
             getFogColor: function () {
                 return self.fogColor;
             },
+            findLightRecord : function (pos) {
+                self.findLightRecord(pos)
+            },
             getIsDebugCamera() {
                 return self.isDebugCamera;
+            },
+            findLightRecord(mapId, pos) {
+                return self.findLightRecord(mapId, pos);
             },
             extensions : {
                 getInstancingExt : function (){
@@ -1468,7 +1480,7 @@ class Scene {
     setM2Scene(value) {
         this.graphManager.setM2Scene(value);
     }
-    loadMap (mapName, x, y){
+    loadMap (mapId, mapName, x, y){
         var self = this;
         var wdtFileName = "world/maps/"+mapName+"/"+mapName+".wdt";
 
@@ -1476,6 +1488,7 @@ class Scene {
         wdtLoader(wdtFileName).then(function success(wdtFile){
             self.currentWdt = wdtFile;
             self.currentMapName = mapName;
+            self.mapId = mapId;
             if (wdtFile.isWMOMap) {
                 self.graphManager.loadWmoMap(wdtFile.modfChunk);
             } else {
@@ -1506,7 +1519,36 @@ class Scene {
         this.uFogEnd = value;
     }
     setFogColor(value) {
-        this.fogColor = value;
+        this.fogColor = [value[0], value[1], value[2]];
+    }
+
+    findLightRecord(pos) {
+        var mapId = this.mapId;
+        if (mapId == null) return;
+
+        var lightDBC = this.lightDBC;
+        var lightFloatBandDBC = this.lightFloatBandDBC;
+        var lightIntBandDBC = this.lightIntBandDBC;
+        var lightParamsDBC = this.lightParamsDBC;
+
+        var records = [];
+        if (!(lightDBC&&lightFloatBandDBC&&lightIntBandDBC&&lightParamsDBC)) return null;
+        for (var i = 0; i < lightDBC.length; i++) {
+            var lightRec = lightDBC[i];
+            if (!lightRec) continue;
+
+            if (lightRec.mapId == mapId) {
+                var lightPos = vec3.fromValues(
+                    17066.666 - (lightRec.z / 36.0),
+                    17066.666 - (lightRec.x / 36.0),
+                    lightRec.y / 36.0);
+                var distanceToLightPos = vec3.distance(lightPos, pos);
+                if (distanceToLightPos < (lightRec.falloffStart / 36.0)) {
+                    records.push({distance: distanceToLightPos, record: lightRec});
+                }
+            }
+        }
+        return records;
     }
     loadPackets() {
         //this.worldObjectManager.loadAllPacket();

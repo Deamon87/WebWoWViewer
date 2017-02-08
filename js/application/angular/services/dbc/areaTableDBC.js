@@ -26,6 +26,7 @@ export default function areaTableDBC(){
                 record.zoneIntroMusic               = dbcObject.readInt32(i, 9);
                 record.explorationLevel             = dbcObject.readInt32(i, 10);
                 record.name                         = dbcObject.readText(i, 11);
+                record.lightId                      = dbcObject.readInt32(i, 35);
 
 
                 areaTableDBCFile[record.id] = record;
