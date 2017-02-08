@@ -1488,7 +1488,26 @@ class Scene {
         wdtLoader(wdtFileName).then(function success(wdtFile){
             self.currentWdt = wdtFile;
             self.currentMapName = mapName;
-            self.mapId = mapId;
+
+            if (mapId == null) {
+
+                var mapIter = self.mapDBC.keys();
+                var value = mapIter.next().value;
+                while (value != null) {
+                    var mapDBCRec = self.mapDBC.get(value);
+                    if (mapDBCRec) {
+                        if (mapDBCRec.wdtName == mapName) {
+                            self.mapId = mapDBCRec.id;
+                            break;
+                        }
+                    }
+                    var value = mapIter.next().value;
+                }
+            } else {
+                self.mapId = mapId;
+            }
+
+
             if (wdtFile.isWMOMap) {
                 self.graphManager.loadWmoMap(wdtFile.modfChunk);
             } else {
@@ -1524,7 +1543,7 @@ class Scene {
 
     findLightRecord(pos) {
         var mapId = this.mapId;
-        if (mapId == null) return;
+        if (mapId == null) return [];
 
         var lightDBC = this.lightDBC;
         var lightFloatBandDBC = this.lightFloatBandDBC;
@@ -1533,11 +1552,16 @@ class Scene {
 
         var records = [];
         if (!(lightDBC&&lightFloatBandDBC&&lightIntBandDBC&&lightParamsDBC)) return null;
+        var lightRecordDefault = null;
         for (var i = 0; i < lightDBC.length; i++) {
             var lightRec = lightDBC[i];
             if (!lightRec) continue;
 
             if (lightRec.mapId == mapId) {
+                if (lightRec.x == 0 && lightRec.y == 0 && lightRec.z == 0) {
+                    lightRecordDefault = lightRec;
+                }
+
                 var lightPos = vec3.fromValues(
                     17066.666 - (lightRec.z / 36.0),
                     17066.666 - (lightRec.x / 36.0),
@@ -1547,6 +1571,9 @@ class Scene {
                     records.push({distance: distanceToLightPos, record: lightRec});
                 }
             }
+        }
+        if (records.length == 0 && lightRecordDefault) {
+            records.push({distance: 0, record: lightRecordDefault});
         }
         return records;
     }

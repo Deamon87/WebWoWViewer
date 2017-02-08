@@ -7,7 +7,7 @@ export default function mapDBC(){
     var deferred = $q.defer();
 
     if (mapDBCFile === null) {
-        mapDBCFile = {};
+        mapDBCFile = new Map();
         var promise = loadDBC("DBFilesClient/Map.dbc");
 
         promise.then(function(dbcObject){
@@ -18,7 +18,8 @@ export default function mapDBC(){
                 mapDBCRecord.wdtName = dbcObject.readText(i, 1);
                 mapDBCRecord.mapName = dbcObject.readText(i, 5);
 
-                mapDBCFile[mapDBCRecord.id] = mapDBCRecord;
+
+                mapDBCFile.set(mapDBCRecord.id, mapDBCRecord);
             }
 
             deferred.resolve(mapDBCFile);

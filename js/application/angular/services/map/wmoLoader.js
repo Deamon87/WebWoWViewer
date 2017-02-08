@@ -406,9 +406,11 @@ function wmoLoader(wmoFilePath){
                 fogInfo.fog_startScalar =   chunk.readFloat32(offset);
                 fogInfo.fog_color =         chunk.readUint32(offset);
                 fogInfo.fog_colorF =
-                    [(fogInfo.fog_color & 0xff) / 255.0,
+                    [
+                        ((fogInfo.fog_color>> 16) & 0xff) / 255.0,
                         ((fogInfo.fog_color>> 8 ) & 0xff) / 255.0,
-                        ((fogInfo.fog_color>> 16) & 0xff) / 255.0];
+                        (fogInfo.fog_color & 0xff) / 255.0
+                    ];
 
                 fogInfo.underwater_fog_end =         chunk.readFloat32(offset);
                 fogInfo.underwater_fog_startScalar = chunk.readFloat32(offset);

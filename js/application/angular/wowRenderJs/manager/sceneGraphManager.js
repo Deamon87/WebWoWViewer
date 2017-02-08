@@ -472,8 +472,8 @@ class GraphManager {
                         if (a.distance > b.distance) return 1;
                         return 0;
                     });
-                    var fogIntRec = lightIntBandDBC[result[0].record.skyAndFog*18-17 + 7];
-                    this.sceneApi.setFogColor(fogIntRec.floatValues[3]);
+                    var fogIntRec = lightIntBandDBC[result[0].record.skyAndFog*18 - 17 + 7];
+                    this.sceneApi.setFogColor(fogIntRec.floatValues[0]);
 
                     //Take fog params from here
 

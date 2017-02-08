@@ -59,10 +59,19 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 y: 0,
                 z: 0
             },{
-                name: 'Caverns of Time',
+                name: 'Ironforge on Map',
                 source: 'http',
                 sceneType: 'map',
                 mapId: 0,
+                mapName: 'Azeroth',
+                x: -4981.25,
+                y: -881.542,
+                z: 502.66
+            },{
+                name: 'Caverns of Time',
+                source: 'http',
+                sceneType: 'map',
+                mapId: 1,
                 mapName: 'Kalimdor',
                 x: -8181.35,
                 y: -4596.92,
