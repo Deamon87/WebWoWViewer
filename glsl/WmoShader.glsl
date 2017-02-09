@@ -52,6 +52,22 @@ Effect(MapObjComposite)
     VertexShader(MapObjDiffuse_Comp);
     PixelShader(MapObjComposite);
 }
+
+pixel:
+0 - MapObjDiffuse
+1 - MapObjSpecular
+2 - MapObjMetal
+3 - MapObjEnv
+4 - MapObjOpaque
+5 - MapObjEnvMetal
+6 - MapObjComposite
+
+vertex:
+0 - MapObjDiffuse_T1
+1 - MapObjSpecular_T1
+2 - MapObjDiffuse_T1_Refl
+3 - MapObjDiffuse_T1_Refl
+4 - MapObjDiffuse_Comp
 */
 
 
@@ -66,6 +82,7 @@ attribute vec4 aColor2;
 
 uniform mat4 uLookAtMat;
 uniform mat4 uPMatrix;
+uniform int uVertexShader;
 
 #ifdef INSTANCED
 attribute mat4 uPlacementMat;
@@ -129,6 +146,8 @@ uniform vec3 uFogColor;
 
 uniform float uFogStart;
 uniform float uFogEnd;
+
+uniform int uPixelShader;
 
 #ifdef drawBuffersIsSupported
 varying float fs_Depth;
