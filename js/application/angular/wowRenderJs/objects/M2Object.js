@@ -818,7 +818,7 @@ class MDXObject {
         var transparency = this.getTransparency(skinData, materialData, this.transparencies);
 
         //Don't draw meshes with 0 transp
-        if ((transparency < 0.0001) || (meshColor[3] < 0.001)) return;
+        if ((transparency < 0.0001) || (meshColor[3] < 0.0001)) return;
 
         var pixelShaderIndex = pixelShaderTable[materialData.shaderNames.pixel];
         this.m2Geom.drawMesh(materialData, this.skinGeom, meshColor, transparency, textureMatrix1, textureMatrix2, pixelShaderIndex, originalFogColor, instanceCount)

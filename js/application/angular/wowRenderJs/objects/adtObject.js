@@ -33,7 +33,7 @@ class ADTObject {
         return null;
     }
 
-    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, frustumPoints, lookAtMat4, m2ObjectsCandidates, wmoCandidates) {
+    checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, frustumPoints, hullLines, lookAtMat4, m2ObjectsCandidates, wmoCandidates) {
         if (!this.adtGeom) return false;
         var adtFile = this.adtGeom.adtFile;
         var atLeastOneIsDrawn = false;
@@ -59,33 +59,34 @@ class ADTObject {
 
             //2. Check aabb is inside camera frustum
             var result = false;
+            var checkRefs = this.drawChunk[i];
             if (!this.drawChunk[i]) {
-                result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, frustumPoints);
+                result = mathHelper.checkFrustum2D(hullLines, aabb, hullLines.length, null);
+                //result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, frustumPoints);
+                checkRefs = result;
                 //cameraOnChunk = mathHelper.checkFrustum2D(frustumPlanes, aabb, num_planes, frustumPoints);
+
                 this.drawChunk[i] = result;
                 //this.drawChunk[i] = result;
                 atLeastOneIsDrawn = atLeastOneIsDrawn || result ;
             }
-        }
-        if (atLeastOneIsDrawn) {
-            //3. If the chunk is set to be drawn, set all M2s and WMOs into candidate for drawing
-            for (var i = 0; i < 256; i++) {
-                var mcnk = adtFile.mcnkObjs[i];
+            if (checkRefs) {
+                for (var i = 0; i < 256; i++) {
+                    var mcnk = adtFile.mcnkObjs[i];
 
-                if (mcnk.m2Refs) {
-                    for (var j = 0; j < mcnk.m2Refs.length; j++) {
-                        var m2Ref = mcnk.m2Refs[j];
-
-                        m2ObjectsCandidates.add(this.m2Array[m2Ref])
+                    if (mcnk.m2Refs) {
+                        for (var j = 0; j < mcnk.m2Refs.length; j++) {
+                            var m2Ref = mcnk.m2Refs[j];
+                            m2ObjectsCandidates.add(this.m2Array[m2Ref])
+                        }
+                    }
+                    if (this.wmoArray) {
+                        for (var j = 0; j < mcnk.wmoRefs.length; j++) {
+                            var wmoRef = mcnk.wmoRefs[j];
+                            wmoCandidates.add(this.wmoArray[wmoRef])
+                        }
                     }
                 }
-                if (this.wmoArray) {
-                    for (var j = 0; j < mcnk.wmoRefs.length; j++) {
-                        var wmoRef = mcnk.wmoRefs[j];
-                        wmoCandidates.add(this.wmoArray[wmoRef])
-                    }
-                }
-
             }
         }
 

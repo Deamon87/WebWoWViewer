@@ -8,6 +8,7 @@ import WmoObject from '../objects/wmoObject.js';
 import InstanceManager from './instanceManager.js';
 
 import mathHelper from './../math/mathHelper.js';
+import ConvexHullGrahamScan from './../math/grahamScan';
 import PortalCullingAlgo from './../math/portalCullingAlgo.js';
 
 import config from './../../services/config.js';
@@ -154,7 +155,39 @@ class GraphManager {
         mat4.multiply(combinedMat4, frustumMat, lookAtMat4);
         var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
         mathHelper.fixNearPlane(frustumPlanes, this.position);
+
         var frustumPoints = mathHelper.calculateFrustumPoints(frustumPlanes,6);
+
+        //Create hull for 2d projection
+        var convexHull = new ConvexHullGrahamScan();
+        for (var i = 0; i < frustumPoints.length; i++) {
+            convexHull.addPoint(frustumPoints[i][0], frustumPoints[i][1]);
+        }
+        var hullPoints = convexHull.getHull();
+        var hullLines = [];
+        if (hullPoints.length > 2) {
+            for (var i = 0; i < hullPoints.length - 1; i++) {
+                var index1 = i;
+                var index2 = i+1;
+                hullLines.push([
+                    hullPoints[index1].y - hullPoints[index2].y,
+                    hullPoints[index2].x - hullPoints[index1].x,
+                    -hullPoints[index1].y*(hullPoints[index2].x - hullPoints[index1].x) +
+                    hullPoints[index1].x*( hullPoints[index2].y - hullPoints[index1].y)
+                ])
+            }
+            var index1 = hullPoints.length - 1;
+            var index2 = 0;
+            hullLines.push([
+                hullPoints[index1].y - hullPoints[index2].y,
+                hullPoints[index2].x - hullPoints[index1].x,
+                -hullPoints[index1].y*(hullPoints[index2].x - hullPoints[index1].x) +
+                hullPoints[index1].x*( hullPoints[index2].y - hullPoints[index1].y)
+            ])
+        } else {
+            console.log("invalid number of hullPoints")
+        }
+
 
         if (this.currentInteriorGroups != null && config.getUsePortalCulling()) {
             //Travel through portals
@@ -164,13 +197,13 @@ class GraphManager {
                 wmoRenderedThisFrame.add(this.currentWMO);
 
                 if (this.currentWMO.exteriorPortals.length > 0) {
-                    this.checkExterior(frustumPlanes, 6, frustumPoints, lookAtMat4,
+                    this.checkExterior(frustumPlanes, 6, frustumPoints, hullLines, lookAtMat4,
                         m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame);
                 }
             }
         } else {
             //Plain check for exterior
-            this.checkExterior(frustumPlanes, 6, frustumPoints, lookAtMat4,
+            this.checkExterior(frustumPlanes, 6, frustumPoints, hullLines, lookAtMat4,
                 m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame);
         }
 
@@ -202,7 +235,7 @@ class GraphManager {
         })
     }
 
-    checkExterior(frustumPlanes, num_planes, frustumPoints, lookAtMat4,
+    checkExterior(frustumPlanes, num_planes, frustumPoints, hullLines, lookAtMat4,
                   m2RenderedThisFrame, wmoRenderedThisFrame, adtRenderedThisFrame) {
         var self = this;
         /* 3. Check frustum for graphs */
@@ -221,6 +254,7 @@ class GraphManager {
                     var adtObject = this.adtObjectsMap[i][j];
                     if (adtObject) {
                         var result = adtObject.checkFrustumCulling(this.position, frustumPlanes, num_planes, frustumPoints,
+                            hullLines,
                             lookAtMat4, m2ObjectsCandidates, wmoCandidates);
                         if (result) {
                             adtRenderedThisFrame.add(adtObject);
@@ -316,8 +350,6 @@ class GraphManager {
         }
 
         //4. Collect m2 into instances every 200 ms
-
-
 //        if (this.currentTime + deltaTime - this.lastInstanceCollect > 30) {
             var map = new Map();
             if (this.sceneApi.extensions.getInstancingExt()) {
