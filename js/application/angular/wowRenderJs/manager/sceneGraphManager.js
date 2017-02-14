@@ -424,6 +424,8 @@ class GraphManager {
                 }
 
             }
+
+            //TODO: delete this temp, once transparency bug is solved
             this.tempMap = map;
 
             //4.1 Update placement matrix buffers in Instance
