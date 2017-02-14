@@ -61,30 +61,25 @@ class ADTObject {
             var result = false;
             var checkRefs = this.drawChunk[i];
             if (!this.drawChunk[i]) {
-                result = mathHelper.checkFrustum2D(hullLines, aabb, hullLines.length, null);
-                //result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, frustumPoints);
-                checkRefs = result;
-                //cameraOnChunk = mathHelper.checkFrustum2D(frustumPlanes, aabb, num_planes, frustumPoints);
+                result = mathHelper.checkFrustum(frustumPlanes, aabb, num_planes, frustumPoints);
+                checkRefs = result || mathHelper.checkFrustum2D(hullLines, aabb, hullLines.length, null);
 
                 this.drawChunk[i] = result;
-                //this.drawChunk[i] = result;
                 atLeastOneIsDrawn = atLeastOneIsDrawn || result ;
             }
             if (checkRefs) {
-                for (var i = 0; i < 256; i++) {
-                    var mcnk = adtFile.mcnkObjs[i];
+                //var mcnk = adtFile.mcnkObjs[i];
 
-                    if (mcnk.m2Refs) {
-                        for (var j = 0; j < mcnk.m2Refs.length; j++) {
-                            var m2Ref = mcnk.m2Refs[j];
-                            m2ObjectsCandidates.add(this.m2Array[m2Ref])
-                        }
+                if (mcnk.m2Refs) {
+                    for (var j = 0; j < mcnk.m2Refs.length; j++) {
+                        var m2Ref = mcnk.m2Refs[j];
+                        m2ObjectsCandidates.add(this.m2Array[m2Ref])
                     }
-                    if (this.wmoArray) {
-                        for (var j = 0; j < mcnk.wmoRefs.length; j++) {
-                            var wmoRef = mcnk.wmoRefs[j];
-                            wmoCandidates.add(this.wmoArray[wmoRef])
-                        }
+                }
+                if (this.wmoArray) {
+                    for (var j = 0; j < mcnk.wmoRefs.length; j++) {
+                        var wmoRef = mcnk.wmoRefs[j];
+                        wmoCandidates.add(this.wmoArray[wmoRef])
                     }
                 }
             }

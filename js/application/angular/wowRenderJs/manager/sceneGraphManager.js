@@ -13,7 +13,7 @@ import PortalCullingAlgo from './../math/portalCullingAlgo.js';
 
 import config from './../../services/config.js';
 
-import {mat4, vec4} from 'gl-matrix';
+import {mat4, vec4, vec3} from 'gl-matrix';
 
 
 class GraphManager {
@@ -156,7 +156,8 @@ class GraphManager {
         var frustumPlanes = mathHelper.getFrustumClipsFromMatrix(combinedMat4);
         mathHelper.fixNearPlane(frustumPlanes, this.position);
 
-        var frustumPoints = mathHelper.calculateFrustumPoints(frustumPlanes,6);
+        //var frustumPoints = mathHelper.calculateFrustumPoints(frustumPlanes,6);
+        var frustumPoints = mathHelper.calculateFrustumPointsFromMat(combinedMat4)
 
         //Create hull for 2d projection
         var convexHull = new ConvexHullGrahamScan();
@@ -165,25 +166,72 @@ class GraphManager {
         }
         var hullPoints = convexHull.getHull();
         var hullLines = [];
+
+        var centerX = 0, centerY = 0;
+        for (var i = 0; i< hullPoints.length; i++) {
+            centerX += hullPoints[i].x;
+            centerY += hullPoints[i].y;
+        }
+        var centerX = centerX / hullPoints.length;
+        var centerY = centerY / hullPoints.length;
+        var center = {x : centerX, y: centerY};
+        hullPoints.sort(function(a,b) {
+            if (a.x - center.x >= 0 && b.x - center.x < 0)
+                return true;
+            if (a.x - center.x < 0 && b.x - center.x >= 0)
+                return false;
+            if (a.x - center.x == 0 && b.x - center.x == 0) {
+                if (a.y - center.y >= 0 || b.y - center.y >= 0)
+                    return a.y > b.y;
+                return b.y > a.y;
+            }
+
+            // compute the cross product of vectors (center -> a) x (center -> b)
+            var det = (a.x - center.x) * (b.y - center.y) - (b.x - center.x) * (a.y - center.y);
+            if (det < 0)
+                return true;
+            if (det > 0)
+                return false;
+
+            // points a and b are on the same line from the center
+            // check which point is closer to the center
+            var d1 = (a.x - center.x) * (a.x - center.x) + (a.y - center.y) * (a.y - center.y);
+            var d2 = (b.x - center.x) * (b.x - center.x) + (b.y - center.y) * (b.y - center.y);
+            return d1 > d2;
+        })
+
+
         if (hullPoints.length > 2) {
+            this.hullPoints = hullPoints;
             for (var i = 0; i < hullPoints.length - 1; i++) {
-                var index1 = i;
-                var index2 = i+1;
-                hullLines.push([
+                var index1 = i+1;
+                var index2 = i;
+
+                var line = [
                     hullPoints[index1].y - hullPoints[index2].y,
                     hullPoints[index2].x - hullPoints[index1].x,
                     -hullPoints[index1].y*(hullPoints[index2].x - hullPoints[index1].x) +
                     hullPoints[index1].x*( hullPoints[index2].y - hullPoints[index1].y)
-                ])
+                ];
+                var normalLength = Math.sqrt(line[0]*line[0] + line[1]+line[1]);
+                vec3.scale(line, line, 1/normalLength);
+
+                hullLines.push(line)
             }
-            var index1 = hullPoints.length - 1;
-            var index2 = 0;
-            hullLines.push([
+
+            var index1 = 0;
+            var index2 = hullPoints.length - 1;
+            var line = [
                 hullPoints[index1].y - hullPoints[index2].y,
                 hullPoints[index2].x - hullPoints[index1].x,
                 -hullPoints[index1].y*(hullPoints[index2].x - hullPoints[index1].x) +
                 hullPoints[index1].x*( hullPoints[index2].y - hullPoints[index1].y)
-            ])
+            ];
+            var normalLength = Math.sqrt(line[0]*line[0] + line[1]+line[1]);
+            vec3.scale(line, line, 1/normalLength);
+
+            hullLines.push(line)
+
         } else {
             console.log("invalid number of hullPoints")
         }
@@ -712,6 +760,12 @@ class GraphManager {
                 this.sceneApi.drawCamera()
             }
         }
+
+        //Debug
+        this.sceneApi.shaders.activateDrawLinesShader();
+        this.sceneApi.drawLines(this.hullPoints);
+
+
     }
 }
 

@@ -344,12 +344,14 @@ class MathHelper {
     static checkFrustum2D(planes, box, num_planes, points) {
         // check box outside/inside of frustum
         points = null;
+        //var maxLines = window.lines != null ? window.lines : 1;
+        //for (var i = 0; i < Math.min(num_planes, maxLines); i++) {
         for (var i = 0; i < num_planes; i++) {
             var out = 0;
-            out += ((vec3.dot(planes[i], vec4.fromValues(box[0][0], box[0][1], 1.0)) < 0.0 ) ? 1 : 0);
-            out += ((vec3.dot(planes[i], vec4.fromValues(box[1][0], box[0][1], 1.0)) < 0.0 ) ? 1 : 0);
-            out += ((vec3.dot(planes[i], vec4.fromValues(box[0][0], box[1][1], 1.0)) < 0.0 ) ? 1 : 0);
-            out += ((vec3.dot(planes[i], vec4.fromValues(box[1][0], box[1][1], 1.0)) < 0.0 ) ? 1 : 0);
+            out += (((planes[i][0]*box[0][0]+ planes[i][1]*box[0][1]+ planes[i][2]) > 0.0 ) ? 1 : 0);
+            out += (((planes[i][0]*box[1][0]+ planes[i][1]*box[0][1]+ planes[i][2]) > 0.0 ) ? 1 : 0);
+            out += (((planes[i][0]*box[0][0]+ planes[i][1]*box[1][1]+ planes[i][2]) > 0.0 ) ? 1 : 0);
+            out += (((planes[i][0]*box[1][0]+ planes[i][1]*box[1][1]+ planes[i][2]) > 0.0 ) ? 1 : 0);
             if (out == 4) return false;
         }
 
@@ -558,6 +560,34 @@ class MathHelper {
                     points.push(vec3.fromValues(x,y,z))
                 }
             }
+        }
+
+        return points;
+    }
+
+    static calculateFrustumPointsFromMat(perspectiveViewMat) {
+        var perspectiveViewMatInv = mat4.create();
+        mat4.invert(perspectiveViewMatInv, perspectiveViewMat);
+
+        var vertices = [
+            [-1, -1, -1, 1], //0
+            [ 1, -1, -1, 1],  //1
+            [ 1, -1,  1, 1],   //2
+            [-1, -1,  1, 1],  //3
+            [-1,  1,  1, 1],   //4
+            [ 1,  1,  1, 1],    //5
+            [ 1,  1, -1, 1],   //6
+            [-1,  1, -1, 1],  //7
+        ];
+        var points = new Array();
+        for (var i = 0; i < vertices.length; i++) {
+            var vert = vertices[i];
+            var resVec4 = new vec4.create();
+            vec4.transformMat4(resVec4, vert, perspectiveViewMatInv);
+            vec4.scale(resVec4, resVec4, 1/resVec4[3]);
+            //vec4.transformMat4(resVec4, vert, perspectiveViewMat);
+
+            points.push(resVec4);
         }
 
         return points;

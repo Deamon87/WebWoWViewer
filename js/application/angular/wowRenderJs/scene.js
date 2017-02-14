@@ -10,6 +10,7 @@ import drawBBShader             from 'drawBBShader.glsl';
 import adtShader                from 'adtShader.glsl';
 import drawPortalShader         from 'drawPortalShader.glsl';
 import drawFrustumShader        from 'drawFrustum.glsl';
+import drawLinesShader        from 'drawLines.glsl';
 import textureCompositionShader from 'textureCompositionShader.glsl';
 
 import GraphManager from './manager/sceneGraphManager.js'
@@ -393,6 +394,7 @@ class Scene {
 
         self.drawPortalShader = self.compileShader(drawPortalShader, drawPortalShader);
         self.drawFrustumShader = self.compileShader(drawFrustumShader, drawFrustumShader);
+        self.drawLinesShader = self.compileShader(drawLinesShader, drawLinesShader);
     }
     initCaches (){
         this.wmoGeomCache = new WmoGeomCache(this.sceneApi);
@@ -531,6 +533,9 @@ class Scene {
             drawCamera : function () {
                 return self.drawCamera();
             },
+            drawLines : function (points) {
+                return self.drawLines(points);
+            },
             getGlContext: function () {
                 return self.gl;
             },
@@ -594,6 +599,9 @@ class Scene {
                 },
                 activateDrawPortalShader : function () {
                     self.activateDrawPortalShader();
+                },
+                activateDrawLinesShader : function () {
+                    self.activateDrawLinesShader();
                 },
                 activateTextureCompositionShader : function (texture) {
                     self.activateTextureCompositionShader(texture);
@@ -1193,6 +1201,16 @@ class Scene {
             gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
         }
     }
+    activateDrawLinesShader () {
+        this.currentShaderProgram = this.drawLinesShader;
+        if (this.currentShaderProgram) {
+            var gl = this.gl;
+            gl.useProgram(this.currentShaderProgram.program);
+
+            gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uLookAtMat, false, this.lookAtMat4);
+            gl.uniformMatrix4fv(this.currentShaderProgram.shaderUniforms.uPMatrix, false, this.perspectiveMatrix);
+        }
+    }
     activateDrawPortalShader () {
         this.currentShaderProgram = this.drawPortalShader;
         if (this.currentShaderProgram) {
@@ -1248,6 +1266,38 @@ class Scene {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+    drawLines (points) {
+        var gl = this.gl;
+        var uniforms = this.currentShaderProgram.shaderUniforms;
+
+        gl.disable(gl.DEPTH_TEST);
+
+        var newBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, newBuffer);
+        var verts = [];
+        for (var i = 0; i < points.length-1; i++) {
+            var index1 = i;
+            var index2 = i+1;
+            verts.push(points[index1].x);
+            verts.push(points[index1].y);
+            verts.push(points[index2].x);
+            verts.push(points[index2].y);
+        }
+        var index1 = points.length - 1;
+        var index2 = 0;
+        verts.push(points[index1].x);
+        verts.push(points[index1].y);
+        verts.push(points[index2].x);
+        verts.push(points[index2].y);
+
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+
+        gl.enableVertexAttribArray(this.currentShaderProgram.shaderAttributes.aPosition);
+        gl.vertexAttribPointer(this.currentShaderProgram.shaderAttributes.aPosition, 2, gl.FLOAT, false, 0, 0);  // position
+
+        gl.drawArrays(gl.LINES, 0, points.length*2);
+        gl.enable(gl.DEPTH_TEST);
     }
     drawCamera () {
         var gl = this.gl;
