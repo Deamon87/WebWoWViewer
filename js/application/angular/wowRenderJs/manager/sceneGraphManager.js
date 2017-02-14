@@ -493,15 +493,17 @@ class GraphManager {
                 var nameSetId = this.currentWMO.nameSet;
 
                 var wmoAreaTableRecord = wmoAreaTableDBC.findRecord(wmoId, nameSetId, wmoGroupId);
-                var areaRecord = areaTableDBC[wmoAreaTableRecord.areaId];
                 if (wmoAreaTableRecord) {
-                    if (wmoAreaTableRecord.name == '') {
-                        var areaRecord = areaTableDBC[wmoAreaTableRecord.areaId];
-                        if (areaRecord) {
-                            currentAreaName = areaRecord.name
+                    var areaRecord = areaTableDBC[wmoAreaTableRecord.areaId];
+                    if (wmoAreaTableRecord) {
+                        if (wmoAreaTableRecord.name == '') {
+                            var areaRecord = areaTableDBC[wmoAreaTableRecord.areaId];
+                            if (areaRecord) {
+                                currentAreaName = areaRecord.name
+                            }
+                        } else {
+                            currentAreaName = wmoAreaTableRecord.name;
                         }
-                    } else {
-                        currentAreaName = wmoAreaTableRecord.name;
                     }
                 }
             }
@@ -762,9 +764,10 @@ class GraphManager {
         }
 
         //Debug
+        /*
         this.sceneApi.shaders.activateDrawLinesShader();
         this.sceneApi.drawLines(this.hullPoints);
-
+          */
 
     }
 }
