@@ -116,7 +116,7 @@ class GraphManager {
 
         this.adtObjects.push(adtObject);
     }
-    addM2ObjectToInstanceManager(m2Object, newBucket) {
+    addM2ObjectToInstanceManager(m2Object) {
         var fileIdent = m2Object.getFileNameIdent();
         //1. Create Instance manager for this type of file if it was not created yet
         var instanceManager = null;
@@ -129,7 +129,7 @@ class GraphManager {
         }
 
         //2. Add object to instance
-        instanceManager.addMDXObject(m2Object, newBucket);
+        instanceManager.addMDXObject(m2Object);
     }
 
     /*
@@ -411,7 +411,6 @@ class GraphManager {
 
                     if (!m2Object.m2Geom) continue;
                     if (m2Object.getHasBillboarded() || !m2Object.getIsInstancable()) continue;
-                    if (!m2Object.getIsRendered()) continue;
 
                     var fileIdent = m2Object.getFileNameIdent();
 
@@ -423,7 +422,9 @@ class GraphManager {
                         map.set(fileIdent, m2Object);
                     }
                 }
+
             }
+            this.tempMap = map;
 
             //4.1 Update placement matrix buffers in Instance
             for (var j = 0; j < this.instanceList.length; j++) {
@@ -713,8 +714,6 @@ class GraphManager {
         //7.1 Draw M2 BBs
         if (config.getDrawM2BB()) {
             for (var i = 0; i < this.m2RenderedThisFrame.length; i++) {
-                if (!this.m2RenderedThisFrame[i].getIsRendered()) continue;
-
                 this.m2RenderedThisFrame[i].drawBB();
             }
         }

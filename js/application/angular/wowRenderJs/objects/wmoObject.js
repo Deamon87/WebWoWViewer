@@ -215,7 +215,11 @@ class WmoObject {
                 self.wmoGroupArray[i] = new WmoGroupObject(self.sceneApi, self, groupFilename, groupInfo, i);
             }
 
-            self.currentDoodadSet = self.wmoObj.mods[self.doodadSet];
+            if (self.doodadSet < self.wmoObj.mods.length) {
+                self.currentDoodadSet = self.wmoObj.mods[self.doodadSet];
+            } else {
+                self.currentDoodadSet = self.wmoObj.mods[0];
+            }
 
             self.loaded = true;
             self.loading = false;
