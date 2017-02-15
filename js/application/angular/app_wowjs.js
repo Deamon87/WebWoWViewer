@@ -6,7 +6,7 @@ import configService from './services/config.js';
 import './directives/wowJsRenderDirective.js';
 import './directives/fileDownload.js';
 import 'dropzone';
-import 'ngdropzone';
+import './directives/ng-dropzone.js';
 
 import 'style.scss';
 
@@ -382,7 +382,15 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
             url : "none",
         createImageThumbnails : false,
         maxThumbnailFilesize: 1,
-        previewsContainer : false
+        previewsContainer : false,
+        addedfiles: function (e) {
+            "use strict";
+            console.log(e);
+        },
+        paste: function (e) {
+            "use strict";
+            console.log(e);
+        }
     }
 
     $scope.selectionOptions = parameters;
