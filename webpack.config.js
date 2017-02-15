@@ -18,13 +18,13 @@ module.exports = {
         library: "[name]"
     },
     resolve: {
-        extensions: ['', '.js', '.jsx','.glsl'],
+        extensions: ['', '.js', '.jsx','.glsl', '.scss'],
         root: [
-            path.resolve('./js/application/angular'),
+            path.resolve('./js/application/angular/'),
             path.resolve('./glsl/'),
+            path.resolve('./css/'),
             path.resolve('./js/lib/bower')
         ]
-
     },
 
     module: {
@@ -62,7 +62,10 @@ module.exports = {
     plugins: [
         new webpack.ResolverPlugin(
             new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin(".bower.json", ["main"])
-        )
+        ),
+        new webpack.ProvidePlugin({
+            'Dropzone':          'dropzone'
+        })
     ],
     devServer: {
         contentBase: '.',

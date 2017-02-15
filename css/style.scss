@@ -1,0 +1,33 @@
+.tab-content {
+  padding-top: 15px;
+  padding-left: 5px;
+  padding-right: 5px;
+
+}
+
+.drag-zone {
+  span {
+    font-size: 28px;
+    padding: 26% 0%;
+    max-width: 358px;
+    display: inline-block;
+    text-align: center;
+    margin: 0 23%;
+    color: grey;
+  }
+
+  min-height: 352px;
+  border: 1px grey dotted;
+}
+.zone-for-drop {
+  font-size: 28px;
+  padding: 26% 0%;
+  max-width: 358px;
+  display: inline-block;
+  text-align: center;
+  margin: 0 23%;
+  color: grey;
+  min-height: 363px;
+  border: 1px white dotted;
+  width: 500px;
+}

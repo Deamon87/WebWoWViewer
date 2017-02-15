@@ -1,16 +1,23 @@
 import angular from 'angular';
 import angularDropdown from 'angular-ui-bootstrap/src/dropdown';
+import angularTabs from 'angular-ui-bootstrap/src/tabs';
 import configService from './services/config.js';
 //import 'imports?this=>global!ng-scrollbar/dist/ng-scrollbar.min.js';
 import './directives/wowJsRenderDirective.js';
 import './directives/fileDownload.js';
+import 'dropzone';
+import 'ngdropzone';
+
+import 'style.scss';
 
 var main = angular.module('main.app',
     [
         'main.directives.wowJsRender',
         'main.directives.fileDownloader',
 
-        angularDropdown
+        angularDropdown,
+        angularTabs,
+        'thatisuday.dropzone'
     ]);
 
 main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
@@ -363,6 +370,21 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
         ]
     };
 
+    $scope.dzCallbacks = {
+        addedfile: function(file){
+            "use strict";
+            console.log(file);
+            return false;
+        }
+    };
+    $scope.dzDropZoneOptions = {
+        autoProcessQueue:false,
+            url : "none",
+        createImageThumbnails : false,
+        maxThumbnailFilesize: 1,
+        previewsContainer : false
+    }
+
     $scope.selectionOptions = parameters;
     $scope.status = {};
     $scope.status.isopen = false;
@@ -425,8 +447,10 @@ main.config(['$provide', '$httpProvider', function ($provide, $httpProvider) {
             }
         };
     }]);
-
     $httpProvider.interceptors.push('myHttpInterceptor');
+
+    Dropzone.autoDiscover = false;
+    Dropzone.prototype.defaultOptions.createImageThumbnails = false;
 }]);
 
 

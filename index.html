@@ -22,42 +22,69 @@
         <div class="container" ng-if="!isReadyForStart" style="height: 650px; overflow: hidden; margin: auto">
             <div class="row">
                 <div class="col-md-6 col-md-offset-4">
-                    <div class="btn-group" style="width: 100%; margin-bottom: 10px" uib-dropdown is-open="status.isopen">
-                        <h3 class="text-center" style="width: 100%; color: white; margin-bottom: 20px">
-                            Web WoW Viewer
-                        </h3>
-
-                        <button style="width: 100%;" id="single-button" type="button" class="btn btn-primary" uib-dropdown-toggle ng-disabled="disabled">
-                            {{selectedModeName}} <span class="caret"></span>
-                        </button>
-                        <ul uib-dropdown-menu role="menu" aria-labelledby="single-button" style="width: 100%; overflow-y: scroll;height: 500px;">
-                            <li class="disabled"><a href="#">Available without client</a></li>
-                            <li ng-repeat="value in selectionOptions.predefined" role="menuitem" ng-click="selectMode(value)">
-                                <a href="#" >{{value.name}}</a>
-                            </li>
-                            <li class="divider"/>
-                            <li class="disabled"><a href="#">Served with client http source</a></li>
-                            <li ng-repeat="value in selectionOptions.custom" role="menuitem" ng-click="selectMode(value)">
-                                <a href="#">{{value.name}}</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <br/>
-                    <div ng-show="selectedSource=='http'">
-                        <label for="urlInput" style="color:white">Url of http serving site</label>
-                        <input id="urlInput"  class="form-control" style="width: 100%;" type="text" ng-model="params.urlForLoading" style="width: 215px;" />
-                    </div>
-
-                    <br/>
-                    <button style="width: 100%;" class="btn btn-default" ng-click="startApplication()">Start application</button>
+                    <h3 class="text-center" style="width: 100%; color: white; margin-bottom: 20px">
+                        Web WoW Viewer
+                    </h3>
 
 
-                    <br/><br/><br/>
-                    <div ng-if="isReadyForDownload">
-                        <file-downloader url="params.zipUrl" loaded-file="params.zipFile" file-progress="params.downLoadProgress">
-                            <uib-progressbar max="100" value="params.downLoadProgress">{{params.downLoadProgress}}</uib-progressbar>
-                        </file-downloader>
-                    </div>
+                    <uib-tabset active="active">
+                        <uib-tab index="0" heading="From client">
+                            <!--
+                            <div class="drag-zone"  draggable="true" ondragstart="dragstart_handler(event);">
+                                <span>Drag and drop here your Data folder</span>
+                            </div>
+                            -->
+                            <ng-dropzone options="dzDropZoneOptions" class="zone-for-drop" callbacks="dzCallbacks" methods="dzMethods">
+                                <span>Drag and drop here your Data folder</span>
+                            </ng-dropzone>
+
+                        </uib-tab>
+                        <uib-tab index="1" heading="From remote">
+                            <div class="btn-group" style="width: 100%; margin-bottom: 10px" uib-dropdown
+                                 is-open="status.isopen">
+                                <button style="width: 100%;" id="single-button" type="button" class="btn btn-primary"
+                                        uib-dropdown-toggle ng-disabled="disabled">
+                                    {{selectedModeName}} <span class="caret"></span>
+                                </button>
+                                <ul uib-dropdown-menu role="menu" aria-labelledby="single-button"
+                                    style="width: 100%; overflow-y: scroll;height: 500px;">
+                                    <li class="disabled"><a href="#">Available without client</a></li>
+                                    <li ng-repeat="value in selectionOptions.predefined" role="menuitem"
+                                        ng-click="selectMode(value)">
+                                        <a href="#">{{value.name}}</a>
+                                    </li>
+                                    <li class="divider"/>
+                                    <li class="disabled"><a href="#">Served with client http source</a></li>
+                                    <li ng-repeat="value in selectionOptions.custom" role="menuitem"
+                                        ng-click="selectMode(value)">
+                                        <a href="#">{{value.name}}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <br/>
+                            <div ng-show="selectedSource=='http'">
+                                <label for="urlInput" style="color:white">Url of http serving site</label>
+                                <input id="urlInput" class="form-control" style="width: 100%;" type="text"
+                                       ng-model="params.urlForLoading" style="width: 215px;"/>
+                            </div>
+
+                            <br/>
+                            <button style="width: 100%;" class="btn btn-default" ng-click="startApplication()">Start
+                                application
+                            </button>
+
+
+                            <br/><br/><br/>
+                            <div ng-if="isReadyForDownload">
+                                <file-downloader url="params.zipUrl" loaded-file="params.zipFile"
+                                                 file-progress="params.downLoadProgress">
+                                    <uib-progressbar max="100" value="params.downLoadProgress">
+                                        {{params.downLoadProgress}}
+                                    </uib-progressbar>
+                                </file-downloader>
+                            </div>
+                        </uib-tab>
+                    </uib-tabset>
                 </div>
 
             </div>
