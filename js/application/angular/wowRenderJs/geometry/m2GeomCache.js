@@ -1,4 +1,4 @@
-import cacheTemplate from './../cache.js';
+import Cache from './../cache.js';
 import mdxLoader from './../../services/map/mdxLoader.js';
 
 
@@ -378,31 +378,31 @@ class M2Geom {
     }
 }
 
-class M2GeomCache {
+class M2GeomCache extends Cache {
     constructor(sceneApi) {
+        super();
         var self = this;
+        this.sceneApi = sceneApi;
+    }
+    load(fileName) {
+        /* Must return promise */
+        return mdxLoader(fileName);
+    }
+    process(m2File) {
+        var m2GeomObj = new M2Geom(this.sceneApi);
+        m2GeomObj.assign(m2File);
+        m2GeomObj.createVBO();
+        m2GeomObj.loadTextures();
 
-        var cache = cacheTemplate(function loadGroupWmo(fileName) {
-            /* Must return promise */
-            return mdxLoader(fileName);
-        }, function process(m2File) {
+        return m2GeomObj;
+    }
 
-            var m2GeomObj = new M2Geom(sceneApi);
-            m2GeomObj.assign(m2File);
-            m2GeomObj.createVBO();
-            m2GeomObj.loadTextures();
+    loadM2(fileName) {
+        return this.cache.get(fileName);
+    };
 
-            return m2GeomObj;
-        });
-
-
-        self.loadM2 = function (fileName) {
-            return cache.get(fileName);
-        };
-
-        self.unLoadM2 = function (fileName) {
-            cache.remove(fileName)
-        }
+    unLoadM2(fileName) {
+        this.cache.remove(fileName)
     }
 }
 

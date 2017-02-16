@@ -1,13 +1,18 @@
 import $q from 'q';
 
 class Cache {
-    constructor(load, process) {
+    constructor() {
         this.cache = {};
         this.queueForLoad = {};
 
-        this.load = load;
-        this.process = process;
+        this.objectsToBeProcessed = []
     }
+    /* Functions that must be overloaded */
+    load(fileName) {
+    }
+    process(file) {
+    }
+
     /*
      * Queue load functions
      */
@@ -28,10 +33,7 @@ class Cache {
             /* 2.1 If object is not loading yet - launch the loading process */
             queue = [];
             this.load(fileName).then(function success(loadedObj) {
-                var finalObject = self.process(loadedObj);
-
-                self.put(fileName, finalObject);
-                self.resolve(fileName);
+                self.objectsToBeProcessed.push(loadedObj);
             }, function error(object) {
                 self.reject(fileName);
 
@@ -97,6 +99,4 @@ class Cache {
     }
 }
 
-export default function(load, process){
-    return new Cache(load, process);
-}
+export default Cache;

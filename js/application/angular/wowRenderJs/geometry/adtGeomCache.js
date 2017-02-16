@@ -1,4 +1,4 @@
-import cacheTemplate from './../cache.js';
+import Cache from './../cache.js';
 import adtLoader from './../../services/map/adtLoader.js';
 
 function parseAlphaTextures(adtObj, wdtObj){
@@ -293,30 +293,30 @@ class ADTGeom {
     }
 }
 
-class AdtGeomCache {
+class AdtGeomCache extends Cache {
     constructor (sceneApi) {
+        super();
         var self = this;
+        this.sceneApi = sceneApi;
+    }
+    load(fileName) {
+        /* Must return promise */
+        return adtLoader(fileName);
+    }
+    process(adtFile) {
+        var adtGeomObj = new ADTGeom(this.sceneApi, this.sceneApi.getCurrentWdt());
+        adtGeomObj.assign(adtFile);
+        adtGeomObj.createTriangleStrip();
+        adtGeomObj.createVBO();
+        adtGeomObj.loadTextures();
 
-        var cache = cacheTemplate(function loadAdtFile(fileName) {
-            /* Must return promise */
-            return adtLoader(fileName);
-        }, function process(adtFile) {
-            var adtGeomObj = new ADTGeom(sceneApi, sceneApi.getCurrentWdt());
-            adtGeomObj.assign(adtFile);
-            adtGeomObj.createTriangleStrip();
-            adtGeomObj.createVBO();
-            adtGeomObj.loadTextures();
-
-            return adtGeomObj;
-        });
-
-        self.loadAdt = function (fileName) {
-            return cache.get(fileName);
-        };
-
-        self.unLoadAdt = function (fileName) {
-            cache.remove(fileName)
-        }
+        return adtGeomObj;
+    }
+    loadAdt(fileName) {
+        return this.cache.get(fileName);
+    };
+    unLoadAdt (fileName) {
+        this.cache.remove(fileName)
     }
 }
 

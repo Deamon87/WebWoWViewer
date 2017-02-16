@@ -1,4 +1,4 @@
-import cacheTemplate from './../cache.js';
+import Cache from './../cache.js';
 import blpLoader from './../../services/map/blpLoader.js';
 import decodeDxt from 'decode-dxt';
 
@@ -128,22 +128,21 @@ class Texture {
     }
 }
 
-class TextureWoWCache {
+class TextureWoWCache extends Cache{
     constructor (sceneApi) {
+        super();
         var self = this;
+    }
+    load(fileName) {
+        /* Must return promise */
+        return blpLoader(fileName);
+    }
+    process(blpFile) {
+        var textureObj = new Texture(sceneApi);
+        textureObj.loadFromMipmaps(blpFile.mipmaps, blpFile.textureFormat, blpFile.alphaChannelBitDepth > 0);
+        textureObj.fileName = blpFile.fileName;
 
-        /* Init cache */
-        this.cache = cacheTemplate(function loadBlpFile(fileName) {
-            /* Must return promise */
-            return blpLoader(fileName);
-
-        }, function process(blpFile) {
-            var textureObj = new Texture(sceneApi);
-            textureObj.loadFromMipmaps(blpFile.mipmaps, blpFile.textureFormat, blpFile.alphaChannelBitDepth > 0);
-            textureObj.fileName = blpFile.fileName;
-
-            return textureObj
-        });
+        return textureObj
     }
 
     /* Exposed interface */

@@ -1,4 +1,4 @@
-import cacheTemplate from './../cache.js';
+import Cache from './../cache.js';
 
 import {wmoGroupLoader} from './../../services/map/wmoLoader.js'
 
@@ -285,17 +285,19 @@ class WmoGeom {
 }
 
 
-class WmoGeomCache {
-    constructor (sceneApi) {
-        this.cache = cacheTemplate(function loadGroupWmo(fileName) {
-            /* Must return promise */
-            return wmoGroupLoader(fileName, true);
-        }, function process(wmoGroupFile) {
-
-            var wmoGeomObj = new WmoGeom(wmoGroupFile, sceneApi);
-            wmoGeomObj.createVBO();
-            return wmoGeomObj;
-        });
+class WmoGeomCache extends Cache {
+    constructor (sceneApi){
+        super();
+        this.sceneApi = sceneApi;
+    }
+    load(fileName) {
+        /* Must return promise */
+        return wmoGroupLoader(fileName, true);
+    }
+    process(wmoGroupFile) {
+        var wmoGeomObj = new WmoGeom(wmoGroupFile, this.sceneApi);
+        wmoGeomObj.createVBO();
+        return wmoGeomObj;
     }
     loadWmoGeom (fileName){
         return this.cache.get(fileName);

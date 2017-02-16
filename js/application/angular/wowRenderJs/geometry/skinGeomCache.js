@@ -1,4 +1,4 @@
-import cacheTemplate from './../cache.js';
+import Cache from './../cache.js';
 import skinLoader from './../../services/map/skinLoader.js'
 
 class SkinGeom {
@@ -243,18 +243,21 @@ class SkinGeom {
     };
 }
 
-class SkinGeomCache {
+class SkinGeomCache extends Cache {
     constructor (sceneApi){
-        this.cache = cacheTemplate(function loadGroupWmo(fileName) {
-            /* Must return promise */
-            return skinLoader(fileName, true);
-        }, function process(skinFile) {
+        super();
+        this.sceneApi = sceneApi;
+    }
+    load(fileName) {
+        /* Must return promise */
+        return skinLoader(fileName, true);
+    }
+    process(skinFile) {
 
-            var skinGeomObj = new SkinGeom(sceneApi);
-            skinGeomObj.assign(skinFile);
-            skinGeomObj.createVBO();
-            return skinGeomObj;
-        });
+        var skinGeomObj = new SkinGeom(this.sceneApi);
+        skinGeomObj.assign(skinFile);
+        skinGeomObj.createVBO();
+        return skinGeomObj;
     }
     loadSkin (fileName){
         return this.cache.get(fileName);
