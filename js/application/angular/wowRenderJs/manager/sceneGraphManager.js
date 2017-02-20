@@ -48,6 +48,8 @@ class GraphManager {
             var map = new Array(64);
             this.adtObjectsMap[i] = map;
         }
+
+        this.xyz = null;
     }
 
     /*
@@ -569,6 +571,10 @@ class GraphManager {
         }
         this.currentTime += deltaTime;
 
+        if (!this.xyz) {
+            this.xyz = this.addWorldMDXObject("world/arttest/boxtest/xyz.m2", null, null);
+            this.xyz.createPlacementMatrix([0, 0, 0], Math.PI/2, [-1,-1,1], null);
+        }
 
         return {interiorGroupNum: interiorGroupNum, nodeId: bspNodeId, currentAreaName: currentAreaName};
     }
@@ -763,6 +769,10 @@ class GraphManager {
                 this.sceneApi.drawCamera()
             }
         }
+        this.sceneApi.shaders.activateM2Shader();
+        this.xyz.drawNonTransparentMeshes();
+        this.xyz.drawTransparentMeshes();
+        this.sceneApi.shaders.deactivateM2Shader();
 
         //Debug
         /*

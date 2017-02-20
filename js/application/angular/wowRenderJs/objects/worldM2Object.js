@@ -78,7 +78,11 @@ class WorldMDXObject extends MDXObject {
             mat4.rotateZ(placementMatrix, placementMatrix, f);
         }
 
-        mat4.scale(placementMatrix, placementMatrix, [scale , scale , scale ]);
+        if (scale.length >0) {
+            mat4.scale(placementMatrix, placementMatrix, [scale[0],scale[1],scale[2]]);
+        } else {
+            mat4.scale(placementMatrix, placementMatrix, [scale, scale, scale]);
+        }
 
         var placementInvertMatrix = mat4.create();
         mat4.invert(placementInvertMatrix, placementMatrix);
