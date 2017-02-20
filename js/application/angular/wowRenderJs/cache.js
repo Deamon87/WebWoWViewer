@@ -2,15 +2,38 @@ import $q from 'q';
 
 class Cache {
     constructor() {
-        this.cache = {};
-        this.queueForLoad = {};
+        this.cache = new Map();
+        this.queueForLoad = new Map();
 
-        this.objectsToBeProcessed = []
+        this.objectsToBeProcessed = new Map();
     }
     /* Functions that must be overloaded */
     load(fileName) {
     }
     process(file) {
+    }
+    processCacheQueue(limit) {
+        var objectsProcessed = 0;
+
+        var queueIter = this.objectsToBeProcessed.keys();
+        var fileName = queueIter.next().value;
+        while (fileName != null) {
+            var loadedObject = this.objectsToBeProcessed.get(fileName);
+
+            var finalObject = this.process(loadedObject);
+
+            this.put(fileName, finalObject);
+            this.resolve(fileName);
+
+            this.objectsToBeProcessed.delete(fileName);
+
+            objectsProcessed++;
+            if (objectsProcessed > limit) {
+                break;
+            }
+
+            fileName = queueIter.next().value;
+        }
     }
 
     /*
@@ -28,38 +51,41 @@ class Cache {
         }
 
         /* 2. Otherwise put the deferred to queue for resolving later */
-        var queue = this.queueForLoad[fileName];
-        if (!queue) {
+        var queue;
+        if (!this.queueForLoad.has(fileName)) {
             /* 2.1 If object is not loading yet - launch the loading process */
             queue = [];
             this.load(fileName).then(function success(loadedObj) {
-                self.objectsToBeProcessed.push(loadedObj);
+                self.objectsToBeProcessed.set(fileName, loadedObj);
+
             }, function error(object) {
                 self.reject(fileName);
 
             });
+        } else {
+            queue = this.queueForLoad.get(fileName);
         }
         queue.push(deferred);
-        this.queueForLoad[fileName] = queue;
+        this.queueForLoad.set(fileName, queue);
 
         return deferred.promise;
     };
 
     resolve(fileName) {
-        var queue = this.queueForLoad[fileName];
+        var queue = this.queueForLoad.get(fileName);
         for (var i = 0; i < queue.length; i++) {
-            var obj = this.getCached(fileName);
+            var obj = this.getCached(fileName); // Increases counter by 1
             queue[i].resolve(obj)
         }
-        this.queueForLoad[fileName] = null;
+        this.queueForLoad.delete(fileName);
     }
 
     reject(fileName, obj) {
-        var queue = this.queueForLoad[fileName];
+        var queue = this.queueForLoad.get(fileName);
         for (var i = 0; i < queue.length; i++) {
             queue[i].reject(obj)
         }
-        this.queueForLoad[fileName] = null;
+        this.queueForLoad.delete(fileName);
     }
 
     /*
@@ -71,10 +97,10 @@ class Cache {
             counter: 1
         };
 
-        this.cache[fileName] = container;
+        this.cache.set(fileName, container);
     }
     getCached(fileName) {
-        var container = this.cache[fileName];
+        var container = this.cache.get(fileName);
         if (!container){
             return null;
         }
@@ -84,7 +110,7 @@ class Cache {
     }
 
     remove (fileName) {
-        var container = this.cache[fileName];
+        var container = this.cache.get(fileName);
         if (!container) {
             /* TODO: Log the message? */
             return;
@@ -93,7 +119,7 @@ class Cache {
         /* Destroy container if usage counter is 0 or less */
         container.counter -= 1;
         if (container.counter <= 0) {
-            cache[fileName] = null;
+            this.cache.delete(fileName);
             container.obj.destroy();
         }
     }

@@ -260,11 +260,11 @@ class SkinGeomCache extends Cache {
         return skinGeomObj;
     }
     loadSkin (fileName){
-        return this.cache.get(fileName);
+        return this.get(fileName);
     };
 
     unLoadSkin(fileName) {
-        this.cache.remove(fileName)
+        this.remove(fileName)
     }
 }
 

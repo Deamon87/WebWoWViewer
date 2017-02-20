@@ -398,11 +398,11 @@ class M2GeomCache extends Cache {
     }
 
     loadM2(fileName) {
-        return this.cache.get(fileName);
+        return this.get(fileName);
     };
 
     unLoadM2(fileName) {
-        this.cache.remove(fileName)
+        this.remove(fileName)
     }
 }
 

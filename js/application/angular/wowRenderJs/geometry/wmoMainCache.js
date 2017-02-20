@@ -4,7 +4,7 @@ import {wmoLoader} from './../../services/map/wmoLoader.js'
 
 class WmoMainCache extends Cache{
     constructor(sceneApi) {
-        var self = this;
+        super()
     }
     load(fileName) {
         /* Must return promise */
@@ -14,11 +14,11 @@ class WmoMainCache extends Cache{
         return a;
     }
     loadWmoMain (fileName) {
-        return this.cache.get(fileName);
+        return this.get(fileName);
     };
 
     unLoadWmoMain (fileName) {
-        this.cache.remove(fileName)
+        this.remove(fileName)
     }
 }
 

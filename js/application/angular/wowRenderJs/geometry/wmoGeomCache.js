@@ -300,10 +300,10 @@ class WmoGeomCache extends Cache {
         return wmoGeomObj;
     }
     loadWmoGeom (fileName){
-        return this.cache.get(fileName);
+        return this.get(fileName);
     };
     unLoadWmoGeom (fileName) {
-        this.cache.remove(fileName)
+        this.remove(fileName)
     }
 }
 

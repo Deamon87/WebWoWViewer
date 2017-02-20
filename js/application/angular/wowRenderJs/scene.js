@@ -1434,6 +1434,15 @@ class Scene {
         this.graphManager.setLookAtMat(lookAtMat4);
 
         // Update objects
+        this.adtGeomCache.processCacheQueue(10);
+        this.wmoGeomCache.processCacheQueue(10);
+        this.wmoMainCache.processCacheQueue(10);
+        this.m2GeomCache.processCacheQueue(10);
+        this.skinGeomCache.processCacheQueue(10);
+
+        this.textureCache.processCacheQueue(10);
+
+
         var updateRes = this.graphManager.update(deltaTime);
         this.worldObjectManager.update(deltaTime, cameraPos, lookAtMat4);
 

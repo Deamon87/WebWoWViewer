@@ -1,100 +1,79 @@
 import Cache from './../cache.js';
 import adtLoader from './../../services/map/adtLoader.js';
 
-function parseAlphaTextures(adtObj, wdtObj){
-    var megaTexture = [];
-    var xStride = 64*4; // (width of alphaTex) * (max number of textures per chunk)
-    //megaTexture[xStride*256*64-1] = 0;
+function processTexture(adtObj, wdtObj, i) {
+    var mcnkObj = adtObj.mcnkObjs[i];
+    var alphaArray = mcnkObj.alphaArray;
+    var layers = mcnkObj.textureLayers;
 
-    for (var i = 0; i < adtObj.mcnkObjs.length; i++) {
-        var mcnkObj = adtObj.mcnkObjs[i];
-        var alphaArray = mcnkObj.alphaArray;
-        var layers = mcnkObj.textureLayers;
+    var currentLayer = new Uint8Array(((64*4) * 64));
+    if (!layers) return currentLayer;
+    for (var j = 0; j < layers.length; j++ ) {
+        var alphaOffs = layers[j].alphaMap;
+        var offO = j;
+        var readCnt = 0;
+        var readForThisLayer = 0;
 
-        var currentLayer = new Array(((64*4) * 64));
-        megaTexture.push(currentLayer);
+        if ((layers[j].flags & 0x200) > 0) {
+            //Compressed
+            //http://www.pxr.dk/wowdev/wiki/index.php?title=ADT/v18
+            while( readForThisLayer < 4096 )
+            {
+                // fill or copy mode
+                var fill = (alphaArray[alphaOffs] & 0x80 );
+                var n = alphaArray[alphaOffs] & 0x7F;
+                alphaOffs++;
 
-        if (!layers) continue;
-        for (var j = 0; j < layers.length; j++ ) {
-            var alphaOffs = layers[j].alphaMap;
-            var offO = j;
-            var readCnt = 0;
-            var readForThisLayer = 0;
-
-            if ((layers[j].flags & 0x200) > 0) {
-                //Compressed
-                //http://www.pxr.dk/wowdev/wiki/index.php?title=ADT/v18
-                while( readForThisLayer < 4096 )
+                for ( var k = 0; k < n; k++ )
                 {
-                    // fill or copy mode
-                    var fill = (alphaArray[alphaOffs] & 0x80 );
-                    var n = alphaArray[alphaOffs] & 0x7F;
-                    alphaOffs++;
+                    if (readForThisLayer == 4096) break;
 
-                    for ( var k = 0; k < n; k++ )
-                    {
-                        if (readForThisLayer == 4096) break;
+                    currentLayer[offO] = alphaArray[alphaOffs];
+                    readCnt++; readForThisLayer++;
+                    offO += 4;
 
-                        currentLayer[offO] = alphaArray[alphaOffs];
-                        readCnt++; readForThisLayer++;
-                        offO += 4;
-
-
-                        if (readCnt >=64) {
-                            //offO = offO + xStride - 64;
-                            readCnt = 0;
-                        }
-
-
-                        if( !fill ) alphaOffs++;
+                    if (readCnt >=64) {
+                        readCnt = 0;
                     }
-                    if( fill ) alphaOffs++;
+
+                    if( !fill ) alphaOffs++;
+                }
+                if( fill ) alphaOffs++;
+            }
+        } else {
+            //Uncompressed
+            if (((wdtObj.flags & 0x4) > 0) || ((wdtObj.flags & 0x80) > 0)) {
+                //Uncompressed (4096)
+                for (var iX =0; iX < 64; iX++) {
+                    for (var iY = 0; iY < 64; iY++){
+                        currentLayer[offO] = alphaArray[alphaOffs];
+
+                        offO += 4; readCnt+=1; readForThisLayer+=1; alphaOffs++;
+                     }
                 }
             } else {
-                //Uncompressed
-                if (((wdtObj.flags & 0x4) > 0) || ((wdtObj.flags & 0x80) > 0)) {
-                    //Uncompressed (4096)
-                    for (var iX =0; iX < 64; iX++) {
-                        for (var iY = 0; iY < 64; iY++){
-                            currentLayer[offO] = alphaArray[alphaOffs];
-
-                            offO += 4; readCnt+=1; readForThisLayer+=1; alphaOffs++;
-                            /*
-                            if (readCnt >=64) {
-                                offO = offO + xStride - 64;
-                                readCnt = 0;
-                            }
-                            */
-                        }
-                    }
-                } else {
-                    //Uncompressed (2048)
-                    for (var iX =0; iX < 64; iX++) {
-                        for (var iY = 0; iY < 32; iY++){
-                            //Old world
-                            currentLayer[offO] = (alphaArray[alphaOffs] & 0x0f ) * 17;
-                            offO += 4;
-                            currentLayer[offO] =  ((alphaArray[alphaOffs] & 0xf0 ) >> 4) * 17;
-                            offO += 4;
-                            readCnt+=2; readForThisLayer+=2; alphaOffs++;
-                            /*
-                            if (readCnt >=64) {
-                                offO = offO + xStride - 64;
-                                readCnt = 0;
-                            } */
-                        }
+                //Uncompressed (2048)
+                for (var iX =0; iX < 64; iX++) {
+                    for (var iY = 0; iY < 32; iY++){
+                        //Old world
+                        currentLayer[offO] = (alphaArray[alphaOffs] & 0x0f ) * 17;
+                        offO += 4;
+                        currentLayer[offO] =  ((alphaArray[alphaOffs] & 0xf0 ) >> 4) * 17;
+                        offO += 4;
+                        readCnt+=2; readForThisLayer+=2; alphaOffs++;
                     }
                 }
             }
         }
     }
-    return megaTexture;
+    return currentLayer
 }
 
 class ADTGeom {
     constructor(sceneApi, wdtFile) {
         this.sceneApi = sceneApi;
         this.gl = sceneApi.getGlContext();
+        this.alphaTexturesLoaded = 0;
 
         this.wdtFile = wdtFile;
         this.combinedVBO = null;
@@ -102,10 +81,49 @@ class ADTGeom {
         for (var i = 0; i < 256; i++) {
             this.textureArray[i] = [];
         }
+
+        this.alphaTextures = [];
     }
 
     assign(adtFile) {
         this.adtFile = adtFile;
+    }
+    loadAlphaTextures(limit) {
+        if (this.alphaTexturesLoaded>=256) return;
+
+        var gl = this.gl;
+        var mcnkObjs = this.adtFile.mcnkObjs;
+        var chunkCount = mcnkObjs.length;
+        var maxAlphaTexPerChunk = 4;
+        var alphaTexSize = 64;
+
+        var texWidth = alphaTexSize;
+        var texHeight = alphaTexSize;
+
+        var createdThisRun = 0;
+        var alphaTextures = this.alphaTextures;
+        for (var i = this.alphaTexturesLoaded; i < chunkCount; i++) {
+            var alphaTexture = gl.createTexture();
+            var alphaTextureData = processTexture(this.adtFile, this.wdtFile, i);
+
+            gl.bindTexture(gl.TEXTURE_2D, alphaTexture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texWidth, texHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, alphaTextureData);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+            gl.generateMipmap(gl.TEXTURE_2D);
+
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            alphaTextures.push(alphaTexture);
+
+            createdThisRun++;
+            if (createdThisRun >= limit) {
+                break;
+            }
+        }
+        this.alphaTexturesLoaded += createdThisRun;
     }
     loadTextures() {
         var gl = this.gl;
@@ -122,35 +140,6 @@ class ADTGeom {
                 }
             }
         }
-
-        /* 2. Load alpha textures */
-        var chunkCount = mcnkObjs.length;
-        var maxAlphaTexPerChunk = 4;
-        var alphaTexSize = 64;
-
-        //var texWidth = maxAlphaTexPerChunk * alphaTexSize;
-        var texWidth = alphaTexSize;
-        var texHeight = alphaTexSize;
-
-        var megaAlphaTexture = parseAlphaTextures(this.adtFile, this.wdtFile);
-        var alphaTextures = [];
-        for (var i = 0; i < mcnkObjs.length; i++) {
-            var alphaTexture = gl.createTexture();
-
-            gl.bindTexture(gl.TEXTURE_2D, alphaTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texWidth, texHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(megaAlphaTexture[i]));
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-            gl.generateMipmap(gl.TEXTURE_2D);
-
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            alphaTextures.push(alphaTexture)
-        }
-
-        this.alphaTextures = alphaTextures;
     }
     loadTexture(index, layerInd, filename) {
         var self = this;
@@ -303,6 +292,20 @@ class AdtGeomCache extends Cache {
         /* Must return promise */
         return adtLoader(fileName);
     }
+    processCacheQueue(limit) {
+        var objectsProcessed = 0;
+        var chacheIter = this.cache.keys();
+        var fileName = chacheIter.next().value;
+        while (fileName != null) {
+            var adtGeomObject = this.cache.get(fileName).obj;
+            adtGeomObject.loadAlphaTextures(limit);
+
+
+            fileName = chacheIter.next().value;
+        }
+
+        super.processCacheQueue(limit);
+    }
     process(adtFile) {
         var adtGeomObj = new ADTGeom(this.sceneApi, this.sceneApi.getCurrentWdt());
         adtGeomObj.assign(adtFile);
@@ -313,10 +316,10 @@ class AdtGeomCache extends Cache {
         return adtGeomObj;
     }
     loadAdt(fileName) {
-        return this.cache.get(fileName);
+        return this.get(fileName);
     };
     unLoadAdt (fileName) {
-        this.cache.remove(fileName)
+        this.remove(fileName)
     }
 }
 

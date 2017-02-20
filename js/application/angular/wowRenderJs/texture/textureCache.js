@@ -132,13 +132,14 @@ class TextureWoWCache extends Cache{
     constructor (sceneApi) {
         super();
         var self = this;
+        this.sceneApi = sceneApi;
     }
     load(fileName) {
         /* Must return promise */
         return blpLoader(fileName);
     }
     process(blpFile) {
-        var textureObj = new Texture(sceneApi);
+        var textureObj = new Texture(this.sceneApi);
         textureObj.loadFromMipmaps(blpFile.mipmaps, blpFile.textureFormat, blpFile.alphaChannelBitDepth > 0);
         textureObj.fileName = blpFile.fileName;
 
@@ -150,11 +151,11 @@ class TextureWoWCache extends Cache{
         //The texture name are case insensitive, but in files they can be in different case
         //So it's rational to lower the filepath case here
         var filenameLower = fileName.toLowerCase();
-        return this.cache.get(filenameLower);
+        return this.get(filenameLower);
     };
 
     unLoadTexture (fileName) {
-        this.cache.remove(fileName)
+        this.remove(fileName)
     }
 }
 export default TextureWoWCache;
