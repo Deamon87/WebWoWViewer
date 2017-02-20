@@ -5,7 +5,8 @@ Q.setScheduler(function(fn) {
     fn();
 });
 
-self.addEventListener('message', function(e) {
+var worker = self;
+addEventListener('message', function(e) {
     //console.log("Worker got message = "+e);
     var opcode = e.data.opcode;
     var message = e.data.message;
@@ -24,24 +25,23 @@ self.addEventListener('message', function(e) {
                 return message.urlToLoadWoWFile;
             }
         };
-        self.fileLoader = fileLoaderStub(configService, Q);
+        worker.fileLoader = fileLoaderStub(configService, Q);
 
 
     } else if (opcode == 'loadFile') {
         var filePath = message;
 
-        (function(self, messageId) {
-            var promise = self.fileLoader(filePath);
-            promise.then(function success(a){
+        var promise = worker.fileLoader(filePath);
+        promise.then(function success(a){
                 //console.log("Worker sent file = "+a);
                 //debugger;
                 if (a) {
-                    self.postMessage({opcode: 'fileLoaded', messageId: messageId, message: a.buffer}, [a.buffer]);
+                    worker.postMessage({opcode: 'fileLoaded', messageId: messageId, message: a.buffer}, [a.buffer]);
                 }
             }, function error() {
                 console.log("Unable to load file \""+filePath+"\"");
-                self.postMessage({opcode: 'fileLoaded', messageId: messageId, message: null});
+                worker.postMessage({opcode: 'fileLoaded', messageId: messageId, message: null});
             })
-        })(self, messageId)
+
     }
 }, false);
