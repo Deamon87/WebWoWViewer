@@ -10,9 +10,12 @@ var worker = new FileWorker();
 worker.onmessage = function(e) {
     //debugger;
 
+
     var opcode = e.data.opcode;
     var message = e.data.message;
     var recv_messageId = e.data.messageId;
+
+    console.log("messageId "+ recv_messageId+ " received");
 
     if (opcode == 'fileLoaded') {
         //Imply message is Uint8Array

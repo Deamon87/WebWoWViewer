@@ -5,6 +5,7 @@ import ParticleEmitter from './emitters/particle/particleEmitter.js'
 import mathHelper from './../math/mathHelper.js';
 import QuickSort from './../math/quickSort';
 import {vec4, mat4, vec3, quat} from 'gl-matrix';
+import M2Material from './m2Material';
 
 const pixelShaderTable = {
     "Combiners_Opaque" : 0,
@@ -342,34 +343,7 @@ class MDXObject {
 
            var subMeshes = skinObject.skinFile.header.subMeshes;
            for (var i = 0; i < skinObject.skinFile.header.texs.length; i++) {
-               var materialData = {
-                    isRendered: false,
-                    isTransparent: false,
-                    isEnviromentMapping: false,
-                    meshIndex: -1,
-                    textureTexUnit1: null,
-                    textureTexUnit2: null,
-                    textureTexUnit3: null,
-
-
-                    texUnit1TexIndex : 0,
-                    mdxTextureIndex1 : 0,
-                    xWrapTex1 : false,
-                    yWrapTex1 : false,
-                    textureUnit1TexName: '',
-
-                    texUnit2TexIndex : 0,
-                    mdxTextureIndex2 : 0,
-                    xWrapTex2 : false,
-                    yWrapTex2 : false,
-                    textureUnit2TexName: '',
-
-                    texUnit3TexIndex : 0,
-                    mdxTextureIndex3 : 0,
-                    xWrapTex3 : false,
-                    yWrapTex3 : false,
-                    textureUnit3TexName: ''
-               };
+               var materialData = new M2Material();
 
                var skinTextureDefinition = skinObject.skinFile.header.texs[i];
                var subMesh = subMeshes[skinTextureDefinition.submeshIndex];
@@ -908,7 +882,7 @@ class MDXObject {
         var gl = this.sceneApi.getGlContext();
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
 
-        var bb = this                           .getBoundingBox();
+        var bb = this.getBoundingBox();
 
         if (bb) {
             var bb1 = bb.ab,

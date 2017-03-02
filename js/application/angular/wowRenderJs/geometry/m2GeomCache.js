@@ -1,5 +1,6 @@
 import Cache from './../cache.js';
 import mdxLoader from './../../services/map/mdxLoader.js';
+import M2Material from './../objects/m2Material.js';
 
 
 class M2Geom {
@@ -192,6 +193,8 @@ class M2Geom {
         var instExt = this.sceneApi.extensions.getInstancingExt();
         var blackPixelText = this.sceneApi.getBlackPixelTexture();
         var skinData = skinObject.skinFile.header;
+
+        //materialData = new M2Material();
 
         var uniforms = this.sceneApi.shaders.getShaderUniforms();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();

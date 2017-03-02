@@ -37,6 +37,8 @@ addEventListener('message', function(e) {
                 //debugger;
                 if (a) {
                     worker.postMessage({opcode: 'fileLoaded', messageId: messageId, message: a.buffer}, [a.buffer]);
+                    //console.log("messageId "+ messageId+ " sent")
+                    console.log("messageId "+ messageId+ " sent");
                 }
             }, function error() {
                 console.log("Unable to load file \""+filePath+"\"");
@@ -45,3 +47,4 @@ addEventListener('message', function(e) {
 
     }
 }, false);
+
