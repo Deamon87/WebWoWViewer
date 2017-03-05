@@ -1,4 +1,4 @@
-import fileLoaderStub from './../fileSystem/fileLoaderStub.js';
+import FileLoader from './../fileSystem/fileLoaderStub.js';
 import Q from 'bluebird';
 
 Q.setScheduler(function(fn) {
@@ -25,25 +25,25 @@ addEventListener('message', function(e) {
                 return message.urlToLoadWoWFile;
             }
         };
-        worker.fileLoader = fileLoaderStub(configService, Q);
+        worker.fileLoader = new FileLoader(configService);
 
 
     } else if (opcode == 'loadFile') {
         var filePath = message;
 
-        var promise = worker.fileLoader(filePath);
+        var promise = worker.fileLoader.getFile(filePath);
         promise.then(function success(a){
-                //console.log("Worker sent file = "+a);
-                //debugger;
-                if (a) {
-                    worker.postMessage({opcode: 'fileLoaded', messageId: messageId, message: a.buffer}, [a.buffer]);
-                    //console.log("messageId "+ messageId+ " sent")
-                    console.log("messageId "+ messageId+ " sent");
-                }
-            }, function error() {
-                console.log("Unable to load file \""+filePath+"\"");
-                worker.postMessage({opcode: 'fileLoaded', messageId: messageId, message: null});
-            })
+            //console.log("Worker sent file = "+a);
+            //debugger;
+            if (a) {
+                worker.postMessage({opcode: 'fileLoaded', messageId: messageId, message: a.buffer}, [a.buffer]);
+                //console.log("messageId "+ messageId+ " sent")
+                console.log("messageId "+ messageId+ " sent");
+            }
+        }, function error() {
+            console.log("Unable to load file \""+filePath+"\"");
+            worker.postMessage({opcode: 'fileLoaded', messageId: messageId, message: null});
+        })
 
     }
 }, false);

@@ -38,14 +38,14 @@ export default function (filePath, arrayBuffer) {
                             if (subchunkHandler){
                                 subchunkHandler(resultObj, subChunk, this);
                             } else {
-                                //$log.info("Unknown SubChunk. Ident = " + subChunk.chunkIdent+", file = "+fullPath);
+                                console.log("Unknown SubChunk. Ident = " + subChunk.chunkIdent);
                             }
 
                             subChunk = this.loadChunkAtOffset(subChunk.nextChunkOffset);
                         }
                     }
                 } else {
-                    //$log.info("Unknown Chunk. Ident = " + chunk.chunkIdent+", file = "+fullPath);
+                    console.log("Unknown Chunk. Ident = " + chunk.chunkIdent);
                 }
             },
             processFile: function(resultObj){

@@ -85,6 +85,9 @@ function wmoGroupLoader(wmoFilePath, loadPlainVertexes) {
                         groupWMOObject.textCoords3 = textCoords;
                     }
                 },
+                "MCVP" : function () {
+                    console.log("MCVP found")
+                },
                 "MOCV": function (groupWMOObject, chunk) {
                     var offset = {offs : 0};
                     var cvLen = chunk.chunkLen / 4;
@@ -389,6 +392,9 @@ function wmoLoader(wmoFilePath){
             }
 
             wmoObj.modd = doodads;
+        },
+        "MCVP" : function () {
+            console.log("MCVP found")
         },
         "MFOG": function (wmoObj,chunk) {
             var offset = {offs: 0};
