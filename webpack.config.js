@@ -23,7 +23,8 @@ module.exports = {
             path.resolve('./js/application/angular/'),
             path.resolve('./glsl/'),
             path.resolve('./css/'),
-            path.resolve('./js/lib/bower')
+            path.resolve('./js/lib/bower'),
+            path.resolve('./js/lib')
         ]
     },
 

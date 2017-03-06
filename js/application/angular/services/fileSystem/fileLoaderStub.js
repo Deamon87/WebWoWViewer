@@ -1,10 +1,12 @@
 import axios from 'axios';
-import ZipReader from './fileLoader-zip-instance.js';
+import ZipReader from './zipFileReader.js';
+import CascReader from './cascFileReader';
 
 class FileLoader {
     constructor(configService) {
         this.configService = configService;
         this.zipReader = new ZipReader(configService);
+        this.cascReader = new CascReader();
     }
 
     getFile (filePath) {
@@ -31,6 +33,8 @@ class FileLoader {
             }
 
             return this.zipReader.readFile(filePath);
+        } else if (this.configService.getFileReadMethod() == 'casc') {
+
         }
     }
 }
