@@ -65,7 +65,7 @@ module.exports = {
             new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin(".bower.json", ["main"])
         ),
         new webpack.ProvidePlugin({
-            'Dropzone':          'dropzone'
+            'Dropzone':          __dirname+'/js/lib/dropzone.js'
         })
     ],
     devServer: {

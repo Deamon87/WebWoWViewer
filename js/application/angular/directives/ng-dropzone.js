@@ -88,7 +88,7 @@
                         'thumbnail', 'error', 'processing', 'uploadprogress',
                         'sending', 'success', 'complete', 'canceled', 'maxfilesreached',
                         'maxfilesexceeded', 'processingmultiple', 'sendingmultiple', 'successmultiple',
-                        'completemultiple', 'canceledmultiple', 'totaluploadprogress', 'reset', 'queuecomplete'
+                        'completemultiple', 'canceledmultiple', 'totaluploadprogress', 'reset', 'queuecomplete', 'dropComplete'
                     ];
                     angular.forEach(callbackMethods, function(method){
                         var callback = (scope.callbacks[method] || angular.noop);

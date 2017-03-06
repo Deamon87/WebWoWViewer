@@ -16,6 +16,7 @@ var secondCamera = false;
 var doubleCameraDebug = false;
 
 var drawDepthBuffer = false;
+var fileList = [];
 
 var cameraM2 = null;
 
@@ -133,5 +134,11 @@ export default {
     },
     setCameraM2 : function (value) {
         cameraM2 = value;
+    },
+    setFileList: function (value){
+        fileList = value;
+    },
+    getFileList: function () {
+        return fileList;
     }
 }

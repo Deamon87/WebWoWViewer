@@ -241,10 +241,15 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
             '<div style="display: block;"><button ng-click="loadAllPackets()">Parse all packets</button></div>'+
             '</div>'+
             '</div>',
+            scope: {
+                files: '='
+            },
             link: function postLink(scope, element, attrs) {
                 var canvas = element.find('canvas')[0];
                 canvas.width =  element.children()[0].clientWidth * 0.79;
                 canvas.height =  element.children()[0].clientHeight;
+
+                config.setFileList(scope.files);
 
                 var sceneParams = config.getSceneParams();
                 var sceneObj = new Scene(canvas);

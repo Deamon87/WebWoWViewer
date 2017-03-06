@@ -370,11 +370,13 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
         ]
     };
 
+    $scope.files = [];
     $scope.dzCallbacks = {
         addedfile: function(file){
             "use strict";
             console.log(file);
-            return false;
+            $scope.files.push(file);
+            return true;
         }
     };
     $scope.dzDropZoneOptions = {
@@ -387,9 +389,22 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
             "use strict";
             console.log(e);
         },
+        addedfile: function(file){
+            "use strict";
+            console.log(file);
+            return true;
+        },
         paste: function (e) {
             "use strict";
             console.log(e);
+        },
+        queuecomplete : function () {
+            "use strict";
+            console.log("complete");
+        },
+        dropComplete : function () {
+            "use strict";
+            console.log("file enum complete");
         }
     }
 

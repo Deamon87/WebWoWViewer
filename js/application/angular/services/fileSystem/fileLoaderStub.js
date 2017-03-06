@@ -6,7 +6,7 @@ class FileLoader {
     constructor(configService) {
         this.configService = configService;
         this.zipReader = new ZipReader(configService);
-        this.cascReader = new CascReader();
+        this.cascReader = new CascReader([]);
     }
 
     getFile (filePath) {
