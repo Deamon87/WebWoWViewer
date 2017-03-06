@@ -34,10 +34,14 @@ var inited = false;
 
 export default function (fileName) {
     if (!inited) {
+        debugger;
         worker.postMessage({opcode: 'init', message: {
             archiveFile : configService.getArchiveFile(),
-            fileReadMethod : configService.getFileReadMethod(),
-            urlToLoadWoWFile : configService.getUrlToLoadWoWFile()
+            fileReadMethod : 'casc',//configService.getFileReadMethod(),
+            urlToLoadWoWFile : configService.getUrlToLoadWoWFile(),
+            fileList: configService.getFileList().map((a) => (
+                {'file': a, 'fullPath': a.fullPath, 'lastModifiedDate': a.lastModifiedDate, 'size': a.size}
+                )) || []
         }});
 
         inited = true;

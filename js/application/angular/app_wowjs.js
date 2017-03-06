@@ -385,6 +385,7 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
         createImageThumbnails : false,
         maxThumbnailFilesize: 1,
         previewsContainer : false,
+        ignoreHiddenFiles : false,
         addedfiles: function (e) {
             "use strict";
             console.log(e);

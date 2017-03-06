@@ -6,7 +6,19 @@ class FileLoader {
     constructor(configService) {
         this.configService = configService;
         this.zipReader = new ZipReader(configService);
-        this.cascReader = new CascReader([]);
+        this.cascReader = new CascReader(configService.getFileList().map((a) => {
+            var b = Object.create(a.file,
+                {
+                    name : {value: a.fullPath},
+                    lastModifiedDate: {value: a.lastModifiedDate},
+                    size : {value: a.size},
+                });
+            b.slice = function(){
+                //TODO: Check this hack in latest firefox
+                return b.__proto__.slice.apply(b.__proto__, arguments);
+            }
+            return b}
+        ));
     }
 
     getFile (filePath) {
@@ -34,7 +46,8 @@ class FileLoader {
 
             return this.zipReader.readFile(filePath);
         } else if (this.configService.getFileReadMethod() == 'casc') {
-
+            var fileDataId = this.cascReader.getFileDataId(filePath);
+            return this.cascReader.loadFile(fileDataId);
         }
     }
 }

@@ -23,6 +23,9 @@ addEventListener('message', function(e) {
             },
             getUrlToLoadWoWFile: function () {
                 return message.urlToLoadWoWFile;
+            },
+            getFileList : function () {
+                return message.fileList;
             }
         };
         worker.fileLoader = new FileLoader(configService);

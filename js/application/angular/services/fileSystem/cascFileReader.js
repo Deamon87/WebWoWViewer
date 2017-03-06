@@ -8,6 +8,7 @@ class CascReader {
     }
 
     initFileSystem() {
+        debugger;
         FS.mkdir(repositoryDir);
         FS.mount(WORKERFS, {
             files: this.fileList
@@ -17,13 +18,15 @@ class CascReader {
     }
 
     loadStorage() {
-        /* 2. Bloat code to pass parameters */                                                                                                                      22.
+        /* 2. Bloat code to pass parameters */                                                                                                                       22.
+        debugger;
+        var dataDir = repositoryDir+'/World of Warcraft/';
         var hStoragePtr = Module._malloc(4);
-        var StoragePtrHeap = new Uint8Array(Module.HEAPU8.buffer, hMPQPtr, 4);
+        var StoragePtrHeap = new Uint8Array(Module.HEAPU8.buffer, hStoragePtr, 4);
 
         Runtime.stackSave();
-        var repositoryDirMem = Runtime.stackAlloc((repositoryDir.length << 2) + 1);
-        Module.writeStringToMemory(repositoryDir, repositoryDirMem);
+        var repositoryDirMem = Runtime.stackAlloc((dataDir.length << 2) + 1);
+        Module.writeStringToMemory(dataDir, repositoryDirMem);
 
 
         /* 3. Call function */
@@ -55,6 +58,19 @@ class CascReader {
         return fileDataId;
     }
     loadFile(fileDataId) {
+
+        var defer = {};
+        defer.promise = new Promise(function(resolve, reject) {
+            defer.onResolve = function (value) {
+                "use strict";
+                resolve(value)
+            };
+            defer.onReject = function (value) {
+                "use strict";
+                resolve(value)
+            }
+        });
+
         var fileName = 'File'+fileDataId+'.unk';
         var dwFlags = 0;
 
@@ -102,7 +118,8 @@ class CascReader {
         Module._free(hFilePtrHeap.byteOffset);
         Runtime.stackRestore();
 
-        return fileContent;
+        defer.onResolve(fileContent);
+        return defer.promise;
     }
 
 }

@@ -2,6 +2,7 @@ var gulp = require("gulp");
 var gutil = require("gulp-util");
 var webpack = require("webpack");
 var webpackConfig = require("./webpack.config.js");
+var WebpackDevServer = require("webpack-dev-server");
 
 // The development server (the recommended option for development)
 gulp.task("default", ["webpack:build-dev"]);
@@ -51,12 +52,29 @@ var devCompiler = webpack(myDevConfig);
 
 gulp.task("webpack:build-dev", function(callback) {
     // run webpack
+    /*
     devCompiler.run(function(err, stats) {
         if(err) throw new gutil.PluginError("webpack:build-dev", err);
         gutil.log("[webpack:build-dev]", stats.toString({
             colors: true
         }));
         callback();
+    });
+    */
+
+    new WebpackDevServer(devCompiler, {
+        stats: { colors: true },
+        watchOptions: {
+            aggregateTimeout: 300,
+            poll: 1000
+        }
+    }).listen(8888, "localhost", function(err) {
+        if(err) throw new gutil.PluginError("webpack-dev-server", err);
+        // Server listening
+        gutil.log("[webpack-dev-server]", "http://localhost:8888/webpack-dev-server/index.html");
+
+        // keep the server alive or continue?
+        // callback();
     });
 });
 

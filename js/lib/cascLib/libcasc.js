@@ -2852,7 +2852,7 @@ function copyTempDouble(ptr) {
           return position;
         }}};
   
-  var WORKERFS={DIR_MODE:16895,FILE_MODE:33279,reader:null,mount:function (mount) {
+  var WORKERFS={DIR_MODE:(16895|511),FILE_MODE:33279,reader:null,mount:function (mount) {
         assert(ENVIRONMENT_IS_WORKER);
         if (!WORKERFS.reader) WORKERFS.reader = new FileReaderSync();
         var root = WORKERFS.createNode(null, '/', WORKERFS.DIR_MODE, 0);
@@ -2947,7 +2947,12 @@ function copyTempDouble(ptr) {
         },rmdir:function (parent, name) {
           throw new FS.ErrnoError(ERRNO_CODES.EPERM);
         },readdir:function (node) {
-          throw new FS.ErrnoError(ERRNO_CODES.EPERM);
+        var lookup = FS.lookupPath(path, { follow: true });
+        var node = lookup.node;
+        if (!node.node_ops.readdir) {
+          throw new FS.ErrnoError(ERRNO_CODES.ENOTDIR);
+        }
+        return node.node_ops.readdir(node);
         },symlink:function (parent, newName, oldPath) {
           throw new FS.ErrnoError(ERRNO_CODES.EPERM);
         },readlink:function (node) {
