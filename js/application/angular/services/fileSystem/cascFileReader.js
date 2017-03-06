@@ -12,6 +12,8 @@ class CascReader {
         FS.mount(WORKERFS, {
             files: this.fileList
         }, repositoryDir);
+
+        this.loadStorage();
     }
 
     loadStorage() {
@@ -80,7 +82,7 @@ class CascReader {
             while (true) {
                 var dwBytesRead = dwBytesView[0] = 0;
 
-                Module._CascReadFile(hFile, bufferPtrHeap.byteOffset, fileSize1-totalBytesRead, dwBytesReadHeap.byteOffset);
+                Module._CascReadFile(hFile, bufferPtrHeap.byteOffset+totalBytesRead, fileSize1-totalBytesRead, dwBytesReadHeap.byteOffset);
                 dwBytesRead = dwBytesView[0];
 
                 if(dwBytesRead == 0) {
