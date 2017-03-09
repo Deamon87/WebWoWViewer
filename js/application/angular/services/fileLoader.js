@@ -7,6 +7,10 @@ var messageId = 0;
 var messageTable = {};
 var worker = new FileWorker();
 
+window.loadStorage = function ()  {
+    worker.postMessage({opcode: 'loadStorage'});
+}
+
 worker.onmessage = function(e) {
     //debugger;
 

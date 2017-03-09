@@ -1,11 +1,11 @@
-import {Module,FS,WORKERFS,Runtime} from 'exports?Module,FS,WORKERFS,Runtime!imports?require=>function(){}!cascLib/libcasc.js';
+import {Module,FS,WORKERFS,Runtime} from 'exports?Module,FS,WORKERFS,Runtime!imports?Module=cascLib/moduleStub.js!imports?require=>function(){}!cascLib/libcasc_min.js';
 
 let repositoryDir = '/repository';
 class CascReader {
     constructor (fileList) {
         this.fileList = fileList;
         this.initFileSystem();
-    }
+    }  
 
     initFileSystem() {
         debugger;
@@ -13,24 +13,24 @@ class CascReader {
         FS.mount(WORKERFS, {
             files: this.fileList
         }, repositoryDir);
-
-        this.loadStorage();
     }
 
     loadStorage() {
-        /* 2. Bloat code to pass parameters */                                                                                                                       22.
+        /* 2. Bloat code to pass parameters */                                                                                                                         22.
+        /* 2. Bloat code to pass parameters */                                                                                                                             22.
         debugger;
-        var dataDir = repositoryDir+'/World of Warcraft/';
+        var dataDir = repositoryDir  + '/World of Warcraft/';
         var hStoragePtr = Module._malloc(4);
         var StoragePtrHeap = new Uint8Array(Module.HEAPU8.buffer, hStoragePtr, 4);
 
-        Runtime.stackSave();
-        var repositoryDirMem = Runtime.stackAlloc((dataDir.length << 2) + 1);
-        Module.writeStringToMemory(dataDir, repositoryDirMem);
+        var repositoryDirPtr = Module._malloc((dataDir.length << 2) + 1);
+        var repositoryDirPtrHeap = new Uint8Array(Module.HEAPU8.buffer, repositoryDirPtr, (dataDir.length << 2) + 1);
+
+        Module.stringToUTF8(dataDir, repositoryDirPtr, repositoryDirPtrHeap.length);
 
 
         /* 3. Call function */
-        var a = Module._CascOpenStorage(repositoryDirMem, 0, StoragePtrHeap.byteOffset);
+        var a = Module._CascOpenStorage(repositoryDirPtrHeap.byteOffset, 0xFFFFFFFF, StoragePtrHeap.byteOffset);
 
         /* 4. Get function result */
         var hStorage;
@@ -43,8 +43,8 @@ class CascReader {
         }
 
         /* 6. Free memory */
-        Module._free(StoragePtrHeap.byteOffset);
-        Runtime.stackRestore();
+        Module._free(hStoragePtr);
+        Module._free(repositoryDirPtr);
     }
     getFileDataId(fileName) {
         Runtime.stackSave();

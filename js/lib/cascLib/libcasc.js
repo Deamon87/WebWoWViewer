@@ -1180,7 +1180,7 @@ function enlargeMemory() {
 
 
 var TOTAL_STACK = Module['TOTAL_STACK'] || 5242880;
-var TOTAL_MEMORY = Module['TOTAL_MEMORY'] || 16777216;
+var TOTAL_MEMORY = Module['TOTAL_MEMORY'] || 806777216;
 
 var WASM_PAGE_SIZE = 64 * 1024;
 
@@ -2947,22 +2947,31 @@ function copyTempDouble(ptr) {
         },rmdir:function (parent, name) {
           throw new FS.ErrnoError(ERRNO_CODES.EPERM);
         },readdir:function (node) {
-        var lookup = FS.lookupPath(path, { follow: true });
-        var node = lookup.node;
-        if (!node.node_ops.readdir) {
-          throw new FS.ErrnoError(ERRNO_CODES.ENOTDIR);
+        var entries = ['.', '..']
+        for (var key in node.contents) {
+          if (!node.contents.hasOwnProperty(key)) {
+            continue;
+          }
+          entries.push(key);
         }
-        return node.node_ops.readdir(node);
+        return entries;
         },symlink:function (parent, newName, oldPath) {
           throw new FS.ErrnoError(ERRNO_CODES.EPERM);
         },readlink:function (node) {
           throw new FS.ErrnoError(ERRNO_CODES.EPERM);
         }},stream_ops:{read:function (stream, buffer, offset, length, position) {
-          if (position >= stream.node.size) return 0;
+ console.log("readingFile "+ stream.path);
+          try {if (position >= stream.node.size) return 0;
           var chunk = stream.node.contents.slice(position, position + length);
           var ab = WORKERFS.reader.readAsArrayBuffer(chunk);
-          buffer.set(new Uint8Array(ab), offset);
-          return chunk.size;
+          
+          var view = new Int8Array(ab);
+                for (var i = 0; i < view.length; ++i) {
+                    buffer[i + offset] = view[i];
+                    
+                }
+	  //buffer.set(new Uint8Array(ab), offset);
+          return chunk.size;} catch(e) {console.log("reading failed", e)}
         },write:function (stream, buffer, offset, length, position) {
           throw new FS.ErrnoError(ERRNO_CODES.EIO);
         },llseek:function (stream, offset, whence) {
@@ -14626,6 +14635,15 @@ function __Z10Map_Createjjj($dwMaxItems,$dwKeyLength,$dwKeyOffset) {
  STACKTOP = sp;return ($25|0);
 }
 function __Z14Map_FindObjectP9_CASC_MAPPvPj($pMap,$pvKey,$PtrIndex) {
+
+debugger;
+console.log("this.existingKeys = ", this.existingKeys, "getting keys ", Array.from(HEAP8.slice($pvKey,  $pvKey + 8)).map(a => {   if (a < 0)
+    {
+        a = 0xFFFFFFFF + a + 1;
+    }
+
+var hex = a.toString(16).toUpperCase();
+    return hex.substr(hex.length-2, hex.length)}));
  $pMap = $pMap|0;
  $pvKey = $pvKey|0;
  $PtrIndex = $PtrIndex|0;
@@ -14692,6 +14710,18 @@ function __Z14Map_FindObjectP9_CASC_MAPPvPj($pMap,$pvKey,$PtrIndex) {
  STACKTOP = sp;return ($34|0);
 }
 function __Z16Map_InsertObjectP9_CASC_MAPPvS1_($pMap,$pvNewObject,$pvKey) {
+// console.log("inserting into hashtable "+ HEAP8.slice($pvKey,  $pvKey + 8));
+
+if (!this.existingKeys) {
+this.existingKeys = [];
+}
+this.existingKeys.push(Array.from(HEAP8.slice($pvKey,  $pvKey + 8)).map(a => {   if (a < 0)
+    {
+        a = 0xFFFFFFFF + a + 1;
+    }
+
+var hex = a.toString(16).toUpperCase();
+    return hex.substr(hex.length-2, hex.length)}));
  $pMap = $pMap|0;
  $pvNewObject = $pvNewObject|0;
  $pvKey = $pvKey|0;

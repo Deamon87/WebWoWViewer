@@ -19,6 +19,10 @@ class FileLoader {
             }
             return b}
         ));
+        this.cascReader.loadStorage();
+    }
+    loadStorage() {
+        this.cascReader.loadStorage();
     }
 
     getFile (filePath) {

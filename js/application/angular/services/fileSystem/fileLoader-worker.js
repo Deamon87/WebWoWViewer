@@ -15,22 +15,22 @@ addEventListener('message', function(e) {
     if (opcode == 'init') {
 
         var configService = {
-            getArchiveFile : function () {
+            getArchiveFile: function () {
                 return message.archiveFile
             },
-            getFileReadMethod : function () {
+            getFileReadMethod: function () {
                 return message.fileReadMethod
             },
             getUrlToLoadWoWFile: function () {
                 return message.urlToLoadWoWFile;
             },
-            getFileList : function () {
+            getFileList: function () {
                 return message.fileList;
             }
         };
         worker.fileLoader = new FileLoader(configService);
-
-
+    } else if (opcode == 'loadStorage') {
+        worker.fileLoader.loadStorage()
     } else if (opcode == 'loadFile') {
         var filePath = message;
 
