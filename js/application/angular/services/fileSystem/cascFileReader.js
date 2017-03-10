@@ -5,7 +5,7 @@ class CascReader {
     constructor (fileList) {
         this.fileList = fileList;
         this.initFileSystem();
-    }  
+    }
 
     initFileSystem() {
         debugger;
@@ -33,6 +33,7 @@ class CascReader {
         var a = Module._CascOpenStorage(repositoryDirPtrHeap.byteOffset, 0xFFFFFFFF, StoragePtrHeap.byteOffset);
 
         /* 4. Get function result */
+        debugger;
         var hStorage;
         if (a) {
             hStorage = new Uint32Array(StoragePtrHeap.buffer, StoragePtrHeap.byteOffset, 1)[0];
