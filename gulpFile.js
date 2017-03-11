@@ -52,7 +52,7 @@ var devCompiler = webpack(myDevConfig);
 
 gulp.task("webpack:build-dev", function(callback) {
     // run webpack
-    /*
+
     devCompiler.run(function(err, stats) {
         if(err) throw new gutil.PluginError("webpack:build-dev", err);
         gutil.log("[webpack:build-dev]", stats.toString({
@@ -60,8 +60,9 @@ gulp.task("webpack:build-dev", function(callback) {
         }));
         callback();
     });
-    */
 
+
+    /*
     new WebpackDevServer(devCompiler, {
         stats: { colors: true },
         watchOptions: {
@@ -75,6 +76,6 @@ gulp.task("webpack:build-dev", function(callback) {
 
         // keep the server alive or continue?
         // callback();
-    });
+    });*/
 });
 

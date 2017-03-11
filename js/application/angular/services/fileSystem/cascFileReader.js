@@ -1,10 +1,62 @@
-import {Module,FS,WORKERFS,Runtime} from 'exports?Module,FS,WORKERFS,Runtime!imports?Module=cascLib/moduleStub.js!imports?require=>function(){}!cascLib/libcasc_min.js';
+//import {} from 'promise?exports?Module,FS,WORKERFS,Runtime,run!imports?Module=cascLib/moduleStub.js!imports?require=>function(){}!cascLib/libcasc.js';
+import initModule from 'imports?require=>function(){}!cascLib/libcasc.js';
+//import test from 'cascLib/emscriptenModule.js'
+import axios from 'axios';
+import ModuleClass from 'cascLib/moduleStub.js';
 
+var Module;
+var FS, WORKERFS, Runtime, runInitFunc;
 let repositoryDir = '/repository';
 class CascReader {
     constructor (fileList) {
         this.fileList = fileList;
-        this.initFileSystem();
+        this.initPromises = new Map();
+        this.inited = false;
+
+        var self = this;
+        //Load wasm module
+        axios.get("http://localhost:8888/libcasc.wasm",{responseType: "arraybuffer"}).then(function success(a) {
+
+            debugger;
+            Module = new ModuleClass();
+            Module['wasmBinary'] = a.data;
+            initModule(Module);
+            FS = Module['FS'];
+            WORKERFS = Module['WORKERFS'];
+            Runtime = Module['Runtime'];
+
+            //runInitFunc();
+            self.initFileSystem();
+            self.loadStorage();
+            self.inited = true;
+            self.walkThroughInitPromises();
+
+        }, function error(a) {
+            debugger;
+            onerror("axios error" + a);
+            throw a;
+        });
+    }
+
+    walkThroughInitPromises() {
+        var self = this;
+        this.initPromises.forEach((value, key) => {
+            var defer = value;
+            var fileName = key;
+
+            var fileId = self.getFileDataId(fileName);
+            if (fileId > 0) {
+                var fileContent = self.loadFileById(fileId);
+                if (fileContent) {
+                    defer.onResolve(fileContent)
+                } else {
+                    defer.onReject("Could not load content by FileId")
+                }
+            } else {
+                defer.onReject("FileId not found")
+            }
+
+        });
     }
 
     initFileSystem() {
@@ -48,39 +100,31 @@ class CascReader {
         Module._free(repositoryDirPtr);
     }
     getFileDataId(fileName) {
-        Runtime.stackSave();
-        var fileNameMem = Runtime.stackAlloc((fileName.length << 2) + 1);
-        Module.writeStringToMemory(fileName, fileNameMem);
+        var fileNameMem = Module._malloc((fileName.length << 2) + 1);
+        Module.writeStringToMemory(fileName, fileNameMem, false);
 
         var fileDataId = Module._CascGetFileId(this.hStorage, fileNameMem);
 
-        Runtime.stackRestore();
-
+        Module._free(fileNameMem);
         return fileDataId;
     }
-    loadFile(fileDataId) {
-
-        var defer = {};
-        defer.promise = new Promise(function(resolve, reject) {
-            defer.onResolve = function (value) {
-                "use strict";
-                resolve(value)
-            };
-            defer.onReject = function (value) {
-                "use strict";
-                resolve(value)
+    loadFileById(fileDataId) {
+        var stringedFileId = (fileDataId).toString(16);
+        if (stringedFileId.length < 8) {
+            var length = stringedFileId.length;
+            for (var i = 0; i < 8-length; i++) {
+                stringedFileId = '0'+stringedFileId;
             }
-        });
+        }
 
-        var fileName = 'File'+fileDataId+'.unk';
+        var fileName = 'File'+stringedFileId+'.unk';
         var dwFlags = 0;
 
         var hFilePtr = Module._malloc(4);
         var hFilePtrHeap = new Uint8Array(Module.HEAPU8.buffer, hFilePtr, 4);
 
-        Runtime.stackSave();
-        var fileNameMem = Runtime.stackAlloc((fileName.length << 2) + 1);
-        Module.writeStringToMemory(fileName, fileNameMem);
+        var fileNameMem = Module._malloc((fileName.length << 2) + 1);
+        Module.writeStringToMemory(fileName, fileNameMem, false);
 
         var fileContent = null;
         if (Module._CascOpenFile(this.hStorage, fileNameMem, 0, dwFlags, hFilePtrHeap.byteOffset)){
@@ -90,7 +134,7 @@ class CascReader {
 
             var dwBytesReadPtr = Module._malloc(4);
             var dwBytesReadHeap = new Uint8Array(Module.HEAPU8.buffer, dwBytesReadPtr, 4);
-            var dwBytesView = new Uint32Array(hFilePtrHeap.buffer, hFilePtrHeap.byteOffset, 1);
+            var dwBytesView = new Uint32Array(dwBytesReadHeap.buffer, dwBytesReadHeap.byteOffset, 1);
 
             var bufferPtr =  Module._malloc(fileSize1);
             var bufferPtrHeap = new Uint8Array(Module.HEAPU8.buffer, bufferPtr, fileSize1);
@@ -117,9 +161,39 @@ class CascReader {
 
 
         Module._free(hFilePtrHeap.byteOffset);
-        Runtime.stackRestore();
+        Module._free(fileNameMem);
 
-        defer.onResolve(fileContent);
+        return fileContent;
+    }
+    loadFile(fileName) {
+        var defer = {};
+        defer.promise = new Promise(function(resolve, reject) {
+            defer.onResolve = function (value) {
+                "use strict";
+                resolve(value)
+            };
+            defer.onReject = function (value) {
+                "use strict";
+                reject(value)
+            }
+        });
+
+        if (this.inited) {
+            var fileId = this.getFileDataId(fileName);
+            if (fileId > 0) {
+                var fileContent = this.loadFileById(fileId);
+                if (fileContent) {
+                    defer.onResolve(fileContent)
+                } else {
+                    defer.onReject("Could not load content by FileId")
+                }
+            } else {
+                defer.onReject("FileId not found")
+            }
+        } else {
+            this.initPromises.set(fileName, defer)
+        }
+
         return defer.promise;
     }
 

@@ -19,7 +19,7 @@ class FileLoader {
             }
             return b}
         ));
-        this.cascReader.loadStorage();
+        //this.cascReader.loadStorage();
     }
     loadStorage() {
         this.cascReader.loadStorage();
@@ -50,8 +50,8 @@ class FileLoader {
 
             return this.zipReader.readFile(filePath);
         } else if (this.configService.getFileReadMethod() == 'casc') {
-            var fileDataId = this.cascReader.getFileDataId(filePath);
-            return this.cascReader.loadFile(fileDataId);
+            //var fileDataId = this.cascReader.getFileDataId(filePath);
+            return this.cascReader.loadFile(filePath);
         }
     }
 }
