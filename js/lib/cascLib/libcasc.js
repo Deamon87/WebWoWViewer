@@ -322,7 +322,7 @@ function integrateWasmJS(Module) {
 
       Module['printErr']('trying binaryen method: ' + curr);
 
-  debugger;    if (curr === 'native-wasm') {
+      if (curr === 'native-wasm') {
         if (exports = doNativeWasm(global, env, providedBuffer)) break;
       } else if (curr === 'asmjs') {
         if (exports = doJustAsm(global, env, providedBuffer)) break;

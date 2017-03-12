@@ -16,8 +16,6 @@ class CascReader {
         var self = this;
         //Load wasm module
         axios.get("http://localhost:8888/libcasc.wasm",{responseType: "arraybuffer"}).then(function success(a) {
-
-            debugger;
             Module = new ModuleClass();
             Module['wasmBinary'] = a.data;
             initModule(Module);
@@ -32,7 +30,6 @@ class CascReader {
             self.walkThroughInitPromises();
 
         }, function error(a) {
-            debugger;
             onerror("axios error" + a);
             throw a;
         });
@@ -60,7 +57,6 @@ class CascReader {
     }
 
     initFileSystem() {
-        debugger;
         FS.mkdir(repositoryDir);
         FS.mount(WORKERFS, {
             files: this.fileList
@@ -68,9 +64,7 @@ class CascReader {
     }
 
     loadStorage() {
-        /* 2. Bloat code to pass parameters */                                                                                                                         22.
         /* 2. Bloat code to pass parameters */                                                                                                                             22.
-        debugger;
         var dataDir = repositoryDir  + '/World of Warcraft/';
         var hStoragePtr = Module._malloc(4);
         var StoragePtrHeap = new Uint8Array(Module.HEAPU8.buffer, hStoragePtr, 4);
@@ -85,7 +79,6 @@ class CascReader {
         var a = Module._CascOpenStorage(repositoryDirPtrHeap.byteOffset, 0xFFFFFFFF, StoragePtrHeap.byteOffset);
 
         /* 4. Get function result */
-        debugger;
         var hStorage;
         if (a) {
             hStorage = new Uint32Array(StoragePtrHeap.buffer, StoragePtrHeap.byteOffset, 1)[0];
@@ -157,6 +150,7 @@ class CascReader {
 
             Module._CascCloseFile(hFile);
             Module._free(dwBytesReadHeap.byteOffset);
+            Module._free(bufferPtr);
         }
 
 

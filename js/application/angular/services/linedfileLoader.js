@@ -14,6 +14,7 @@ export default function (filePath , arrayBuffer) {
                 var self = this;
                 var result;
 
+                //console.log("Loading from LinedLoader section = ", sectionDef);
                 var type = sectionDef.type;
                 switch (type) {
                     case "int8":

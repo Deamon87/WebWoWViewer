@@ -723,11 +723,11 @@ class MDXObject {
     }
     initParticleSystem() {
         var m2File = this.m2Geom.m2File;
-        var particleEmittersArray = new Array(m2File.nParticleEmitters);
-        for (var i = 0; i < m2File.nParticleEmitters; i++) {
-            particleEmittersArray[i] = new ParticleEmitter(m2File.particleEmitters[i]);
-        }
-
+        //var particleEmittersArray = new Array(m2File.nParticleEmitters);
+        //for (var i = 0; i < m2File.nParticleEmitters; i++) {
+        //    particleEmittersArray[i] = new ParticleEmitter(m2File.particleEmitters[i]);
+       // }
+        var particleEmittersArray = [];
         this.particleEmittersArray = particleEmittersArray;
     }
     initSubmeshColors() {

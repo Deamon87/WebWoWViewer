@@ -19,7 +19,7 @@ worker.onmessage = function(e) {
     var message = e.data.message;
     var recv_messageId = e.data.messageId;
 
-    console.log("messageId "+ recv_messageId+ " received");
+    //console.log("messageId "+ recv_messageId+ " received");
 
     if (opcode == 'fileLoaded') {
         //Imply message is Uint8Array
@@ -38,7 +38,6 @@ var inited = false;
 
 export default function (fileName) {
     if (!inited) {
-        debugger;
         worker.postMessage({opcode: 'init', message: {
             archiveFile : configService.getArchiveFile(),
             fileReadMethod : 'casc',//configService.getFileReadMethod(),

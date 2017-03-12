@@ -136,7 +136,6 @@ export default {
         cameraM2 = value;
     },
     setFileList: function (value){
-        debugger;
         fileList = value;
     },
     getFileList: function () {

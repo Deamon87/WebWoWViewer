@@ -205,6 +205,12 @@ main.controller("UrlChooserCtrl",[ '$scope', function($scope) {
                 fileName: 'world/wmo/dungeon/az_blackrock/blackrock_lower_instance.wmo'
             },
             {
+                name: 'orgrimmar2',
+                source: 'http',
+                sceneType: 'wmo',
+                fileName: 'world/wmo/kalimdor/ogrimmar/orgrimmar2.wmo'
+            },
+            {
                 name: 'Sniff',
                 source: 'http',
                 sceneType: 'map',
