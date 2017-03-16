@@ -6,6 +6,8 @@ import 'hammerjs';
 import 'imports?window=>global!hammerjs';
 import 'hammer-timejs';
 
+import wowJsRenderHtml from 'ngtemplate!raw-loader!./../../../../html/partials/mainScreen.html'
+
 var events = function (element, camera) {
     "use strict";
 
@@ -208,7 +210,7 @@ var events = function (element, camera) {
             pinchScale = ev.scale;
         }
     });
-}
+};
 
 
 var wowJsRender = angular.module('main.directives.wowJsRender', []);
@@ -216,31 +218,7 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
     function ($log, $timeout, $interval, $window) {
         return {
             restrict: 'E',
-            template:
-            '<div class="canvas-form-container" style="width: 100%; height: 100%">' +
-            '<canvas width = "79%" height = "768" style="float:left"></canvas>' +
-            '<div style="display: inline-block;float: left; width: 225px">' +
-            '<div>camera = ( {{cameraVecs.cameraVec3[0]}}, {{cameraVecs.cameraVec3[1]}}, {{cameraVecs.cameraVec3[2]}} )</div>' +
-            '<div>lookAt = ( {{cameraVecs.lookAtVec3[0]}}, {{cameraVecs.lookAtVec3[1]}}, {{cameraVecs.lookAtVec3[2]}} )</div>' +
-            '<div>Group number = {{updateResult.interiorGroupNum}}</div>'+
-            '<div>BSP Node Id = {{updateResult.nodeId}}</div>'+
-            '<div>Area name = {{updateResult.currentAreaName}}</div>'+
-            '<div>Controls: W - forward, S - backward, A - left, D - right, Q - up, E - down, Mouse - move camera</p>'+
-            '<div style="display: block"><input type="checkbox" ng-model="drawAdt" >Draw ADT objects</div>' +
-            '<div style="display: block"><input type="checkbox" ng-model="drawM2" >Draw M2 objects</div>' +
-            '<div style="display: block"><input type="checkbox" ng-model="drawPortals">Draw portals</div>' +
-            '<div style="display: block"><input type="checkbox" ng-model="drawM2BB">Draw M2 BB</div>' +
-            '<div style="display: block"><input type="checkbox" ng-model="drawWmoBB">Draw Wmo BB</div>' +
-            '<div style="display: block"><input type="checkbox" ng-model="drawBSP">Draw BSP leafs</div>' +
-            '<div style="display: block"><input type="checkbox" ng-model="drawDepth">Draw Depth buffer</div>' +
-            '<div style="display: block"><input type="checkbox" ng-model="usePortalCulling">Use portal culling</div>' +
-            '<div style="display: block"><input type="checkbox" ng-model="doubleCameraDebug">Double camera debug</div>'+
-            '<div style="display: block"><input type="checkbox" ng-disabled="!doubleCameraDebug" ng-model="useSecondCamera">Control debug camera</div>'+
-            '<div style="display: block;"><button ng-disabled="!doubleCameraDebug" ng-style="{color: (doubleCameraDebug) ? 0 : \'rgb(200,200,200)\'};" ng-click="copyToDebugCamera()">Copy main camera to debug camera</button></div>'+
-            '<div style="display: block;"><button ng-click="loadPacket()">Parse packets</button></div>'+
-            '<div style="display: block;"><button ng-click="loadAllPackets()">Parse all packets</button></div>'+
-            '</div>'+
-            '</div>',
+            templateUrl: wowJsRenderHtml,
             scope: {
                 files: '='
             },

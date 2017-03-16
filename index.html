@@ -26,17 +26,27 @@
                         Web WoW Viewer
                     </h3>
 
-
                     <uib-tabset active="active">
                         <uib-tab index="0" heading="From client">
-                            <!--
-                            <div class="drag-zone"  draggable="true" ondragstart="dragstart_handler(event);">
-                                <span>Drag and drop here your Data folder</span>
-                            </div>
-                            -->
-                            <ng-dropzone options="dzDropZoneOptions" class="zone-for-drop" callbacks="dzCallbacks" methods="dzMethods">
-                                <span>Drag and drop here your Data folder</span>
+                            <ng-dropzone file-list="fileList" files-to-be-read="filesToBeRead" files-read="filesRead">
                             </ng-dropzone>
+
+                            <div ui-tree>
+                                <ol ui-tree-nodes="" ng-model="list">
+                                    <li ng-repeat="item in list" ui-tree-node>
+                                        <div ui-tree-handle>
+                                            {{item.title}}
+                                        </div>
+                                        <ol ui-tree-nodes="" ng-model="item.items">
+                                            <li ng-repeat="subItem in item.items" ui-tree-node>
+                                                <div ui-tree-handle>
+                                                    {{subItem.title}}
+                                                </div>
+                                            </li>
+                                        </ol>
+                                    </li>
+                                </ol>
+                            </div>
 
                         </uib-tab>
                         <uib-tab index="1" heading="From remote">
@@ -69,8 +79,8 @@
                             </div>
 
                             <br/>
-                            <button style="width: 100%;" class="btn btn-default" ng-click="startApplication()">Start
-                                application
+                            <button style="width: 100%;" class="btn btn-default" ng-click="startApplication()">
+                                Start application
                             </button>
 
 
@@ -86,13 +96,12 @@
                         </uib-tab>
                     </uib-tabset>
                 </div>
-
             </div>
         </div>
 
 
         <div ng-if="isReadyForStart" style="width: 100%; height: 100%; overflow: hidden; position: absolute; top: 0; left: 0; bottom: 0; right: 0; color: white">
-            <wow-js-render files="files"></wow-js-render>
+            <wow-js-render files="fileList"></wow-js-render>
             <p>Controls: W - forward, S - backward, A - left, D - right, Q - up, E - down, Mouse - move camera</p>
         </div>
 

@@ -19,6 +19,7 @@
   min-height: 352px;
   border: 1px grey dotted;
 }
+
 .zone-for-drop {
   font-size: 28px;
   padding: 26% 0%;
@@ -30,4 +31,11 @@
   min-height: 363px;
   border: 1px white dotted;
   width: 500px;
+}
+
+.copy-to-debug-camera {
+  color: initial;
+  &.double-camera-debug {
+    color: rgb(200,200,200);
+  }
 }

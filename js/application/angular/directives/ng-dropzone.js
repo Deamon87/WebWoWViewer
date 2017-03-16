@@ -1,104 +1,128 @@
-/**!
- * AngularJS dropzone directive
- * @author Uday Hiwarale <uhiwarale@gmail.com>
- * https://www.github.com/thatisuday/ngDropzone
- */
-/*
- * modified to support transclude behavior by Deamon
- * */
+import dropZoneHtml from 'ngtemplate!raw-loader!./../../../../html/partials/dropZone.html'
 
+class NgDirectoryDragDrop {
+    /*@ngInject*/
+    constructor($templateCache, $log){
+        //this.template = $templateCache.get('account/directives/copyright/copyright.directive.html');
+        this.templateUrl = dropZoneHtml;
+        this.$log = $log;
+        this.scope = {fileList: '=', filesToBeRead: '=', filesRead : '='};
+        this.restrict = 'E';
 
-(function(){
-    'use strict';
+    }
+    link(scope, element) {
+        var self = this;
+        this.fileList = scope.fileList;
+        this.scopeInstance = scope;
+        this.scopeInstance.filesToBeRead = 0;
+        this.scopeInstance.filesRead = 0;
 
-    angular.module('thatisuday.dropzone', []).provider('dropzoneOps', function(){
-        /*
-         *	Add default options here
-         **/
-        var defOps = {
-            //Add your options here
-        };
+        element[0].addEventListener("dragover", function(e) {
+            e.preventDefault();
+        });
 
-        return {
-            setOptions : function(newOps){
-                angular.extend(defOps, newOps);
-            },
-            $get : function(){
-                return defOps;
+        element[0].addEventListener("drop", function(e) {
+            var files;
+            e.preventDefault();
+            if (!e.dataTransfer) {
+                return;
             }
+
+            files = e.dataTransfer.files;
+            var items = null;
+            if (files.length) {
+                var items = e.dataTransfer.items;
+                if (items) {
+                    self.handleIncomingFileList(items);
+                }
+            }
+            if (items == null){
+                this.addPlainFileList(items)
+            }
+        });
+    }
+
+    handleIncomingFileList(files) {
+        if (files && files.length) {
+            this.addStructuredFileList(files);
         }
-    }).directive('ngDropzone', ['$timeout', 'dropzoneOps', function($timeout, dropzoneOps){
-        return {
-            restrict : 'AE',
-            transclude: true,
-            template : '<div><ng-transclude></ng-transclude></div>',
-            replace : true,
-            scope : {
-                options : '=?', //http://www.dropzonejs.com/#configuration-options
-                callbacks : '=?', //http://www.dropzonejs.com/#events
-                methods : '=?' //http://www.dropzonejs.com/#dropzone-methods
-            },
-            link : function(scope, iElem, iAttr){
-                //Set options for dropzone {override from dropzone options provider}
-                scope.options = scope.options || {};
-                var initOps = angular.extend({}, dropzoneOps, scope.options);
+    }
+    addStructuredFileList(items){
+        var itemsLen = items.length;
+        for (var i = 0; i < itemsLen; i++) {
+            var item = items[i];
+            var entry = null;
+            if (item.webkitGetAsEntry != null) {
+                entry = item.webkitGetAsEntry()
+            }
 
-
-                //Instantiate dropzone with initOps
-                var dropzone = new Dropzone(iElem[0], initOps);
-
-
-
-                /*********************************************/
-
-
-                //Instantiate Dropzone methods (Control actions)
-                scope.methods = scope.methods || {};
-
-                scope.methods.getDropzone = function(){
-                    return dropzone; //Return dropzone instance
-                };
-
-                scope.methods.getAllFiles = function(){
-                    return dropzone.files; //Return all files
-                };
-
-                var controlMethods = [
-                    'removeFile', 'removeAllFiles', 'processQueue',
-                    'getAcceptedFiles', 'getRejectedFiles', 'getQueuedFiles', 'getUploadingFiles',
-                    'disable', 'enable', 'confirm', 'createThumbnailFromUrl'
-                ];
-
-                angular.forEach(controlMethods, function(methodName){
-                    scope.methods[methodName] = function(){
-                        dropzone[methodName].apply(dropzone, arguments);
-                        if(!scope.$$phase && !scope.$root.$$phase) scope.$apply();
-                    }
-                });
-
-
-                /*********************************************/
-
-
-                //Set invents (callbacks)
-                if(scope.callbacks){
-                    var callbackMethods = [
-                        'drop', 'dragstart', 'dragend',
-                        'dragenter', 'dragover', 'dragleave', 'addedfile', 'removedfile',
-                        'thumbnail', 'error', 'processing', 'uploadprogress',
-                        'sending', 'success', 'complete', 'canceled', 'maxfilesreached',
-                        'maxfilesexceeded', 'processingmultiple', 'sendingmultiple', 'successmultiple',
-                        'completemultiple', 'canceledmultiple', 'totaluploadprogress', 'reset', 'queuecomplete', 'dropComplete'
-                    ];
-                    angular.forEach(callbackMethods, function(method){
-                        var callback = (scope.callbacks[method] || angular.noop);
-                        dropzone.on(method, function(){
-                            callback.apply(null, arguments);
-                            if(!scope.$$phase && !scope.$root.$$phase) scope.$apply();
-                        });
-                    });
+            if (entry) {
+                if (entry.isFile && (item.getAsFile != null)) {
+                    this.push(item.getAsFile());
+                } else if (entry.isDirectory) {
+                    this.addFilesFromDirectory(entry, entry.name);
+                }
+            } else if (item.getAsFile != null) {
+                if ((item.kind == null) || item.kind === "file") {
+                    this.fileList.push(item.getAsFile());
                 }
             }
         }
-    }]);
-})();
+    }
+    addFilesFromDirectory(directory, path) {
+        var dirReader;
+        var self = this;
+        dirReader = directory.createReader();
+        dirReader.readEntries(function (entries) {
+            if (entries.length > 0) {
+                for (var i = 0, _len = entries.length; i < _len; i++) {
+                    var entry = entries[i];
+                    if (entry.isFile) {
+                        //self.filesToBeRead++;
+                        self.scopeInstance.$apply(function(scope){scope.filesToBeRead++})
+                        entry.file(function (file) {
+                            /*
+                             if (file.name.substring(0, 1) === '.') {
+                             return;
+                             } */
+                            file.fullPath = "" + path + "/" + file.name;
+                            //self.scopeInstance.filesRead++;
+                            self.scopeInstance.$apply(function(scope){scope.filesRead++});
+                            self.$log.log("added ",file.fullPath);
+                        }, function error(fileError) {
+                            //self.scopeInstance.filesToBeRead--;
+                            self.scopeInstance.$apply(function(scope){scope.filesToBeRead--})
+                            self.$log.log(fileError);
+                        });
+                    } else if (entry.isDirectory) {
+                        self.addFilesFromDirectory(entry, "" + path + "/" + entry.name);
+                    }
+                }
+            }
+        }, function (error) {
+            self.$log.log(error);
+        });
+    };
+
+    addPlainFileList(files) {
+        var filesLen = files.length;
+        for (var i = 0; i < filesLen; i++) {
+            var file = files[i];
+            this.fileList.push(file);
+        }
+
+        this.scopeInstance.filesRead+=filesLen;
+        this.scopeInstance.filesToBeRead+=filesLen;
+    }
+
+    static createInstance($templateCache, $log) {
+        var instantiated = new NgDirectoryDragDrop($templateCache, $log);
+        return instantiated;
+    }
+}
+
+NgDirectoryDragDrop.createInstance.$inject = ['$templateCache', '$log'];
+
+export {NgDirectoryDragDrop}
+
+
