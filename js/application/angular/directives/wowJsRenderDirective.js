@@ -6,7 +6,7 @@ import 'hammerjs';
 import 'imports?window=>global!hammerjs';
 import 'hammer-timejs';
 
-import wowJsRenderHtml from 'ngtemplate!raw-loader!./../../../../html/partials/mainScreen.html'
+import wowJsRenderHtml from 'ngtemplate?relativeTo=/html/partials/!raw-loader!./../../../../html/partials/mainScreen.html'
 
 var events = function (element, camera) {
     "use strict";

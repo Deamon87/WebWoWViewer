@@ -8,7 +8,6 @@ class NgDirectoryDragDrop {
         this.$log = $log;
         this.scope = {fileList: '=', filesToBeRead: '=', filesRead : '='};
         this.restrict = 'E';
-
     }
     link(scope, element) {
         var self = this;

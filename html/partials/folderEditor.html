@@ -1,0 +1,5 @@
+<div ui-tree>
+    <ol ui-tree-nodes="" ng-model="data" id="tree-root">
+        <li ng-repeat="node in data" ui-tree-node ng-include="'folderEditorNode.html'"></li>
+    </ol>
+</div>

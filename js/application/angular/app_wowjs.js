@@ -5,6 +5,7 @@ import angularTabs from 'angular-ui-bootstrap/src/tabs';
 import './directives/wowJsRenderDirective.js';
 import './directives/fileDownload.js';
 import {NgDirectoryDragDrop} from './directives/ng-dropzone.js';
+import {NgFolderEditor} from './directives/folderDirective';
 
 import {UrlChooserCtrl} from './controller/urlChooserCtrl.js';
 import ui_tree from 'angular-ui-tree';
@@ -23,6 +24,7 @@ var main = angular.module('main.app',
 
 main.controller("UrlChooserCtrl", UrlChooserCtrl.instantiate);
 main.directive("ngDropzone", NgDirectoryDragDrop.createInstance);
+main.directive("ngFolderEditor", NgFolderEditor.createInstance);
 
 main.config(['$provide', '$httpProvider', function ($provide, $httpProvider) {
 
