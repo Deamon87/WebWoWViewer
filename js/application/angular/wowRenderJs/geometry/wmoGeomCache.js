@@ -46,6 +46,10 @@ class WmoGeom {
     createVBO(){
         var gl = this.gl;
         var wmoGroupObject = this.wmoGroupFile;
+        if (!wmoGroupObject.renderBatches) {
+            return;
+        }
+
 
         var appendBuffer = function(buffer1, buffer2, buffer3, buffer4, buffer5, buffer6) {
             var combinedBufferLen = buffer1.length*4 + buffer2.length*4 + buffer3.length*4 ;
@@ -124,12 +128,15 @@ class WmoGeom {
             this.loadTextures()
         }
 
+        var wmoGroupObject = this.wmoGroupFile;
+        if (!wmoGroupObject.renderBatches) return;
+
         var shaderUniforms = this.sceneApi.shaders.getShaderUniforms();
         var shaderAttributes = this.sceneApi.shaders.getShaderAttributes();
 
         var blackPixelText = this.sceneApi.getBlackPixelTexture();
 
-        var wmoGroupObject = this.wmoGroupFile;
+
         var isIndoor = (wmoGroupObject.mogp.Flags & 0x2000) > 0;
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexVBO);

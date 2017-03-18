@@ -1455,7 +1455,9 @@ const mdxChunked = {
         var offset = {offs: 0};
     },
     'DIFS': function (mdxObj, chunk) {
+        //Skinfile IDs
         var offset = {offs: 0};
+
     },
     '12DM': function (mdxObj, chunk) {
         var offset = {offs: 0};

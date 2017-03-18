@@ -9,8 +9,14 @@ class NgFolderEditor {
         this.scope = {fileList: '='};
         this.restrict = 'E';
     }
-    link(scope, element) {
+    link($scope, element) {
         var self = this;
+        $scope.treeOptions = {
+            accept: function(sourceNodeScope, destNodesScope, destIndex) {
+
+                return (destNodesScope.node && destNodesScope.node.isFile) ? false : true;
+            },
+        };
     }
 
     static createInstance($templateCache, $log) {

@@ -1,7 +1,11 @@
-<div ui-tree-handle>
-    {{node.title}}
+<div style="overflow-x: hidden">
+    <img ui-tree-handle class="tree-icon" src="img/document.svg" ng-if="node.isFile">
+    <img ui-tree-handle class="tree-icon" src="img/folder.svg" ng-if="node.isDirectory">
+    <div ui-tree-handle class="tree-node-name">
+        {{node.title}}
+    </div>
 </div>
 <ol ui-tree-nodes="" ng-model="node.nodes">
-    <li ng-repeat="node in node.nodes" ui-tree-node ng-include="'nodes_renderer.html'">
+    <li ng-repeat="node in node.nodes" ui-tree-node ng-include="'folderEditorNode.html'">
     </li>
 </ol>

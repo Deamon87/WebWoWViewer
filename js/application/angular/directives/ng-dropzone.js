@@ -3,7 +3,6 @@ import dropZoneHtml from 'ngtemplate!raw-loader!./../../../../html/partials/drop
 class NgDirectoryDragDrop {
     /*@ngInject*/
     constructor($templateCache, $log){
-        //this.template = $templateCache.get('account/directives/copyright/copyright.directive.html');
         this.templateUrl = dropZoneHtml;
         this.$log = $log;
         this.scope = {fileList: '=', filesToBeRead: '=', filesRead : '='};
@@ -46,6 +45,35 @@ class NgDirectoryDragDrop {
             this.addStructuredFileList(files);
         }
     }
+    addNewDirectoryNode(parentNode, name) {
+        var node = {
+            title: name,
+            nodes: [],
+            isFile: false,
+            isDirectory: true,
+        };
+        if (parentNode) {
+            parentNode.nodes.push(node);
+        } else {
+            this.fileList.push(node);
+        }
+        return node;
+    }
+    addNewFileNode(parentNode, name, file) {
+        var node = {
+            title: name,
+            nodes: [],
+            isFile: true,
+            isDirectory: false,
+            content : file
+        };
+        if (parentNode) {
+            parentNode.nodes.push(node);
+        } else {
+            this.fileList.push(node);
+        }
+        return node;
+    }
     addStructuredFileList(items){
         var itemsLen = items.length;
         for (var i = 0; i < itemsLen; i++) {
@@ -59,7 +87,8 @@ class NgDirectoryDragDrop {
                 if (entry.isFile && (item.getAsFile != null)) {
                     this.push(item.getAsFile());
                 } else if (entry.isDirectory) {
-                    this.addFilesFromDirectory(entry, entry.name);
+                    var node = this.addNewDirectoryNode(null, entry.name);
+                    this.addFilesFromDirectory(node, entry, entry.name);
                 }
             } else if (item.getAsFile != null) {
                 if ((item.kind == null) || item.kind === "file") {
@@ -68,7 +97,7 @@ class NgDirectoryDragDrop {
             }
         }
     }
-    addFilesFromDirectory(directory, path) {
+    addFilesFromDirectory(node, directory, path) {
         var dirReader;
         var self = this;
         dirReader = directory.createReader();
@@ -80,21 +109,18 @@ class NgDirectoryDragDrop {
                         //self.filesToBeRead++;
                         self.scopeInstance.$apply(function(scope){scope.filesToBeRead++})
                         entry.file(function (file) {
-                            /*
-                             if (file.name.substring(0, 1) === '.') {
-                             return;
-                             } */
                             file.fullPath = "" + path + "/" + file.name;
                             //self.scopeInstance.filesRead++;
+                            var newNode = self.addNewFileNode(node, file.name, file);
                             self.scopeInstance.$apply(function(scope){scope.filesRead++});
-                            self.$log.log("added ",file.fullPath);
+                            //self.$log.log("added ",file.fullPath);
                         }, function error(fileError) {
-                            //self.scopeInstance.filesToBeRead--;
                             self.scopeInstance.$apply(function(scope){scope.filesToBeRead--})
                             self.$log.log(fileError);
                         });
                     } else if (entry.isDirectory) {
-                        self.addFilesFromDirectory(entry, "" + path + "/" + entry.name);
+                        var newNode = self.addNewDirectoryNode(node, entry.name);
+                        self.addFilesFromDirectory(newNode, entry, "" + path + "/" + entry.name);
                     }
                 }
             }

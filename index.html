@@ -15,7 +15,7 @@
         <!-- Application code -->
         <!---------------------->
         <!--<script type="text/javascript" src="js/lib/webgl-debug.js"></script>-->
-        <script type="text/javascript" src="build/main.js"></script>
+        <script type="text/javascript" src="main.js"></script>
     </head>
     <body ng-app="main.app" ng-controller="UrlChooserCtrl" style="background: black">
     <div style="margin: auto;position: absolute; top: 0; left: 0; bottom: 0; right: 0;">
@@ -32,7 +32,7 @@
                             </ng-dropzone>
 
 
-                            <ng-folder-editor>
+                            <ng-folder-editor file-list="fileList">
 
                             </ng-folder-editor>
 

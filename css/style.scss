@@ -6,6 +6,21 @@
 }
 
 .drag-zone {
+
+  min-height: 352px;
+  border: 1px grey dotted;
+}
+
+.zone-for-drop {
+  font-size: 28px;
+  max-width: 358px;
+  float: left;
+  display: inline-block;
+  text-align: center;
+  color: grey;
+  min-height: 363px;
+  border: 1px white dotted;
+  width: 500px;
   span {
     font-size: 28px;
     padding: 26% 0%;
@@ -16,21 +31,6 @@
     color: grey;
   }
 
-  min-height: 352px;
-  border: 1px grey dotted;
-}
-
-.zone-for-drop {
-  font-size: 28px;
-  padding: 26% 0%;
-  max-width: 358px;
-  display: inline-block;
-  text-align: center;
-  margin: 0 23%;
-  color: grey;
-  min-height: 363px;
-  border: 1px white dotted;
-  width: 500px;
 }
 
 .copy-to-debug-camera {
@@ -38,4 +38,21 @@
   &.double-camera-debug {
     color: rgb(200,200,200);
   }
+}
+
+
+.directoryEditor {
+  max-width: 185px;
+  height: 355px;
+  float: right;
+  overflow-y: scroll;
+
+}
+
+.tree-icon {
+  height: 30px;
+  display: inline-block;
+}
+.tree-node-name {
+  display: inline-block;
 }

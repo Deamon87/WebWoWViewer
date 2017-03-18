@@ -254,10 +254,14 @@ class SkinGeomCache extends Cache {
     }
     process(skinFile) {
 
-        var skinGeomObj = new SkinGeom(this.sceneApi);
-        skinGeomObj.assign(skinFile);
-        skinGeomObj.createVBO();
-        return skinGeomObj;
+        if (skinFile) {
+            var skinGeomObj = new SkinGeom(this.sceneApi);
+            skinGeomObj.assign(skinFile);
+            skinGeomObj.createVBO();
+            return skinGeomObj;
+        } else {
+            return null;
+        }
     }
     loadSkin (fileName){
         return this.get(fileName);

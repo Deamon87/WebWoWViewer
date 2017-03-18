@@ -54,7 +54,6 @@ export default function (fileName) {
     var promise = new Promise(function(resolve, reject) {
         defer.onResolve = function (value) {
             "use strict";
-            //if (typeof value != 'object' || !(value instanceof ArrayBuffer)) {
             if (!value) {
                 console.log("Failed to load file = " + fileName);
                 reject()

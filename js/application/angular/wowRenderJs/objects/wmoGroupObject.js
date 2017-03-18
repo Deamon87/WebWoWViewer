@@ -206,35 +206,39 @@ class WmoGroupObject {
         var nodeId = 0;
         var nodes = groupFile.nodes;
         var bspLeafList = [];
-        mathHelper.queryBspTree([cameraBBMin, cameraBBMax], nodeId, nodes, bspLeafList);
-        var topBottom = mathHelper.getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, parentWmoFile, bspLeafList);
-        if (!topBottom) return;
-        if (topBottom.bottomZ > 99999) return;
+        var topBottom = {'topZ': groupInfo.bb1.z, 'bottomZ': groupInfo.bb2.z}
+        if (nodes) {
+            mathHelper.queryBspTree([cameraBBMin, cameraBBMax], nodeId, nodes, bspLeafList);
+            var topBottom = mathHelper.getTopAndBottomTriangleFromBsp(cameraLocal, groupFile, parentWmoFile, bspLeafList);
+            if (!topBottom) return;
+            if (topBottom.bottomZ > 99999) return;
 
-        //5. The object(camera) is inside WMO group. Get the actual nodeId
-        while (nodeId >=0 && ((nodes[nodeId].planeType&0x4) == 0)){
-            var prevNodeId = nodeId;
-            if ((nodes[nodeId].planeType == 0)) {
-                if (cameraLocal[0] < nodes[nodeId].fDist) {
-                    nodeId = nodes[nodeId].children1;
-                } else {
-                    nodeId = nodes[nodeId].children2;
-                }
-            } else if ((nodes[nodeId].planeType == 1)) {
-                if (cameraLocal[1] < nodes[nodeId].fDist) {
-                    nodeId = nodes[nodeId].children1;
-                } else {
-                    nodeId = nodes[nodeId].children2;
-                }
-            } else if ((nodes[nodeId].planeType == 2)) {
-                if (cameraLocal[2] < nodes[nodeId].fDist) {
-                    nodeId = nodes[nodeId].children1;
-                } else {
-                    nodeId = nodes[nodeId].children2;
+            //5. The object(camera) is inside WMO group. Get the actual nodeId
+            while (nodeId >= 0 && ((nodes[nodeId].planeType & 0x4) == 0)) {
+                var prevNodeId = nodeId;
+                if ((nodes[nodeId].planeType == 0)) {
+                    if (cameraLocal[0] < nodes[nodeId].fDist) {
+                        nodeId = nodes[nodeId].children1;
+                    } else {
+                        nodeId = nodes[nodeId].children2;
+                    }
+                } else if ((nodes[nodeId].planeType == 1)) {
+                    if (cameraLocal[1] < nodes[nodeId].fDist) {
+                        nodeId = nodes[nodeId].children1;
+                    } else {
+                        nodeId = nodes[nodeId].children2;
+                    }
+                } else if ((nodes[nodeId].planeType == 2)) {
+                    if (cameraLocal[2] < nodes[nodeId].fDist) {
+                        nodeId = nodes[nodeId].children1;
+                    } else {
+                        nodeId = nodes[nodeId].children2;
+                    }
                 }
             }
+            candidateGroups.push({'topBottom' : topBottom, groupId : this.groupId, bspList : bspLeafList, nodeId: nodeId});
         }
-        candidateGroups.push({'topBottom' : topBottom, groupId : this.groupId, bspList : bspLeafList, nodeId: nodeId});
+
         //candidateGroups.push({'topBottom' : {topZ : 0, bottomZ : 0}, groupId : this.groupId, bspList : [], nodeId: 0});
     }
 }
