@@ -1,6 +1,6 @@
 <div style="overflow-x: hidden">
     <img ui-tree-handle class="tree-icon" src="img/document.svg" ng-if="node.isFile">
-    <img ui-tree-handle class="tree-icon" src="img/folder.svg" ng-if="node.isDirectory">
+    <img ui-tree-handle class="tree-icon" src="img/folder.svg" ng-if="node.isDirectory" ng-dblclick="collapseNode($scopeL)">
     <div ui-tree-handle class="tree-node-name">
         {{node.title}}
     </div>

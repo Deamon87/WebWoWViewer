@@ -227,7 +227,27 @@ wowJsRender.directive('wowJsRender', ['$log', '$timeout', '$interval', '$window'
                 canvas.width =  element.children()[0].clientWidth * 0.79;
                 canvas.height =  element.children()[0].clientHeight;
 
-                config.setFileList(scope.files);
+                //ConvertFileTreeToList
+                var fileList = [];
+                (function parseDirectories(nodes, dirname) {
+                    if (nodes == null) return;
+                    if (dirname == null) {
+                        var dirPath = '';
+                    } else {
+                        dirPath = dirname+'/';
+                    }
+                    nodes.forEach(function(a) {
+                        if (a.isDirectory) {
+                            parseDirectories(a.nodes, dirPath+a.title);
+                        } else {
+                            var file = a.content;
+                            file.fullPath = dirPath+file.name;
+                            fileList.push(file);
+                        }
+                    })
+                })(scope.files, null);
+
+                config.setFileList(fileList);
 
                 var sceneParams = config.getSceneParams();
                 var sceneObj = new Scene(canvas);

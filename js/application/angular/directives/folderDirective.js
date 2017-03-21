@@ -17,6 +17,9 @@ class NgFolderEditor {
                 return (destNodesScope.node && destNodesScope.node.isFile) ? false : true;
             },
         };
+        $scope.collapseNode = function (scope) {
+            scope.collapsed = !scope.collapsed;
+        }
     }
 
     static createInstance($templateCache, $log) {

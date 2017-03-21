@@ -31,24 +31,34 @@ const handlerTable = {
         var pad7 = chunk.readUint32(offs);
 
         //1. Load MCIN
-        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mcinOffs, adtObject);
+        if (mcinOffs > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mcinOffs, adtObject);
         //2. Load MTEX
-        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mtexOffs, adtObject);
+        if (mtexOffs > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mtexOffs, adtObject);
         //3. Load MMDX
-        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mmdxOffs, adtObject);
+        if (mmdxOffs > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mmdxOffs, adtObject);
         //4. Load MMID
-        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mmidOffs, adtObject);
+        if (mmidOffs > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mmidOffs, adtObject);
         //5. Load MWMO
-        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mwmoOffs, adtObject);
+        if (mwmoOffs > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mwmoOffs, adtObject);
         //6. Load MWID
-        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mwidOffs, adtObject);
+        if (mwidOffs > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mwidOffs, adtObject);
         //7. Load MDDF
-        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mddfOffs, adtObject);
+        if (mddfOffs > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + mddfOffs, adtObject);
         //8. Load MODF
-        chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + modfOffs, adtObject);
+        if (modfOffs > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkDataOffset + modfOffs, adtObject);
 
         //Stop loading
-        chunk.nextChunkOffset = chunkedFile.getFileSize();
+        if (mcinOffs > 0) {
+            chunk.nextChunkOffset = chunkedFile.getFileSize();
+        }
     },
     "MCIN" : function (adtObject, chunk, chunkedFile) {
         var offs = {offs : 0};
@@ -56,20 +66,26 @@ const handlerTable = {
         var mcnkObjs = [];
         for (var i = 0; i < 256; i++) {
             var MCINEntry = {};
-            MCINEntry.offsetMCNK = chunk.readUint32(offs);
+            MCINEntry.offsetMCNK = chunk.readUint32( offs);
             MCINEntry.size = chunk.readUint32(offs);
             MCINEntry.flags = chunk.readUint32(offs);
             MCINEntry.asyncId = chunk.readUint32(offs);
 
             //Load and process MCNK for this block
             var mcnkObj = {};
-            chunkedFile.processChunkAtOffs(MCINEntry.offsetMCNK, mcnkObj);
+            chunkedFile.processChunkAtOffs(MCINEntry.offsetMCNK, adtObject);
             mcnkObjs.push(mcnkObj);
         }
         adtObject.mcnkObjs = mcnkObjs;
     },
-    "MCNK" : function (mcnkObj, chunk, chunkedFile) {
+    "MCNK" : function (adtObject, chunk, chunkedFile) {
         var offs = {offs : 0};
+        var mcnkObj = {};
+        if (!adtObject.mcnkObjs) {
+            adtObject.mcnkObjs = new Array();
+        }
+        adtObject.mcnkIndex = 0;
+
         mcnkObj.flags             = chunk.readUint32(offs);
         mcnkObj.ix                = chunk.readUint32(offs);
         mcnkObj.iy                = chunk.readUint32(offs);
@@ -100,21 +116,26 @@ const handlerTable = {
         var ofsLiquid             = chunk.readUint32(offs);
         var sizeLiquid            = chunk.readUint32(offs);
         mcnkObj.pos               = chunk.readVector3f(offs);
-        mcnkObj.textureId         = chunk.readUint32(offs);
-        mcnkObj.props             = chunk.readUint32(offs);
-        mcnkObj.effectId          = chunk.readUint32(offs);
+        mcnkObj.ofsMCCV           = chunk.readUint32(offs);
+        mcnkObj.ofsMCLV           = chunk.readUint32(offs);
+        mcnkObj.unused            = chunk.readUint32(offs);
 
+        adtObject.mcnkObjs[adtObject.mcnkIndex++] = mcnkObj;
         //1. Load MCVT
-        chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsHeight, mcnkObj);
+        if (ofsHeight > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsHeight, mcnkObj);
         //2. Load MCNR
-        chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsNormal, mcnkObj);
+        if (ofsNormal > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsNormal, mcnkObj);
         //3. Load MCLY
-        chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsLayer, mcnkObj);
+        if (ofsLayer > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsLayer, mcnkObj);
         //4. Load MCAL
-        chunkedFile.processChunkAtOffsWithSize(chunk.chunkOffset + ofsAlpha, mcnkObj.sizeAlpha, mcnkObj);
+        if (ofsAlpha > 0)
+            chunkedFile.processChunkAtOffsWithSize(chunk.chunkOffset + ofsAlpha, mcnkObj.sizeAlpha, mcnkObj);
         //5. Load MCRF
-
-        chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsRefs, mcnkObj);
+        if (ofsRefs > 0)
+            chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsRefs, mcnkObj);
     },
     "MCVT" : function (mcnkObj, chunk, chunkedFile) {
         var offs = {offs : 0};
@@ -287,11 +308,12 @@ class ADTLoader {
 
 const defaultAdtLoader = new ADTLoader();
 
-export default function(filename){
+export default function(filename, parentADT){
     var deferred = $q.defer();
 
     function addTextureNames(adtObj){
         //Add texture names
+        if (!adtObj.mcnkObjs) return;
         for (var i = 0; i < adtObj.mcnkObjs.length; i++) {
             var mcnkObj = adtObj.mcnkObjs[i];
             var mtex = adtObj.mtex;
@@ -311,6 +333,7 @@ export default function(filename){
         /* First chunk in file has to be MVER */
 
         var adtObj = {};
+        adtObj.fileName = filename;
         chunkedFile.setSectionReaders(defaultAdtLoader);
         chunkedFile.processFile(adtObj);
         addTextureNames(adtObj);

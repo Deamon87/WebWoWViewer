@@ -11,6 +11,11 @@ class ADTObject {
         for (var i = 0; i < 256; i++) {
             this.drawChunk[i] = true;
         }
+
+        this.textureArray = new Array(255);
+        for (var i = 0; i < 256; i++) {
+            this.textureArray[i] = [];
+        }
     }
     getMCNKCameraIsOn(cameraVec4){
         if (!this.adtGeom) return null;
@@ -141,6 +146,29 @@ class ADTObject {
             self.wmoArray[i] = self.sceneApi.objects.loadAdtWmo(wmoDef);
         }
     }
+    loadTextures() {
+        var gl = this.gl;
+        var mcnkObjs = this.adtGeom.adtFile.mcnkObjs;
+
+        /* 1. Load rgb textures */
+        for (var i = 0; i < mcnkObjs.length; i++) {
+            var mcnkObj = mcnkObjs[i];
+
+            if (mcnkObj.textureLayers && (mcnkObj.textureLayers.length > 0)) {
+                for (var j = 0; j < mcnkObj.textureLayers.length; j++) {
+                    //if (mcnkObj.textureLayers[j].textureID < 0)
+                    this.loadTexture(i, j, mcnkObj.textureLayers[j].textureName);
+                }
+            }
+        }
+    }
+    loadTexture(index, layerInd, filename) {
+        var self = this;
+        this.sceneApi.resources.loadTexture(filename).then(function success(textObject) {
+            self.textureArray[index][layerInd] = textObject;
+        }, function error() {
+        });
+    }
 
     load(modelName) {
         var self = this;
@@ -150,7 +178,7 @@ class ADTObject {
             self.adtGeom = result;
 
             self.calcBoundingBoxes();
-
+            self.loadTextures();
             self.loadM2s();
             self.loadWmos();
         });

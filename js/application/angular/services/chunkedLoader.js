@@ -23,6 +23,20 @@ export default function (filePath, arrayBuffer) {
                 var chunk = this.loadChunkAtOffset(offs);
                 this.processChunk(chunk, resultObj);
             },
+            processSubChunks(chunk, resultObj, offset) {
+                var chunkLoadOffset = chunk.chunkOffset + offset;
+                var chunkEndOffset = chunk.chunkOffset + chunk.chunkLen;
+                var subChunk;
+                while (chunkLoadOffset < chunkEndOffset && (subChunk = this.loadChunkAtOffset(chunkLoadOffset)).chunkIdent != "") {
+                    var subchunkHandler = sectionHandlerProc.subChunks[subChunk.chunkIdent];
+                    if (subchunkHandler){
+                        subchunkHandler(resultObj, subChunk, this);
+                    } else {
+                        console.log("Unknown SubChunk. Ident = " + subChunk.chunkIdent);
+                    }
+                    chunkLoadOffset = subChunk.nextChunkOffset;
+                }
+            },
             processChunk : function (chunk, resultObj){
                 var sectionHandlerProc = sectionReaders.getHandler(chunk.chunkIdent);
                 if (sectionHandlerProc && chunk.chunkLen !== 0){
@@ -32,17 +46,7 @@ export default function (filePath, arrayBuffer) {
                         var offset = sectionHandlerProc[chunk.chunkIdent](resultObj, chunk);
 
                         /* Iteration through subchunks */
-                        var subChunk = this.loadChunkAtOffset(chunk.chunkOffset + offset.offs);
-                        while (subChunk.chunkIdent != "") {
-                            var subchunkHandler = sectionHandlerProc.subChunks[subChunk.chunkIdent];
-                            if (subchunkHandler){
-                                subchunkHandler(resultObj, subChunk, this);
-                            } else {
-                                console.log("Unknown SubChunk. Ident = " + subChunk.chunkIdent);
-                            }
-
-                            subChunk = this.loadChunkAtOffset(subChunk.nextChunkOffset);
-                        }
+                    //(offset.offs)
                     }
                 } else {
                     console.log("Unknown Chunk. Ident = " + chunk.chunkIdent);

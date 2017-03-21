@@ -1,4 +1,4 @@
-<div ui-tree="treeOptions" class="directoryEditor">
+<div ui-tree="treeOptions" data-drag-delay=150 class="directoryEditor">
     <ol ui-tree-nodes="" ng-model="fileList" id="tree-root">
         <li ng-repeat="node in fileList" ui-tree-node ng-include="'folderEditorNode.html'"></li>
     </ol>

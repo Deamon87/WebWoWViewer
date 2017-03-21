@@ -26,6 +26,7 @@ class CascReader {
             //runInitFunc();
             self.initFileSystem();
             self.loadStorage();
+
             self.inited = true;
             self.walkThroughInitPromises();
 
@@ -86,6 +87,7 @@ class CascReader {
         } else {
             //TODO: FIX
             //var errorCode = Module._GetLastError();
+            console.log("could not read load casc storage")
         }
 
         /* 6. Free memory */

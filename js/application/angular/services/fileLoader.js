@@ -7,14 +7,7 @@ var messageId = 0;
 var messageTable = {};
 var worker = new FileWorker();
 
-window.loadStorage = function ()  {
-    worker.postMessage({opcode: 'loadStorage'});
-}
-
 worker.onmessage = function(e) {
-    //debugger;
-
-
     var opcode = e.data.opcode;
     var message = e.data.message;
     var recv_messageId = e.data.messageId;
@@ -40,7 +33,7 @@ export default function (fileName) {
     if (!inited) {
         worker.postMessage({opcode: 'init', message: {
             archiveFile : configService.getArchiveFile(),
-            fileReadMethod : configService.getFileReadMethod(),
+            fileReadMethod : 'casc',//configService.getFileReadMethod(),
             urlToLoadWoWFile : configService.getUrlToLoadWoWFile(),
             fileList: configService.getFileList().map((a) => (
                 {'file': a, 'fullPath': a.fullPath, 'lastModifiedDate': a.lastModifiedDate, 'size': a.size}

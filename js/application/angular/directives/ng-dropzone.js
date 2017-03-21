@@ -35,7 +35,7 @@ class NgDirectoryDragDrop {
                 }
             }
             if (items == null){
-                this.addPlainFileList(items)
+                self.addPlainFileList(items)
             }
         });
     }
