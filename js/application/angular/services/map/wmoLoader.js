@@ -33,7 +33,7 @@ function wmoGroupLoader(wmoFilePath, loadPlainVertexes) {
 
                 groupWMOObject.mogp = mogp;
 
-                return offset;
+                return {resultObj: groupWMOObject, offset: offs};
             },
             subChunks : {
                 "MOPY": function (groupWMOObject, chunk) {

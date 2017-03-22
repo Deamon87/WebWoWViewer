@@ -15,40 +15,53 @@ export default function (filePath, arrayBuffer) {
             setSectionReaders : function (value) {
                 sectionReaders = value;
             },
-            processChunkAtOffsWithSize : function (offs, size, resultObj) {
+            processChunkAtOffsWithSize : function (offs, size, resultObj, parentSectionHandlerProc) {
                 var chunk = this.loadChunkAtOffset(offs, size);
-                this.processChunk(chunk, resultObj);
-            },
-            processChunkAtOffs : function (offs, resultObj) {
-                var chunk = this.loadChunkAtOffset(offs);
-                this.processChunk(chunk, resultObj);
-            },
-            processSubChunks(chunk, resultObj, offset) {
-                var chunkLoadOffset = chunk.chunkOffset + offset;
-                var chunkEndOffset = chunk.chunkOffset + chunk.chunkLen;
-                var subChunk;
-                while (chunkLoadOffset < chunkEndOffset && (subChunk = this.loadChunkAtOffset(chunkLoadOffset)).chunkIdent != "") {
-                    var subchunkHandler = sectionHandlerProc.subChunks[subChunk.chunkIdent];
-                    if (subchunkHandler){
-                        subchunkHandler(resultObj, subChunk, this);
-                    } else {
-                        console.log("Unknown SubChunk. Ident = " + subChunk.chunkIdent);
-                    }
-                    chunkLoadOffset = subChunk.nextChunkOffset;
+                if (parentSectionHandlerProc) {
+                    var sectionHandlerProc = parentSectionHandlerProc.subChunks[chunk.chunkIdent];
+                } else {
+                    var sectionHandlerProc = sectionReaders.getHandler(chunk.chunkIdent)
                 }
+                this.processChunk(chunk, resultObj, sectionHandlerProc);
             },
-            processChunk : function (chunk, resultObj){
-                var sectionHandlerProc = sectionReaders.getHandler(chunk.chunkIdent);
-                if (sectionHandlerProc && chunk.chunkLen !== 0){
+            processChunkAtOffs : function (offs, resultObj, parentSectionHandlerProc) {
+                var chunk = this.loadChunkAtOffset(offs);
+                if (parentSectionHandlerProc) {
+                    var sectionHandlerProc = parentSectionHandlerProc.subChunks[chunk.chunkIdent];
+                } else {
+                    var sectionHandlerProc = sectionReaders.getHandler(chunk.chunkIdent)
+                }
+                this.processChunk(sectionHandlerProc, chunk, resultObj);
+            },
+            processChunk : function (sectionHandlerProc, chunk, resultObj){
+                if (sectionHandlerProc){
                     if (typeof sectionHandlerProc === 'function') {
                         sectionHandlerProc(resultObj, chunk, this);
                     } else {
-                        var offset = sectionHandlerProc[chunk.chunkIdent](resultObj, chunk);
+                        var results = sectionHandlerProc[chunk.chunkIdent](resultObj, chunk);
+                        var offset = results.offset.offs;
+                        var subResultObj = results.resultObj;
 
                         /* Iteration through subchunks */
-                    //(offset.offs)
+                        if (chunk.chunkLen > 0) {
+                            if (offset > 0) {
+                                var chunkLoadOffset = chunk.chunkDataOffset + offset;
+                            } else {
+                                var chunkLoadOffset = chunk.chunkDataOffset;
+                            }
+                            var chunkEndOffset = chunk.chunkDataOffset + chunk.chunkLen;
+                            var subChunk;
+                            while (chunkLoadOffset < chunkEndOffset && (subChunk = this.loadChunkAtOffset(chunkLoadOffset)).chunkIdent != "") {
+                                var subchunkHandler = sectionHandlerProc.subChunks[subChunk.chunkIdent];
+                                this.processChunk(subchunkHandler, subChunk, subResultObj);
+
+                                chunkLoadOffset = subChunk.nextChunkOffset;
+                            }
+                        }
                     }
                 } else {
+                    if (chunk.chunkIdent == "MCRW")
+                        debugger;
                     console.log("Unknown Chunk. Ident = " + chunk.chunkIdent);
                 }
             },
@@ -56,7 +69,8 @@ export default function (filePath, arrayBuffer) {
                 var chunk = this.loadChunkAtOffset(0);
 
                 while (chunk.chunkIdent != "") {
-                    this.processChunk(chunk, resultObj, sectionReaders);
+                    var sectionHandlerProc = sectionReaders.getHandler(chunk.chunkIdent)
+                    this.processChunk(sectionHandlerProc, chunk, resultObj);
                     chunk = this.loadChunkAtOffset(chunk.nextChunkOffset);
                 }
             },

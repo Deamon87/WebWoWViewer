@@ -7,6 +7,7 @@ class ADTObject {
         this.aabbs = [];
         this.m2Array = null;
         this.wmoArray = null;
+        this.postLoadExecuted = false;
 
         for (var i = 0; i < 256; i++) {
             this.drawChunk[i] = true;
@@ -41,7 +42,17 @@ class ADTObject {
     checkFrustumCulling (cameraVec4, frustumPlanes, num_planes, frustumPoints, hullLines, lookAtMat4, m2ObjectsCandidates, wmoCandidates) {
         if (!this.adtGeom) return false;
         var adtFile = this.adtGeom.adtFile;
+        var objAdtFile = this.adtGeom.objAdt;
         var atLeastOneIsDrawn = false;
+
+        if (this.adtGeom.loaded && !this.postLoadExecuted) {
+            this.calcBoundingBoxes();
+            this.loadTextures();
+            this.loadM2s();
+            this.loadWmos();
+
+            this.postLoadExecuted = true;
+        }
 
         for (var i = 0; i < 256; i++) {
             var mcnk = adtFile.mcnkObjs[i];
@@ -73,15 +84,15 @@ class ADTObject {
                 atLeastOneIsDrawn = atLeastOneIsDrawn || result ;
             }
             if (checkRefs) {
-                //var mcnk = adtFile.mcnkObjs[i];
+                var mcnk = objAdtFile.mcnkObjs[i];
 
-                if (mcnk.m2Refs) {
+                if (mcnk && mcnk.m2Refs) {
                     for (var j = 0; j < mcnk.m2Refs.length; j++) {
                         var m2Ref = mcnk.m2Refs[j];
                         m2ObjectsCandidates.add(this.m2Array[m2Ref])
                     }
                 }
-                if (this.wmoArray) {
+                if (this.wmoArray && mcnk && mcnk.wmoRefs) {
                     for (var j = 0; j < mcnk.wmoRefs.length; j++) {
                         var wmoRef = mcnk.wmoRefs[j];
                         wmoCandidates.add(this.wmoArray[wmoRef])
@@ -123,7 +134,7 @@ class ADTObject {
 
     loadM2s() {
         var self = this;
-        var m2Positions = this.adtGeom.adtFile.mddf;
+        var m2Positions = this.adtGeom.objAdt.mddf;
         if (!m2Positions) return;
 
         this.m2Array = new Array(m2Positions.length);
@@ -136,9 +147,8 @@ class ADTObject {
 
     loadWmos() {
         var self = this;
-        var wmoPositions = this.adtGeom.adtFile.wmoObjs;
+        var wmoPositions = this.adtGeom.objAdt.wmoObjs;
         if (!wmoPositions) return;
-
 
         this.wmoArray = new Array(wmoPositions.length);
         for (var i = 0; i < wmoPositions.length; i++) {
@@ -148,7 +158,7 @@ class ADTObject {
     }
     loadTextures() {
         var gl = this.gl;
-        var mcnkObjs = this.adtGeom.adtFile.mcnkObjs;
+        var mcnkObjs = this.adtGeom.textAdt.mcnkObjs;
 
         /* 1. Load rgb textures */
         for (var i = 0; i < mcnkObjs.length; i++) {
@@ -176,17 +186,12 @@ class ADTObject {
         var adtPromise = this.sceneApi.resources.loadAdtGeom(modelName);
         adtPromise.then(function (result) {
             self.adtGeom = result;
-
-            self.calcBoundingBoxes();
-            self.loadTextures();
-            self.loadM2s();
-            self.loadWmos();
         });
     }
 
     draw(deltaTime) {
-        if (this.adtGeom) {
-            this.adtGeom.draw(this.drawChunk);
+        if (this.adtGeom && this.adtGeom.loaded) {
+            this.adtGeom.draw(this.drawChunk, this.textureArray);
         }
     }
 }

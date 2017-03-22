@@ -7,7 +7,7 @@ function processTexture(adtObj, wdtObj, i) {
     var layers = mcnkObj.textureLayers;
 
     var currentLayer = new Uint8Array(((64*4) * 64));
-    if (!layers) return currentLayer;
+    if (!layers || !alphaArray) return currentLayer;
     for (var j = 0; j < layers.length; j++ ) {
         var alphaOffs = layers[j].alphaMap;
         var offO = j;
@@ -93,14 +93,19 @@ class ADTGeom {
         var self = this;
 
 
-        var texFilePromise = adtLoader(texFileName).then(function success(a) {
+        var texFilePromise = adtLoader(texFileName, this.adtFile).then(function success(a) {
             self.textAdt = a;
+            //debugger;
         });
-        var objFilePromise = adtLoader(objFileName).then(function success(a) {
+        var objFilePromise = adtLoader(objFileName, this.adtFile).then(function success(a) {
             self.objAdt = a;
+            //debugger;
         } );
         Promise.all([texFilePromise, objFilePromise]).then(function success(a) {
+            self.createTriangleStrip();
+            self.createVBO();
             self.loaded = true;
+
         }, function error(e) {
             console.log(e);
         });
@@ -121,7 +126,7 @@ class ADTGeom {
         var alphaTextures = this.alphaTextures;
         for (var i = this.alphaTexturesLoaded; i < chunkCount; i++) {
             var alphaTexture = gl.createTexture();
-            var alphaTextureData = processTexture(this.adtFile, this.wdtFile, i);
+            var alphaTextureData = processTexture(this.textAdt, this.wdtFile, i);
 
             gl.bindTexture(gl.TEXTURE_2D, alphaTexture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texWidth, texHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, alphaTextureData);
@@ -210,23 +215,17 @@ class ADTGeom {
         /* 1.2 Heights */
         this.heightOffset = vboArray.length;
         var mcnkObjs = this.adtFile.mcnkObjs;
-        var doNotCreateHeightVBO = false;
         for (var i = 0; i < mcnkObjs.length; i++) {
-            if (mcnkObjs[i].heights == null) {
-                doNotCreateHeightVBO = true;
-                break;
-            }
             for (var j = 0; j < 145; j++) {
                 vboArray.push(mcnkObjs[i].heights[j]);
             }
         }
 
         /* 1.3 Make combinedVbo */
-        if (doNotCreateHeightVBO) {
-            this.combinedVbo = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.combinedVbo);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vboArray), gl.STATIC_DRAW);
-        }
+        this.combinedVbo = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.combinedVbo);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vboArray), gl.STATIC_DRAW);
+
         /* 2. Strips */
         this.stripVBO = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.stripVBO);
@@ -270,7 +269,7 @@ class ADTGeom {
                         gl.bindTexture(gl.TEXTURE_2D, blackPixelTexture);
                     }
                 }
-                for (var j = this.textureArray[i].length; j < 4; j++) {
+                for (var j = textureArray[i].length; j < 4; j++) {
                     gl.activeTexture(gl.TEXTURE1 + j);
                     gl.bindTexture(gl.TEXTURE_2D, blackPixelTexture);
                 }
@@ -298,8 +297,9 @@ class AdtGeomCache extends Cache {
         var fileName = chacheIter.next().value;
         while (fileName != null) {
             var adtGeomObject = this.cache.get(fileName).obj;
-            adtGeomObject.loadAlphaTextures(limit);
-
+            if (adtGeomObject.loaded) {
+                adtGeomObject.loadAlphaTextures(limit);
+            }
 
             fileName = chacheIter.next().value;
         }
@@ -309,8 +309,6 @@ class AdtGeomCache extends Cache {
     process(adtFile) {
         var adtGeomObj = new ADTGeom(this.sceneApi, this.sceneApi.getCurrentWdt());
         adtGeomObj.assign(adtFile);
-        adtGeomObj.createTriangleStrip();
-        adtGeomObj.createVBO();
         adtGeomObj.startLoadingLod();
 
         return adtGeomObj;

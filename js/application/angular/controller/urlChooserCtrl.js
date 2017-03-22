@@ -158,6 +158,26 @@ let parameters = {
             z: 170
         },
         {
+            name: 'Karazahn1',
+            source: 'http',
+            sceneType: 'map',
+            //mapId: 0,
+            mapName: 'Karazahn1',
+            x: -10666.666666656,
+            y: -1600,
+            z: 170
+        },
+        {
+            name: 'TanaanJungleIntro',
+            source: 'http',
+            sceneType: 'map',
+            //mapId: 0,
+            mapName: 'TanaanJungleIntro',
+            x: -10666.666666656,
+            y: -1600,
+            z: 170
+        },
+        {
             name: 'Darkshire blacksmith',
             source: 'http',
             sceneType: 'wmo',
