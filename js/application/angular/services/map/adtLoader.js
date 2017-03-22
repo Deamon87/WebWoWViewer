@@ -124,20 +124,20 @@ const handlerTable = {
                 mcnkObj.unused = chunk.readUint32(offs);
 
                 //1. Load MCVT
-                if (ofsHeight > 0)
-                    chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsHeight, adtObject, this);
+                //if (ofsHeight > 0)
+                //    chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsHeight, adtObject, this);
                 //2. Load MCNR
-                if (ofsNormal > 0)
-                    chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsNormal, adtObject, this);
+                //if (ofsNormal > 0)
+                //    chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsNormal, adtObject, this);
                 //3. Load MCLY
-                if (ofsLayer > 0)
-                    chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsLayer, adtObject, this);
+                //if (ofsLayer > 0)
+                //    chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsLayer, adtObject, this);
                 //4. Load MCAL
-                if (ofsAlpha > 0)
-                    chunkedFile.processChunkAtOffsWithSize(chunk.chunkOffset + ofsAlpha, mcnkObj.sizeAlpha, adtObject, this);
+                //if (ofsAlpha > 0)
+                //    chunkedFile.processChunkAtOffsWithSize(chunk.chunkOffset + ofsAlpha, mcnkObj.sizeAlpha, adtObject, this);
                 //5. Load MCRF
-                if (ofsRefs > 0)
-                    chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsRefs, adtObject, this);
+                //if (ofsRefs > 0)
+                //    chunkedFile.processChunkAtOffs(chunk.chunkOffset + ofsRefs, adtObject, this);
             }
 
             return {resultObj: mcnkObj, offset: offs};

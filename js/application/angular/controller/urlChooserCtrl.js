@@ -173,8 +173,18 @@ let parameters = {
             sceneType: 'map',
             //mapId: 0,
             mapName: 'TanaanJungleIntro',
-            x: -10666.666666656,
-            y: -1600,
+            x: 5000,
+            y: -2500,
+            z: 170
+        },
+        {
+            name: 'TrollRaid2',
+            source: 'http',
+            sceneType: 'map',
+            //mapId: 0,
+            mapName: 'TrollRaid2',
+            x: 3500,
+            y: 1500,
             z: 170
         },
         {

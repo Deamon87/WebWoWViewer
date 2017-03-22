@@ -29,11 +29,11 @@ function wmoGroupLoader(wmoFilePath, loadPlainVertexes) {
                 mogp.Unk3            = chunk.readInt32(offset);
 
                 /* Skip 14 more bytes */
-                offset.offs += 8;
+                //offset.offs += 8;
 
                 groupWMOObject.mogp = mogp;
 
-                return {resultObj: groupWMOObject, offset: offs};
+                return {resultObj: groupWMOObject, offset: offset};
             },
             subChunks : {
                 "MOPY": function (groupWMOObject, chunk) {

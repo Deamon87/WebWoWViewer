@@ -60,7 +60,7 @@ export default function (filePath, arrayBuffer) {
                         }
                     }
                 } else {
-                    if (chunk.chunkIdent == "MCRW")
+                    if (chunk.chunkIdent == "MOGN")
                         debugger;
                     console.log("Unknown Chunk. Ident = " + chunk.chunkIdent);
                 }

@@ -15,6 +15,7 @@ class WmoGeom {
     }
     loadTextures (momt){
         this.momt = momt;
+        if (!this.wmoGroupFile.renderBatches) return;
         this.textureArray.length = this.wmoGroupFile.renderBatches.length;
 
         for (var i = 0; i < this.wmoGroupFile.renderBatches.length ; i++){
