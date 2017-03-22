@@ -81,6 +81,25 @@
                             </div>
                         </uib-tab>
                     </uib-tabset>
+
+
+                    <div class="btn-group">
+                        <label class="btn btn-primary" ng-model="method" uib-btn-radio="'Local'">Local</label>
+                        <label class="btn btn-primary" ng-model="method" uib-btn-radio="'Http'">Http</label>
+                    </div>
+                    <div class="btn-group">
+                        <label class="btn btn-primary" ng-model="storage" uib-btn-radio="'MPQ'">MPQ</label>
+                        <label class="btn btn-primary" ng-model="storage" uib-btn-radio="'CASC'">CASC</label>
+                        <label class="btn btn-primary" ng-model="storage" uib-btn-radio="'ZIP'">ZIP</label>
+                        <label class="btn btn-primary" ng-model="storage" uib-btn-radio="'Unpacked'">Unpacked</label>
+                    </div>
+
+                    <div class="btn-group">
+                        <label class="btn btn-primary" ng-model="sceneType" uib-btn-radio="'Map'">Map</label>
+                        <!--<label class="btn btn-primary" ng-model="radioModel" uib-btn-radio="'ADT'">ADT</label>-->
+                        <label class="btn btn-primary" ng-model="sceneType" uib-btn-radio="'WMO'">WMO</label>
+                        <label class="btn btn-primary" ng-model="sceneType" uib-btn-radio="'M2'">M2</label>
+                    </div>
                 </div>
             </div>
         </div>
