@@ -6,13 +6,17 @@ An attempt to recreate old WoWMapViewer application from scratch and entirely in
 
 Current target is Wrath of the Lich King
 
-##Tech demo
+## Tech demo
+
 http://deamon87.github.io/WebWoWViewer/index.html
 
-This is early demo. 
-After data is downloaded and application is started (blue screen will appear), give it around 30-40 seconds to upload data to GPU. After that it will become less laggy and more responsive.
+Early demo. Only first two options are available. All others require a dedicated HTTP server, that will serve unpacked data from client.
+Soon I will update that page with a version, where you can use your local WoW directory as source for data
 
-##Test videos
+## Test videos
+
 Test portal culling for Ironforge
-
 [![IMAGE ALT TEXT HERE](http://i.imgur.com/FrWJB3i.png)](https://www.youtube.com/watch?v=_QJVAMeTiyM)
+
+Stormwind Legion
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/t1HCbeSS_nI/0.jpg)](https://www.youtube.com/watch?v=t1HCbeSS_nI)
