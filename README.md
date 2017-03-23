@@ -16,7 +16,9 @@ Soon I will update that page with a version, where you can use your local WoW di
 ## Test videos
 
 Test portal culling for Ironforge
+
 [![IMAGE ALT TEXT HERE](http://i.imgur.com/FrWJB3i.png)](https://www.youtube.com/watch?v=_QJVAMeTiyM)
 
 Stormwind Legion
+
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/t1HCbeSS_nI/0.jpg)](https://www.youtube.com/watch?v=t1HCbeSS_nI)
